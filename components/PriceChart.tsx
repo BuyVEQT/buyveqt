@@ -44,8 +44,8 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   if (!active || !payload?.length || !label) return null;
   const date = new Date(label + "T00:00:00");
   return (
-    <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 shadow-lg">
-      <p className="text-xs text-[var(--color-text-muted)]">
+    <div className="rounded-lg border border-[var(--color-border-light)] bg-[var(--color-card)] px-3 py-2 shadow-xl">
+      <p className="text-[11px] text-[var(--color-text-muted)]">
         {date.toLocaleDateString("en-CA", {
           weekday: "short",
           year: "numeric",
@@ -71,18 +71,20 @@ export default function PriceChart({
   const maxPrice = prices.length ? Math.ceil(Math.max(...prices) * 1.01) : 100;
 
   return (
-    <section className="mx-auto max-w-5xl px-6 py-16 sm:py-20">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-        <h2 className="text-2xl sm:text-3xl font-bold">Price History</h2>
-        <div className="flex gap-1 rounded-lg bg-[var(--color-surface-alt)] p-1">
+    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-4 sm:p-5">
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <h2 className="text-sm font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">
+          Price History
+        </h2>
+        <div className="flex gap-0.5 rounded-lg bg-[var(--color-base)] p-0.5">
           {CHART_PERIODS.map((p) => (
             <button
               key={p.key}
               onClick={() => onPeriodChange(p.key as ChartPeriod)}
-              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-all ${
+              className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all ${
                 period === p.key
-                  ? "bg-[var(--color-vanguard-red)] text-white shadow-sm"
-                  : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                  ? "bg-[var(--color-accent)] text-white shadow-sm"
+                  : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
               }`}
             >
               {p.label}
@@ -91,13 +93,13 @@ export default function PriceChart({
         </div>
       </div>
 
-      <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 sm:p-6">
+      <div>
         {loading || data.length === 0 ? (
-          <div className="h-[350px] flex items-center justify-center">
+          <div className="h-full min-h-[300px] flex items-center justify-center">
             {loading ? (
               <div className="skeleton h-full w-full rounded-lg" />
             ) : (
-              <p className="text-[var(--color-text-muted)]">
+              <p className="text-sm text-[var(--color-text-muted)]">
                 Chart data unavailable
               </p>
             )}
@@ -109,12 +111,12 @@ export default function PriceChart({
                 <linearGradient id="colorClose" x1="0" y1="0" x2="0" y2="1">
                   <stop
                     offset="5%"
-                    stopColor="var(--color-vanguard-red)"
-                    stopOpacity={0.15}
+                    stopColor="var(--color-accent)"
+                    stopOpacity={0.2}
                   />
                   <stop
                     offset="95%"
-                    stopColor="var(--color-vanguard-red)"
+                    stopColor="var(--color-accent)"
                     stopOpacity={0}
                   />
                 </linearGradient>
@@ -127,7 +129,7 @@ export default function PriceChart({
               <XAxis
                 dataKey="date"
                 tickFormatter={(d) => formatDate(d, period)}
-                tick={{ fontSize: 12, fill: "var(--color-text-muted)" }}
+                tick={{ fontSize: 11, fill: "var(--color-text-muted)" }}
                 tickLine={false}
                 axisLine={false}
                 interval="preserveStartEnd"
@@ -136,23 +138,23 @@ export default function PriceChart({
               <YAxis
                 domain={[minPrice, maxPrice]}
                 tickFormatter={(v: number) => `$${v}`}
-                tick={{ fontSize: 12, fill: "var(--color-text-muted)" }}
+                tick={{ fontSize: 11, fill: "var(--color-text-muted)" }}
                 tickLine={false}
                 axisLine={false}
-                width={55}
+                width={50}
               />
               <Tooltip content={<CustomTooltip />} />
               <Area
                 type="monotone"
                 dataKey="close"
-                stroke="var(--color-vanguard-red)"
+                stroke="var(--color-accent)"
                 strokeWidth={2}
                 fill="url(#colorClose)"
                 dot={false}
                 activeDot={{
                   r: 4,
-                  fill: "var(--color-vanguard-red)",
-                  stroke: "#fff",
+                  fill: "var(--color-accent)",
+                  stroke: "var(--color-card)",
                   strokeWidth: 2,
                 }}
               />
@@ -160,6 +162,6 @@ export default function PriceChart({
           </ResponsiveContainer>
         )}
       </div>
-    </section>
+    </div>
   );
 }

@@ -8,10 +8,10 @@ export const STATIC_DATA = {
 } as const;
 
 export const ASSET_ALLOCATION: AssetAllocation[] = [
-  { name: "US", value: 40, color: "#C41230" },
-  { name: "Canada", value: 30, color: "#E8453C" },
-  { name: "International", value: 23, color: "#F4A261" },
-  { name: "Emerging Markets", value: 7, color: "#264653" },
+  { name: "US", value: 40, color: "#3b82f6" },
+  { name: "Canada", value: 30, color: "#22c55e" },
+  { name: "International", value: 23, color: "#f59e0b" },
+  { name: "Emerging Markets", value: 7, color: "#8b5cf6" },
 ];
 
 export const FALLBACK_QUOTE: VeqtQuote = {
