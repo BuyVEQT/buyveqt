@@ -1,13 +1,15 @@
 "use client";
 
 import { useVeqtData } from "@/lib/useVeqtData";
-import NavBar from "@/components/NavBar";
-import StatsStrip from "@/components/StatsStrip";
+import NavBar from "@/components/layout/NavBar";
+import Footer from "@/components/layout/Footer";
+import HeroSection from "@/components/HeroSection";
 import PriceChart from "@/components/PriceChart";
-import AllocationChart from "@/components/AllocationChart";
-import WhatIsVeqt from "@/components/WhatIsVeqt";
-import CommunityCard from "@/components/CommunityCard";
-import Footer from "@/components/Footer";
+import SidebarCards from "@/components/SidebarCards";
+import InsideVeqtPreview from "@/components/InsideVeqtPreview";
+import ComparePreview from "@/components/ComparePreview";
+import LearnPreview from "@/components/LearnPreview";
+import CommunityStrip from "@/components/CommunityStrip";
 
 export default function Home() {
   const { data, loading, period, setPeriod } = useVeqtData();
@@ -19,28 +21,41 @@ export default function Home() {
         loading={loading}
         isFallback={data?.isFallback ?? false}
       />
-      <StatsStrip quote={data?.quote ?? null} loading={loading} />
 
-      {/* Dashboard Grid */}
-      <main className="flex-1 mx-auto w-full max-w-7xl px-4 py-4 sm:py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
-          {/* Primary: Price Chart (spans 2 cols on desktop) */}
-          <div className="lg:col-span-2">
-            <PriceChart
-              data={data?.historical ?? []}
-              loading={loading}
-              period={period}
-              onPeriodChange={setPeriod}
-            />
-          </div>
+      <main className="flex-1 mx-auto w-full max-w-6xl px-4">
+        {/* Section 1: Hero */}
+        <HeroSection
+          quote={data?.quote ?? null}
+          loading={loading}
+          isFallback={data?.isFallback ?? false}
+        />
 
-          {/* Sidebar widgets */}
-          <div className="flex flex-col gap-4">
-            <AllocationChart />
-            <WhatIsVeqt />
-            <CommunityCard />
+        {/* Section 2: Price Chart + Sidebar */}
+        <section className="py-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+            <div className="lg:col-span-2">
+              <PriceChart
+                data={data?.historical ?? []}
+                loading={loading}
+                period={period}
+                onPeriodChange={setPeriod}
+              />
+            </div>
+            <SidebarCards />
           </div>
-        </div>
+        </section>
+
+        {/* Section 3: What's Inside VEQT */}
+        <InsideVeqtPreview />
+
+        {/* Section 4: Compare Preview */}
+        <ComparePreview />
+
+        {/* Section 5: Learn Preview */}
+        <LearnPreview />
+
+        {/* Section 6: Community */}
+        <CommunityStrip />
       </main>
 
       <Footer />

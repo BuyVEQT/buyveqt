@@ -44,7 +44,7 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   if (!active || !payload?.length || !label) return null;
   const date = new Date(label + "T00:00:00");
   return (
-    <div className="rounded-lg border border-[var(--color-border-light)] bg-[var(--color-card)] px-3 py-2 shadow-xl">
+    <div className="rounded-lg border border-[var(--color-border)] bg-white px-3 py-2 shadow-lg">
       <p className="text-[11px] text-[var(--color-text-muted)]">
         {date.toLocaleDateString("en-CA", {
           weekday: "short",
@@ -71,10 +71,10 @@ export default function PriceChart({
   const maxPrice = prices.length ? Math.ceil(Math.max(...prices) * 1.01) : 100;
 
   return (
-    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-4 sm:p-5">
+    <div className="rounded-lg border border-[var(--color-border)] bg-white p-4 sm:p-5">
       <div className="flex items-center justify-between gap-3 mb-4">
-        <h2 className="text-sm font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">
-          Price History
+        <h2 className="text-sm font-semibold text-[var(--color-text-secondary)]">
+          VEQT.TO Price History
         </h2>
         <div className="flex gap-0.5 rounded-lg bg-[var(--color-base)] p-0.5">
           {CHART_PERIODS.map((p) => (
@@ -83,7 +83,7 @@ export default function PriceChart({
               onClick={() => onPeriodChange(p.key as ChartPeriod)}
               className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all ${
                 period === p.key
-                  ? "bg-[var(--color-accent)] text-white shadow-sm"
+                  ? "bg-white text-[var(--color-text-primary)] shadow-sm"
                   : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
               }`}
             >
@@ -97,7 +97,7 @@ export default function PriceChart({
         {loading || data.length === 0 ? (
           <div className="h-full min-h-[300px] flex items-center justify-center">
             {loading ? (
-              <div className="skeleton h-full w-full rounded-lg" />
+              <div className="skeleton h-[300px] w-full rounded-lg" />
             ) : (
               <p className="text-sm text-[var(--color-text-muted)]">
                 Chart data unavailable
@@ -105,18 +105,18 @@ export default function PriceChart({
             )}
           </div>
         ) : (
-          <ResponsiveContainer width="100%" height={350}>
+          <ResponsiveContainer width="100%" height={320}>
             <AreaChart data={data}>
               <defs>
                 <linearGradient id="colorClose" x1="0" y1="0" x2="0" y2="1">
                   <stop
                     offset="5%"
-                    stopColor="var(--color-accent)"
-                    stopOpacity={0.2}
+                    stopColor="var(--color-chart-line)"
+                    stopOpacity={0.12}
                   />
                   <stop
                     offset="95%"
-                    stopColor="var(--color-accent)"
+                    stopColor="var(--color-chart-line)"
                     stopOpacity={0}
                   />
                 </linearGradient>
@@ -147,14 +147,14 @@ export default function PriceChart({
               <Area
                 type="monotone"
                 dataKey="close"
-                stroke="var(--color-accent)"
+                stroke="var(--color-chart-line)"
                 strokeWidth={2}
                 fill="url(#colorClose)"
                 dot={false}
                 activeDot={{
                   r: 4,
-                  fill: "var(--color-accent)",
-                  stroke: "var(--color-card)",
+                  fill: "var(--color-chart-line)",
+                  stroke: "white",
                   strokeWidth: 2,
                 }}
               />
@@ -162,6 +162,10 @@ export default function PriceChart({
           </ResponsiveContainer>
         )}
       </div>
+
+      <p className="text-[11px] text-[var(--color-text-muted)] mt-2">
+        Source: Yahoo Finance &middot; Updated every 30 min
+      </p>
     </div>
   );
 }
