@@ -5,16 +5,15 @@ import {
   VEQT_DISTRIBUTIONS,
   getTrailing12MonthDistributions,
   getDistributionYears,
-  getDistributionsByYear,
 } from "@/data/distributions";
 
 export const metadata: Metadata = {
   title: "VEQT Distribution History — BuyVEQT",
   description:
-    "Complete history of VEQT quarterly distributions — amounts per unit, ex-dividend dates, and payment dates. Track VEQT's dividend history over time.",
+    "Complete history of VEQT annual distributions — amounts per unit, ex-dividend dates, and payment dates. Track VEQT's dividend history over time.",
   openGraph: {
     title: "VEQT Distribution History — BuyVEQT",
-    description: "Complete history of VEQT quarterly distributions.",
+    description: "Complete history of VEQT annual distributions.",
   },
 };
 
@@ -30,10 +29,6 @@ export default function DistributionsPage() {
   const latest = VEQT_DISTRIBUTIONS.distributions[0];
   const trailing12 = getTrailing12MonthDistributions();
   const years = getDistributionYears();
-  const byYear = getDistributionsByYear();
-  const sortedYears = Object.keys(byYear)
-    .map(Number)
-    .sort((a, b) => b - a);
 
   return (
     <PageShell>
@@ -44,7 +39,7 @@ export default function DistributionsPage() {
             VEQT Distributions
           </h1>
           <p className="mt-2 text-[var(--color-text-muted)] max-w-prose">
-            VEQT pays distributions quarterly. Here&apos;s the complete history.
+            VEQT pays one distribution per year. Here&apos;s the complete history.
           </p>
         </div>
 
@@ -134,41 +129,24 @@ export default function DistributionsPage() {
                   </th>
                 </tr>
               </thead>
-              {sortedYears.map((year) => {
-                const dists = byYear[year];
-                const yearTotal = dists.reduce((s, d) => s + d.amount, 0);
-                return (
-                  <tbody key={year}>
-                    {dists.map((d, i) => (
-                      <tr
-                        key={d.exDate}
-                        className={`border-b border-[var(--color-border)] ${
-                          i % 2 === 1 ? "bg-[var(--color-base)]" : ""
-                        }`}
-                      >
-                        <td className="py-2.5 px-4">{formatDate(d.exDate)}</td>
-                        <td className="py-2.5 px-4 text-[var(--color-text-muted)]">
-                          {formatDate(d.payDate)}
-                        </td>
-                        <td className="py-2.5 px-4 text-right tabular-nums font-medium">
-                          ${d.amount.toFixed(4)}
-                        </td>
-                      </tr>
-                    ))}
-                    <tr className="border-b border-[var(--color-border)] bg-[var(--color-base)]">
-                      <td
-                        colSpan={2}
-                        className="py-2 px-4 text-xs font-semibold text-[var(--color-text-muted)] uppercase"
-                      >
-                        {year} Total
-                      </td>
-                      <td className="py-2 px-4 text-right tabular-nums font-semibold text-sm">
-                        ${yearTotal.toFixed(4)}
-                      </td>
-                    </tr>
-                  </tbody>
-                );
-              })}
+              <tbody>
+                {VEQT_DISTRIBUTIONS.distributions.map((d, i) => (
+                  <tr
+                    key={d.exDate}
+                    className={`border-b border-[var(--color-border)] ${
+                      i % 2 === 1 ? "bg-[var(--color-base)]" : ""
+                    }`}
+                  >
+                    <td className="py-2.5 px-4">{formatDate(d.exDate)}</td>
+                    <td className="py-2.5 px-4 text-[var(--color-text-muted)]">
+                      {formatDate(d.payDate)}
+                    </td>
+                    <td className="py-2.5 px-4 text-right tabular-nums font-medium">
+                      ${d.amount.toFixed(4)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
             </table>
           </div>
         </section>
@@ -181,7 +159,7 @@ export default function DistributionsPage() {
           <div className="rounded-lg border border-[var(--color-border)] bg-white p-5">
             <DistributionChart />
             <p className="text-[11px] text-[var(--color-text-muted)] mt-2">
-              Each bar represents one quarterly distribution
+              Each bar represents one annual distribution
             </p>
           </div>
         </section>

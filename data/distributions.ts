@@ -12,24 +12,15 @@ export interface DistributionData {
 
 export const VEQT_DISTRIBUTIONS: DistributionData = {
   ticker: "VEQT.TO",
-  frequency: "Quarterly",
+  frequency: "Annually",
   distributions: [
-    { exDate: "2025-03-26", payDate: "2025-04-02", amount: 0.271 },
-    { exDate: "2024-12-27", payDate: "2025-01-06", amount: 0.5598 },
-    { exDate: "2024-09-25", payDate: "2024-10-02", amount: 0.3254 },
-    { exDate: "2024-06-26", payDate: "2024-07-03", amount: 0.314 },
-    { exDate: "2024-03-22", payDate: "2024-04-02", amount: 0.3214 },
-    { exDate: "2023-12-27", payDate: "2024-01-05", amount: 0.5765 },
-    { exDate: "2023-09-27", payDate: "2023-10-04", amount: 0.2965 },
-    { exDate: "2023-06-28", payDate: "2023-07-06", amount: 0.305 },
-    { exDate: "2023-03-29", payDate: "2023-04-05", amount: 0.3043 },
-    { exDate: "2022-12-28", payDate: "2023-01-06", amount: 0.6021 },
-    { exDate: "2022-09-28", payDate: "2022-10-05", amount: 0.2851 },
-    { exDate: "2022-06-28", payDate: "2022-07-06", amount: 0.3102 },
-    { exDate: "2022-03-29", payDate: "2022-04-06", amount: 0.2274 },
-    { exDate: "2021-12-29", payDate: "2022-01-07", amount: 0.498 },
-    { exDate: "2021-09-28", payDate: "2021-10-06", amount: 0.2102 },
-    { exDate: "2021-06-28", payDate: "2021-07-06", amount: 0.2523 },
+    { exDate: "2025-12-30", payDate: "2026-01-07", amount: 0.76018 },
+    { exDate: "2024-12-30", payDate: "2025-01-07", amount: 0.712997 },
+    { exDate: "2023-12-28", payDate: "2024-01-08", amount: 0.692287 },
+    { exDate: "2022-12-29", payDate: "2023-01-09", amount: 0.672491 },
+    { exDate: "2021-12-30", payDate: "2022-01-10", amount: 0.514 },
+    { exDate: "2020-12-30", payDate: "2021-01-08", amount: 0.4616 },
+    { exDate: "2019-12-30", payDate: "2020-01-08", amount: 0.4038 },
   ],
 };
 

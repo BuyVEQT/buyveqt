@@ -43,7 +43,7 @@ export const FUNDS: Record<string, FundData> = {
     aum: "$11.2B",
     inceptionDate: "2019-01-29",
     numberOfHoldings: 13700,
-    distributionFrequency: "Quarterly",
+    distributionFrequency: "Annually",
     currency: "CAD",
     exchangeListed: "TSX",
     equityAllocation: 100,

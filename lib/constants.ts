@@ -62,16 +62,16 @@ export const COMPARISON_DATA = {
 };
 
 export const LATEST_DISTRIBUTION = {
-  amount: "$0.3214",
-  exDivDate: "Mar 27, 2025",
-  payableDate: "Apr 3, 2025",
+  amount: "$0.7602",
+  exDivDate: "Dec 30, 2025",
+  payableDate: "Jan 7, 2026",
 };
 
 export const LEARN_ARTICLES = [
   {
-    slug: "is-veqt-right-for-you",
-    title: "Is VEQT right for you?",
-    teaser: "A simple framework to decide if an all-equity, globally diversified ETF fits your investment goals and risk tolerance.",
+    slug: "what-is-veqt",
+    title: "What Is VEQT?",
+    teaser: "A beginner-friendly look at what VEQT is, how it works, and why so many Canadian investors use it as their entire portfolio.",
   },
   {
     slug: "veqt-vs-xeqt",
@@ -79,7 +79,7 @@ export const LEARN_ARTICLES = [
     teaser: "Both offer global equity exposure in a single ticket, but there are meaningful differences in allocation, provider, and cost.",
   },
   {
-    slug: "veqt-tfsa-rrsp-non-registered",
+    slug: "veqt-in-tfsa-vs-rrsp-vs-non-registered",
     title: "VEQT in TFSA vs RRSP vs Non-Registered",
     teaser: "Which account type is most tax-efficient for holding VEQT? A breakdown of the tax implications for Canadian investors.",
   },
