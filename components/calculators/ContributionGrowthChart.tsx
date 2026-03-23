@@ -113,8 +113,8 @@ export default function ContributionGrowthChart({
               type="monotone"
               dataKey="growth"
               stackId="1"
-              stroke="var(--color-brand)"
-              fill="var(--color-brand)"
+              stroke="var(--color-positive)"
+              fill="var(--color-positive)"
               fillOpacity={0.25}
             />
           </AreaChart>

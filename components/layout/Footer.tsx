@@ -9,10 +9,10 @@ export default function Footer() {
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6 mb-6">
           {/* Branding */}
           <div>
-            <p className="text-base font-bold tracking-tight">
+            <p className="text-lg font-extrabold tracking-tight text-[var(--color-text-primary)]">
               Buy<span className="text-[var(--color-brand)]">VEQT</span>
             </p>
-            <p className="text-sm text-[var(--color-text-muted)] mt-1">
+            <p className="text-sm text-[var(--color-text-secondary)] mt-1">
               The unofficial VEQT investor resource
             </p>
           </div>

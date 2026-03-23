@@ -149,7 +149,7 @@ export default function DividendCalculator() {
             />
             <Bar
               dataKey="income"
-              fill="var(--color-brand)"
+              fill="var(--color-positive)"
               radius={[3, 3, 0, 0]}
               maxBarSize={32}
             />
