@@ -4,6 +4,7 @@ import {
   ResponsiveContainer,
   BarChart,
   Bar,
+  Cell,
   XAxis,
   YAxis,
   Tooltip,
@@ -17,11 +18,13 @@ const chartData = [...VEQT_DISTRIBUTIONS.distributions]
     date: d.exDate,
     amount: d.amount,
     label: new Date(d.exDate).getFullYear().toString(),
+    estimated: d.estimated ?? false,
+    fill: d.estimated ? "#93c5fd" : "#2563eb",
   }));
 
 interface TooltipPayloadItem {
   value: number;
-  payload: { date: string };
+  payload: { date: string; estimated: boolean };
 }
 
 interface CustomTooltipProps {
@@ -32,10 +35,12 @@ interface CustomTooltipProps {
 function CustomTooltip({ active, payload }: CustomTooltipProps) {
   if (!active || !payload?.length) return null;
   const date = new Date(payload[0].payload.date);
+  const estimated = payload[0].payload.estimated;
   return (
     <div className="rounded-lg border border-[var(--color-border)] bg-white px-3 py-2 shadow-lg">
       <p className="text-[11px] text-[var(--color-text-muted)]">
         {date.toLocaleDateString("en-CA", { year: "numeric", month: "long" })}
+        {estimated && " (estimated)"}
       </p>
       <p className="text-sm font-semibold text-[var(--color-text-primary)]">
         ${payload[0].value.toFixed(4)} per unit
@@ -64,7 +69,11 @@ export default function DistributionChart() {
           width={50}
         />
         <Tooltip content={<CustomTooltip />} cursor={{ fill: "var(--color-base)" }} />
-        <Bar dataKey="amount" fill="#2563eb" radius={[3, 3, 0, 0]} maxBarSize={32} />
+        <Bar dataKey="amount" radius={[3, 3, 0, 0]} maxBarSize={32}>
+          {chartData.map((entry, index) => (
+            <Cell key={index} fill={entry.fill} />
+          ))}
+        </Bar>
       </BarChart>
     </ResponsiveContainer>
   );
