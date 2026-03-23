@@ -64,7 +64,7 @@ export const FUNDS: Record<string, FundData> = {
       { ticker: "VIU", name: "Vanguard FTSE Developed All Cap ex North America Index ETF", weight: 23, region: "International" },
       { ticker: "VEE", name: "Vanguard FTSE Emerging Markets All Cap Index ETF", weight: 7, region: "Emerging Markets" },
     ],
-    chartColor: "#2563eb",
+    chartColor: "#dc2626",
     merFootnote:
       "Vanguard reduced VEQT's management fee from 0.22% to 0.17% in November 2025. The official MER is still reported as 0.24% pending fiscal year-end recalculation. The effective MER is expected to be ~0.19%–0.20%.",
   },
@@ -98,7 +98,7 @@ export const FUNDS: Record<string, FundData> = {
       { ticker: "XEF", name: "iShares Core MSCI EAFE IMI Index ETF", weight: 22, region: "International" },
       { ticker: "IEMG", name: "iShares Core MSCI Emerging Markets ETF", weight: 8, region: "Emerging Markets" },
     ],
-    chartColor: "#dc2626",
+    chartColor: "#2563eb",
     merFootnote:
       "XEQT's management fee is 0.18%. The MER of 0.20% includes operating expenses.",
   },
