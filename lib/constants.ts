@@ -69,19 +69,19 @@ export const LATEST_DISTRIBUTION = {
 
 export const LEARN_ARTICLES = [
   {
-    slug: "is-veqt-right-for-you",
-    title: "Is VEQT right for you?",
-    teaser: "A simple framework to decide if an all-equity, globally diversified ETF fits your investment goals and risk tolerance.",
+    slug: "what-is-veqt",
+    title: "What Is VEQT? A Simple Explanation",
+    teaser: "A beginner-friendly explanation of what VEQT is, how it works, and why Canadian investors love it.",
   },
   {
     slug: "veqt-vs-xeqt",
-    title: "VEQT vs XEQT: What's the difference?",
-    teaser: "Both offer global equity exposure in a single ticket, but there are meaningful differences in allocation, provider, and cost.",
+    title: "VEQT vs XEQT: What's the Difference?",
+    teaser: "The most common VEQT question, answered. Two similar ETFs — here's what actually differs.",
   },
   {
-    slug: "veqt-tfsa-rrsp-non-registered",
-    title: "VEQT in TFSA vs RRSP vs Non-Registered",
-    teaser: "Which account type is most tax-efficient for holding VEQT? A breakdown of the tax implications for Canadian investors.",
+    slug: "veqt-in-tfsa-vs-rrsp-vs-non-registered",
+    title: "VEQT in a TFSA vs RRSP vs Non-Registered",
+    teaser: "Where should you hold VEQT? A plain-English breakdown of the tax implications for each account type.",
   },
 ];
 
