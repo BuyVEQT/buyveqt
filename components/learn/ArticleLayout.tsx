@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { MDXRemote } from "next-mdx-remote/rsc";
+import remarkGfm from "remark-gfm";
 import type { ArticleFrontmatter } from "@/lib/articles";
 
 interface ArticleLayoutProps {
@@ -34,7 +35,7 @@ export default function ArticleLayout({ frontmatter, content }: ArticleLayoutPro
 
       {/* MDX Content */}
       <div className="prose-custom">
-        <MDXRemote source={content} />
+        <MDXRemote source={content} options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }} />
       </div>
 
       {/* Footer */}

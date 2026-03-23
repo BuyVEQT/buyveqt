@@ -123,7 +123,7 @@ export default function MethodologyPage() {
           </p>
           <p>
             Yield calculations (trailing 12-month yield) are computed by
-            summing the last four quarterly distributions and dividing by the
+            using the most recent annual distribution and dividing by the
             current unit price. This is a standard trailing yield calculation
             and does not predict future distributions.
           </p>

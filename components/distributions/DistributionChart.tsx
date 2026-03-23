@@ -16,10 +16,7 @@ const chartData = [...VEQT_DISTRIBUTIONS.distributions]
   .map((d) => ({
     date: d.exDate,
     amount: d.amount,
-    label: new Date(d.exDate).toLocaleDateString("en-CA", {
-      month: "short",
-      year: "2-digit",
-    }),
+    label: new Date(d.exDate).getFullYear().toString(),
   }));
 
 interface TooltipPayloadItem {
@@ -57,7 +54,7 @@ export default function DistributionChart() {
           tick={{ fontSize: 11, fill: "var(--color-text-muted)" }}
           tickLine={false}
           axisLine={false}
-          interval={1}
+          interval={0}
         />
         <YAxis
           tickFormatter={(v: number) => `$${v.toFixed(2)}`}
