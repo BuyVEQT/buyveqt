@@ -61,7 +61,7 @@ export default function SidebarCards() {
           </li>
           <li className="flex items-start gap-2">
             <span className="text-[var(--color-brand)] mt-0.5">&#x2713;</span>
-            0.24% MER — low cost
+            ~0.20% MER — low cost
           </li>
           <li className="flex items-start gap-2">
             <span className="text-[var(--color-brand)] mt-0.5">&#x2713;</span>

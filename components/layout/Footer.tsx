@@ -30,8 +30,15 @@ export default function Footer() {
             ))}
           </div>
 
-          {/* Social */}
+          {/* Meta links & Social */}
           <div className="flex items-center gap-3">
+            <Link
+              href="/methodology"
+              className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
+            >
+              Methodology
+            </Link>
+            <span className="text-[var(--color-border)]">·</span>
             <a
               href="https://reddit.com/r/justBuyVEQT"
               target="_blank"

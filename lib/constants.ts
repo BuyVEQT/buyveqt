@@ -3,9 +3,12 @@ import { AssetAllocation, VeqtQuote } from "./types";
 export const VEQT_TICKER = "VEQT.TO";
 
 export const STATIC_DATA = {
-  mer: 0.24,
+  mer: 0.2,
   aum: "$11.2B",
 } as const;
+
+export const MER_FOOTNOTE =
+  "Vanguard reduced VEQT's management fee from 0.22% to 0.17% in November 2025. The official MER (which includes operating expenses and taxes) is still reported as 0.24% pending fiscal year-end recalculation. The effective MER is expected to be approximately 0.19%–0.20%.";
 
 export const ASSET_ALLOCATION: AssetAllocation[] = [
   { name: "US", value: 40, color: "#2563eb" },
@@ -34,7 +37,7 @@ export const COMPARISON_DATA = {
     {
       ticker: "VEQT",
       name: "Vanguard All-Equity ETF",
-      mer: "0.24%",
+      mer: "~0.20%*",
       aum: "$11.2B",
       holdings: "13,500+",
       inception: "Jan 2019",

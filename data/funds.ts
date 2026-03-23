@@ -30,6 +30,7 @@ export interface FundData {
   geographyAllocation: GeographyAllocation[];
   underlyingETFs: UnderlyingETF[];
   chartColor: string;
+  merFootnote?: string;
 }
 
 export const FUNDS: Record<string, FundData> = {
@@ -38,7 +39,7 @@ export const FUNDS: Record<string, FundData> = {
     name: "Vanguard All-Equity ETF Portfolio",
     shortName: "VEQT",
     provider: "Vanguard",
-    mer: 0.24,
+    mer: 0.2,
     aum: "$11.2B",
     inceptionDate: "2019-01-29",
     numberOfHoldings: 13700,
@@ -64,6 +65,8 @@ export const FUNDS: Record<string, FundData> = {
       { ticker: "VEE", name: "Vanguard FTSE Emerging Markets All Cap Index ETF", weight: 7, region: "Emerging Markets" },
     ],
     chartColor: "#2563eb",
+    merFootnote:
+      "Vanguard reduced VEQT's management fee from 0.22% to 0.17% in November 2025. The official MER is still reported as 0.24% pending fiscal year-end recalculation. The effective MER is expected to be ~0.19%–0.20%.",
   },
   "XEQT.TO": {
     ticker: "XEQT.TO",
@@ -96,6 +99,8 @@ export const FUNDS: Record<string, FundData> = {
       { ticker: "IEMG", name: "iShares Core MSCI Emerging Markets ETF", weight: 8, region: "Emerging Markets" },
     ],
     chartColor: "#dc2626",
+    merFootnote:
+      "XEQT's management fee is 0.18%. The MER of 0.20% includes operating expenses.",
   },
   "ZEQT.TO": {
     ticker: "ZEQT.TO",
@@ -134,7 +139,7 @@ export const FUNDS: Record<string, FundData> = {
     name: "Vanguard Growth ETF Portfolio",
     shortName: "VGRO",
     provider: "Vanguard",
-    mer: 0.24,
+    mer: 0.2,
     aum: "$6.5B",
     inceptionDate: "2018-01-25",
     numberOfHoldings: 13700,
@@ -163,6 +168,8 @@ export const FUNDS: Record<string, FundData> = {
       { ticker: "VBG", name: "Vanguard Global ex-US Aggregate Bond Index ETF", weight: 9, region: "Global (Bonds)" },
     ],
     chartColor: "#8b5cf6",
+    merFootnote:
+      "Vanguard's November 2025 fee cuts applied to its asset allocation ETFs, including VGRO. The effective MER is expected to decrease from 0.24% to approximately 0.20%.",
   },
   "VFV.TO": {
     ticker: "VFV.TO",

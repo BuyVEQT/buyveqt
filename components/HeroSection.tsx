@@ -1,8 +1,9 @@
 "use client";
 
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import type { VeqtQuote } from "@/lib/types";
-import { STATIC_DATA } from "@/lib/constants";
+import { STATIC_DATA, MER_FOOTNOTE } from "@/lib/constants";
 
 interface HeroSectionProps {
   quote: VeqtQuote | null;
@@ -19,21 +20,109 @@ function timeSince(isoString: string): string {
   return `${hrs}h ago`;
 }
 
+function useCountUp(target: number, duration = 1200, decimals = 0) {
+  const [value, setValue] = useState(0);
+  const ref = useRef<HTMLSpanElement>(null);
+  const started = useRef(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !started.current) {
+          started.current = true;
+          const start = performance.now();
+          const animate = (now: number) => {
+            const elapsed = now - start;
+            const progress = Math.min(elapsed / duration, 1);
+            // ease-out cubic
+            const eased = 1 - Math.pow(1 - progress, 3);
+            setValue(parseFloat((eased * target).toFixed(decimals)));
+            if (progress < 1) requestAnimationFrame(animate);
+          };
+          requestAnimationFrame(animate);
+        }
+      },
+      { threshold: 0.3 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [target, duration, decimals]);
+
+  return { value, ref };
+}
+
+const ROTATING_WORDS = ["understood", "compared", "demystified"];
+
+function RotatingWord() {
+  const [index, setIndex] = useState(0);
+  const [isVisible, setIsVisible] = useState(true);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIsVisible(false);
+      setTimeout(() => {
+        setIndex((i) => (i + 1) % ROTATING_WORDS.length);
+        setIsVisible(true);
+      }, 300);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <span
+      className={`inline-block transition-all duration-300 text-[var(--color-brand)] ${
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
+      }`}
+    >
+      {ROTATING_WORDS[index]}
+    </span>
+  );
+}
+
 export default function HeroSection({ quote, loading, isFallback }: HeroSectionProps) {
   const isPositive = (quote?.changePercent ?? 0) >= 0;
+
+  const stocks = useCountUp(13700, 1400);
+  const countries = useCountUp(50, 1000);
 
   return (
     <section className="py-10 sm:py-14">
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8 lg:gap-12">
         {/* Left: Copy */}
         <div className="lg:max-w-[55%]">
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[var(--color-text-primary)] leading-tight">
-            VEQT, explained simply.
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[var(--color-text-primary)] leading-[1.15]">
+            One ETF.
+            <br />
+            The whole world.
+            <br />
+            <span className="text-[var(--color-text-muted)] font-medium text-2xl sm:text-3xl md:text-4xl">
+              VEQT, <RotatingWord />.
+            </span>
           </h1>
-          <p className="mt-3 text-base sm:text-lg text-[var(--color-text-muted)] leading-relaxed max-w-prose">
-            Track performance, compare VEQT to other all-in-one ETFs, and see
-            what&apos;s actually inside the fund.
-          </p>
+
+          {/* Animated stat pills */}
+          <div className="mt-5 flex flex-wrap gap-3">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--color-brand)]/[0.07] border border-[var(--color-brand)]/20">
+              <span ref={stocks.ref} className="text-sm font-bold text-[var(--color-brand)] tabular-nums">
+                {stocks.value.toLocaleString()}+
+              </span>
+              <span className="text-xs text-[var(--color-text-muted)]">stocks</span>
+            </div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--color-chart-line)]/[0.07] border border-[var(--color-chart-line)]/20">
+              <span ref={countries.ref} className="text-sm font-bold text-[var(--color-chart-line)] tabular-nums">
+                {countries.value}+
+              </span>
+              <span className="text-xs text-[var(--color-text-muted)]">countries</span>
+            </div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#8b5cf6]/[0.07] border border-[#8b5cf6]/20">
+              <span className="text-sm font-bold text-[#8b5cf6]">~0.20%</span>
+              <span className="text-xs text-[var(--color-text-muted)]">MER</span>
+            </div>
+          </div>
+
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
               href="/compare"
@@ -86,7 +175,12 @@ export default function HeroSection({ quote, loading, isFallback }: HeroSectionP
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-[var(--color-text-muted)]">MER</span>
-                  <span className="font-medium">{STATIC_DATA.mer}%</span>
+                  <span className="font-medium group relative cursor-help">
+                    ~{STATIC_DATA.mer.toFixed(2)}%*
+                    <span className="invisible group-hover:visible absolute bottom-full right-0 w-64 p-2 text-[11px] text-[var(--color-text-muted)] bg-white border border-[var(--color-border)] rounded-lg shadow-lg z-10 font-normal leading-relaxed">
+                      {MER_FOOTNOTE}
+                    </span>
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-[var(--color-text-muted)]">AUM</span>

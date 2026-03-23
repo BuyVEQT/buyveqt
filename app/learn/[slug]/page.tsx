@@ -1,5 +1,31 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import PageShell from "@/components/layout/PageShell";
-import StubPage from "@/components/StubPage";
+import ArticleLayout from "@/components/learn/ArticleLayout";
+import { getArticleBySlug, getAllSlugs } from "@/lib/articles";
+
+export function generateStaticParams() {
+  return getAllSlugs().map((slug) => ({ slug }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const article = getArticleBySlug(slug);
+  if (!article) return { title: "Article Not Found — BuyVEQT" };
+
+  return {
+    title: `${article.frontmatter.title} — BuyVEQT`,
+    description: article.frontmatter.description,
+    openGraph: {
+      title: `${article.frontmatter.title} — BuyVEQT`,
+      description: article.frontmatter.description,
+    },
+  };
+}
 
 export default async function LearnArticlePage({
   params,
@@ -7,16 +33,17 @@ export default async function LearnArticlePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const title = slug
-    .split("-")
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(" ");
+  const article = getArticleBySlug(slug);
+
+  if (!article) {
+    notFound();
+  }
 
   return (
     <PageShell>
-      <StubPage
-        title={title}
-        description="This article is coming soon. Check back later."
+      <ArticleLayout
+        frontmatter={article.frontmatter}
+        content={article.content}
       />
     </PageShell>
   );

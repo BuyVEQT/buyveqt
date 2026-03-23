@@ -57,7 +57,11 @@ export default function StatsTable({ selectedFunds }: StatsTableProps) {
     },
     {
       label: "MER",
-      getValue: (t) => `${FUNDS[t]?.mer ?? "—"}%`,
+      getValue: (t) => {
+        const f = FUNDS[t];
+        if (!f) return "—";
+        return f.merFootnote ? `~${f.mer.toFixed(2)}%*` : `${f.mer.toFixed(2)}%`;
+      },
       highlight: "lowest",
       getNumericValue: (t) => FUNDS[t]?.mer ?? null,
     },
