@@ -121,4 +121,5 @@ export const NAV_LINKS = [
   { href: "/inside-veqt", label: "Inside VEQT" },
   { href: "/distributions", label: "Distributions" },
   { href: "/learn", label: "Learn" },
+  { href: "/calculators", label: "Calculators" },
 ];
