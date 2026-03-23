@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import type { VeqtApiResponse, ChartPeriod } from "./types";
+import { getCached, setCache } from "./cache";
 
 export function useVeqtData() {
   const [data, setData] = useState<VeqtApiResponse | null>(null);
@@ -15,8 +16,13 @@ export function useVeqtData() {
       if (!res.ok) throw new Error("API error");
       const json: VeqtApiResponse = await res.json();
       setData(json);
+      setCache(`veqt:${p}`, json);
     } catch (err) {
       console.error("Failed to fetch VEQT data:", err);
+      const cached = getCached<VeqtApiResponse>(`veqt:${p}`);
+      if (cached) {
+        setData(cached);
+      }
     } finally {
       setLoading(false);
     }
