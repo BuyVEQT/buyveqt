@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import YahooFinance from "yahoo-finance2";
+import { readCache, writeCache } from "@/lib/file-cache";
 
 const yf = new YahooFinance({ suppressNotices: ["ripHistorical", "yahooSurvey"] });
 
@@ -22,6 +23,8 @@ export async function GET(
       { status: 400 }
     );
   }
+
+  const cacheKey = `quote_${normalizedTicker}`;
 
   try {
     const q = await yf.quote(normalizedTicker);
@@ -66,7 +69,7 @@ export async function GET(
       // non-critical
     }
 
-    return NextResponse.json({
+    const response = {
       ticker: normalizedTicker,
       price: q.regularMarketPrice ?? null,
       change: q.regularMarketChange ?? null,
@@ -78,9 +81,25 @@ export async function GET(
       oneYearReturn,
       lastUpdated: new Date().toISOString(),
       error: false,
-    });
+    };
+
+    // Cache successful response
+    writeCache(cacheKey, response);
+
+    return NextResponse.json(response);
   } catch (error) {
     console.error(`Failed to fetch quote for ${normalizedTicker}:`, error);
+
+    // Try file cache
+    const cached = readCache<Record<string, unknown>>(cacheKey);
+    if (cached) {
+      return NextResponse.json({
+        ...cached.data,
+        lastUpdated: cached.timestamp,
+        error: false,
+      });
+    }
+
     return NextResponse.json({
       ticker: normalizedTicker,
       price: null,

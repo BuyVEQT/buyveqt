@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import YahooFinance from "yahoo-finance2";
+import { readCache, writeCache } from "@/lib/file-cache";
 
 const yf = new YahooFinance({ suppressNotices: ["ripHistorical", "yahooSurvey"] });
 
@@ -77,6 +78,7 @@ async function fetchQuote(ticker: string): Promise<FundQuote> {
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const tickersParam = searchParams.get("tickers") || "VEQT.TO,XEQT.TO";
+  const cacheKey = `compare_${tickersParam.replace(/[,.\s]/g, "_")}`;
 
   const tickers = tickersParam
     .split(",")
@@ -93,9 +95,26 @@ export async function GET(request: Request) {
   const results = await Promise.all(tickers.map(fetchQuote));
 
   const data: Record<string, FundQuote> = {};
+  let hasAnyData = false;
   for (const result of results) {
     data[result.ticker] = result;
+    if (!result.error) hasAnyData = true;
   }
 
-  return NextResponse.json({ data, lastUpdated: new Date().toISOString() });
+  const response = { data, lastUpdated: new Date().toISOString() };
+
+  // Cache if we got at least some real data
+  if (hasAnyData) {
+    writeCache(cacheKey, response);
+  }
+
+  // If all failed, try file cache
+  if (!hasAnyData) {
+    const cached = readCache<typeof response>(cacheKey);
+    if (cached) {
+      return NextResponse.json({ ...cached.data, lastUpdated: cached.timestamp });
+    }
+  }
+
+  return NextResponse.json(response);
 }

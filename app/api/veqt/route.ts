@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import YahooFinance from "yahoo-finance2";
 import { VEQT_TICKER, FALLBACK_QUOTE } from "@/lib/constants";
+import { readCache, writeCache } from "@/lib/file-cache";
 import type { VeqtQuote, HistoricalDataPoint, VeqtApiResponse } from "@/lib/types";
 
-export const revalidate = 1800; // 30 minutes ISR-style caching
+export const revalidate = 1800;
 
 const yf = new YahooFinance({ suppressNotices: ["ripHistorical", "yahooSurvey"] });
 
@@ -32,6 +33,7 @@ function getStartDate(period: string): Date {
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const period = searchParams.get("period") || "1Y";
+  const cacheKey = `veqt_${period}`;
 
   try {
     const [quoteResult, historicalResult] = await Promise.all([
@@ -87,22 +89,31 @@ export async function GET(request: Request) {
       close: d.close ?? 0,
     }));
 
-    const response: VeqtApiResponse = {
-      quote,
-      historical,
-      isFallback: false,
-    };
+    const response: VeqtApiResponse = { quote, historical, isFallback: false };
+
+    // Cache successful response
+    writeCache(cacheKey, response);
 
     return NextResponse.json(response);
   } catch (error) {
     console.error("Failed to fetch VEQT data:", error);
 
+    // Try file cache first (real historical data)
+    const cached = readCache<VeqtApiResponse>(cacheKey);
+    if (cached) {
+      return NextResponse.json({
+        ...cached.data,
+        isFallback: true,
+        quote: { ...cached.data.quote, lastUpdated: cached.timestamp },
+      });
+    }
+
+    // Last resort: hardcoded fallback
     const response: VeqtApiResponse = {
       quote: { ...FALLBACK_QUOTE, lastUpdated: new Date().toISOString() },
       historical: [],
       isFallback: true,
     };
-
     return NextResponse.json(response, { status: 200 });
   }
 }

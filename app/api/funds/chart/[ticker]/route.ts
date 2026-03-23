@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import YahooFinance from "yahoo-finance2";
+import { readCache, writeCache } from "@/lib/file-cache";
 
 const yf = new YahooFinance({ suppressNotices: ["ripHistorical", "yahooSurvey"] });
 
@@ -47,8 +48,8 @@ export async function GET(
 
   const { searchParams } = new URL(request.url);
   const range = searchParams.get("range") || "1Y";
+  const cacheKey = `chart_${normalizedTicker}_${range}`;
 
-  // Longer ranges get longer cache
   const revalidateTime = ["6M", "1Y", "3Y", "5Y", "ALL"].includes(range) ? 3600 : 1800;
 
   try {
@@ -67,16 +68,29 @@ export async function GET(
       })
     );
 
-    return NextResponse.json(
-      { ticker: normalizedTicker, range, data, error: false },
-      {
+    const response = { ticker: normalizedTicker, range, data, error: false };
+
+    // Cache successful response
+    writeCache(cacheKey, response);
+
+    return NextResponse.json(response, {
+      headers: {
+        "Cache-Control": `s-maxage=${revalidateTime}, stale-while-revalidate`,
+      },
+    });
+  } catch (error) {
+    console.error(`Failed to fetch chart for ${normalizedTicker}:`, error);
+
+    // Try file cache
+    const cached = readCache<{ ticker: string; range: string; data: unknown[]; error: boolean }>(cacheKey);
+    if (cached) {
+      return NextResponse.json({ ...cached.data, error: false }, {
         headers: {
           "Cache-Control": `s-maxage=${revalidateTime}, stale-while-revalidate`,
         },
-      }
-    );
-  } catch (error) {
-    console.error(`Failed to fetch chart for ${normalizedTicker}:`, error);
+      });
+    }
+
     return NextResponse.json({
       ticker: normalizedTicker,
       range,
