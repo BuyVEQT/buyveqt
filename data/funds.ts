@@ -1,0 +1,198 @@
+export interface GeographyAllocation {
+  region: string;
+  weight: number;
+  color: string;
+}
+
+export interface UnderlyingETF {
+  ticker: string;
+  name: string;
+  weight: number;
+  region: string;
+}
+
+export interface FundData {
+  ticker: string;
+  name: string;
+  shortName: string;
+  provider: string;
+  mer: number;
+  aum: string;
+  inceptionDate: string;
+  numberOfHoldings: number;
+  distributionFrequency: string;
+  currency: string;
+  exchangeListed: string;
+  equityAllocation: number;
+  fixedIncomeAllocation: number;
+  description: string;
+  whoThisSuits: string;
+  geographyAllocation: GeographyAllocation[];
+  underlyingETFs: UnderlyingETF[];
+  chartColor: string;
+}
+
+export const FUNDS: Record<string, FundData> = {
+  "VEQT.TO": {
+    ticker: "VEQT.TO",
+    name: "Vanguard All-Equity ETF Portfolio",
+    shortName: "VEQT",
+    provider: "Vanguard",
+    mer: 0.24,
+    aum: "$11.2B",
+    inceptionDate: "2019-01-29",
+    numberOfHoldings: 13700,
+    distributionFrequency: "Quarterly",
+    currency: "CAD",
+    exchangeListed: "TSX",
+    equityAllocation: 100,
+    fixedIncomeAllocation: 0,
+    description:
+      "A single-ticket ETF providing 100% global equity exposure across Canada, US, international developed, and emerging markets.",
+    whoThisSuits:
+      "Long-term investors who want maximum growth potential, can tolerate higher volatility, and have a time horizon of 10+ years.",
+    geographyAllocation: [
+      { region: "United States", weight: 40, color: "#2563eb" },
+      { region: "Canada", weight: 30, color: "#dc2626" },
+      { region: "International Developed", weight: 23, color: "#16a34a" },
+      { region: "Emerging Markets", weight: 7, color: "#f59e0b" },
+    ],
+    underlyingETFs: [
+      { ticker: "VUN", name: "Vanguard US Total Market Index ETF", weight: 40, region: "United States" },
+      { ticker: "VCN", name: "Vanguard FTSE Canada All Cap Index ETF", weight: 30, region: "Canada" },
+      { ticker: "VIU", name: "Vanguard FTSE Developed All Cap ex North America Index ETF", weight: 23, region: "International" },
+      { ticker: "VEE", name: "Vanguard FTSE Emerging Markets All Cap Index ETF", weight: 7, region: "Emerging Markets" },
+    ],
+    chartColor: "#2563eb",
+  },
+  "XEQT.TO": {
+    ticker: "XEQT.TO",
+    name: "iShares Core Equity ETF Portfolio",
+    shortName: "XEQT",
+    provider: "iShares (BlackRock)",
+    mer: 0.20,
+    aum: "$9.5B",
+    inceptionDate: "2019-08-07",
+    numberOfHoldings: 9300,
+    distributionFrequency: "Quarterly",
+    currency: "CAD",
+    exchangeListed: "TSX",
+    equityAllocation: 100,
+    fixedIncomeAllocation: 0,
+    description:
+      "iShares' all-equity portfolio ETF offering global diversification with a slightly higher US allocation than VEQT.",
+    whoThisSuits:
+      "Investors who want slightly lower fees with more US tilt. Nearly identical to VEQT in purpose.",
+    geographyAllocation: [
+      { region: "United States", weight: 45, color: "#2563eb" },
+      { region: "Canada", weight: 25, color: "#dc2626" },
+      { region: "International Developed", weight: 22, color: "#16a34a" },
+      { region: "Emerging Markets", weight: 8, color: "#f59e0b" },
+    ],
+    underlyingETFs: [
+      { ticker: "ITOT", name: "iShares Core S&P Total US Stock Market ETF", weight: 45, region: "United States" },
+      { ticker: "XIC", name: "iShares Core S&P/TSX Capped Composite Index ETF", weight: 25, region: "Canada" },
+      { ticker: "XEF", name: "iShares Core MSCI EAFE IMI Index ETF", weight: 22, region: "International" },
+      { ticker: "IEMG", name: "iShares Core MSCI Emerging Markets ETF", weight: 8, region: "Emerging Markets" },
+    ],
+    chartColor: "#dc2626",
+  },
+  "ZEQT.TO": {
+    ticker: "ZEQT.TO",
+    name: "BMO All-Equity ETF",
+    shortName: "ZEQT",
+    provider: "BMO",
+    mer: 0.20,
+    aum: "$1.2B",
+    inceptionDate: "2022-02-15",
+    numberOfHoldings: 9000,
+    distributionFrequency: "Quarterly",
+    currency: "CAD",
+    exchangeListed: "TSX",
+    equityAllocation: 100,
+    fixedIncomeAllocation: 0,
+    description:
+      "BMO's all-equity portfolio ETF offering global diversification with competitive fees and a similar allocation to XEQT.",
+    whoThisSuits:
+      "Newer alternative from BMO with competitive fees. Smaller AUM but growing. Good for BMO brokerage users.",
+    geographyAllocation: [
+      { region: "United States", weight: 45, color: "#2563eb" },
+      { region: "Canada", weight: 25, color: "#dc2626" },
+      { region: "International Developed", weight: 23, color: "#16a34a" },
+      { region: "Emerging Markets", weight: 7, color: "#f59e0b" },
+    ],
+    underlyingETFs: [
+      { ticker: "ZSP", name: "BMO S&P 500 Index ETF", weight: 45, region: "United States" },
+      { ticker: "ZCN", name: "BMO S&P/TSX Capped Composite Index ETF", weight: 25, region: "Canada" },
+      { ticker: "ZEA", name: "BMO MSCI EAFE Index ETF", weight: 23, region: "International" },
+      { ticker: "ZEM", name: "BMO MSCI Emerging Markets Index ETF", weight: 7, region: "Emerging Markets" },
+    ],
+    chartColor: "#16a34a",
+  },
+  "VGRO.TO": {
+    ticker: "VGRO.TO",
+    name: "Vanguard Growth ETF Portfolio",
+    shortName: "VGRO",
+    provider: "Vanguard",
+    mer: 0.24,
+    aum: "$6.5B",
+    inceptionDate: "2018-01-25",
+    numberOfHoldings: 13700,
+    distributionFrequency: "Quarterly",
+    currency: "CAD",
+    exchangeListed: "TSX",
+    equityAllocation: 80,
+    fixedIncomeAllocation: 20,
+    description:
+      "Vanguard's 80/20 growth portfolio — same global equity exposure as VEQT but with 20% Canadian and global bonds for reduced volatility.",
+    whoThisSuits:
+      "Investors who want built-in bond exposure (80/20 equity/bond split) for slightly less volatility than VEQT.",
+    geographyAllocation: [
+      { region: "United States", weight: 32, color: "#2563eb" },
+      { region: "Canada", weight: 24, color: "#dc2626" },
+      { region: "International Developed", weight: 18, color: "#16a34a" },
+      { region: "Emerging Markets", weight: 5, color: "#f59e0b" },
+      { region: "Bonds", weight: 21, color: "#6b7280" },
+    ],
+    underlyingETFs: [
+      { ticker: "VUN", name: "Vanguard US Total Market Index ETF", weight: 32, region: "United States" },
+      { ticker: "VCN", name: "Vanguard FTSE Canada All Cap Index ETF", weight: 24, region: "Canada" },
+      { ticker: "VIU", name: "Vanguard FTSE Developed All Cap ex North America Index ETF", weight: 18, region: "International" },
+      { ticker: "VEE", name: "Vanguard FTSE Emerging Markets All Cap Index ETF", weight: 5, region: "Emerging Markets" },
+      { ticker: "VAB", name: "Vanguard Canadian Aggregate Bond Index ETF", weight: 12, region: "Canada (Bonds)" },
+      { ticker: "VBG", name: "Vanguard Global ex-US Aggregate Bond Index ETF", weight: 9, region: "Global (Bonds)" },
+    ],
+    chartColor: "#8b5cf6",
+  },
+  "VFV.TO": {
+    ticker: "VFV.TO",
+    name: "Vanguard S&P 500 Index ETF",
+    shortName: "VFV",
+    provider: "Vanguard",
+    mer: 0.09,
+    aum: "$11B",
+    inceptionDate: "2012-11-02",
+    numberOfHoldings: 500,
+    distributionFrequency: "Quarterly",
+    currency: "CAD",
+    exchangeListed: "TSX",
+    equityAllocation: 100,
+    fixedIncomeAllocation: 0,
+    description:
+      "A pure S&P 500 index fund offering exposure to the 500 largest US companies. Low cost but concentrated in one market.",
+    whoThisSuits:
+      "Investors who want pure US large-cap exposure. Lower fee but zero diversification outside the US.",
+    geographyAllocation: [
+      { region: "United States", weight: 100, color: "#2563eb" },
+    ],
+    underlyingETFs: [],
+    chartColor: "#f59e0b",
+  },
+};
+
+export const FUND_TICKERS = Object.keys(FUNDS);
+export const ALL_FUNDS = Object.values(FUNDS);
+
+export function getFund(ticker: string): FundData | undefined {
+  return FUNDS[ticker];
+}
