@@ -26,7 +26,7 @@ function formatDate(dateStr: string): string {
 }
 
 export default function DistributionsPage() {
-  const latest = VEQT_DISTRIBUTIONS.distributions[0];
+  const latestConfirmed = VEQT_DISTRIBUTIONS.distributions.find((d) => !d.estimated)!;
   const trailing12 = getTrailing12MonthDistributions();
   const years = getDistributionYears();
   const allDistributions = VEQT_DISTRIBUTIONS.distributions;
@@ -51,7 +51,7 @@ export default function DistributionsPage() {
               Latest Distribution
             </p>
             <p className="text-3xl font-bold tabular-nums text-[var(--color-text-primary)]">
-              ${latest.amount.toFixed(4)}
+              ${latestConfirmed.amount.toFixed(4)}
               <span className="text-sm font-normal text-[var(--color-text-muted)] ml-1.5">
                 per unit
               </span>
@@ -60,11 +60,11 @@ export default function DistributionsPage() {
               <div className="flex gap-6">
                 <div>
                   <span className="text-[var(--color-text-muted)]">Ex-dividend: </span>
-                  <span className="font-medium">{formatDate(latest.exDate)}</span>
+                  <span className="font-medium">{formatDate(latestConfirmed.exDate)}</span>
                 </div>
                 <div>
                   <span className="text-[var(--color-text-muted)]">Payment: </span>
-                  <span className="font-medium">{formatDate(latest.payDate)}</span>
+                  <span className="font-medium">{formatDate(latestConfirmed.payDate)}</span>
                 </div>
               </div>
             </div>
@@ -138,11 +138,18 @@ export default function DistributionsPage() {
                       i % 2 === 1 ? "bg-[var(--color-base)]" : ""
                     }`}
                   >
-                    <td className="py-2.5 px-4">{formatDate(d.exDate)}</td>
+                    <td className="py-2.5 px-4">
+                      {formatDate(d.exDate)}
+                      {d.estimated && (
+                        <span className="ml-2 inline-block text-[10px] font-medium bg-amber-100 text-amber-700 rounded px-1.5 py-0.5 align-middle">
+                          Est.
+                        </span>
+                      )}
+                    </td>
                     <td className="py-2.5 px-4 text-[var(--color-text-muted)]">
                       {formatDate(d.payDate)}
                     </td>
-                    <td className="py-2.5 px-4 text-right tabular-nums font-medium">
+                    <td className={`py-2.5 px-4 text-right tabular-nums font-medium ${d.estimated ? "text-[var(--color-text-muted)]" : ""}`}>
                       ${d.amount.toFixed(4)}
                     </td>
                   </tr>

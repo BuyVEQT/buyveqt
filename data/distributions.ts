@@ -2,6 +2,7 @@ export interface Distribution {
   exDate: string;
   payDate: string;
   amount: number;
+  estimated?: boolean;
 }
 
 export interface DistributionData {
@@ -14,12 +15,14 @@ export const VEQT_DISTRIBUTIONS: DistributionData = {
   ticker: "VEQT.TO",
   frequency: "Annually",
   distributions: [
-    { exDate: "2024-12-27", payDate: "2025-01-06", amount: 1.5206 },
-    { exDate: "2023-12-27", payDate: "2024-01-05", amount: 1.4823 },
-    { exDate: "2022-12-28", payDate: "2023-01-06", amount: 1.4248 },
-    { exDate: "2021-12-29", payDate: "2022-01-07", amount: 0.9605 },
-    { exDate: "2020-12-29", payDate: "2021-01-07", amount: 0.5765 },
-    { exDate: "2019-12-30", payDate: "2020-01-08", amount: 0.2980 },
+    { exDate: "2026-12-30", payDate: "2027-01-07", amount: 0.81, estimated: true },
+    { exDate: "2025-12-30", payDate: "2026-01-07", amount: 0.76018 },
+    { exDate: "2024-12-30", payDate: "2025-01-07", amount: 0.712997 },
+    { exDate: "2023-12-28", payDate: "2024-01-08", amount: 0.692287 },
+    { exDate: "2022-12-29", payDate: "2023-01-09", amount: 0.672491 },
+    { exDate: "2021-12-30", payDate: "2022-01-10", amount: 0.514 },
+    { exDate: "2020-12-30", payDate: "2021-01-08", amount: 0.4616 },
+    { exDate: "2019-12-30", payDate: "2020-01-08", amount: 0.4038 },
   ],
 };
 
@@ -27,15 +30,18 @@ export const VEQT_DISTRIBUTIONS: DistributionData = {
 export function getTrailing12MonthDistributions(): number {
   const oneYearAgo = new Date();
   oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+  const now = new Date();
   return VEQT_DISTRIBUTIONS.distributions
-    .filter((d) => new Date(d.exDate) >= oneYearAgo)
+    .filter((d) => !d.estimated && new Date(d.exDate) >= oneYearAgo && new Date(d.exDate) <= now)
     .reduce((sum, d) => sum + d.amount, 0);
 }
 
-/** Get number of years with distributions */
+/** Get number of years with confirmed distributions */
 export function getDistributionYears(): number {
   const years = new Set(
-    VEQT_DISTRIBUTIONS.distributions.map((d) => new Date(d.exDate).getFullYear())
+    VEQT_DISTRIBUTIONS.distributions
+      .filter((d) => !d.estimated)
+      .map((d) => new Date(d.exDate).getFullYear())
   );
   return years.size;
 }

@@ -62,9 +62,9 @@ export const COMPARISON_DATA = {
 };
 
 export const LATEST_DISTRIBUTION = {
-  amount: "$1.5206",
-  exDivDate: "Dec 27, 2024",
-  payableDate: "Jan 6, 2025",
+  amount: "$0.76018",
+  exDivDate: "Dec 30, 2025",
+  payableDate: "Jan 7, 2026",
 };
 
 export const LEARN_ARTICLES = [
