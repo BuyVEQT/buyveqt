@@ -3,7 +3,7 @@ import YahooFinance from "yahoo-finance2";
 
 const yf = new YahooFinance({ suppressNotices: ["ripHistorical", "yahooSurvey"] });
 
-const ALLOWED_TICKERS = ["VEQT.TO", "XEQT.TO", "ZEQT.TO", "VGRO.TO", "VFV.TO"];
+const ALLOWED_TICKERS = ["VEQT.TO", "XEQT.TO", "ZEQT.TO", "VGRO.TO", "VFV.TO", "VUN.TO"];
 
 function getStartDate(range: string): Date {
   const now = new Date();
@@ -19,6 +19,11 @@ function getStartDate(range: string): Date {
     case "ALL":
       return new Date(2012, 0, 1);
     case "1Y":
+      return new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+    case "3Y":
+      return new Date(now.getFullYear() - 3, now.getMonth(), now.getDate());
+    case "5Y":
+      return new Date(now.getFullYear() - 5, now.getMonth(), now.getDate());
     default:
       return new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
   }
@@ -44,10 +49,10 @@ export async function GET(
   const range = searchParams.get("range") || "1Y";
 
   // Longer ranges get longer cache
-  const revalidateTime = ["6M", "1Y", "ALL"].includes(range) ? 3600 : 1800;
+  const revalidateTime = ["6M", "1Y", "3Y", "5Y", "ALL"].includes(range) ? 3600 : 1800;
 
   try {
-    const interval = range === "ALL" ? ("1wk" as const) : ("1d" as const);
+    const interval = ["ALL", "3Y", "5Y"].includes(range) ? ("1wk" as const) : ("1d" as const);
 
     const historicalResult = await yf.historical(normalizedTicker, {
       period1: getStartDate(range),

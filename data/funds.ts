@@ -195,6 +195,30 @@ export const FUNDS: Record<string, FundData> = {
     underlyingETFs: [],
     chartColor: "#f59e0b",
   },
+  "VUN.TO": {
+    ticker: "VUN.TO",
+    name: "Vanguard U.S. Total Market Index ETF",
+    shortName: "VUN",
+    provider: "Vanguard",
+    mer: 0.16,
+    aum: "$8.5B",
+    inceptionDate: "2013-08-02",
+    numberOfHoldings: 3700,
+    distributionFrequency: "Annually",
+    currency: "CAD",
+    exchangeListed: "TSX",
+    equityAllocation: 100,
+    fixedIncomeAllocation: 0,
+    description:
+      "A pure US total market index fund tracking the CRSP US Total Market Index. One of VEQT's four underlying ETFs, providing broad exposure to US large-, mid-, and small-cap stocks.",
+    whoThisSuits:
+      "Investors who want dedicated US equity exposure in Canadian dollars. Lower fee but zero diversification outside the US market.",
+    geographyAllocation: [
+      { region: "United States", weight: 100, color: "#2563eb" },
+    ],
+    underlyingETFs: [],
+    chartColor: "#06b6d4",
+  },
 };
 
 export const FUND_TICKERS = Object.keys(FUNDS);

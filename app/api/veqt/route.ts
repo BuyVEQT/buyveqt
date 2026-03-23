@@ -19,6 +19,11 @@ function getStartDate(period: string): Date {
     case "YTD":
       return new Date(now.getFullYear(), 0, 1);
     case "1Y":
+      return new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+    case "3Y":
+      return new Date(now.getFullYear() - 3, now.getMonth(), now.getDate());
+    case "5Y":
+      return new Date(now.getFullYear() - 5, now.getMonth(), now.getDate());
     default:
       return new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
   }
@@ -34,7 +39,7 @@ export async function GET(request: Request) {
       yf.historical(VEQT_TICKER, {
         period1: getStartDate(period),
         period2: new Date(),
-        interval: "1d",
+        interval: ["3Y", "5Y"].includes(period) ? "1wk" : "1d",
       }),
     ]);
 

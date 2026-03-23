@@ -15,6 +15,7 @@ import { FUNDS } from "@/data/funds";
 import type { ChartPeriod } from "@/lib/types";
 import { CHART_PERIODS } from "@/lib/constants";
 import { ChartTooltipWrapper, GRID_PROPS, AXIS_PROPS } from "@/lib/chart-utils";
+import { getCached, setCache } from "@/lib/cache";
 
 interface PerformanceChartProps {
   selectedFunds: string[];
@@ -68,10 +69,18 @@ export default function PerformanceChart({ selectedFunds }: PerformanceChartProp
     try {
       const responses = await Promise.all(
         selectedFunds.map(async (ticker) => {
-          const res = await fetch(`/api/funds/chart/${ticker}?range=${period}`);
-          if (!res.ok) return { ticker, data: [] };
-          const json = await res.json();
-          return { ticker, data: json.data as { date: string; close: number }[] };
+          const cacheKey = `chart:${ticker}:${period}`;
+          try {
+            const res = await fetch(`/api/funds/chart/${ticker}?range=${period}`);
+            if (!res.ok) throw new Error("API error");
+            const json = await res.json();
+            const chartData = json.data as { date: string; close: number }[];
+            setCache(cacheKey, chartData);
+            return { ticker, data: chartData };
+          } catch {
+            const cached = getCached<{ date: string; close: number }[]>(cacheKey);
+            return { ticker, data: cached || [] };
+          }
         })
       );
 
