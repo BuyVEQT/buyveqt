@@ -66,17 +66,17 @@ export default function InsideVeqtPage() {
                 key={etf.ticker}
                 className="rounded-lg border border-[var(--color-border)] bg-white p-4"
               >
-                <p className="text-base font-semibold text-[var(--color-text-primary)]">
+                <p className="text-base font-semibold" style={{ color: "#111827" }}>
                   {etf.ticker}
                 </p>
-                <p className="text-xs text-[var(--color-text-muted)] mt-0.5 leading-snug">
+                <p className="text-xs mt-0.5 leading-snug" style={{ color: "#6b7280" }}>
                   {etf.name}
                 </p>
                 <div className="flex items-center justify-between mt-3 pt-2 border-t border-[var(--color-border)]">
-                  <span className="text-xs text-[var(--color-text-muted)]">
+                  <span className="text-xs" style={{ color: "#6b7280" }}>
                     {etf.region}
                   </span>
-                  <span className="text-sm font-semibold tabular-nums">
+                  <span className="text-sm font-semibold tabular-nums" style={{ color: "#111827" }}>
                     {etf.weight}%
                   </span>
                 </div>
