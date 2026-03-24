@@ -94,10 +94,8 @@ async function fetchDailyHistoryFromSource(
   const start = Date.now();
 
   if (source === 'alpha-vantage') {
-    if (!shouldUseAlphaVantage()) {
-      logDataFetch('alpha-vantage', config.displayName, false, 0, 'skipped — market closed');
-      return null;
-    }
+    // No market-hours gate for historical data — it's static and should
+    // always be available as fallback when Yahoo's historical() breaks.
     try {
       const data = await getDailyHistoryAV(config.alphaVantage, outputsize);
       logDataFetch('alpha-vantage', config.displayName, true, Date.now() - start);
@@ -175,10 +173,7 @@ async function fetchMonthlyHistoryFromSource(
   const start = Date.now();
 
   if (source === 'alpha-vantage') {
-    if (!shouldUseAlphaVantage()) {
-      logDataFetch('alpha-vantage', config.displayName, false, 0, 'skipped — market closed');
-      return null;
-    }
+    // No market-hours gate for historical data — always available as fallback.
     try {
       const data = await getMonthlyHistoryAV(config.alphaVantage);
       logDataFetch('alpha-vantage', config.displayName, true, Date.now() - start);
