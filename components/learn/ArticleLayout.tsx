@@ -3,6 +3,7 @@ import { MDXRemote } from "next-mdx-remote/rsc";
 import remarkGfm from "remark-gfm";
 import type { ArticleFrontmatter } from "@/lib/articles";
 import RelatedReading from "./RelatedReading";
+import NewsletterSignup from "@/components/NewsletterSignup";
 
 interface ArticleLayoutProps {
   frontmatter: ArticleFrontmatter;
@@ -45,6 +46,9 @@ export default function ArticleLayout({ frontmatter, content }: ArticleLayoutPro
         relatedSlugs={frontmatter.relatedSlugs || []}
         category={frontmatter.category || "beginner"}
       />
+
+      {/* Newsletter */}
+      <NewsletterSignup variant="section" className="mt-10" />
 
       {/* Footer */}
       <div className="mt-10 pt-6 border-t border-[var(--color-border)]">

@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { getAllSlugs } from "@/lib/articles";
+import { getAllWeeklyRecaps } from "@/lib/weekly";
 import { COMPARISON_PAGES } from "@/data/comparisons";
 import { SITE_URL } from "@/lib/seo-config";
 
@@ -30,6 +31,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: now,
       changeFrequency: "daily",
       priority: 0.9,
+    },
+    {
+      url: `${SITE_URL}/weekly`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.6,
     },
     {
       url: `${SITE_URL}/inside-veqt`,
@@ -79,5 +86,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.warn("[Sitemap] Failed to load article slugs:", error);
   }
 
-  return [...staticPages, ...comparisonPages, ...articlePages];
+  let weeklyPages: MetadataRoute.Sitemap = [];
+  try {
+    const recaps = getAllWeeklyRecaps();
+    weeklyPages = recaps.map((recap) => ({
+      url: `${SITE_URL}/weekly/${recap.slug}`,
+      lastModified: new Date(recap.date),
+      changeFrequency: "weekly" as const,
+      priority: 0.6,
+    }));
+  } catch {
+    // No weekly recaps yet
+  }
+
+  return [
+    ...staticPages,
+    ...comparisonPages,
+    ...articlePages,
+    ...weeklyPages,
+  ];
 }

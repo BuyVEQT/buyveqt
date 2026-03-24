@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { DISCLAIMER, NAV_LINKS } from "@/lib/constants";
+import NewsletterSignup from "@/components/NewsletterSignup";
 
 export default function Footer() {
   return (
@@ -59,6 +60,14 @@ export default function Footer() {
               </svg>
             </a>
           </div>
+        </div>
+
+        {/* Newsletter signup */}
+        <div className="border-t border-[var(--color-border)] pt-4 pb-4">
+          <p className="text-xs text-[var(--color-text-muted)] mb-2">
+            Get notified when we launch our newsletter
+          </p>
+          <NewsletterSignup variant="inline" className="max-w-sm" />
         </div>
 
         {/* Disclaimer + copyright */}
