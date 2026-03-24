@@ -28,10 +28,15 @@ const CONTENT_DIR = path.join(process.cwd(), "content", "learn");
 const ARTICLE_ORDER = [
   "why-we-choose-veqt-over-xeqt",
   "what-is-veqt",
+  "getting-started-with-veqt",
   "what-you-actually-own",
   "veqt-vs-xeqt",
   "veqt-vs-vgro",
+  "veqt-is-down",
+  "veqt-tfsa-rrsp-taxable",
   "veqt-in-tfsa-vs-rrsp-vs-non-registered",
+  "veqt-mer-true-cost",
+  "veqt-vs-diy-portfolio",
   "how-veqt-rebalances",
 ];
 
