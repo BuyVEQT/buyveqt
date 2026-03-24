@@ -462,43 +462,71 @@ export default function InvestCalculator({ history }: InvestCalculatorProps) {
       {/* Results */}
       {result && !validationMsg && (
         <>
-          {/* Stats Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-            <StatCard
-              label="Current value"
-              value={formatDollars(result.currentValue)}
-              highlight
-              positive={isPositive}
-            />
-            <StatCard
-              label="Total return"
-              value={`${isPositive ? "+" : "\u2212"}${formatDollars(Math.abs(result.totalReturn))}`}
-              positive={isPositive}
-            />
-            <StatCard
-              label="Return %"
-              value={`${isPositive ? "+" : "\u2212"}${Math.abs(result.totalReturnPercent).toFixed(2)}%`}
-              positive={isPositive}
-            />
-            <StatCard
-              label={isDCA ? "Total contributed" : "Invested"}
-              value={formatDollars(
-                isDCA
-                  ? (result as DCAResult).totalContributed
-                  : (result as LumpResult).investmentAmount
-              )}
-            />
-            <StatCard
-              label="Time period"
-              value={formatPeriod(result.startDate, result.endDate)}
-              className={isDCA ? "" : "col-span-2 sm:col-span-1"}
-            />
-            {isDCA && (
-              <StatCard
-                label="Contributions"
-                value={`${(result as DCAResult).contributions}`}
-              />
-            )}
+          {/* Hero Result */}
+          <div className="rounded-xl border border-[var(--color-border)] bg-white p-5 sm:p-6">
+            <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-1">
+              {isDCA ? "Your portfolio would be worth" : "Your investment would be worth"}
+            </p>
+            <p
+              className={`text-3xl sm:text-4xl font-extrabold tabular-nums ${
+                isPositive
+                  ? "text-[#15803d]"
+                  : "text-[#b91c1c]"
+              }`}
+            >
+              {formatDollars(result.currentValue)}
+            </p>
+
+            <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-3">
+              <div>
+                <p className="text-[11px] text-[var(--color-text-muted)] uppercase tracking-wide">
+                  Total return
+                </p>
+                <p
+                  className={`text-sm font-bold tabular-nums ${
+                    isPositive ? "text-[#15803d]" : "text-[#b91c1c]"
+                  }`}
+                >
+                  {isPositive ? "+" : "\u2212"}
+                  {formatDollars(Math.abs(result.totalReturn))}
+                </p>
+              </div>
+              <div>
+                <p className="text-[11px] text-[var(--color-text-muted)] uppercase tracking-wide">
+                  Return
+                </p>
+                <p
+                  className={`text-sm font-bold tabular-nums ${
+                    isPositive ? "text-[#15803d]" : "text-[#b91c1c]"
+                  }`}
+                >
+                  {isPositive ? "+" : "\u2212"}
+                  {Math.abs(result.totalReturnPercent).toFixed(2)}%
+                </p>
+              </div>
+              <div>
+                <p className="text-[11px] text-[var(--color-text-muted)] uppercase tracking-wide">
+                  {isDCA ? "Total contributed" : "Invested"}
+                </p>
+                <p className="text-sm font-bold tabular-nums text-[var(--color-text-primary)]">
+                  {formatDollars(
+                    isDCA
+                      ? (result as DCAResult).totalContributed
+                      : (result as LumpResult).investmentAmount
+                  )}
+                </p>
+              </div>
+              <div>
+                <p className="text-[11px] text-[var(--color-text-muted)] uppercase tracking-wide">
+                  {isDCA
+                    ? `${(result as DCAResult).contributions} contributions over`
+                    : "Time period"}
+                </p>
+                <p className="text-sm font-bold text-[var(--color-text-primary)]">
+                  {formatPeriod(result.startDate, result.endDate)}
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Chart */}
@@ -680,40 +708,3 @@ export default function InvestCalculator({ history }: InvestCalculatorProps) {
   );
 }
 
-// ─── Stat Card ────────────────────────────────────────────────
-
-function StatCard({
-  label,
-  value,
-  positive,
-  highlight,
-  className,
-}: {
-  label: string;
-  value: string;
-  positive?: boolean;
-  highlight?: boolean;
-  className?: string;
-}) {
-  const colorClass =
-    positive === undefined
-      ? "text-[var(--color-text-primary)]"
-      : positive
-      ? "text-[var(--color-positive)]"
-      : "text-[var(--color-negative)]";
-
-  return (
-    <div
-      className={`rounded-lg border border-[var(--color-border)] bg-white p-3 ${className ?? ""}`}
-    >
-      <p className="text-xs text-[var(--color-text-muted)] mb-1">{label}</p>
-      <p
-        className={`font-bold tabular-nums ${
-          highlight ? "text-xl sm:text-2xl" : "text-base"
-        } ${colorClass}`}
-      >
-        {value}
-      </p>
-    </div>
-  );
-}
