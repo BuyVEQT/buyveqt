@@ -7,6 +7,7 @@ import {
 import { getQuoteYahoo, getHistoryYahoo } from './yahoo-fallback';
 import { readCache, writeCache, getCacheKey } from './cache';
 import { logDataFetch } from './logger';
+import { shouldUseAlphaVantage } from './market-hours';
 import type { QuoteData, HistoricalData } from './types';
 
 // ─── Quote fetching ───────────────────────────────────────────
@@ -18,6 +19,11 @@ async function fetchQuoteFromSource(
   const start = Date.now();
 
   if (source === 'alpha-vantage') {
+    // Skip AV outside market hours to conserve 25/day budget
+    if (!shouldUseAlphaVantage()) {
+      logDataFetch('alpha-vantage', config.displayName, false, 0, 'skipped — market closed');
+      return null;
+    }
     try {
       const data = await getQuoteAV(config.alphaVantage);
       logDataFetch('alpha-vantage', config.displayName, true, Date.now() - start);
@@ -51,14 +57,14 @@ export async function getQuote(symbol: string): Promise<QuoteData> {
   const cacheKey = getCacheKey('quote', config.displayName);
   const [primarySource, secondarySource] = config.priority;
 
-  // 1. Try primary source
+  // 1. Try primary source (Yahoo)
   const primaryResult = await fetchQuoteFromSource(primarySource, config);
   if (primaryResult) {
     await writeCache(cacheKey, primaryResult);
     return primaryResult;
   }
 
-  // 2. Try secondary source
+  // 2. Try secondary source (AV — only during market hours)
   const secondaryResult = await fetchQuoteFromSource(secondarySource, config);
   if (secondaryResult) {
     await writeCache(cacheKey, secondaryResult);
@@ -88,6 +94,10 @@ async function fetchDailyHistoryFromSource(
   const start = Date.now();
 
   if (source === 'alpha-vantage') {
+    if (!shouldUseAlphaVantage()) {
+      logDataFetch('alpha-vantage', config.displayName, false, 0, 'skipped — market closed');
+      return null;
+    }
     try {
       const data = await getDailyHistoryAV(config.alphaVantage, outputsize);
       logDataFetch('alpha-vantage', config.displayName, true, Date.now() - start);
@@ -165,6 +175,10 @@ async function fetchMonthlyHistoryFromSource(
   const start = Date.now();
 
   if (source === 'alpha-vantage') {
+    if (!shouldUseAlphaVantage()) {
+      logDataFetch('alpha-vantage', config.displayName, false, 0, 'skipped — market closed');
+      return null;
+    }
     try {
       const data = await getMonthlyHistoryAV(config.alphaVantage);
       logDataFetch('alpha-vantage', config.displayName, true, Date.now() - start);

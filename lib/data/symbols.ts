@@ -9,20 +9,23 @@ export interface SymbolConfig {
   priority: [FetchSource, FetchSource];
 }
 
+// Yahoo is primary for ALL symbols — it's free with no rate limit.
+// Alpha Vantage is the backup, only used when Yahoo fails,
+// and only during market hours (see market-hours.ts).
 export const SYMBOLS: Record<string, SymbolConfig> = {
   VEQT: {
     alphaVantage: 'VEQT.TRT',
     yahoo: 'VEQT.TO',
     displayName: 'VEQT',
     fullName: 'Vanguard All-Equity ETF Portfolio',
-    priority: ['alpha-vantage', 'yahoo'], // AV first — this is our core product
+    priority: ['yahoo', 'alpha-vantage'],
   },
   XEQT: {
     alphaVantage: 'XEQT.TRT',
     yahoo: 'XEQT.TO',
     displayName: 'XEQT',
     fullName: 'iShares Core Equity ETF Portfolio',
-    priority: ['yahoo', 'alpha-vantage'], // Yahoo first — save AV budget
+    priority: ['yahoo', 'alpha-vantage'],
   },
   ZEQT: {
     alphaVantage: 'ZEQT.TRT',
