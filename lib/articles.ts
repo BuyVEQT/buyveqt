@@ -36,10 +36,12 @@ const ARTICLE_ORDER = [
   "veqt-vs-vgro",
   "veqt-is-down",
   "veqt-tfsa-rrsp-taxable",
-  "veqt-in-tfsa-vs-rrsp-vs-non-registered",
   "veqt-mer-true-cost",
   "veqt-vs-diy-portfolio",
   "how-veqt-rebalances",
+  "lump-sum-vs-dca",
+  "veqt-currency-risk",
+  "passive-investing-behavioral-edge",
 ];
 
 function applyDefaults(data: Record<string, unknown>): ArticleFrontmatter {
