@@ -86,22 +86,26 @@ export const LEARN_ARTICLES = [
   },
 ];
 
+// Last-resort fallback when ALL data sources AND cache fail.
+// Updated manually — this should reflect a reasonably recent price.
+// The timestamp is intentionally fixed (not new Date()) so the UI
+// honestly shows "data from Mar 24" rather than lying "updated just now."
 export const FALLBACK_QUOTE: VeqtQuote = {
-  price: 42.5,
-  previousClose: 42.35,
-  change: 0.15,
-  changePercent: 0.35,
-  dayHigh: 42.65,
-  dayLow: 42.2,
-  fiftyTwoWeekHigh: 45.12,
-  fiftyTwoWeekLow: 36.88,
-  dividendYield: 1.8,
+  price: 53.19,
+  previousClose: 53.25,
+  change: -0.06,
+  changePercent: -0.11,
+  dayHigh: 0,
+  dayLow: 0,
+  fiftyTwoWeekHigh: 0,
+  fiftyTwoWeekLow: 0,
+  dividendYield: 0,
   ytdReturn: null,
-  volume: 250000,
-  marketCap: 11200000000,
+  volume: 0,
+  marketCap: 0,
   currency: "CAD",
   exchange: "TSX",
-  lastUpdated: new Date().toISOString(),
+  lastUpdated: "2026-03-24T20:00:00.000Z", // Fixed date — never new Date()
   isFallback: true,
 };
 
