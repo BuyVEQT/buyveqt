@@ -12,15 +12,20 @@ import type { QuoteData, HistoricalData } from './types';
 
 // ─── Quote fetching ───────────────────────────────────────────
 
+/**
+ * @param forceAV - If true, skip the market-hours check. Used when this is
+ *                  the last resort before serving stale cache or failing entirely.
+ */
 async function fetchQuoteFromSource(
   source: FetchSource,
-  config: SymbolConfig
+  config: SymbolConfig,
+  forceAV = false
 ): Promise<QuoteData | null> {
   const start = Date.now();
 
   if (source === 'alpha-vantage') {
-    // Skip AV outside market hours to conserve 25/day budget
-    if (!shouldUseAlphaVantage()) {
+    // Skip AV outside market hours to conserve 25/day budget — UNLESS forced
+    if (!forceAV && !shouldUseAlphaVantage()) {
       logDataFetch('alpha-vantage', config.displayName, false, 0, 'skipped — market closed');
       return null;
     }
@@ -64,14 +69,14 @@ export async function getQuote(symbol: string): Promise<QuoteData> {
     return primaryResult;
   }
 
-  // 2. Try secondary source (AV — only during market hours)
+  // 2. Try secondary source (AV — respects market hours normally)
   const secondaryResult = await fetchQuoteFromSource(secondarySource, config);
   if (secondaryResult) {
     await writeCache(cacheKey, secondaryResult);
     return secondaryResult;
   }
 
-  // 3. Try local cache (last known good data)
+  // 3. Try local cache (last known good data from memory or filesystem)
   const cached = await readCache<QuoteData>(cacheKey);
   if (cached) {
     console.log(
@@ -80,7 +85,17 @@ export async function getQuote(symbol: string): Promise<QuoteData> {
     return { ...cached, source: 'cache' };
   }
 
-  // 4. Nothing available
+  // 4. LAST RESORT: Force AV even outside market hours.
+  //    Better to burn 1 AV call than show nothing.
+  if (secondarySource === 'alpha-vantage') {
+    const lastResort = await fetchQuoteFromSource('alpha-vantage', config, true);
+    if (lastResort) {
+      await writeCache(cacheKey, lastResort);
+      return lastResort;
+    }
+  }
+
+  // 5. Nothing available
   throw new Error(`All data sources unavailable for ${symbol}`);
 }
 
