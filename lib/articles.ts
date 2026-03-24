@@ -15,6 +15,8 @@ export interface ArticleFrontmatter {
   difficulty?: "beginner" | "intermediate" | "advanced";
   tags?: string[];
   relatedSlugs?: string[];
+  isEditorial?: boolean;
+  order?: number;
 }
 
 export interface ArticleData {
@@ -50,6 +52,8 @@ function applyDefaults(data: Record<string, unknown>): ArticleFrontmatter {
     difficulty: fm.difficulty ?? "beginner",
     tags: fm.tags ?? [],
     relatedSlugs: fm.relatedSlugs ?? [],
+    isEditorial: fm.isEditorial ?? false,
+    order: fm.order ?? 99,
   };
 }
 
