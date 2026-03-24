@@ -121,7 +121,7 @@ export const DISCLAIMER =
 export const NAV_LINKS = [
   { href: "/", label: "Home" },
   { href: "/compare", label: "Compare" },
-  { href: "/invest", label: "Calculator" },
-  { href: "/learn", label: "Learn" },
+  { href: "/invest", label: "If You Invested" },
   { href: "/calculators", label: "Calculators" },
+  { href: "/learn", label: "Learn" },
 ];
