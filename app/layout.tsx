@@ -117,6 +117,73 @@ export default function RootLayout({
             },
           }}
         />
+        <JsonLd
+          data={{
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: [
+              {
+                "@type": "Question",
+                name: "What is VEQT?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "VEQT (Vanguard All-Equity ETF Portfolio) is a single-ticket ETF that provides instant exposure to approximately 13,700 stocks across 50 countries. It holds 4 underlying Vanguard index ETFs covering the US (~40%), Canada (~30%), international developed (~23%), and emerging markets (~7%). It is designed for long-term Canadian passive investors.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "What is VEQT's MER?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "VEQT's MER is approximately 0.20%. Vanguard reduced the management fee from 0.22% to 0.17% in November 2025. The official MER was last reported as 0.24% based on a prior fiscal year and is expected to be approximately 0.19-0.20% once recalculated.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "Should I hold VEQT in a TFSA or RRSP?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "For most Canadians, especially younger investors, holding VEQT in a TFSA is recommended. All growth and distributions are completely tax-free. Higher-income earners may benefit from the RRSP tax deduction. Non-registered accounts should only be used after registered accounts are maxed.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "What is the difference between VEQT and XEQT?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "Both are all-equity, globally diversified single-ticket ETFs. XEQT (iShares) has slightly more US exposure (~45% vs 40%) and a slightly lower MER. VEQT (Vanguard) has more Canadian exposure (~30% vs 25%) and larger AUM. Performance has been very similar. The differences are small enough that most investors won't notice over a 20-year horizon.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "How often does VEQT pay distributions?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "VEQT pays one annual distribution, typically with an ex-dividend date in late December and payment in early January. The most recent confirmed distribution was $0.76018 per unit (December 2025).",
+                },
+              },
+            ],
+          }}
+        />
+        <JsonLd
+          data={{
+            "@context": "https://schema.org",
+            "@type": "InvestmentFund",
+            name: "Vanguard All-Equity ETF Portfolio",
+            alternateName: "VEQT",
+            tickerSymbol: "VEQT.TO",
+            exchange: "Toronto Stock Exchange",
+            url: "https://www.vanguard.ca/en/advisor/products/products-group/etfs/VEQT",
+            description:
+              "A single-ticket, globally diversified, all-equity ETF holding approximately 13,700 stocks across 50 countries through 4 underlying Vanguard index ETFs.",
+            provider: {
+              "@type": "Organization",
+              name: "Vanguard Investments Canada Inc.",
+            },
+            feesAndCommissionsSpecification:
+              "Management Expense Ratio (MER) approximately 0.20%. Management fee reduced to 0.17% in November 2025.",
+          }}
+        />
         {children}
         <Analytics />
         <SpeedInsights />
