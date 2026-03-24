@@ -3,7 +3,7 @@ import { getQuote, getDailyHistory } from "@/lib/data";
 import { FALLBACK_QUOTE } from "@/lib/constants";
 import type { VeqtQuote, HistoricalDataPoint, VeqtApiResponse } from "@/lib/types";
 
-export const revalidate = 900; // 15 minutes (was 30 min, now matches new quote route)
+export const revalidate = 300; // 5 minutes — Yahoo is free, refresh frequently
 
 function getHistoryDays(period: string): number {
   switch (period) {

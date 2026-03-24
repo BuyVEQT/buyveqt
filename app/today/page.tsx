@@ -17,7 +17,7 @@ import {
   getTrailing12MonthDistributions,
 } from "@/data/distributions";
 
-export const revalidate = 900; // 15 minutes
+export const revalidate = 300; // 5 minutes — Yahoo is free, refresh frequently
 
 export const metadata: Metadata = {
   title: "VEQT Today — Price, Performance & Latest News",

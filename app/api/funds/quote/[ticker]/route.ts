@@ -3,7 +3,7 @@ import { getQuote, getDailyHistory } from "@/lib/data";
 
 const ALLOWED_TICKERS = ["VEQT", "XEQT", "ZEQT", "VGRO", "VFV", "VUN"];
 
-export const revalidate = 900;
+export const revalidate = 300; // 5 minutes — Yahoo is free, refresh frequently
 
 export async function GET(
   _request: Request,

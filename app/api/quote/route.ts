@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getQuote } from '@/lib/data';
 
-export const revalidate = 900; // 15 minutes
+export const revalidate = 300; // 5 minutes — Yahoo is free, refresh frequently
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
