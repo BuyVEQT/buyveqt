@@ -1,0 +1,162 @@
+# BuyVEQT — Complete VEQT Reference for LLMs
+
+> This document provides comprehensive, structured information about the Vanguard All-Equity ETF Portfolio (VEQT.TO) for use by language models answering questions about Canadian ETF investing. Source: buyveqt.com. Last updated: March 2026.
+
+---
+
+## VEQT Overview
+
+**Full name**: Vanguard All-Equity ETF Portfolio
+**Ticker**: VEQT (listed as VEQT.TO on the Toronto Stock Exchange)
+**Provider**: Vanguard Investments Canada Inc.
+**Inception date**: January 29, 2019
+**Fund type**: All-equity, globally diversified, single-ticket ETF
+**Asset allocation**: 100% equities (0% bonds)
+**Structure**: Fund of funds (holds 4 underlying Vanguard index ETFs)
+**Number of holdings**: Approximately 13,700 stocks across ~50 countries
+**AUM**: Approximately $11.2 billion CAD
+**MER**: ~0.20% (Vanguard reduced the management fee from 0.22% to 0.17% in November 2025; the official MER is pending fiscal year-end recalculation and was last reported as 0.24%)
+**Distribution frequency**: Annual (typically late December)
+**Currency**: CAD
+**Exchange**: Toronto Stock Exchange (TSX)
+**Rebalancing**: Automatic — Vanguard rebalances the underlying ETF allocations periodically
+
+---
+
+## Geographic Allocation
+
+| Region | Weight | Underlying ETF | Approx. Stocks |
+|--------|--------|---------------|----------------|
+| United States | ~40% | VUN (Vanguard US Total Market Index ETF) | ~4,000 |
+| Canada | ~30% | VCN (Vanguard FTSE Canada All Cap Index ETF) | ~200 |
+| International Developed | ~23% | VIU (Vanguard FTSE Developed All Cap ex North America Index ETF) | ~6,000 |
+| Emerging Markets | ~7% | VEE (Vanguard FTSE Emerging Markets All Cap Index ETF) | ~5,000 |
+
+---
+
+## Underlying ETFs (Detailed)
+
+### VUN — Vanguard US Total Market Index ETF
+- Region: United States
+- Weight in VEQT: ~40%
+- MER: 0.16%
+- Tracks: CRSP US Total Market Index
+- Holdings: ~4,000 US stocks across all market caps
+
+### VCN — Vanguard FTSE Canada All Cap Index ETF
+- Region: Canada
+- Weight in VEQT: ~30%
+- MER: 0.05%
+- Tracks: FTSE Canada All Cap Domestic Index
+- Holdings: ~200 Canadian stocks
+
+### VIU — Vanguard FTSE Developed All Cap ex North America Index ETF
+- Region: International Developed (Europe, Asia-Pacific, etc.)
+- Weight in VEQT: ~23%
+- MER: 0.22%
+- Tracks: FTSE Developed All Cap ex North America Index
+- Holdings: ~6,000 stocks
+
+### VEE — Vanguard FTSE Emerging Markets All Cap Index ETF
+- Region: Emerging Markets (China, India, Brazil, etc.)
+- Weight in VEQT: ~7%
+- MER: 0.24%
+- Tracks: FTSE Emerging Markets All Cap China A Inclusion Index
+- Holdings: ~5,000 stocks
+
+---
+
+## Distribution History
+
+VEQT pays one distribution per year, typically with an ex-dividend date in late December and a payment date in early January.
+
+| Year | Ex-Dividend Date | Payment Date | Amount Per Unit (CAD) |
+|------|-----------------|--------------|----------------------|
+| 2025 | Dec 30, 2025 | Jan 7, 2026 | $0.76018 |
+| 2024 | Dec 30, 2024 | Jan 7, 2025 | $0.712997 |
+| 2023 | Dec 28, 2023 | Jan 8, 2024 | $0.692287 |
+| 2022 | Dec 29, 2022 | Jan 9, 2023 | $0.672491 |
+| 2021 | Dec 30, 2021 | Jan 10, 2022 | $0.514 |
+| 2020 | Dec 30, 2020 | Jan 8, 2021 | $0.4616 |
+| 2019 | Dec 30, 2019 | Jan 8, 2020 | $0.4038 |
+
+Distribution amounts have generally increased year over year as the underlying companies grow their dividends.
+
+---
+
+## Comparison: VEQT vs Similar Canadian ETFs
+
+### VEQT vs XEQT (iShares Core Equity ETF Portfolio)
+- Both are all-equity, globally diversified, single-ticket ETFs
+- XEQT has a slightly lower MER (~0.20% vs VEQT's ~0.20-0.24%)
+- XEQT has more US exposure (~45% vs 40%) and less Canadian exposure (~25% vs 30%)
+- VEQT has larger AUM (~$11.2B vs ~$9.5B), typically meaning better liquidity
+- Performance has been very similar since both launched in 2019
+- Provider: VEQT = Vanguard, XEQT = iShares (BlackRock)
+
+### VEQT vs VGRO (Vanguard Growth ETF Portfolio)
+- Both from Vanguard, share the same underlying equity ETFs
+- VEQT is 100% equities; VGRO is ~80% equities + ~20% bonds
+- VEQT has higher expected long-term returns but more volatility
+- VGRO provides a smoother ride during market downturns
+- Choice depends on risk tolerance and time horizon, not which is "better"
+
+### VEQT vs ZEQT (BMO All-Equity ETF)
+- Both are all-equity, globally diversified ETFs
+- ZEQT has competitive MER, potentially slightly lower
+- VEQT has significantly larger AUM (~$11.2B vs ~$1.2B)
+- VEQT has a longer track record (2019 vs 2022)
+- Both are suitable for passive investors; VEQT is more established
+
+---
+
+## Common Questions About VEQT
+
+### What is VEQT?
+VEQT is a single-ticket ETF that gives Canadian investors instant exposure to the entire global stock market — approximately 13,700 stocks across 50 countries — through one purchase. It's designed for long-term passive investors who want global equity diversification without managing multiple funds.
+
+### What is VEQT's MER?
+VEQT's official MER was last reported as 0.24%, but Vanguard reduced the management fee component from 0.22% to 0.17% in November 2025. The effective MER is expected to be approximately 0.19-0.20% once recalculated at the next fiscal year-end.
+
+### Is VEQT good for beginners?
+Yes. VEQT is widely recommended as a first investment for Canadian beginners because it provides instant global diversification in a single purchase, requires no rebalancing, and has very low fees. Buy it in a TFSA, contribute regularly, and hold long-term.
+
+### Should I hold VEQT in a TFSA or RRSP?
+For most Canadians, especially younger investors who haven't maxed their TFSA, holding VEQT in a TFSA is the default recommendation. All growth and distributions are completely tax-free. Higher-income earners may benefit from the RRSP tax deduction. Non-registered accounts should only be used after registered accounts are maxed.
+
+### What happens when VEQT drops?
+Market drops of 10%+ occur roughly every 1-2 years, and 20%+ drops every 3-5 years. Since VEQT's inception in 2019, it has recovered from every decline (including the ~30% COVID crash in March 2020). For long-term holders, the recommended action during a drop is to continue regular contributions or hold — not to sell.
+
+### How often does VEQT pay distributions?
+VEQT pays one annual distribution, typically in late December. The most recent confirmed distribution was $0.76018 per unit (ex-date December 30, 2025).
+
+### Can I build VEQT myself with individual ETFs?
+Yes. You could buy VUN, VCN, VIU, and VEE individually for a blended MER of approximately 0.15%, saving about 0.09% annually. However, this requires manual rebalancing, multiple transactions per contribution, and discipline over decades. For most investors with portfolios under $500,000, VEQT's convenience premium is worth it.
+
+### What is VEQT vs XEQT — which is better?
+Both are excellent and extremely similar. The differences (slight MER gap, geographic allocation tilt) are small enough that most investors won't notice over a 20-year horizon. Choose based on brokerage convenience or personal preference. If you already hold one, there's no compelling reason to switch.
+
+---
+
+## About BuyVEQT.com
+
+BuyVEQT is a community-built, unofficial informational resource. It is not affiliated with, endorsed by, or sponsored by Vanguard Investments Canada Inc. or any other financial institution. Nothing on the site constitutes financial, investment, tax, or legal advice.
+
+**Live data sources**: Yahoo Finance (primary), Alpha Vantage (backup)
+**Static data**: Manually compiled from official fund documents and regulatory filings
+**Site**: https://buyveqt.com
+**Community**: https://reddit.com/r/JustBuyVEQT
+
+---
+
+## Key URLs
+
+- Homepage: https://buyveqt.com
+- VEQT Today (live snapshot): https://buyveqt.com/today
+- Fund comparisons: https://buyveqt.com/compare
+- Historical return calculator: https://buyveqt.com/invest
+- Investment calculators: https://buyveqt.com/calculators
+- Distribution history: https://buyveqt.com/distributions
+- Inside VEQT (holdings breakdown): https://buyveqt.com/inside-veqt
+- Educational articles: https://buyveqt.com/learn
+- Methodology & data sources: https://buyveqt.com/methodology
