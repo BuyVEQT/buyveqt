@@ -6,10 +6,12 @@ import StaleBanner from "@/components/ui/StaleBanner";
 import DataUnavailable from "@/components/ui/DataUnavailable";
 import MiniChart from "@/components/today/MiniChart";
 import RedditFeed from "@/components/RedditFeed";
+import NewsletterSignup from "@/components/NewsletterSignup";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { buildBreadcrumbSchema, canonicalUrl } from "@/lib/seo-config";
 import { getQuote, getDailyHistory, getMonthlyHistory } from "@/lib/data";
 import { getRedditPosts } from "@/lib/data/reddit";
+import { getLatestWeeklyRecap } from "@/lib/weekly";
 import {
   VEQT_DISTRIBUTIONS,
   getTrailing12MonthDistributions,
@@ -99,6 +101,8 @@ export default async function TodayPage() {
     monthlyResult.status === "fulfilled" ? monthlyResult.value : null;
   const posts =
     redditPosts.status === "fulfilled" ? redditPosts.value : [];
+
+  const latestRecap = getLatestWeeklyRecap();
 
   // Performance calculations
   const dailyData = daily?.data ?? [];
@@ -310,7 +314,36 @@ export default async function TodayPage() {
           </div>
         </div>
 
-        {/* Section 6: Reddit Feed */}
+        {/* Section 6: Latest Weekly Recap */}
+        {latestRecap && (
+          <div>
+            <h2 className="text-sm font-semibold text-[var(--color-text-secondary)] mb-3">
+              This Week&apos;s Recap
+            </h2>
+            <Link
+              href={`/weekly/${latestRecap.slug}`}
+              className="block rounded-lg border border-[var(--color-border)] bg-white p-4 hover:border-[var(--color-brand)] hover:shadow-sm transition-all"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-semibold text-[var(--color-text-primary)]">
+                  {latestRecap.title}
+                </p>
+                <span
+                  className={`text-sm font-bold tabular-nums shrink-0 ${
+                    latestRecap.weeklyChange >= 0
+                      ? "text-[#15803d]"
+                      : "text-[#b91c1c]"
+                  }`}
+                >
+                  {latestRecap.weeklyChange >= 0 ? "+" : ""}
+                  {latestRecap.weeklyChangePercent.toFixed(2)}%
+                </span>
+              </div>
+            </Link>
+          </div>
+        )}
+
+        {/* Section 7: Reddit Feed */}
         {posts.length > 0 && (
           <div>
             <h2 className="text-sm font-semibold text-[var(--color-text-secondary)] mb-3">
@@ -321,6 +354,9 @@ export default async function TodayPage() {
             </div>
           </div>
         )}
+
+        {/* Section 8: Newsletter Signup */}
+        <NewsletterSignup variant="section" />
       </main>
     </PageShell>
   );
