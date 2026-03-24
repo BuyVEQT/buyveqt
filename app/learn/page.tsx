@@ -2,15 +2,19 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import PageShell from "@/components/layout/PageShell";
 import { getAllArticles } from "@/lib/articles";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { buildBreadcrumbSchema, canonicalUrl } from "@/lib/seo-config";
 
 export const metadata: Metadata = {
-  title: "Learn About VEQT — BuyVEQT",
+  title: "Learn About VEQT & Canadian Passive Investing",
   description:
-    "Guides, explainers, and educational resources for VEQT investors. Learn about all-in-one ETFs, tax implications, rebalancing, and portfolio strategy.",
+    "Educational articles on VEQT, Canadian ETF investing, TFSAs, RRSPs, and building a passive portfolio. Written in plain English for real investors.",
+  alternates: { canonical: canonicalUrl("/learn") },
   openGraph: {
-    title: "Learn About VEQT — BuyVEQT",
+    title: "Learn — VEQT & Canadian Passive Investing",
     description:
-      "Educational resources for VEQT investors — from beginner basics to tax strategy.",
+      "Plain-English guides on VEQT, all-in-one ETFs, tax-advantaged accounts, and passive investing in Canada.",
+    url: canonicalUrl("/learn"),
   },
 };
 
@@ -19,6 +23,12 @@ export default function LearnPage() {
 
   return (
     <PageShell>
+      <JsonLd
+        data={buildBreadcrumbSchema([
+          { name: "Home", path: "/" },
+          { name: "Learn", path: "/learn" },
+        ])}
+      />
       <main className="flex-1 mx-auto w-full max-w-6xl px-4 py-8">
         {/* Header */}
         <div className="mb-8">

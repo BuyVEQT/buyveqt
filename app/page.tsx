@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useVeqtData } from "@/lib/useVeqtData";
 import NavBar from "@/components/layout/NavBar";
 import Footer from "@/components/layout/Footer";
@@ -10,9 +11,13 @@ import InsideVeqtPreview from "@/components/InsideVeqtPreview";
 import ComparePreview from "@/components/ComparePreview";
 import LearnPreview from "@/components/LearnPreview";
 import CommunityStrip from "@/components/CommunityStrip";
+import TodaySnapshot from "@/components/TodaySnapshot";
+
+type HomeView = "overview" | "today";
 
 export default function Home() {
   const { data, loading, period, setPeriod } = useVeqtData();
+  const [view, setView] = useState<HomeView>("overview");
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -20,41 +25,79 @@ export default function Home() {
         quote={data?.quote ?? null}
         loading={loading}
         isFallback={data?.isFallback ?? false}
+        quoteSource={data?.quoteSource}
+        quoteFetchedAt={data?.quoteFetchedAt}
       />
 
       <main className="flex-1 mx-auto w-full max-w-6xl px-4">
-        {/* Section 1: Hero */}
-        <HeroSection
-          quote={data?.quote ?? null}
-          loading={loading}
-          isFallback={data?.isFallback ?? false}
-        />
-
-        {/* Section 2: Price Chart + Sidebar */}
-        <section className="py-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
-            <div className="lg:col-span-2">
-              <PriceChart
-                data={data?.historical ?? []}
-                loading={loading}
-                period={period}
-                onPeriodChange={setPeriod}
-              />
-            </div>
-            <SidebarCards />
+        {/* View Toggle */}
+        <div className="pt-6 flex justify-center">
+          <div className="inline-flex rounded-lg bg-[var(--color-base)] p-1 gap-1">
+            <button
+              onClick={() => setView("overview")}
+              className={`rounded-md px-4 py-1.5 text-sm font-medium transition-all ${
+                view === "overview"
+                  ? "bg-white text-[var(--color-text-primary)] shadow-sm"
+                  : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
+              }`}
+            >
+              Overview
+            </button>
+            <button
+              onClick={() => setView("today")}
+              className={`rounded-md px-4 py-1.5 text-sm font-medium transition-all ${
+                view === "today"
+                  ? "bg-white text-[var(--color-text-primary)] shadow-sm"
+                  : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
+              }`}
+            >
+              VEQT Today
+            </button>
           </div>
-        </section>
+        </div>
 
-        {/* Section 3: What's Inside VEQT */}
+        {view === "overview" ? (
+          <>
+            {/* Section 1: Hero */}
+            <HeroSection
+              quote={data?.quote ?? null}
+              loading={loading}
+              isFallback={data?.isFallback ?? false}
+              quoteSource={data?.quoteSource}
+              quoteFetchedAt={data?.quoteFetchedAt}
+            />
+
+            {/* Section 2: Price Chart + Sidebar */}
+            <section className="py-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+                <div className="lg:col-span-2">
+                  <PriceChart
+                    data={data?.historical ?? []}
+                    loading={loading}
+                    period={period}
+                    onPeriodChange={setPeriod}
+                    historySource={data?.historySource}
+                    historyFetchedAt={data?.historyFetchedAt}
+                  />
+                </div>
+                <SidebarCards />
+              </div>
+            </section>
+          </>
+        ) : (
+          <TodaySnapshot
+            quote={data?.quote ?? null}
+            historical={data?.historical ?? []}
+            loading={loading}
+            quoteSource={data?.quoteSource}
+            quoteFetchedAt={data?.quoteFetchedAt}
+          />
+        )}
+
+        {/* Below-the-fold sections always visible */}
         <InsideVeqtPreview />
-
-        {/* Section 4: Compare Preview */}
         <ComparePreview />
-
-        {/* Section 5: Learn Preview */}
         <LearnPreview />
-
-        {/* Section 6: Community */}
         <CommunityStrip />
       </main>
 

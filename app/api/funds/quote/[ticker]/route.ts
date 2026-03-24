@@ -1,22 +1,20 @@
 import { NextResponse } from "next/server";
-import YahooFinance from "yahoo-finance2";
+import { getQuote, getDailyHistory } from "@/lib/data";
 
-const yf = new YahooFinance({ suppressNotices: ["ripHistorical", "yahooSurvey"] });
+const ALLOWED_TICKERS = ["VEQT", "XEQT", "ZEQT", "VGRO", "VFV", "VUN"];
 
-const ALLOWED_TICKERS = ["VEQT.TO", "XEQT.TO", "ZEQT.TO", "VGRO.TO", "VFV.TO"];
-
-export const revalidate = 1800;
+export const revalidate = 900;
 
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ ticker: string }> }
 ) {
   const { ticker } = await params;
-  const normalizedTicker = ticker.toUpperCase().endsWith(".TO")
-    ? ticker.toUpperCase()
-    : `${ticker.toUpperCase()}.TO`;
+  // Normalize: strip .TO if present to get base symbol
+  const symbol = ticker.toUpperCase().replace(/\.TO$/, "");
+  const displayTicker = `${symbol}.TO`;
 
-  if (!ALLOWED_TICKERS.includes(normalizedTicker)) {
+  if (!ALLOWED_TICKERS.includes(symbol)) {
     return NextResponse.json(
       { error: true, message: "Unsupported ticker" },
       { status: 400 }
@@ -24,42 +22,33 @@ export async function GET(
   }
 
   try {
-    const q = await yf.quote(normalizedTicker);
+    const quoteData = await getQuote(symbol);
 
-    // Calculate YTD return
+    // Calculate YTD and 1Y returns from history
     let ytdReturn: number | null = null;
-    try {
-      const ytdHistory = await yf.historical(normalizedTicker, {
-        period1: new Date(new Date().getFullYear(), 0, 1),
-        period2: new Date(),
-        interval: "1d",
-      });
-      if (Array.isArray(ytdHistory) && ytdHistory.length > 0) {
-        const startPrice = ytdHistory[0].close;
-        const currentPrice = q.regularMarketPrice ?? 0;
-        if (startPrice && currentPrice) {
-          ytdReturn = ((currentPrice - startPrice) / startPrice) * 100;
-        }
-      }
-    } catch {
-      // non-critical
-    }
-
-    // Calculate 1Y return
     let oneYearReturn: number | null = null;
+
     try {
-      const oneYearAgo = new Date();
-      oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-      const yearHistory = await yf.historical(normalizedTicker, {
-        period1: oneYearAgo,
-        period2: new Date(),
-        interval: "1d",
-      });
-      if (Array.isArray(yearHistory) && yearHistory.length > 0) {
-        const startPrice = yearHistory[0].close;
-        const currentPrice = q.regularMarketPrice ?? 0;
-        if (startPrice && currentPrice) {
-          oneYearReturn = ((currentPrice - startPrice) / startPrice) * 100;
+      const history = await getDailyHistory(symbol, "full");
+      const currentPrice = quoteData.price;
+
+      if (history.data.length > 0 && currentPrice > 0) {
+        const yearStart = new Date(new Date().getFullYear(), 0, 1)
+          .toISOString()
+          .split("T")[0];
+        const ytdStart = history.data.find((d) => d.date >= yearStart);
+        if (ytdStart) {
+          const sp = ytdStart.adjustedClose || ytdStart.close;
+          if (sp > 0) ytdReturn = ((currentPrice - sp) / sp) * 100;
+        }
+
+        const oneYearAgo = new Date();
+        oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+        const oneYearStr = oneYearAgo.toISOString().split("T")[0];
+        const yearStart1Y = history.data.find((d) => d.date >= oneYearStr);
+        if (yearStart1Y) {
+          const sp = yearStart1Y.adjustedClose || yearStart1Y.close;
+          if (sp > 0) oneYearReturn = ((currentPrice - sp) / sp) * 100;
         }
       }
     } catch {
@@ -67,22 +56,23 @@ export async function GET(
     }
 
     return NextResponse.json({
-      ticker: normalizedTicker,
-      price: q.regularMarketPrice ?? null,
-      change: q.regularMarketChange ?? null,
-      changePercent: q.regularMarketChangePercent ?? null,
-      fiftyTwoWeekHigh: q.fiftyTwoWeekHigh ?? null,
-      fiftyTwoWeekLow: q.fiftyTwoWeekLow ?? null,
-      dividendYield: q.dividendYield ?? null,
+      ticker: displayTicker,
+      price: quoteData.price,
+      change: quoteData.change,
+      changePercent: quoteData.changePercent,
+      fiftyTwoWeekHigh: null,
+      fiftyTwoWeekLow: null,
+      dividendYield: null,
       ytdReturn,
       oneYearReturn,
-      lastUpdated: new Date().toISOString(),
+      lastUpdated: quoteData.fetchedAt,
+      source: quoteData.source,
       error: false,
     });
   } catch (error) {
-    console.error(`Failed to fetch quote for ${normalizedTicker}:`, error);
+    console.error(`Failed to fetch quote for ${displayTicker}:`, error);
     return NextResponse.json({
-      ticker: normalizedTicker,
+      ticker: displayTicker,
       price: null,
       change: null,
       changePercent: null,

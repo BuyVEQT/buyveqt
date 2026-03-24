@@ -2,6 +2,7 @@ import Link from "next/link";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import remarkGfm from "remark-gfm";
 import type { ArticleFrontmatter } from "@/lib/articles";
+import RelatedReading from "./RelatedReading";
 
 interface ArticleLayoutProps {
   frontmatter: ArticleFrontmatter;
@@ -19,7 +20,7 @@ export default function ArticleLayout({ frontmatter, content }: ArticleLayoutPro
         >
           Learn
         </Link>
-        <span className="mx-2">→</span>
+        <span className="mx-2">&rarr;</span>
         <span className="text-[var(--color-text-secondary)]">{frontmatter.title}</span>
       </nav>
 
@@ -29,7 +30,7 @@ export default function ArticleLayout({ frontmatter, content }: ArticleLayoutPro
           {frontmatter.title}
         </h1>
         <p className="mt-2 text-sm text-[var(--color-text-muted)]">
-          {frontmatter.readingTime} · Last updated {frontmatter.lastUpdated}
+          {frontmatter.readingTime} &middot; Last updated {frontmatter.lastUpdated}
         </p>
       </header>
 
@@ -37,6 +38,13 @@ export default function ArticleLayout({ frontmatter, content }: ArticleLayoutPro
       <div className="prose-custom">
         <MDXRemote source={content} options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }} />
       </div>
+
+      {/* Related Reading */}
+      <RelatedReading
+        currentSlug={frontmatter.slug}
+        relatedSlugs={frontmatter.relatedSlugs || []}
+        category={frontmatter.category || "beginner"}
+      />
 
       {/* Footer */}
       <div className="mt-10 pt-6 border-t border-[var(--color-border)]">

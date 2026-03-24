@@ -113,12 +113,11 @@ export const CHART_PERIODS = [
 ] as const;
 
 export const DISCLAIMER =
-  "This site is not affiliated with Vanguard Investments Canada Inc. Data provided for informational purposes only. Not financial advice. Past performance does not guarantee future results.";
+  "BuyVEQT is a community-built informational resource and is not affiliated with, endorsed by, or sponsored by Vanguard Investments Canada Inc. or any other financial institution. Nothing on this site constitutes financial, investment, tax, or legal advice. All data is provided for informational purposes only and may be delayed or inaccurate. Always consult a qualified financial advisor before making investment decisions.";
 
 export const NAV_LINKS = [
   { href: "/", label: "Home" },
   { href: "/compare", label: "Compare" },
-  { href: "/inside-veqt", label: "Inside VEQT" },
-  { href: "/distributions", label: "Distributions" },
+  { href: "/invest", label: "Calculator" },
   { href: "/learn", label: "Learn" },
 ];

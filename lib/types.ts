@@ -22,10 +22,20 @@ export interface HistoricalDataPoint {
   close: number;
 }
 
+export type DataSourceType = "alpha-vantage" | "yahoo-finance" | "cache";
+
 export interface VeqtApiResponse {
   quote: VeqtQuote;
   historical: HistoricalDataPoint[];
   isFallback: boolean;
+  /** Data source for the quote */
+  quoteSource?: DataSourceType;
+  /** ISO timestamp of when quote data was fetched */
+  quoteFetchedAt?: string;
+  /** Data source for the historical data */
+  historySource?: DataSourceType;
+  /** ISO timestamp of when history data was fetched */
+  historyFetchedAt?: string;
 }
 
 export interface AssetAllocation {

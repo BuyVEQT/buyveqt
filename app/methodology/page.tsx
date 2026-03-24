@@ -1,15 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import PageShell from "@/components/layout/PageShell";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { buildBreadcrumbSchema, canonicalUrl } from "@/lib/seo-config";
 
 export const metadata: Metadata = {
-  title: "Methodology & Data Sources — BuyVEQT",
+  title: "Data Sources & Methodology",
   description:
-    "How BuyVEQT sources its data, what's live vs static, and the limitations of the information on this site.",
+    "How BuyVEQT sources its market data. Transparency about data providers, update frequency, and calculation methods.",
+  alternates: { canonical: canonicalUrl("/methodology") },
   openGraph: {
-    title: "Methodology & Data Sources — BuyVEQT",
+    title: "Methodology & Data Sources",
     description:
       "Transparency about how BuyVEQT sources and presents its data.",
+    url: canonicalUrl("/methodology"),
   },
 };
 
@@ -35,6 +39,12 @@ function Section({
 export default function MethodologyPage() {
   return (
     <PageShell>
+      <JsonLd
+        data={buildBreadcrumbSchema([
+          { name: "Home", path: "/" },
+          { name: "Methodology", path: "/methodology" },
+        ])}
+      />
       <main className="flex-1 mx-auto w-full max-w-3xl px-4 py-8">
         <h1 className="text-2xl sm:text-3xl font-bold text-[var(--color-text-primary)] mb-2">
           Methodology & Data Sources
@@ -58,16 +68,51 @@ export default function MethodologyPage() {
           </p>
         </Section>
 
-        <Section title="Live Market Data">
+        <Section title="Data Sources">
           <p>
-            Price quotes, daily change, 52-week ranges, volume, and other
-            real-time market data are sourced from Yahoo Finance via the{" "}
-            <code className="text-xs bg-[var(--color-base)] px-1.5 py-0.5 rounded border border-[var(--color-border)]">
-              yahoo-finance2
-            </code>{" "}
-            library. Data is cached and refreshed approximately every 30
-            minutes.
+            Live market data is sourced from two providers in a resilient
+            fallback chain:
           </p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>
+              <strong>Alpha Vantage</strong> (primary source for VEQT) — provides
+              real-time quotes and historical price data via their financial
+              data API.
+            </li>
+            <li>
+              <strong>Yahoo Finance</strong> (primary for comparison funds,
+              fallback for VEQT) — provides quotes and historical data via the{" "}
+              <code className="text-xs bg-[var(--color-base)] px-1.5 py-0.5 rounded border border-[var(--color-border)]">
+                yahoo-finance2
+              </code>{" "}
+              library.
+            </li>
+          </ul>
+          <p>
+            Every successful data fetch is cached locally so the site can serve
+            the last known good data if both providers are temporarily
+            unavailable. The &ldquo;Last updated&rdquo; timestamp and source
+            label shown on each page indicate exactly when data was fetched and
+            from which provider.
+          </p>
+        </Section>
+
+        <Section title="Refresh Frequency">
+          <p>
+            Data refreshes at different intervals depending on type:
+          </p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>
+              <strong>Price quotes:</strong> every ~15 minutes via ISR caching
+            </li>
+            <li>
+              <strong>Daily historical data:</strong> every ~24 hours (yesterday&apos;s
+              close doesn&apos;t change)
+            </li>
+            <li>
+              <strong>Monthly historical data:</strong> every ~7 days
+            </li>
+          </ul>
           <p>
             Market data may be delayed and should not be used for trading
             decisions. Always verify prices with your brokerage before placing
@@ -77,15 +122,10 @@ export default function MethodologyPage() {
 
         <Section title="Historical Performance Charts">
           <p>
-            Historical price data for VEQT and comparison ETFs is also sourced
-            from Yahoo Finance. Charts show adjusted close prices (accounting
-            for distributions and splits).
-          </p>
-          <p>
-            Comparison charts display normalized performance (percentage change
-            from a common start date), which allows meaningful comparison
-            between funds with different unit prices. The available time ranges
-            are limited to the shortest-lived fund in the comparison.
+            Charts show adjusted close prices (accounting for distributions and
+            splits). Comparison charts display normalized performance
+            (percentage change from a common start date), which allows
+            meaningful comparison between funds with different unit prices.
           </p>
           <p>
             <strong>Past performance does not guarantee future results.</strong>
@@ -96,8 +136,8 @@ export default function MethodologyPage() {
           <p>
             Fund-level information such as MER, AUM, number of holdings,
             geographic allocation, underlying ETFs, and sector breakdowns are
-            manually compiled from official fund documents, Vanguard&apos;s
-            website, and regulatory filings (Fund Facts).
+            manually compiled from official fund documents, provider websites,
+            and regulatory filings (Fund Facts).
           </p>
           <p>
             This data is updated periodically but is not live. There may be a
@@ -122,10 +162,10 @@ export default function MethodologyPage() {
             dates, and payment dates are recorded as published.
           </p>
           <p>
-            Yield calculations (trailing 12-month yield) are computed by
-            using the most recent annual distribution and dividing by the
-            current unit price. This is a standard trailing yield calculation
-            and does not predict future distributions.
+            Yield calculations (trailing 12-month yield) are computed by using
+            the most recent annual distribution and dividing by the current unit
+            price. This is a standard trailing yield calculation and does not
+            predict future distributions.
           </p>
         </Section>
 
@@ -170,12 +210,13 @@ export default function MethodologyPage() {
         {/* Disclaimer */}
         <div className="mt-4 rounded-lg bg-[var(--color-base)] border border-[var(--color-border)] p-4">
           <p className="text-xs text-[var(--color-text-muted)] leading-relaxed">
-            <strong>Disclaimer:</strong> BuyVEQT.com is not affiliated with
-            Vanguard Investments Canada Inc. All information is provided for
-            educational purposes only and should not be construed as financial
-            advice. Past performance does not guarantee future results. Always
-            do your own research and consult a qualified professional before
-            making investment decisions.
+            <strong>Disclaimer:</strong> BuyVEQT is a community-built
+            informational resource and is not affiliated with, endorsed by, or
+            sponsored by Vanguard Investments Canada Inc. or any other financial
+            institution. Nothing on this site constitutes financial, investment,
+            tax, or legal advice. All data is provided for informational
+            purposes only and may be delayed or inaccurate. Always consult a
+            qualified financial advisor before making investment decisions.
           </p>
         </div>
       </main>

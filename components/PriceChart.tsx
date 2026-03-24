@@ -9,14 +9,19 @@ import {
   Tooltip,
   CartesianGrid,
 } from "recharts";
-import type { HistoricalDataPoint, ChartPeriod } from "@/lib/types";
+import type { HistoricalDataPoint, ChartPeriod, DataSourceType } from "@/lib/types";
 import { CHART_PERIODS } from "@/lib/constants";
+import DataFreshness from "@/components/ui/DataFreshness";
+import StaleBanner from "@/components/ui/StaleBanner";
+import DataUnavailable from "@/components/ui/DataUnavailable";
 
 interface PriceChartProps {
   data: HistoricalDataPoint[];
   loading: boolean;
   period: ChartPeriod;
   onPeriodChange: (p: ChartPeriod) => void;
+  historySource?: DataSourceType;
+  historyFetchedAt?: string;
 }
 
 function formatDate(dateStr: string, period: ChartPeriod): string {
@@ -65,14 +70,19 @@ export default function PriceChart({
   loading,
   period,
   onPeriodChange,
+  historySource,
+  historyFetchedAt,
 }: PriceChartProps) {
   const prices = data.map((d) => d.close);
   const minPrice = prices.length ? Math.floor(Math.min(...prices) * 0.99) : 0;
   const maxPrice = prices.length ? Math.ceil(Math.max(...prices) * 1.01) : 100;
 
+  const isCache = historySource === "cache";
+  const chartUnavailable = !loading && data.length === 0;
+
   return (
     <div className="rounded-lg border border-[var(--color-border)] bg-white p-4 sm:p-5">
-      <div className="flex items-center justify-between gap-3 mb-4">
+      <div className="flex items-center justify-between gap-3 mb-2">
         <h2 className="text-sm font-semibold text-[var(--color-text-secondary)]">
           VEQT.TO Price History
         </h2>
@@ -93,17 +103,16 @@ export default function PriceChart({
         </div>
       </div>
 
+      {/* Stale banner above chart */}
+      {isCache && historyFetchedAt && (
+        <StaleBanner fetchedAt={historyFetchedAt} className="mb-3" />
+      )}
+
       <div>
-        {loading || data.length === 0 ? (
-          <div className="h-full min-h-[300px] flex items-center justify-center">
-            {loading ? (
-              <div className="skeleton h-[300px] w-full rounded-lg" />
-            ) : (
-              <p className="text-sm text-[var(--color-text-muted)]">
-                Chart data unavailable
-              </p>
-            )}
-          </div>
+        {loading ? (
+          <div className="skeleton h-[320px] w-full rounded-lg" />
+        ) : chartUnavailable ? (
+          <DataUnavailable type="chart" className="min-h-[320px]" />
         ) : (
           <ResponsiveContainer width="100%" height={320}>
             <AreaChart data={data}>
@@ -163,9 +172,16 @@ export default function PriceChart({
         )}
       </div>
 
-      <p className="text-[11px] text-[var(--color-text-muted)] mt-2">
-        Source: Yahoo Finance &middot; Updated every 30 min
-      </p>
+      {/* Data freshness footer */}
+      <div className="mt-2">
+        {historySource && historyFetchedAt ? (
+          <DataFreshness source={historySource} fetchedAt={historyFetchedAt} />
+        ) : (
+          <p className="text-[11px] text-[var(--color-text-muted)]">
+            Source: Alpha Vantage / Yahoo Finance
+          </p>
+        )}
+      </div>
     </div>
   );
 }

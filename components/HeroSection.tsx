@@ -2,22 +2,18 @@
 
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
-import type { VeqtQuote } from "@/lib/types";
+import type { VeqtQuote, DataSourceType } from "@/lib/types";
 import { STATIC_DATA, MER_FOOTNOTE } from "@/lib/constants";
+import DataFreshness from "@/components/ui/DataFreshness";
+import StaleBanner from "@/components/ui/StaleBanner";
+import DataUnavailable from "@/components/ui/DataUnavailable";
 
 interface HeroSectionProps {
   quote: VeqtQuote | null;
   loading: boolean;
   isFallback: boolean;
-}
-
-function timeSince(isoString: string): string {
-  const diff = Date.now() - new Date(isoString).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins} min ago`;
-  const hrs = Math.floor(mins / 60);
-  return `${hrs}h ago`;
+  quoteSource?: DataSourceType;
+  quoteFetchedAt?: string;
 }
 
 function useCountUp(target: number, duration = 1200, decimals = 0) {
@@ -82,11 +78,20 @@ function RotatingWord() {
   );
 }
 
-export default function HeroSection({ quote, loading, isFallback }: HeroSectionProps) {
+export default function HeroSection({
+  quote,
+  loading,
+  isFallback,
+  quoteSource,
+  quoteFetchedAt,
+}: HeroSectionProps) {
   const isPositive = (quote?.changePercent ?? 0) >= 0;
 
   const stocks = useCountUp(13700, 1400);
   const countries = useCountUp(50, 1000);
+
+  const showQuoteUnavailable = !loading && !quote;
+  const isCache = quoteSource === "cache";
 
   return (
     <section className="py-10 sm:py-14">
@@ -140,68 +145,86 @@ export default function HeroSection({ quote, loading, isFallback }: HeroSectionP
         </div>
 
         {/* Right: Live Summary Card */}
-        <div className="w-full lg:w-auto lg:min-w-[300px] rounded-lg border border-[var(--color-border)] bg-white p-5">
-          <p className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider mb-3">
-            Live Summary
-          </p>
-
-          {loading || !quote ? (
-            <div className="space-y-3">
-              <div className="skeleton h-8 w-32" />
-              <div className="skeleton h-4 w-24" />
-              <div className="skeleton h-4 w-full" />
-              <div className="skeleton h-4 w-full" />
-            </div>
+        <div className="w-full lg:w-auto lg:min-w-[300px] space-y-3">
+          {showQuoteUnavailable ? (
+            <DataUnavailable type="quote" />
           ) : (
-            <>
-              <div className="flex items-baseline gap-2 mb-1">
-                <span className="text-2xl font-bold tabular-nums">
-                  ${quote.price.toFixed(2)}
-                </span>
-                <span className="text-xs text-[var(--color-text-muted)]">CAD</span>
-              </div>
-              <div className="flex items-center gap-2 mb-4">
-                <span
-                  className={`text-sm font-medium tabular-nums px-1.5 py-0.5 rounded ${
-                    isPositive
-                      ? "text-[var(--color-positive)] bg-[var(--color-positive-bg)]"
-                      : "text-[var(--color-negative)] bg-[var(--color-negative-bg)]"
-                  }`}
-                >
-                  {isPositive ? "+" : ""}${Math.abs(quote.change).toFixed(2)} ({isPositive ? "+" : ""}{quote.changePercent.toFixed(2)}%)
-                </span>
-              </div>
-
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-[var(--color-text-muted)]">MER</span>
-                  <span className="font-medium group relative cursor-help">
-                    ~{STATIC_DATA.mer.toFixed(2)}%*
-                    <span className="invisible group-hover:visible absolute bottom-full right-0 w-64 p-2 text-[11px] text-[var(--color-text-muted)] bg-white border border-[var(--color-border)] rounded-lg shadow-lg z-10 font-normal leading-relaxed">
-                      {MER_FOOTNOTE}
-                    </span>
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[var(--color-text-muted)]">AUM</span>
-                  <span className="font-medium">{STATIC_DATA.aum}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[var(--color-text-muted)]">Dividend Yield</span>
-                  <span className="font-medium">{quote.dividendYield.toFixed(2)}%</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[var(--color-text-muted)]">52-Week Range</span>
-                  <span className="font-medium tabular-nums">
-                    ${quote.fiftyTwoWeekLow.toFixed(2)} – ${quote.fiftyTwoWeekHigh.toFixed(2)}
-                  </span>
-                </div>
-              </div>
-
-              <p className="text-[11px] text-[var(--color-text-muted)] mt-3 pt-3 border-t border-[var(--color-border)]">
-                {isFallback ? "Data may be delayed" : `Updated ${timeSince(quote.lastUpdated)}`}
+            <div className="rounded-lg border border-[var(--color-border)] bg-white p-5">
+              <p className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider mb-3">
+                Live Summary
               </p>
-            </>
+
+              {loading ? (
+                <div className="space-y-3">
+                  <div className="skeleton h-8 w-32" />
+                  <div className="skeleton h-4 w-24" />
+                  <div className="skeleton h-4 w-full" />
+                  <div className="skeleton h-4 w-full" />
+                </div>
+              ) : quote && (
+                <>
+                  <div className="flex items-baseline gap-2 mb-1">
+                    <span className="text-2xl font-bold tabular-nums">
+                      ${quote.price.toFixed(2)}
+                    </span>
+                    <span className="text-xs text-[var(--color-text-muted)]">CAD</span>
+                  </div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <span
+                      className={`text-sm font-medium tabular-nums px-1.5 py-0.5 rounded ${
+                        isPositive
+                          ? "text-[var(--color-positive)] bg-[var(--color-positive-bg)]"
+                          : "text-[var(--color-negative)] bg-[var(--color-negative-bg)]"
+                      }`}
+                    >
+                      {isPositive ? "+" : ""}${Math.abs(quote.change).toFixed(2)} ({isPositive ? "+" : ""}{quote.changePercent.toFixed(2)}%)
+                    </span>
+                  </div>
+
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-[var(--color-text-muted)]">MER</span>
+                      <span className="font-medium group relative cursor-help">
+                        ~{STATIC_DATA.mer.toFixed(2)}%*
+                        <span className="invisible group-hover:visible absolute bottom-full right-0 w-64 p-2 text-[11px] text-[var(--color-text-muted)] bg-white border border-[var(--color-border)] rounded-lg shadow-lg z-10 font-normal leading-relaxed">
+                          {MER_FOOTNOTE}
+                        </span>
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-[var(--color-text-muted)]">AUM</span>
+                      <span className="font-medium">{STATIC_DATA.aum}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-[var(--color-text-muted)]">Dividend Yield</span>
+                      <span className="font-medium">{quote.dividendYield.toFixed(2)}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-[var(--color-text-muted)]">52-Week Range</span>
+                      <span className="font-medium tabular-nums">
+                        ${quote.fiftyTwoWeekLow.toFixed(2)} – ${quote.fiftyTwoWeekHigh.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Data freshness indicator */}
+                  <div className="mt-3 pt-3 border-t border-[var(--color-border)]">
+                    {quoteSource && quoteFetchedAt ? (
+                      <DataFreshness source={quoteSource} fetchedAt={quoteFetchedAt} />
+                    ) : (
+                      <p className="text-[11px] text-[var(--color-text-muted)]">
+                        {isFallback ? "Data may be delayed" : `Updated just now`}
+                      </p>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Stale banner below the card when data is cached */}
+          {isCache && quoteFetchedAt && (
+            <StaleBanner fetchedAt={quoteFetchedAt} />
           )}
         </div>
       </div>

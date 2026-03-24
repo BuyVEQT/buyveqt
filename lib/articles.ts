@@ -8,6 +8,13 @@ export interface ArticleFrontmatter {
   slug: string;
   readingTime: string;
   lastUpdated: string;
+  // Enriched fields (optional for backward compatibility)
+  updatedDate?: string;
+  excerpt?: string;
+  category?: "beginner" | "veqt-deep-dive" | "comparison" | "opinion" | "tax-strategy";
+  difficulty?: "beginner" | "intermediate" | "advanced";
+  tags?: string[];
+  relatedSlugs?: string[];
 }
 
 export interface ArticleData {
@@ -27,6 +34,19 @@ const ARTICLE_ORDER = [
   "how-veqt-rebalances",
 ];
 
+function applyDefaults(data: Record<string, unknown>): ArticleFrontmatter {
+  const fm = data as unknown as ArticleFrontmatter;
+  return {
+    ...fm,
+    updatedDate: fm.updatedDate ?? fm.lastUpdated,
+    excerpt: fm.excerpt ?? fm.description,
+    category: fm.category ?? "beginner",
+    difficulty: fm.difficulty ?? "beginner",
+    tags: fm.tags ?? [],
+    relatedSlugs: fm.relatedSlugs ?? [],
+  };
+}
+
 export function getAllArticles(): ArticleFrontmatter[] {
   const files = fs.readdirSync(CONTENT_DIR).filter((f) => f.endsWith(".mdx"));
 
@@ -34,7 +54,7 @@ export function getAllArticles(): ArticleFrontmatter[] {
     const filePath = path.join(CONTENT_DIR, filename);
     const fileContent = fs.readFileSync(filePath, "utf-8");
     const { data } = matter(fileContent);
-    return data as ArticleFrontmatter;
+    return applyDefaults(data);
   });
 
   // Sort by curated order
@@ -54,7 +74,7 @@ export function getArticleBySlug(slug: string): ArticleData | null {
   const fileContent = fs.readFileSync(filePath, "utf-8");
   const { data, content } = matter(fileContent);
   return {
-    frontmatter: data as ArticleFrontmatter,
+    frontmatter: applyDefaults(data),
     content,
   };
 }

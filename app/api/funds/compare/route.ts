@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server";
-import YahooFinance from "yahoo-finance2";
+import { getQuote, getDailyHistory } from "@/lib/data";
 
-const yf = new YahooFinance({ suppressNotices: ["ripHistorical", "yahooSurvey"] });
+const ALLOWED_SYMBOLS = ["VEQT", "XEQT", "ZEQT", "VGRO", "VFV", "VUN"];
 
-const ALLOWED_TICKERS = ["VEQT.TO", "XEQT.TO", "ZEQT.TO", "VGRO.TO", "VFV.TO"];
-
-export const revalidate = 1800;
+export const revalidate = 900;
 
 interface FundQuote {
   ticker: string;
@@ -15,54 +13,57 @@ interface FundQuote {
   dividendYield: number | null;
   ytdReturn: number | null;
   oneYearReturn: number | null;
+  source?: string;
   error: boolean;
 }
 
-async function fetchQuote(ticker: string): Promise<FundQuote> {
+async function fetchQuote(symbol: string): Promise<FundQuote> {
+  const displayTicker = `${symbol}.TO`;
   try {
-    const q = await yf.quote(ticker);
-    const currentPrice = q.regularMarketPrice ?? 0;
+    const quoteData = await getQuote(symbol);
+    const currentPrice = quoteData.price;
 
     let ytdReturn: number | null = null;
     let oneYearReturn: number | null = null;
 
     try {
-      const [ytdHistory, yearHistory] = await Promise.all([
-        yf.historical(ticker, {
-          period1: new Date(new Date().getFullYear(), 0, 1),
-          period2: new Date(),
-          interval: "1d",
-        }),
-        yf.historical(ticker, {
-          period1: new Date(new Date().getFullYear() - 1, new Date().getMonth(), new Date().getDate()),
-          period2: new Date(),
-          interval: "1d",
-        }),
-      ]);
+      const history = await getDailyHistory(symbol, "full");
 
-      if (Array.isArray(ytdHistory) && ytdHistory.length > 0 && ytdHistory[0].close && currentPrice) {
-        ytdReturn = ((currentPrice - ytdHistory[0].close) / ytdHistory[0].close) * 100;
-      }
-      if (Array.isArray(yearHistory) && yearHistory.length > 0 && yearHistory[0].close && currentPrice) {
-        oneYearReturn = ((currentPrice - yearHistory[0].close) / yearHistory[0].close) * 100;
+      if (history.data.length > 0 && currentPrice > 0) {
+        const yearStart = `${new Date().getFullYear()}-01-01`;
+        const ytdStart = history.data.find((d) => d.date >= yearStart);
+        if (ytdStart) {
+          const sp = ytdStart.adjustedClose || ytdStart.close;
+          if (sp > 0) ytdReturn = ((currentPrice - sp) / sp) * 100;
+        }
+
+        const oneYearAgo = new Date();
+        oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+        const oneYearStr = oneYearAgo.toISOString().split("T")[0];
+        const yearStart1Y = history.data.find((d) => d.date >= oneYearStr);
+        if (yearStart1Y) {
+          const sp = yearStart1Y.adjustedClose || yearStart1Y.close;
+          if (sp > 0) oneYearReturn = ((currentPrice - sp) / sp) * 100;
+        }
       }
     } catch {
       // non-critical
     }
 
     return {
-      ticker,
-      price: q.regularMarketPrice ?? null,
-      change: q.regularMarketChange ?? null,
-      changePercent: q.regularMarketChangePercent ?? null,
-      dividendYield: q.dividendYield ?? null,
+      ticker: displayTicker,
+      price: quoteData.price,
+      change: quoteData.change,
+      changePercent: quoteData.changePercent,
+      dividendYield: null,
       ytdReturn,
       oneYearReturn,
+      source: quoteData.source,
       error: false,
     };
   } catch {
     return {
-      ticker,
+      ticker: displayTicker,
       price: null,
       change: null,
       changePercent: null,
@@ -78,19 +79,19 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const tickersParam = searchParams.get("tickers") || "VEQT.TO,XEQT.TO";
 
-  const tickers = tickersParam
+  const symbols = tickersParam
     .split(",")
-    .map((t) => t.trim().toUpperCase())
-    .filter((t) => ALLOWED_TICKERS.includes(t));
+    .map((t) => t.trim().toUpperCase().replace(/\.TO$/, ""))
+    .filter((s) => ALLOWED_SYMBOLS.includes(s));
 
-  if (tickers.length === 0) {
+  if (symbols.length === 0) {
     return NextResponse.json(
       { error: true, message: "No valid tickers provided" },
       { status: 400 }
     );
   }
 
-  const results = await Promise.all(tickers.map(fetchQuote));
+  const results = await Promise.all(symbols.map(fetchQuote));
 
   const data: Record<string, FundQuote> = {};
   for (const result of results) {

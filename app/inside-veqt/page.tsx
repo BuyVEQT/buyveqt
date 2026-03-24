@@ -3,15 +3,19 @@ import PageShell from "@/components/layout/PageShell";
 import SectorChart from "@/components/inside/SectorChart";
 import { FUNDS } from "@/data/funds";
 import { VEQT_TOP_HOLDINGS, TOP_HOLDINGS_TOTAL_WEIGHT } from "@/data/holdings";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { buildBreadcrumbSchema, canonicalUrl } from "@/lib/seo-config";
 
 export const metadata: Metadata = {
-  title: "What's Inside VEQT? — BuyVEQT",
+  title: "Inside VEQT — Holdings, Sectors & Geographic Allocation",
   description:
-    "A complete breakdown of VEQT's structure — geographic allocation, underlying ETFs, sector exposure, and top holdings. Understand what you actually own.",
+    "What's inside VEQT? Explore the 4 underlying ETFs, top 15 holdings, sector breakdown, and geographic allocation of Vanguard's all-equity ETF.",
+  alternates: { canonical: canonicalUrl("/inside-veqt") },
   openGraph: {
-    title: "What's Inside VEQT? — BuyVEQT",
+    title: "Inside VEQT — Holdings, Sectors & Allocation",
     description:
-      "A complete breakdown of VEQT's structure, holdings, and allocation.",
+      "Full breakdown of what VEQT holds: underlying ETFs, top stocks, sectors, and country allocation.",
+    url: canonicalUrl("/inside-veqt"),
   },
 };
 
@@ -27,6 +31,12 @@ const REGION_NOTES: Record<string, string> = {
 export default function InsideVeqtPage() {
   return (
     <PageShell>
+      <JsonLd
+        data={buildBreadcrumbSchema([
+          { name: "Home", path: "/" },
+          { name: "Inside VEQT", path: "/inside-veqt" },
+        ])}
+      />
       <main className="flex-1 mx-auto w-full max-w-6xl px-4 py-8">
         {/* Header */}
         <div className="mb-8">

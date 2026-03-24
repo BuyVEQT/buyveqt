@@ -43,7 +43,7 @@ export default function SectorChart() {
       <BarChart
         data={VEQT_SECTOR_ALLOCATION}
         layout="vertical"
-        margin={{ left: 0, right: 20, top: 0, bottom: 0 }}
+        margin={{ left: 0, right: 16, top: 0, bottom: 0 }}
       >
         <XAxis
           type="number"
@@ -56,8 +56,8 @@ export default function SectorChart() {
         <YAxis
           type="category"
           dataKey="sector"
-          width={140}
-          tick={{ fontSize: 12, fill: "var(--color-text-secondary)" }}
+          width={110}
+          tick={{ fontSize: 11, fill: "var(--color-text-secondary)" }}
           tickLine={false}
           axisLine={false}
         />

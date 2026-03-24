@@ -6,14 +6,19 @@ import {
   getTrailing12MonthDistributions,
   getDistributionYears,
 } from "@/data/distributions";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { buildBreadcrumbSchema, canonicalUrl } from "@/lib/seo-config";
 
 export const metadata: Metadata = {
-  title: "VEQT Distribution History — BuyVEQT",
+  title: "VEQT Distribution History — Dividends & Payouts",
   description:
-    "Complete history of VEQT annual distributions — amounts per unit, ex-dividend dates, and payment dates. Track VEQT's distribution history over time.",
+    "Complete VEQT distribution history from 2019 to present. Quarterly payout amounts, annual yields, and distribution trends for Vanguard All-Equity ETF.",
+  alternates: { canonical: canonicalUrl("/distributions") },
   openGraph: {
-    title: "VEQT Distribution History — BuyVEQT",
-    description: "Complete history of VEQT annual distributions.",
+    title: "VEQT Distribution History",
+    description:
+      "Every VEQT distribution since 2019. Quarterly payouts, annual yield trends, and historical data.",
+    url: canonicalUrl("/distributions"),
   },
 };
 
@@ -33,6 +38,12 @@ export default function DistributionsPage() {
 
   return (
     <PageShell>
+      <JsonLd
+        data={buildBreadcrumbSchema([
+          { name: "Home", path: "/" },
+          { name: "Distributions", path: "/distributions" },
+        ])}
+      />
       <main className="flex-1 mx-auto w-full max-w-6xl px-4 py-8">
         {/* Header */}
         <div className="mb-8">
