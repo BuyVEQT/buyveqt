@@ -30,7 +30,7 @@ export default function NavBar({ quote, loading, isFallback, quoteSource, quoteF
         </Link>
 
         {/* Center: Desktop Nav Links — show at lg to avoid crowding with ticker */}
-        <div className="hidden md:flex items-center gap-0.5">
+        <div className="hidden lg:flex items-center gap-0.5">
           {NAV_LINKS.map((link) => (
             <Link
               key={link.href}
@@ -95,7 +95,7 @@ export default function NavBar({ quote, loading, isFallback, quoteSource, quoteF
           {/* Hamburger menu — visible below lg */}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="md:hidden p-1.5 rounded-md text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-base)]"
+            className="lg:hidden p-1.5 rounded-md text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-base)]"
             aria-label="Toggle menu"
           >
             <svg
@@ -117,7 +117,7 @@ export default function NavBar({ quote, loading, isFallback, quoteSource, quoteF
 
       {/* Mobile/Tablet menu — visible below lg */}
       {menuOpen && (
-        <div className="md:hidden border-t border-[var(--color-border)] bg-white px-4 py-2">
+        <div className="lg:hidden border-t border-[var(--color-border)] bg-white px-4 py-2">
           {NAV_LINKS.map((link) => (
             <Link
               key={link.href}
