@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import PageShell from "@/components/layout/PageShell";
 import CompareContent from "@/components/compare/CompareContent";
 import { COMPARISON_PAGES, getComparison } from "@/data/comparisons";
+import BottomLine from "@/components/compare/BottomLine";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { buildBreadcrumbSchema, canonicalUrl } from "@/lib/seo-config";
 
@@ -77,6 +78,12 @@ export default async function CompareSlugPage({ params }: PageProps) {
         </div>
 
         <CompareContent initialFunds={[...page.funds]} />
+
+        <BottomLine
+          slug={slug}
+          fundA={page.funds[0]}
+          fundB={page.funds[1]}
+        />
 
         {slug === "veqt-vs-xeqt" && (
           <div className="mt-6">

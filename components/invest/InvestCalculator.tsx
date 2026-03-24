@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { track } from "@vercel/analytics";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -366,6 +367,15 @@ export default function InvestCalculator({ history }: InvestCalculatorProps) {
       return "Pick an earlier start date to see results.";
     return null;
   }, [amount, startDate, earliestDate, maxStartDate]);
+
+  // Track calculator usage (once per session)
+  const tracked = useRef(false);
+  useEffect(() => {
+    if (result && !tracked.current) {
+      tracked.current = true;
+      track("calculator_used", { type: "if-you-invested", mode });
+    }
+  }, [result, mode]);
 
   if (!history) {
     return <DataUnavailable type="chart" message="Historical data is temporarily unavailable. Please try again later." />;
