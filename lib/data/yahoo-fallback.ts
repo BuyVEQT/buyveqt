@@ -52,17 +52,33 @@ export async function getHistoryYahoo(
     const defaultStart = new Date(now);
     defaultStart.setDate(defaultStart.getDate() - 120); // ~100 trading days
 
+    // IMPORTANT: End at yesterday, not today. Yahoo often returns today's
+    // row with close: null / adjclose: null before the data is finalized
+    // (especially right after market close). The yahoo-finance2 library
+    // throws on null close values, killing the entire request.
+    // Yesterday's data is always complete and reliable.
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const endDate = options?.period2 ?? yesterday;
+
     const result = await yf.historical(yahooSymbol, {
       period1: options?.period1 ?? defaultStart,
-      period2: options?.period2 ?? now,
+      period2: endDate,
       interval: options?.interval ?? '1d',
     });
 
     if (!result || result.length === 0) return null;
 
+    // Filter out any rows with null close as an extra safety net
+    const cleanRows = result.filter(
+      (row) => row.close != null && row.close > 0
+    );
+
+    if (cleanRows.length === 0) return null;
+
     return {
       symbol: displaySymbol,
-      data: result.map((row) => ({
+      data: cleanRows.map((row) => ({
         date: new Date(row.date).toISOString().split('T')[0],
         open: row.open ?? 0,
         high: row.high ?? 0,
@@ -70,7 +86,7 @@ export async function getHistoryYahoo(
         close: row.close ?? 0,
         adjustedClose: row.adjClose ?? row.close ?? 0,
         volume: row.volume ?? 0,
-        dividendAmount: 0, // Yahoo historical() doesn't include dividends inline
+        dividendAmount: 0,
       })),
       source: 'yahoo-finance',
       fetchedAt: new Date().toISOString(),
