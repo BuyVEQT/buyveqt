@@ -208,7 +208,7 @@ export default function DividendCalculator() {
           In a TFSA, this income is tax-free. In an RRSP or non-registered
           account, tax treatment differs.{" "}
           <Link
-            href="/learn/veqt-in-tfsa-vs-rrsp-vs-non-registered"
+            href="/learn/veqt-tfsa-rrsp-taxable"
             className="underline hover:text-[var(--color-text-secondary)]"
           >
             Learn more
