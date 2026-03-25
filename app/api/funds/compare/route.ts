@@ -55,7 +55,7 @@ async function fetchQuote(symbol: string): Promise<FundQuote> {
       price: quoteData.price,
       change: quoteData.change,
       changePercent: quoteData.changePercent,
-      dividendYield: null,
+      dividendYield: quoteData.dividendYield || null,
       ytdReturn,
       oneYearReturn,
       source: quoteData.source,
