@@ -128,3 +128,9 @@ export const NAV_LINKS = [
   { href: "/invest", label: "Calculator" },
   { href: "/learn", label: "Learn" },
 ];
+
+export const NAV_LINKS_SECONDARY = [
+  { href: "/distributions", label: "Distributions" },
+  { href: "/inside-veqt", label: "Inside VEQT" },
+  { href: "/methodology", label: "Methodology" },
+];
