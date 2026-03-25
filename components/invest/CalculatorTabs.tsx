@@ -30,7 +30,7 @@ const TABS = [
   {
     id: "tfsa-rrsp",
     label: "TFSA / RRSP",
-    shortLabel: "TFSA/RRSP",
+    shortLabel: "TFSA",
     description: "Project registered account growth",
   },
 ] as const;
