@@ -7,6 +7,9 @@ export interface QuoteData {
   changePercent: number;
   volume: number;
   latestTradingDay: string;
+  fiftyTwoWeekHigh: number;
+  fiftyTwoWeekLow: number;
+  dividendYield: number;
   source: DataSource;
   fetchedAt: string; // ISO timestamp of when this data was fetched
 }

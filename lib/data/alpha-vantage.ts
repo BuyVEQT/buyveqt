@@ -96,6 +96,9 @@ export async function getQuoteAV(avSymbol: string): Promise<QuoteData> {
     changePercent: parseFloat((q['10. change percent'] || '0').replace('%', '')),
     volume: parseInt(q['06. volume'], 10),
     latestTradingDay: q['07. latest trading day'],
+    fiftyTwoWeekHigh: 0,
+    fiftyTwoWeekLow: 0,
+    dividendYield: 0,
     source: 'alpha-vantage',
     fetchedAt: new Date().toISOString(),
   };

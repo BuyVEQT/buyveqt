@@ -195,16 +195,20 @@ export default function HeroSection({
                       <span className="text-[var(--color-text-muted)]">AUM</span>
                       <span className="font-medium">{STATIC_DATA.aum}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-[var(--color-text-muted)]">Dividend Yield</span>
-                      <span className="font-medium">{quote.dividendYield.toFixed(2)}%</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-[var(--color-text-muted)]">52-Week Range</span>
-                      <span className="font-medium tabular-nums">
-                        ${quote.fiftyTwoWeekLow.toFixed(2)} – ${quote.fiftyTwoWeekHigh.toFixed(2)}
-                      </span>
-                    </div>
+                    {quote.dividendYield > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-[var(--color-text-muted)]">Dividend Yield</span>
+                        <span className="font-medium">{quote.dividendYield.toFixed(2)}%</span>
+                      </div>
+                    )}
+                    {quote.fiftyTwoWeekHigh > 0 && quote.fiftyTwoWeekLow > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-[var(--color-text-muted)]">52-Week Range</span>
+                        <span className="font-medium tabular-nums">
+                          ${quote.fiftyTwoWeekLow.toFixed(2)} – ${quote.fiftyTwoWeekHigh.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Data freshness indicator */}

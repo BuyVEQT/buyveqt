@@ -25,6 +25,9 @@ export async function getQuoteYahoo(
       latestTradingDay: result.regularMarketTime
         ? new Date(result.regularMarketTime).toISOString().split('T')[0]
         : new Date().toISOString().split('T')[0],
+      fiftyTwoWeekHigh: result.fiftyTwoWeekHigh ?? 0,
+      fiftyTwoWeekLow: result.fiftyTwoWeekLow ?? 0,
+      dividendYield: (result.trailingAnnualDividendYield ?? 0) * 100,
       source: 'yahoo-finance',
       fetchedAt: new Date().toISOString(),
     };
