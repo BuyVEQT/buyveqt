@@ -194,14 +194,14 @@ export default function MethodologyPage() {
         <Section title="Contact & Corrections">
           <p>
             If you notice an error, outdated information, or have suggestions
-            for improvement, please open an issue or pull request on the{" "}
+            for improvement, reach out on{" "}
             <a
-              href="https://github.com/mattdrapkin/buyveqt"
+              href="https://www.reddit.com/r/JustBuyVEQT/"
               target="_blank"
               rel="noopener noreferrer"
               className="text-[var(--color-brand)] hover:text-[var(--color-brand-dark)] underline"
             >
-              GitHub repository
+              r/JustBuyVEQT
             </a>
             . This is a community project and contributions are welcome.
           </p>
