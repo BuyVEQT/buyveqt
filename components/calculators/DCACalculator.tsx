@@ -4,11 +4,13 @@ import { useState, useMemo } from "react";
 import { formatDollars } from "@/lib/chart-utils";
 import { CARD } from "@/lib/styles";
 import ContributionGrowthChart from "./ContributionGrowthChart";
+import ShareModal from "@/components/ShareModal";
 
 export default function DCACalculator() {
   const [monthly, setMonthly] = useState(500);
   const [years, setYears] = useState(20);
   const [returnRate, setReturnRate] = useState(8);
+  const [shareOpen, setShareOpen] = useState(false);
 
   const { totalContributed, portfolioValue, investmentGrowth, chartData } =
     useMemo(() => {
@@ -128,6 +130,33 @@ export default function DCACalculator() {
           { label: "Est. Portfolio Value", value: portfolioValue },
           { label: "Investment Growth", value: investmentGrowth, highlight: true },
         ]}
+      />
+
+      {/* Share Results */}
+      <div className="flex justify-end">
+        <button
+          onClick={() => setShareOpen(true)}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-white px-3 py-2 text-sm font-medium text-[var(--color-text-secondary)] hover:bg-[var(--color-base)] transition-colors"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+          </svg>
+          Share Results
+        </button>
+      </div>
+      <ShareModal
+        tab="dca"
+        params={{
+          monthly,
+          horizon: years,
+          rate: returnRate,
+          result: Math.round(portfolioValue),
+          contributions: Math.round(totalContributed),
+          growth: Math.round(investmentGrowth),
+        }}
+        isOpen={shareOpen}
+        onClose={() => setShareOpen(false)}
       />
 
       {/* Notes */}
