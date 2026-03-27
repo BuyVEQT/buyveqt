@@ -18,7 +18,7 @@ function getStartDate(range: string): string {
     case "YTD":
       return `${now.getFullYear()}-01-01`;
     case "ALL":
-      return "2012-01-01";
+      return "2019-01-29"; // VEQT inception date
     case "3Y":
       now.setFullYear(now.getFullYear() - 3);
       break;

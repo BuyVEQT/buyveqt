@@ -18,6 +18,11 @@ function getHistoryDays(period: string): number {
     case "1Y": return 365;
     case "3Y": return 365 * 3;
     case "5Y": return 365 * 5;
+    case "ALL": {
+      // VEQT inception: January 29, 2019
+      const inception = new Date(2019, 0, 29);
+      return Math.ceil((Date.now() - inception.getTime()) / (1000 * 60 * 60 * 24));
+    }
     default: return 365;
   }
 }
@@ -30,7 +35,7 @@ export async function GET(request: Request) {
   // Quote and history are independent — show whichever we can get.
   const [quoteResult, historyResult] = await Promise.allSettled([
     getQuote("VEQT"),
-    getDailyHistory("VEQT", ["3Y", "5Y", "1Y"].includes(period) ? "full" : "compact"),
+    getDailyHistory("VEQT", ["ALL", "3Y", "5Y", "1Y"].includes(period) ? "full" : "compact"),
   ]);
 
   const quoteData = quoteResult.status === "fulfilled" ? quoteResult.value : null;
