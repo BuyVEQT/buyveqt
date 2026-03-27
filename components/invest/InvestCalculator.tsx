@@ -300,9 +300,9 @@ export default function InvestCalculator({ history }: InvestCalculatorProps) {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
-    const urlMode = params.get("mode");
-    const urlAmount = params.get("amount");
-    const urlStart = params.get("start");
+    const urlMode = params.get("mode") || params.get("m");
+    const urlAmount = params.get("amount") || params.get("a");
+    const urlStart = params.get("start") || params.get("s");
 
     if (urlMode === "lump" || urlMode === "dca") setMode(urlMode);
     if (urlAmount) {
