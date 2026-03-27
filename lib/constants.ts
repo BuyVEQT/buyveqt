@@ -117,6 +117,7 @@ export const CHART_PERIODS = [
   { key: "1Y", label: "1Y", months: 12 },
   { key: "3Y", label: "3Y", months: 36 },
   { key: "5Y", label: "5Y", months: 60 },
+  { key: "ALL", label: "All", months: 0 },
 ] as const;
 
 export const DISCLAIMER =
