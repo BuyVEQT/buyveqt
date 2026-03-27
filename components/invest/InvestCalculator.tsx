@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { track } from "@vercel/analytics";
+import ShareModal from "@/components/ShareModal";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -381,6 +382,8 @@ export default function InvestCalculator({ history }: InvestCalculatorProps) {
     return <DataUnavailable type="chart" message="Historical data is temporarily unavailable. Please try again later." />;
   }
 
+  const [shareOpen, setShareOpen] = useState(false);
+
   const isPositive = result ? result.totalReturn >= 0 : true;
   const isDCA = mode === "dca";
 
@@ -528,6 +531,37 @@ export default function InvestCalculator({ history }: InvestCalculatorProps) {
               </div>
             </div>
           </div>
+
+          {/* Share Results */}
+          <div className="flex justify-end">
+            <button
+              onClick={() => setShareOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-white px-3 py-2 text-sm font-medium text-[var(--color-text-secondary)] hover:bg-[var(--color-base)] transition-colors"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+              </svg>
+              Share Results
+            </button>
+          </div>
+          <ShareModal
+            tab="historical"
+            params={{
+              mode,
+              amount,
+              start: startDate.slice(0, 7),
+              result: Math.round(result.currentValue),
+              returnPct: parseFloat(result.totalReturnPercent.toFixed(1)),
+              contributed: Math.round(
+                isDCA
+                  ? (result as DCAResult).totalContributed
+                  : (result as LumpResult).investmentAmount
+              ),
+            }}
+            isOpen={shareOpen}
+            onClose={() => setShareOpen(false)}
+          />
 
           {/* Chart */}
           <div className="rounded-lg border border-[var(--color-border)] bg-white p-4 sm:p-5">

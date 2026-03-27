@@ -13,6 +13,7 @@ import {
 import Link from "next/link";
 import { formatDollars, ChartTooltipWrapper, GRID_PROPS, AXIS_PROPS } from "@/lib/chart-utils";
 import { CARD, STAT_CARD } from "@/lib/styles";
+import ShareModal from "@/components/ShareModal";
 
 function CustomTooltip({
   active,
@@ -40,6 +41,7 @@ export default function DividendCalculator() {
   const [portfolio, setPortfolio] = useState(100000);
   const [yieldRate, setYieldRate] = useState(1.8);
   const [growthRate, setGrowthRate] = useState(8);
+  const [shareOpen, setShareOpen] = useState(false);
 
   const { annual, quarterly, monthly, chartData } = useMemo(() => {
     const annual = portfolio * (yieldRate / 100);
@@ -191,6 +193,31 @@ export default function DividendCalculator() {
           </BarChart>
         </ResponsiveContainer>
       </div>
+
+      {/* Share Results */}
+      <div className="flex justify-end">
+        <button
+          onClick={() => setShareOpen(true)}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-white px-3 py-2 text-sm font-medium text-[var(--color-text-secondary)] hover:bg-[var(--color-base)] transition-colors"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+          </svg>
+          Share Results
+        </button>
+      </div>
+      <ShareModal
+        tab="dividends"
+        params={{
+          portfolio,
+          yield: yieldRate,
+          growthRate,
+          annualIncome: Math.round(annual),
+        }}
+        isOpen={shareOpen}
+        onClose={() => setShareOpen(false)}
+      />
 
       {/* Notes */}
       <div className="text-[11px] text-[var(--color-text-muted)] space-y-1.5 border-t border-[var(--color-border)] pt-4">
