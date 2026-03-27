@@ -202,9 +202,12 @@ export default function ShareModal({ tab, params, isOpen, onClose }: ShareModalP
   }, [snippet]);
 
   const shareToX = useCallback(() => {
-    const intentUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(snippet)}`;
+    // X needs the URL as a separate param to unfurl the OG card preview
+    // Strip the trailing URL from the snippet text since it'll be appended via &url=
+    const textWithoutUrl = snippet.replace(/\s*→\s*https?:\/\/\S+$/, "");
+    const intentUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(textWithoutUrl)}&url=${encodeURIComponent(url)}`;
     window.open(intentUrl, "_blank", "noopener,noreferrer");
-  }, [snippet]);
+  }, [snippet, url]);
 
   const downloadImage = useCallback(async () => {
     setDownloading(true);
@@ -254,14 +257,20 @@ export default function ShareModal({ tab, params, isOpen, onClose }: ShareModalP
           Share Results
         </h2>
 
-        {/* Preview card */}
-        <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-base)] p-4 mb-5">
-          <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-1">
+        {/* Preview card — matches OG card branding */}
+        <div className="rounded-lg bg-[#c8102e] p-4 mb-5 relative overflow-hidden">
+          <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-b from-transparent to-[#a50d26]" />
+          <p className="text-xs text-white/70 uppercase tracking-wider mb-1">
             {preview.headline}
           </p>
-          <p className="text-2xl font-extrabold text-[#15803d] tabular-nums">
+          <p className="text-2xl font-extrabold text-white tabular-nums">
             {preview.hero}
           </p>
+          <div className="flex justify-end mt-2 relative">
+            <span className="text-sm font-bold text-white">
+              Buy<span className="text-[#16a34a]">VEQT</span>
+            </span>
+          </div>
         </div>
 
         {/* Action buttons - 2x2 grid */}
