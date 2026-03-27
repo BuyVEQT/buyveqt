@@ -123,7 +123,7 @@ function CardShell({ children, badge }: { children: React.ReactNode; badge?: str
             }}
           >
             <span>Buy</span>
-            <span style={{ color: GREEN }}>VEQT</span>
+            <span>VEQT</span>
           </div>
         </div>
       </div>

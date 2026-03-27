@@ -111,5 +111,5 @@ export function buildShareUrl(
   for (const [k, v] of Object.entries(params)) {
     sp.set(LONG_TO_SHORT[k] || k, String(v));
   }
-  return `https://buyveqt.com/invest?${sp.toString()}`;
+  return `https://www.buyveqt.com/invest?${sp.toString()}`;
 }
