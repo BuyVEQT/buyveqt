@@ -1,14 +1,20 @@
 import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
-import { SHORT_TO_LONG } from "@/lib/share-params";
+import { LONG_TO_SHORT, inferTab } from "@/lib/share-params";
 
 export const runtime = "edge";
 
 /** Read a param by its long name, falling back to the short alias */
 function p(sp: URLSearchParams, longKey: string): string | null {
-  // Find the short key for this long key
-  const shortKey = Object.entries(SHORT_TO_LONG).find(([, l]) => l === longKey)?.[0];
+  const shortKey = LONG_TO_SHORT[longKey];
   return sp.get(longKey) || (shortKey ? sp.get(shortKey) : null);
+}
+
+/** Convert URLSearchParams to a plain record for inferTab */
+function spToRecord(sp: URLSearchParams): Record<string, string> {
+  const out: Record<string, string> = {};
+  sp.forEach((v, k) => { out[k] = v; });
+  return out;
 }
 
 // ─── Brand colors ─────────────────────────────────────────────
@@ -354,7 +360,7 @@ function FallbackCard() {
 
 export async function GET(request: NextRequest) {
   const sp = request.nextUrl.searchParams;
-  const tab = p(sp, "tab");
+  const tab = inferTab(spToRecord(sp));
 
   let card: React.ReactNode;
 

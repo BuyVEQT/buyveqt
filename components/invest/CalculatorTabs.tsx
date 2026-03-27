@@ -7,6 +7,7 @@ import DCACalculator from "@/components/calculators/DCACalculator";
 import DividendCalculator from "@/components/calculators/DividendCalculator";
 import TFSARRSPCalculator from "@/components/calculators/TFSARRSPCalculator";
 import type { HistoricalData } from "@/lib/data/types";
+import { inferTab } from "@/lib/share-params";
 
 const TABS = [
   {
@@ -44,8 +45,11 @@ interface CalculatorTabsProps {
 function CalculatorTabsInner({ history }: CalculatorTabsProps) {
   const searchParams = useSearchParams();
 
-  // Read initial tab from URL (?tab=dca or short ?t=dca), default to historical
-  const urlTab = searchParams.get("tab") || searchParams.get("t");
+  // Read initial tab from URL — supports explicit ?tab=, ?t=, or inference
+  // from other keys (e.g. ?o=500 → dca tab, ?y=1.8 → dividends)
+  const rawParams: Record<string, string> = {};
+  searchParams.forEach((v, k) => { rawParams[k] = v; });
+  const urlTab = inferTab(rawParams);
   const initialTab: TabId = TABS.some((t) => t.id === urlTab)
     ? (urlTab as TabId)
     : "historical";
