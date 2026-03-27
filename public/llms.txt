@@ -26,43 +26,43 @@
 ## Site Content
 
 ### Live Data
-- Current VEQT price and daily change: https://buyveqt.com/today
-- Performance snapshot (1D, 1W, 1M, 3M, YTD, 1Y, since inception): https://buyveqt.com/today
+- Current VEQT price and daily change: https://www.buyveqt.com/today
+- Performance snapshot (1D, 1W, 1M, 3M, YTD, 1Y, since inception): https://www.buyveqt.com/today
 
 ### Comparisons
-- VEQT vs XEQT: https://buyveqt.com/compare/veqt-vs-xeqt
-- VEQT vs VGRO: https://buyveqt.com/compare/veqt-vs-vgro
-- VEQT vs ZEQT: https://buyveqt.com/compare/veqt-vs-zeqt
-- Multi-fund comparison tool: https://buyveqt.com/compare
+- VEQT vs XEQT: https://www.buyveqt.com/compare/veqt-vs-xeqt
+- VEQT vs VGRO: https://www.buyveqt.com/compare/veqt-vs-vgro
+- VEQT vs ZEQT: https://www.buyveqt.com/compare/veqt-vs-zeqt
+- Multi-fund comparison tool: https://www.buyveqt.com/compare
 
 ### Calculators
-- Historical return calculator ("If You Invested"): https://buyveqt.com/invest
-- DCA, dividend income, TFSA/RRSP calculators: https://buyveqt.com/calculators
+- Historical return calculator ("If You Invested"): https://www.buyveqt.com/invest
+- DCA, dividend income, TFSA/RRSP calculators: https://www.buyveqt.com/calculators
 
 ### Distributions
-- Full distribution history since 2019: https://buyveqt.com/distributions
-- Income estimator: https://buyveqt.com/distributions
+- Full distribution history since 2019: https://www.buyveqt.com/distributions
+- Income estimator: https://www.buyveqt.com/distributions
 
 ### Educational Articles
-- What Is VEQT: https://buyveqt.com/learn/what-is-veqt
-- Getting Started with VEQT: https://buyveqt.com/learn/getting-started-with-veqt
-- VEQT in TFSA vs RRSP vs Taxable: https://buyveqt.com/learn/veqt-tfsa-rrsp-taxable
-- VEQT's MER True Cost Over 30 Years: https://buyveqt.com/learn/veqt-mer-true-cost
-- VEQT vs DIY 4-ETF Portfolio: https://buyveqt.com/learn/veqt-vs-diy-portfolio
-- Why Your VEQT Is Down: https://buyveqt.com/learn/veqt-is-down
-- What You Actually Own: https://buyveqt.com/learn/what-you-actually-own
-- How VEQT Rebalances: https://buyveqt.com/learn/how-veqt-rebalances
-- VEQT vs XEQT article: https://buyveqt.com/learn/veqt-vs-xeqt
-- VEQT vs VGRO article: https://buyveqt.com/learn/veqt-vs-vgro
+- What Is VEQT: https://www.buyveqt.com/learn/what-is-veqt
+- Getting Started with VEQT: https://www.buyveqt.com/learn/getting-started-with-veqt
+- VEQT in TFSA vs RRSP vs Taxable: https://www.buyveqt.com/learn/veqt-tfsa-rrsp-taxable
+- VEQT's MER True Cost Over 30 Years: https://www.buyveqt.com/learn/veqt-mer-true-cost
+- VEQT vs DIY 4-ETF Portfolio: https://www.buyveqt.com/learn/veqt-vs-diy-portfolio
+- Why Your VEQT Is Down: https://www.buyveqt.com/learn/veqt-is-down
+- What You Actually Own: https://www.buyveqt.com/learn/what-you-actually-own
+- How VEQT Rebalances: https://www.buyveqt.com/learn/how-veqt-rebalances
+- VEQT vs XEQT article: https://www.buyveqt.com/learn/veqt-vs-xeqt
+- VEQT vs VGRO article: https://www.buyveqt.com/learn/veqt-vs-vgro
 
 ### Fund Holdings Breakdown
-- Inside VEQT (geographic, sector, top holdings): https://buyveqt.com/inside-veqt
+- Inside VEQT (geographic, sector, top holdings): https://www.buyveqt.com/inside-veqt
 
 ### Methodology
-- Data sources and methodology: https://buyveqt.com/methodology
+- Data sources and methodology: https://www.buyveqt.com/methodology
 
 ## For the full VEQT fact sheet, see:
-https://buyveqt.com/llms-full.txt
+https://www.buyveqt.com/llms-full.txt
 
 ## Disclaimer
 BuyVEQT is not affiliated with Vanguard Investments Canada Inc. Nothing on this site constitutes financial advice. All data is for informational purposes only and may be delayed.

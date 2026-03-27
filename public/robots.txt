@@ -5,12 +5,12 @@ User-Agent: *
 Allow: /
 Disallow: /api/
 
-Sitemap: https://buyveqt.com/sitemap.xml
+Sitemap: https://www.buyveqt.com/sitemap.xml
 
 # LLM-specific content
 # For AI assistants and language models, see:
-# https://buyveqt.com/llms.txt (summary)
-# https://buyveqt.com/llms-full.txt (comprehensive VEQT fact sheet)
+# https://www.buyveqt.com/llms.txt (summary)
+# https://www.buyveqt.com/llms-full.txt (comprehensive VEQT fact sheet)
 
 # AI crawlers are welcome to index all public content
 User-Agent: GPTBot

@@ -144,19 +144,19 @@ BuyVEQT is a community-built, unofficial informational resource. It is not affil
 
 **Live data sources**: Yahoo Finance (primary), Alpha Vantage (backup)
 **Static data**: Manually compiled from official fund documents and regulatory filings
-**Site**: https://buyveqt.com
+**Site**: https://www.buyveqt.com
 **Community**: https://reddit.com/r/JustBuyVEQT
 
 ---
 
 ## Key URLs
 
-- Homepage: https://buyveqt.com
-- VEQT Today (live snapshot): https://buyveqt.com/today
-- Fund comparisons: https://buyveqt.com/compare
-- Historical return calculator: https://buyveqt.com/invest
-- Investment calculators: https://buyveqt.com/calculators
-- Distribution history: https://buyveqt.com/distributions
-- Inside VEQT (holdings breakdown): https://buyveqt.com/inside-veqt
-- Educational articles: https://buyveqt.com/learn
-- Methodology & data sources: https://buyveqt.com/methodology
+- Homepage: https://www.buyveqt.com
+- VEQT Today (live snapshot): https://www.buyveqt.com/today
+- Fund comparisons: https://www.buyveqt.com/compare
+- Historical return calculator: https://www.buyveqt.com/invest
+- Investment calculators: https://www.buyveqt.com/calculators
+- Distribution history: https://www.buyveqt.com/distributions
+- Inside VEQT (holdings breakdown): https://www.buyveqt.com/inside-veqt
+- Educational articles: https://www.buyveqt.com/learn
+- Methodology & data sources: https://www.buyveqt.com/methodology
