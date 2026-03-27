@@ -4,6 +4,7 @@ import CalculatorTabs from "@/components/invest/CalculatorTabs";
 import { getDailyHistory } from "@/lib/data";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { buildBreadcrumbSchema, canonicalUrl, SITE_NAME, SITE_URL } from "@/lib/seo-config";
+import { expandParams } from "@/lib/share-params";
 
 export const revalidate = 86400; // 24 hours
 
@@ -32,7 +33,8 @@ function fmtDate(raw: string): string {
 type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
-  const sp = await searchParams;
+  // Expand short param keys (t→tab, r→result, etc.) so both short and long URLs work
+  const sp = expandParams(await searchParams);
   const tab = typeof sp.tab === "string" ? sp.tab : null;
   const hasResult =
     typeof sp.result === "string" ||

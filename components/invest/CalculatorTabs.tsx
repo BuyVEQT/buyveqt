@@ -44,8 +44,8 @@ interface CalculatorTabsProps {
 function CalculatorTabsInner({ history }: CalculatorTabsProps) {
   const searchParams = useSearchParams();
 
-  // Read initial tab from URL (?tab=dca), default to historical
-  const urlTab = searchParams.get("tab");
+  // Read initial tab from URL (?tab=dca or short ?t=dca), default to historical
+  const urlTab = searchParams.get("tab") || searchParams.get("t");
   const initialTab: TabId = TABS.some((t) => t.id === urlTab)
     ? (urlTab as TabId)
     : "historical";

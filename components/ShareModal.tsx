@@ -7,6 +7,7 @@ import {
   dividendShareSnippet,
   tfsaRrspShareSnippet,
 } from "@/lib/social-snippets";
+import { buildShareUrl } from "@/lib/share-params";
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -38,12 +39,7 @@ function fmtDate(yyyymm: string): string {
 }
 
 function buildUrl(tab: Tab, params: Record<string, string | number>): string {
-  const sp = new URLSearchParams();
-  sp.set("tab", tab);
-  for (const [k, v] of Object.entries(params)) {
-    sp.set(k, String(v));
-  }
-  return `https://www.buyveqt.com/invest?${sp.toString()}`;
+  return buildShareUrl(tab, params);
 }
 
 function buildOgUrl(tab: Tab, params: Record<string, string | number>): string {

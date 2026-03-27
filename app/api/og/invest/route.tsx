@@ -1,7 +1,24 @@
 import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
+import { SHORT_TO_LONG } from "@/lib/share-params";
 
 export const runtime = "edge";
+
+/** Read a param by its long name, falling back to the short alias */
+function p(sp: URLSearchParams, longKey: string): string | null {
+  // Find the short key for this long key
+  const shortKey = Object.entries(SHORT_TO_LONG).find(([, l]) => l === longKey)?.[0];
+  return sp.get(longKey) || (shortKey ? sp.get(shortKey) : null);
+}
+
+// ─── Brand colors ─────────────────────────────────────────────
+
+const RED = "#c8102e";
+const RED_DARK = "#a50d26";
+const WHITE = "#ffffff";
+const WHITE_80 = "rgba(255,255,255,0.80)";
+const WHITE_50 = "rgba(255,255,255,0.50)";
+const GREEN = "#16a34a";
 
 // ─── Helpers ──────────────────────────────────────────────────
 
@@ -30,9 +47,9 @@ function pct(raw: string | null): string {
   return `${n}%`;
 }
 
-// ─── Shared layout pieces ─────────────────────────────────────
+// ─── Shared layout ────────────────────────────────────────────
 
-function CardShell({ children }: { children: React.ReactNode }) {
+function CardShell({ children, badge }: { children: React.ReactNode; badge?: string }) {
   return (
     <div
       style={{
@@ -40,42 +57,92 @@ function CardShell({ children }: { children: React.ReactNode }) {
         height: 630,
         display: "flex",
         flexDirection: "column",
-        backgroundColor: "#ffffff",
-        padding: "48px 60px",
+        backgroundColor: RED,
+        padding: "0",
         position: "relative",
       }}
     >
-      {/* Green accent bar */}
+      {/* Subtle darker gradient strip at bottom */}
       <div
         style={{
           position: "absolute",
-          top: 0,
+          bottom: 0,
           left: 0,
           right: 0,
-          height: 6,
-          backgroundColor: "#16a34a",
+          height: 120,
+          background: `linear-gradient(to bottom, transparent, ${RED_DARK})`,
         }}
       />
-      {/* Top-left brand */}
-      <div style={{ fontSize: 18, color: "#9ca3af", display: "flex" }}>
-        buyveqt.com
-      </div>
-      {/* Content area */}
+
+      {/* Main content area */}
       <div
         style={{
           flex: 1,
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
-          gap: 12,
+          padding: "60px 72px",
+          gap: 8,
         }}
       >
         {children}
       </div>
-      {/* Bottom CTA */}
-      <div style={{ fontSize: 16, color: "#9ca3af", display: "flex" }}>
-        Run your own numbers → buyveqt.com/invest
+
+      {/* Bottom bar: CTA left, BuyVEQT logo right */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "0 72px 40px 72px",
+        }}
+      >
+        <div style={{ fontSize: 22, color: WHITE_50, display: "flex" }}>
+          Run your own numbers → buyveqt.com/invest
+        </div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 4,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 36,
+              fontWeight: 800,
+              color: WHITE,
+              letterSpacing: "-1px",
+              display: "flex",
+            }}
+          >
+            <span>Buy</span>
+            <span style={{ color: GREEN }}>VEQT</span>
+          </div>
+        </div>
       </div>
+
+      {/* Optional badge */}
+      {badge && (
+        <div
+          style={{
+            position: "absolute",
+            top: 40,
+            right: 72,
+            display: "flex",
+            padding: "8px 20px",
+            borderRadius: 24,
+            backgroundColor: "rgba(255,255,255,0.15)",
+            border: "2px solid rgba(255,255,255,0.3)",
+            color: WHITE,
+            fontSize: 20,
+            fontWeight: 700,
+            letterSpacing: "0.5px",
+          }}
+        >
+          {badge}
+        </div>
+      )}
     </div>
   );
 }
@@ -84,10 +151,11 @@ function Headline({ text }: { text: string }) {
   return (
     <div
       style={{
-        fontSize: 32,
+        fontSize: 38,
         fontWeight: 600,
-        color: "#374151",
+        color: WHITE_80,
         display: "flex",
+        lineHeight: 1.2,
       }}
     >
       {text}
@@ -99,13 +167,14 @@ function HeroNumber({ text }: { text: string }) {
   return (
     <div
       style={{
-        fontSize: 72,
+        fontSize: 96,
         fontWeight: 800,
-        color: "#15803d",
-        letterSpacing: "-2px",
+        color: WHITE,
+        letterSpacing: "-3px",
         display: "flex",
-        marginTop: 4,
-        marginBottom: 4,
+        marginTop: 8,
+        marginBottom: 8,
+        lineHeight: 1,
       }}
     >
       {text}
@@ -115,24 +184,12 @@ function HeroNumber({ text }: { text: string }) {
 
 function SupportingRow({ text }: { text: string }) {
   return (
-    <div style={{ fontSize: 22, color: "#6b7280", display: "flex" }}>
-      {text}
-    </div>
-  );
-}
-
-function Badge({ text }: { text: string }) {
-  return (
     <div
       style={{
+        fontSize: 26,
+        color: WHITE_80,
         display: "flex",
-        padding: "6px 16px",
-        borderRadius: 20,
-        border: "2px solid #16a34a",
-        color: "#16a34a",
-        fontSize: 16,
-        fontWeight: 600,
-        marginTop: 8,
+        letterSpacing: "0.3px",
       }}
     >
       {text}
@@ -143,12 +200,12 @@ function Badge({ text }: { text: string }) {
 // ─── Card renderers per tab ───────────────────────────────────
 
 function HistoricalCard(sp: URLSearchParams) {
-  const mode = sp.get("mode");
-  const amount = sp.get("amount");
-  const start = sp.get("start");
-  const result = sp.get("result");
-  const returnPct = sp.get("returnPct");
-  const contributed = sp.get("contributed");
+  const mode = p(sp, "mode");
+  const amount = p(sp, "amount");
+  const start = p(sp, "start");
+  const result = p(sp, "result");
+  const returnPct = p(sp, "returnPct");
+  const contributed = p(sp, "contributed");
 
   const headline =
     mode === "dca"
@@ -170,12 +227,12 @@ function HistoricalCard(sp: URLSearchParams) {
 }
 
 function DCACard(sp: URLSearchParams) {
-  const monthly = sp.get("monthly");
-  const horizon = sp.get("horizon");
-  const rate = sp.get("rate");
-  const result = sp.get("result");
-  const contributions = sp.get("contributions");
-  const growth = sp.get("growth");
+  const monthly = p(sp, "monthly");
+  const horizon = p(sp, "horizon");
+  const rate = p(sp, "rate");
+  const result = p(sp, "result");
+  const contributions = p(sp, "contributions");
+  const growth = p(sp, "growth");
 
   return (
     <CardShell>
@@ -191,10 +248,10 @@ function DCACard(sp: URLSearchParams) {
 }
 
 function DividendCard(sp: URLSearchParams) {
-  const portfolio = sp.get("portfolio");
-  const yieldRate = sp.get("yield");
-  const growthRate = sp.get("growthRate");
-  const annualIncome = sp.get("annualIncome");
+  const portfolio = p(sp, "portfolio");
+  const yieldRate = p(sp, "yield");
+  const growthRate = p(sp, "growthRate");
+  const annualIncome = p(sp, "annualIncome");
   const annualNum = Number(annualIncome) || 0;
   const quarterly = fmtDollars(String(Math.round(annualNum / 4)));
 
@@ -203,7 +260,7 @@ function DividendCard(sp: URLSearchParams) {
       <Headline
         text={`My ${fmtDollars(portfolio)} VEQT portfolio could generate...`}
       />
-      <HeroNumber text={`${fmtDollars(annualIncome)}/year`} />
+      <HeroNumber text={`${fmtDollars(annualIncome)}/yr`} />
       <SupportingRow
         text={`${quarterly}/quarter · ${pct(yieldRate)} yield · ${pct(growthRate)} annual growth assumed`}
       />
@@ -212,21 +269,20 @@ function DividendCard(sp: URLSearchParams) {
 }
 
 function TFSARRSPCard(sp: URLSearchParams) {
-  const account = sp.get("account")?.toUpperCase() || "TFSA";
-  const starting = sp.get("starting");
-  const annual = sp.get("annual");
-  const horizon = sp.get("horizon");
-  const rate = sp.get("rate");
-  const result = sp.get("result");
+  const account = p(sp, "account")?.toUpperCase() || "TFSA";
+  const starting = p(sp, "starting");
+  const annual = p(sp, "annual");
+  const horizon = p(sp, "horizon");
+  const rate = p(sp, "rate");
+  const result = p(sp, "result");
 
   return (
-    <CardShell>
+    <CardShell badge={account === "TFSA" ? "Tax-free" : "Tax-deferred"}>
       <Headline text={`My ${account} with VEQT could grow to...`} />
       <HeroNumber text={fmtDollars(result)} />
       <SupportingRow
-        text={`${fmtDollars(starting)} starting · ${fmtDollars(annual)}/year contributions · ${horizon} years · ${pct(rate)} return assumed`}
+        text={`${fmtDollars(starting)} starting · ${fmtDollars(annual)}/yr contributions · ${horizon} years · ${pct(rate)} return assumed`}
       />
-      <Badge text={account === "TFSA" ? "Tax-free" : "Tax-deferred"} />
     </CardShell>
   );
 }
@@ -241,39 +297,40 @@ function FallbackCard() {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "#111827",
+        backgroundColor: RED,
         padding: 60,
         position: "relative",
       }}
     >
+      {/* Darker bottom gradient */}
       <div
         style={{
           position: "absolute",
-          top: 0,
+          bottom: 0,
           left: 0,
           right: 0,
-          height: 6,
-          backgroundColor: "#16a34a",
+          height: 120,
+          background: `linear-gradient(to bottom, transparent, ${RED_DARK})`,
         }}
       />
       <div
         style={{
-          fontSize: 72,
+          fontSize: 96,
           fontWeight: 800,
-          color: "#ffffff",
-          letterSpacing: "-2px",
+          color: WHITE,
+          letterSpacing: "-3px",
           display: "flex",
         }}
       >
         <span>Buy</span>
-        <span style={{ color: "#16a34a" }}>VEQT</span>
+        <span style={{ color: GREEN }}>VEQT</span>
       </div>
       <div
         style={{
-          fontSize: 28,
-          fontWeight: 400,
-          color: "#9ca3af",
-          marginTop: 16,
+          fontSize: 32,
+          fontWeight: 500,
+          color: WHITE_80,
+          marginTop: 20,
           display: "flex",
         }}
       >
@@ -281,8 +338,8 @@ function FallbackCard() {
       </div>
       <div
         style={{
-          fontSize: 20,
-          color: "#6b7280",
+          fontSize: 22,
+          color: WHITE_50,
           marginTop: 12,
           display: "flex",
         }}
@@ -297,7 +354,7 @@ function FallbackCard() {
 
 export async function GET(request: NextRequest) {
   const sp = request.nextUrl.searchParams;
-  const tab = sp.get("tab");
+  const tab = p(sp, "tab");
 
   let card: React.ReactNode;
 
