@@ -9,7 +9,7 @@ import { COMPARE_FAQ } from "@/data/faq";
 export const metadata: Metadata = {
   title: "Compare VEQT vs Other Canadian ETFs",
   description:
-    "Compare VEQT against XEQT, ZEQT, VGRO, VFV, and VUN. Side-by-side performance, MER, geographic allocation, and which fund suits your portfolio.",
+    "Compare VEQT against XEQT, ZEQT, VGRO, XGRO, VFV, and VUN. Side-by-side performance, MER, geographic allocation, and which fund suits your portfolio.",
   alternates: { canonical: canonicalUrl("/compare") },
   openGraph: {
     title: "Compare VEQT vs Other Canadian ETFs",
@@ -48,7 +48,7 @@ export default function ComparePage() {
             Compare VEQT to Other All-in-One ETFs
           </h1>
           <p className="mt-2 text-[var(--color-text-muted)] max-w-prose">
-            See how VEQT stacks up against XEQT, ZEQT, VGRO, and VFV — side by
+            See how VEQT stacks up against XEQT, ZEQT, VGRO, XGRO, and VFV — side by
             side. We built this tool because the &ldquo;VEQT vs XEQT&rdquo;
             question comes up more than any other in the Canadian ETF community.
             Our position is clear — we think VEQT is the better choice for most

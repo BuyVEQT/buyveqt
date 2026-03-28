@@ -1,16 +1,53 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { formatDollars } from "@/lib/chart-utils";
 import { CARD } from "@/lib/styles";
 import ContributionGrowthChart from "./ContributionGrowthChart";
+import { readCalcParams, writeCalcParams } from "@/lib/use-calc-params";
+import ShareModal from "@/components/ShareModal";
+import { buildShareUrl, buildOgImageUrl, formatShareDollars, type ShareParams } from "@/lib/share-utils";
+import { tfsaRrspShareSnippet } from "@/lib/social-snippets";
 
 export default function TFSARRSPCalculator() {
-  const [accountType, setAccountType] = useState<"TFSA" | "RRSP">("TFSA");
-  const [startingBalance, setStartingBalance] = useState(0);
-  const [annualContribution, setAnnualContribution] = useState(7000);
-  const [years, setYears] = useState(25);
-  const [returnRate, setReturnRate] = useState(8);
+  const urlParams = readCalcParams(
+    ["account", "starting", "annual", "horizon", "return"],
+    { account: "TFSA", starting: "0", annual: "7000", horizon: "25", return: "8" }
+  );
+
+  const [accountType, setAccountType] = useState<"TFSA" | "RRSP">(
+    urlParams.account === "RRSP" ? "RRSP" : "TFSA"
+  );
+  const [startingBalance, setStartingBalance] = useState(() => {
+    const n = Number(urlParams.starting);
+    return !isNaN(n) && n >= 0 && n <= 500000 ? n : 0;
+  });
+  const [annualContribution, setAnnualContribution] = useState(() => {
+    const n = Number(urlParams.annual);
+    return !isNaN(n) && n >= 0 && n <= 50000 ? n : 7000;
+  });
+  const [years, setYears] = useState(() => {
+    const n = Number(urlParams.horizon);
+    return !isNaN(n) && n >= 1 && n <= 40 ? n : 25;
+  });
+  const [returnRate, setReturnRate] = useState(() => {
+    const n = Number(urlParams.return);
+    return !isNaN(n) && n >= 1 && n <= 15 ? n : 8;
+  });
+
+  const tfsaInitialized = useRef(false);
+  useEffect(() => {
+    if (!tfsaInitialized.current) { tfsaInitialized.current = true; return; }
+    writeCalcParams({
+      account: accountType,
+      starting: startingBalance.toString(),
+      annual: annualContribution.toString(),
+      horizon: years.toString(),
+      return: returnRate.toString(),
+    });
+  }, [accountType, startingBalance, annualContribution, years, returnRate]);
+
+  const [shareOpen, setShareOpen] = useState(false);
 
   const { totalContributions, portfolioValue, totalGrowth, chartData } =
     useMemo(() => {
@@ -185,6 +222,46 @@ export default function TFSARRSPCalculator() {
           { label: "Total Growth", value: totalGrowth, highlight: true },
         ]}
       />
+
+      {/* Share button */}
+      <button
+        onClick={() => setShareOpen(true)}
+        className="flex items-center gap-1.5 text-sm font-medium text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors mb-4"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+        </svg>
+        Share Results
+      </button>
+
+      {(() => {
+        const shareParams: ShareParams = {
+          tab: "tfsa-rrsp",
+          account: accountType,
+          starting: startingBalance.toString(),
+          annual: annualContribution.toString(),
+          horizon: years.toString(),
+          return: returnRate.toString(),
+          r_value: Math.round(portfolioValue).toString(),
+          r_contributions: Math.round(totalContributions).toString(),
+          r_growth: Math.round(totalGrowth).toString(),
+        };
+        return (
+          <ShareModal
+            isOpen={shareOpen}
+            onClose={() => setShareOpen(false)}
+            shareUrl={buildShareUrl(shareParams)}
+            snippet={tfsaRrspShareSnippet({
+              account: accountType, annual: annualContribution,
+              years, value: portfolioValue, url: buildShareUrl(shareParams),
+            })}
+            ogImageUrl={buildOgImageUrl(shareParams)}
+            headline={`${accountType} with VEQT could grow to`}
+            heroValue={formatShareDollars(portfolioValue)}
+          />
+        );
+      })()}
 
       {/* Account type info box */}
       <div className="rounded-lg bg-[var(--color-base)] border border-[var(--color-border)] p-4 mb-6">

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import { clearCalcParams, TAB_PARAMS } from "@/lib/use-calc-params";
 import InvestCalculator from "./InvestCalculator";
 import DCACalculator from "@/components/calculators/DCACalculator";
 import DividendCalculator from "@/components/calculators/DividendCalculator";
@@ -50,10 +51,24 @@ function CalculatorTabsInner({ history }: CalculatorTabsProps) {
     ? (urlTab as TabId)
     : "historical";
   const [activeTab, setActiveTab] = useState<TabId>(initialTab);
+  const prevTabRef = useRef<TabId>(initialTab);
+
+  function handleTabChange(newTab: TabId) {
+    // Clear the previous tab's params before switching
+    const prevKeys = TAB_PARAMS[prevTabRef.current];
+    if (prevKeys) clearCalcParams(prevKeys);
+    prevTabRef.current = newTab;
+    setActiveTab(newTab);
+  }
 
   // Update URL when tab changes (without full navigation)
+  const tabMounted = useRef(false);
   useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString());
+    if (!tabMounted.current) {
+      tabMounted.current = true;
+      return; // Skip initial mount — child calculator handles URL on mount
+    }
+    const params = new URLSearchParams(window.location.search);
     if (activeTab === "historical") {
       params.delete("tab");
     } else {
@@ -62,7 +77,7 @@ function CalculatorTabsInner({ history }: CalculatorTabsProps) {
     const qs = params.toString();
     const newUrl = qs ? `/invest?${qs}` : "/invest";
     window.history.replaceState(null, "", newUrl);
-  }, [activeTab, searchParams]);
+  }, [activeTab]);
 
   return (
     <div>
@@ -71,7 +86,7 @@ function CalculatorTabsInner({ history }: CalculatorTabsProps) {
         {TABS.map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => handleTabChange(tab.id)}
             className={`flex-1 min-w-0 rounded-lg px-3 py-2.5 text-sm font-medium transition-all whitespace-nowrap ${
               activeTab === tab.id
                 ? "bg-white text-[var(--color-text-primary)] shadow-sm"

@@ -1,7 +1,11 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { track } from "@vercel/analytics";
+import { readCalcParams, writeCalcParams } from "@/lib/use-calc-params";
+import ShareModal from "@/components/ShareModal";
+import { buildShareUrl, buildOgImageUrl, formatShareDollars, type ShareParams } from "@/lib/share-utils";
+import { historicalShareSnippet } from "@/lib/social-snippets";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -286,51 +290,32 @@ export default function InvestCalculator({ history }: InvestCalculatorProps) {
   oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
   const defaultStart = oneYearAgo.toISOString().split("T")[0];
 
-  // Read URL params on mount
-  const [mode, setMode] = useState<Mode>("lump");
-  const [amount, setAmount] = useState(10000);
-  const [amountInput, setAmountInput] = useState("10,000");
-  const [startDate, setStartDate] = useState(
-    defaultStart < earliestDate ? earliestDate : defaultStart
+  // Read URL params on mount, preserving other params (like tab)
+  const urlParams = readCalcParams(
+    ["mode", "amount", "start"],
+    { mode: "lump", amount: "10000", start: defaultStart < earliestDate ? earliestDate : defaultStart }
   );
-  const [initialized, setInitialized] = useState(false);
 
-  // Initialize from URL params
+  const initMode = (urlParams.mode === "lump" || urlParams.mode === "dca") ? urlParams.mode : "lump";
+  const initAmount = (() => {
+    const n = parseFloat(urlParams.amount);
+    return !isNaN(n) && n >= 100 && n <= 1_000_000 ? n : 10000;
+  })();
+  const initStart = (() => {
+    const s = urlParams.start;
+    return s >= earliestDate && s <= maxStartDate ? s : (defaultStart < earliestDate ? earliestDate : defaultStart);
+  })();
+
+  const [mode, setMode] = useState<Mode>(initMode);
+  const [amount, setAmount] = useState(initAmount);
+  const [amountInput, setAmountInput] = useState(initAmount.toLocaleString("en-CA"));
+  const [startDate, setStartDate] = useState(initStart);
+
+  // Update URL when inputs change (preserving other params like tab)
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const params = new URLSearchParams(window.location.search);
-    const urlMode = params.get("mode");
-    const urlAmount = params.get("amount");
-    const urlStart = params.get("start");
-
-    if (urlMode === "lump" || urlMode === "dca") setMode(urlMode);
-    if (urlAmount) {
-      const n = parseFloat(urlAmount);
-      if (!isNaN(n) && n >= 100 && n <= 1_000_000) {
-        setAmount(n);
-        setAmountInput(n.toLocaleString("en-CA"));
-      }
-    }
-    if (urlStart && urlStart >= earliestDate && urlStart <= maxStartDate) {
-      setStartDate(urlStart);
-    }
-    setInitialized(true);
-  }, [earliestDate, maxStartDate]);
-
-  // Update URL when inputs change
-  const updateURL = useCallback(() => {
-    if (!initialized || typeof window === "undefined") return;
-    const params = new URLSearchParams();
-    params.set("mode", mode);
-    params.set("amount", amount.toString());
-    params.set("start", startDate);
-    const url = `${window.location.pathname}?${params.toString()}`;
-    window.history.replaceState(null, "", url);
-  }, [mode, amount, startDate, initialized]);
-
-  useEffect(() => {
-    updateURL();
-  }, [updateURL]);
+    writeCalcParams({ mode, amount: amount.toString(), start: startDate });
+  }, [mode, amount, startDate]);
 
   // Handle amount input
   function handleAmountChange(raw: string) {
@@ -380,6 +365,8 @@ export default function InvestCalculator({ history }: InvestCalculatorProps) {
   if (!history) {
     return <DataUnavailable type="chart" message="Historical data is temporarily unavailable. Please try again later." />;
   }
+
+  const [shareOpen, setShareOpen] = useState(false);
 
   const isPositive = result ? result.totalReturn >= 0 : true;
   const isDCA = mode === "dca";
@@ -527,6 +514,18 @@ export default function InvestCalculator({ history }: InvestCalculatorProps) {
                 </p>
               </div>
             </div>
+
+            {/* Share button */}
+            <button
+              onClick={() => setShareOpen(true)}
+              className="flex items-center gap-1.5 text-sm font-medium text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors mt-3"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+              </svg>
+              Share Results
+            </button>
           </div>
 
           {/* Chart */}
@@ -702,6 +701,40 @@ export default function InvestCalculator({ history }: InvestCalculatorProps) {
             dividends were reinvested. Past performance does not guarantee future
             results. Not financial advice.
           </p>
+
+          {/* Share Modal */}
+          {(() => {
+            const contributed = isDCA
+              ? (result as DCAResult).totalContributed
+              : (result as LumpResult).investmentAmount;
+            const shareParams: ShareParams = {
+              tab: "historical",
+              mode,
+              amount: amount.toString(),
+              start: startDate,
+              r_value: Math.round(result.currentValue).toString(),
+              r_pct: result.totalReturnPercent.toFixed(1),
+              r_contributed: Math.round(contributed).toString(),
+            };
+            return (
+              <ShareModal
+                isOpen={shareOpen}
+                onClose={() => setShareOpen(false)}
+                shareUrl={buildShareUrl(shareParams)}
+                snippet={historicalShareSnippet({
+                  mode,
+                  amount,
+                  start: startDate,
+                  value: result.currentValue,
+                  returnPct: result.totalReturnPercent,
+                  url: buildShareUrl(shareParams),
+                })}
+                ogImageUrl={buildOgImageUrl(shareParams)}
+                headline={isDCA ? "Your portfolio would be worth" : "Your investment would be worth"}
+                heroValue={formatShareDollars(result.currentValue)}
+              />
+            );
+          })()}
         </>
       )}
     </div>

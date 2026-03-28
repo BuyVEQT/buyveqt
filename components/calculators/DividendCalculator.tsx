@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import {
   ResponsiveContainer,
   BarChart,
@@ -13,6 +13,10 @@ import {
 import Link from "next/link";
 import { formatDollars, ChartTooltipWrapper, GRID_PROPS, AXIS_PROPS } from "@/lib/chart-utils";
 import { CARD, STAT_CARD } from "@/lib/styles";
+import { readCalcParams, writeCalcParams } from "@/lib/use-calc-params";
+import ShareModal from "@/components/ShareModal";
+import { buildShareUrl, buildOgImageUrl, formatShareDollars, type ShareParams } from "@/lib/share-utils";
+import { dividendShareSnippet } from "@/lib/social-snippets";
 
 function CustomTooltip({
   active,
@@ -37,9 +41,31 @@ function CustomTooltip({
 }
 
 export default function DividendCalculator() {
-  const [portfolio, setPortfolio] = useState(100000);
-  const [yieldRate, setYieldRate] = useState(1.8);
-  const [growthRate, setGrowthRate] = useState(8);
+  const urlParams = readCalcParams(
+    ["portfolio", "yield", "growth"],
+    { portfolio: "100000", yield: "1.8", growth: "8" }
+  );
+
+  const [portfolio, setPortfolio] = useState(() => {
+    const n = Number(urlParams.portfolio);
+    return !isNaN(n) && n >= 1000 && n <= 5000000 ? n : 100000;
+  });
+  const [yieldRate, setYieldRate] = useState(() => {
+    const n = Number(urlParams.yield);
+    return !isNaN(n) && n >= 0.5 && n <= 5 ? n : 1.8;
+  });
+  const [growthRate, setGrowthRate] = useState(() => {
+    const n = Number(urlParams.growth);
+    return !isNaN(n) && n >= 1 && n <= 15 ? n : 8;
+  });
+
+  const divInitialized = useRef(false);
+  useEffect(() => {
+    if (!divInitialized.current) { divInitialized.current = true; return; }
+    writeCalcParams({ portfolio: portfolio.toString(), yield: yieldRate.toString(), growth: growthRate.toString() });
+  }, [portfolio, yieldRate, growthRate]);
+
+  const [shareOpen, setShareOpen] = useState(false);
 
   const { annual, quarterly, monthly, chartData } = useMemo(() => {
     const annual = portfolio * (yieldRate / 100);
@@ -163,6 +189,44 @@ export default function DividendCalculator() {
           </div>
         ))}
       </div>
+
+      {/* Share button */}
+      <button
+        onClick={() => setShareOpen(true)}
+        className="flex items-center gap-1.5 text-sm font-medium text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors mb-4"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+        </svg>
+        Share Results
+      </button>
+
+      {(() => {
+        const shareParams: ShareParams = {
+          tab: "dividends",
+          portfolio: portfolio.toString(),
+          yield: yieldRate.toString(),
+          growth: growthRate.toString(),
+          r_annual: Math.round(annual).toString(),
+          r_quarterly: Math.round(quarterly).toString(),
+          r_monthly: Math.round(monthly).toString(),
+        };
+        return (
+          <ShareModal
+            isOpen={shareOpen}
+            onClose={() => setShareOpen(false)}
+            shareUrl={buildShareUrl(shareParams)}
+            snippet={dividendShareSnippet({
+              portfolio, yieldRate, annual,
+              url: buildShareUrl(shareParams),
+            })}
+            ogImageUrl={buildOgImageUrl(shareParams)}
+            headline={`${formatShareDollars(portfolio)} VEQT portfolio`}
+            heroValue={`${formatShareDollars(annual)}/year`}
+          />
+        );
+      })()}
 
       {/* Chart — projected dividend income over time */}
       <div className="mb-2">

@@ -1,14 +1,40 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { formatDollars } from "@/lib/chart-utils";
 import { CARD } from "@/lib/styles";
 import ContributionGrowthChart from "./ContributionGrowthChart";
+import { readCalcParams, writeCalcParams } from "@/lib/use-calc-params";
+import ShareModal from "@/components/ShareModal";
+import { buildShareUrl, buildOgImageUrl, formatShareDollars, type ShareParams } from "@/lib/share-utils";
+import { dcaShareSnippet } from "@/lib/social-snippets";
 
 export default function DCACalculator() {
-  const [monthly, setMonthly] = useState(500);
-  const [years, setYears] = useState(20);
-  const [returnRate, setReturnRate] = useState(8);
+  const urlParams = readCalcParams(
+    ["monthly", "years", "rate"],
+    { monthly: "500", years: "20", rate: "8" }
+  );
+
+  const [monthly, setMonthly] = useState(() => {
+    const n = Number(urlParams.monthly);
+    return !isNaN(n) && n >= 50 && n <= 10000 ? n : 500;
+  });
+  const [years, setYears] = useState(() => {
+    const n = Number(urlParams.years);
+    return !isNaN(n) && n >= 1 && n <= 40 ? n : 20;
+  });
+  const [returnRate, setReturnRate] = useState(() => {
+    const n = Number(urlParams.rate);
+    return !isNaN(n) && n >= 1 && n <= 15 ? n : 8;
+  });
+
+  const initialized = useRef(false);
+  useEffect(() => {
+    if (!initialized.current) { initialized.current = true; return; }
+    writeCalcParams({ monthly: monthly.toString(), years: years.toString(), rate: returnRate.toString() });
+  }, [monthly, years, returnRate]);
+
+  const [shareOpen, setShareOpen] = useState(false);
 
   const { totalContributed, portfolioValue, investmentGrowth, chartData } =
     useMemo(() => {
@@ -129,6 +155,44 @@ export default function DCACalculator() {
           { label: "Investment Growth", value: investmentGrowth, highlight: true },
         ]}
       />
+
+      {/* Share button */}
+      <button
+        onClick={() => setShareOpen(true)}
+        className="flex items-center gap-1.5 text-sm font-medium text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors mb-4"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+        </svg>
+        Share Results
+      </button>
+
+      {(() => {
+        const shareParams: ShareParams = {
+          tab: "dca",
+          monthly: monthly.toString(),
+          years: years.toString(),
+          rate: returnRate.toString(),
+          r_value: Math.round(portfolioValue).toString(),
+          r_contributed: Math.round(totalContributed).toString(),
+          r_growth: Math.round(investmentGrowth).toString(),
+        };
+        return (
+          <ShareModal
+            isOpen={shareOpen}
+            onClose={() => setShareOpen(false)}
+            shareUrl={buildShareUrl(shareParams)}
+            snippet={dcaShareSnippet({
+              monthly, years, rate: returnRate,
+              value: portfolioValue, url: buildShareUrl(shareParams),
+            })}
+            ogImageUrl={buildOgImageUrl(shareParams)}
+            headline={`${formatShareDollars(monthly)}/mo into VEQT for ${years} years`}
+            heroValue={formatShareDollars(portfolioValue)}
+          />
+        );
+      })()}
 
       {/* Notes */}
       <div className="text-[11px] text-[var(--color-text-muted)] space-y-1.5 border-t border-[var(--color-border)] pt-4">

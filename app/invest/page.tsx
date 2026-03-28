@@ -4,21 +4,60 @@ import CalculatorTabs from "@/components/invest/CalculatorTabs";
 import { getDailyHistory } from "@/lib/data";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { buildBreadcrumbSchema, canonicalUrl, SITE_NAME } from "@/lib/seo-config";
+import { buildShareTitle, buildShareDescription, buildOgImageUrl } from "@/lib/share-utils";
 
 export const revalidate = 86400; // 24 hours
 
-export const metadata: Metadata = {
-  title: "VEQT Calculators — Historical Returns, DCA, Dividends & TFSA/RRSP",
-  description:
-    "Free VEQT investment calculators. See what your investment would be worth today, plan DCA contributions, estimate dividend income, and project TFSA/RRSP growth.",
-  alternates: { canonical: canonicalUrl("/invest") },
-  openGraph: {
-    title: "VEQT Investment Calculators",
+interface PageProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
+  const params = await searchParams;
+
+  // Check if this is a share link with result params
+  const hasResults = Object.keys(params).some((k) => k.startsWith("r_"));
+
+  if (hasResults && params.tab) {
+    // Flatten params to string record
+    const flat: Record<string, string> = {};
+    for (const [k, v] of Object.entries(params)) {
+      flat[k] = Array.isArray(v) ? v[0] : (v ?? "");
+    }
+
+    const title = buildShareTitle(flat as import("@/lib/share-utils").ShareParams);
+    const description = buildShareDescription(flat as import("@/lib/share-utils").ShareParams);
+    const ogImageUrl = buildOgImageUrl(flat as import("@/lib/share-utils").ShareParams);
+
+    return {
+      title,
+      description,
+      alternates: { canonical: canonicalUrl("/invest") },
+      openGraph: {
+        title,
+        description,
+        url: canonicalUrl("/invest"),
+        images: [{ url: ogImageUrl, width: 1200, height: 630 }],
+      },
+      twitter: { card: "summary_large_image" },
+    };
+  }
+
+  // Default generic metadata
+  return {
+    title: "VEQT Calculators — Historical Returns, DCA, Dividends & TFSA/RRSP",
     description:
-      "Historical return calculator, DCA planner, dividend income estimator, and TFSA/RRSP growth projector for VEQT investors.",
-    url: canonicalUrl("/invest"),
-  },
-};
+      "Free VEQT investment calculators. See what your investment would be worth today, plan DCA contributions, estimate dividend income, and project TFSA/RRSP growth.",
+    alternates: { canonical: canonicalUrl("/invest") },
+    openGraph: {
+      title: "VEQT Investment Calculators",
+      description:
+        "Historical return calculator, DCA planner, dividend income estimator, and TFSA/RRSP growth projector for VEQT investors.",
+      url: canonicalUrl("/invest"),
+    },
+    twitter: { card: "summary_large_image" },
+  };
+}
 
 export default async function InvestPage() {
   let historyResult = null;
