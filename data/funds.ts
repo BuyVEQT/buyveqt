@@ -171,6 +171,42 @@ export const FUNDS: Record<string, FundData> = {
     merFootnote:
       "Vanguard's November 2025 fee cuts applied to its asset allocation ETFs, including VGRO. The effective MER is expected to decrease from 0.24% to approximately 0.20%.",
   },
+  "XGRO.TO": {
+    ticker: "XGRO.TO",
+    name: "iShares Core Growth ETF Portfolio",
+    shortName: "XGRO",
+    provider: "iShares (BlackRock)",
+    mer: 0.20,
+    aum: "$2.5B",
+    inceptionDate: "2007-06-21",
+    numberOfHoldings: 9300,
+    distributionFrequency: "Quarterly",
+    currency: "CAD",
+    exchangeListed: "TSX",
+    equityAllocation: 80,
+    fixedIncomeAllocation: 20,
+    description:
+      "iShares' 80/20 growth portfolio — global equity exposure with a 20% bond allocation for reduced volatility. The iShares counterpart to Vanguard's VGRO.",
+    whoThisSuits:
+      "Investors with medium-to-long horizons (5–20 years) who want growth but prefer a smoother ride, or anyone who knows they'd panic-sell in a steep downturn.",
+    geographyAllocation: [
+      { region: "United States", weight: 36, color: "#2563eb" },
+      { region: "Canada", weight: 20, color: "#dc2626" },
+      { region: "International Developed", weight: 20, color: "#16a34a" },
+      { region: "Emerging Markets", weight: 4, color: "#f59e0b" },
+      { region: "Bonds", weight: 20, color: "#6b7280" },
+    ],
+    underlyingETFs: [
+      { ticker: "ITOT", name: "iShares Core S&P Total US Stock Market ETF", weight: 36, region: "United States" },
+      { ticker: "XIC", name: "iShares Core S&P/TSX Capped Composite Index ETF", weight: 20, region: "Canada" },
+      { ticker: "IEFA", name: "iShares Core MSCI EAFE ETF", weight: 20, region: "International" },
+      { ticker: "IEMG", name: "iShares Core MSCI Emerging Markets ETF", weight: 4, region: "Emerging Markets" },
+      { ticker: "XSAB", name: "iShares Core Canadian Short Term Bond Index ETF", weight: 20, region: "Canada (Bonds)" },
+    ],
+    chartColor: "#e11d48",
+    merFootnote:
+      "XGRO's management fee is 0.18%. The MER of 0.20% includes operating expenses.",
+  },
   "VFV.TO": {
     ticker: "VFV.TO",
     name: "Vanguard S&P 500 Index ETF",
