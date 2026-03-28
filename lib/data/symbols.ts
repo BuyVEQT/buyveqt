@@ -41,6 +41,13 @@ export const SYMBOLS: Record<string, SymbolConfig> = {
     fullName: 'Vanguard Growth ETF Portfolio',
     priority: ['yahoo', 'alpha-vantage'],
   },
+  XGRO: {
+    alphaVantage: 'XGRO.TRT',
+    yahoo: 'XGRO.TO',
+    displayName: 'XGRO',
+    fullName: 'iShares Core Growth ETF Portfolio',
+    priority: ['yahoo', 'alpha-vantage'],
+  },
   VFV: {
     alphaVantage: 'VFV.TRT',
     yahoo: 'VFV.TO',

@@ -38,6 +38,26 @@ export const COMPARISON_PAGES: Record<string, ComparisonPage> = {
       "VEQT and VGRO are both from Vanguard and share the same underlying equity ETFs. The key difference: VEQT is 100% equities while VGRO holds 20% bonds. This means VGRO has lower expected volatility but also lower expected long-term returns. The choice comes down to your risk tolerance and investment horizon.",
     funds: ["VEQT.TO", "VGRO.TO"],
   },
+  "veqt-vs-xgro": {
+    slug: "veqt-vs-xgro",
+    title: "VEQT vs XGRO: All-Equity vs Growth Balanced",
+    metaTitle: "VEQT vs XGRO Comparison — BuyVEQT",
+    metaDescription:
+      "VEQT vs XGRO: 100% equities vs 80/20 growth balanced. Compare returns, volatility, drawdowns, and which ETF fits your risk tolerance and time horizon.",
+    intro:
+      "VEQT is 100% equities. XGRO is 80% equities and 20% bonds. This isn't a provider battle — it's a philosophy question. VEQT bets that over long horizons, 100% equities win. XGRO hedges that bet with a 20% bond buffer. Both are right, depending on your timeline and temperament.",
+    funds: ["VEQT.TO", "XGRO.TO"],
+  },
+  "veqt-vs-vfv": {
+    slug: "veqt-vs-vfv",
+    title: "VEQT vs VFV: Global Diversification vs S&P 500",
+    metaTitle: "VEQT vs VFV Comparison — BuyVEQT",
+    metaDescription:
+      "VEQT vs VFV: global equity diversification vs pure S&P 500 exposure. Compare MER, returns, geographic risk, and which Vanguard ETF is right for Canadian investors.",
+    intro:
+      "VEQT gives you the entire global stock market in one ETF — 13,000+ holdings across 50+ countries. VFV gives you the S&P 500 — 500 of the largest US companies. VFV has been the better performer recently, but VEQT is the more resilient long-term choice. This comes down to whether you believe US dominance is permanent or cyclical.",
+    funds: ["VEQT.TO", "VFV.TO"],
+  },
 };
 
 export function getComparison(slug: string): ComparisonPage | undefined {
