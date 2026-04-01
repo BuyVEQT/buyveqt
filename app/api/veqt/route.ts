@@ -47,6 +47,20 @@ export async function GET(request: Request) {
     historical = historyData.data
       .filter((d) => d.date >= cutoffStr)
       .map((d) => ({ date: d.date, close: d.adjustedClose || d.close }));
+
+    // Append (or update) today's live quote price so the chart's last point
+    // matches the price widget instead of lagging behind by a day.
+    if (quoteData) {
+      const todayStr = new Date().toISOString().split("T")[0];
+      const lastPoint = historical[historical.length - 1];
+      if (lastPoint && lastPoint.date === todayStr) {
+        // Today's close already in history — update it with live price
+        lastPoint.close = quoteData.price;
+      } else {
+        // Today not yet in history — append live price as today's point
+        historical.push({ date: todayStr, close: quoteData.price });
+      }
+    }
   }
 
   // Build quote from live data or fallback
