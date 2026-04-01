@@ -47,7 +47,7 @@ export default function CalculatorsPreview() {
           <Link
             key={calc.title}
             href={`/invest${calc.tab}`}
-            className="group rounded-lg border border-[var(--color-border)] bg-white p-5 hover:border-[var(--color-border-light)] transition-colors"
+            className="group rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5 hover:border-[var(--color-border-light)] transition-colors"
           >
             <h3 className="text-sm font-semibold text-[var(--color-text-primary)] group-hover:text-[var(--color-brand)] transition-colors">
               {calc.title}

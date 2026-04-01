@@ -93,7 +93,7 @@ export default function DividendCalculator() {
               min={1000}
               max={5000000}
               step={1000}
-              className="w-full rounded-md border border-[var(--color-border)] bg-white py-2 pl-7 pr-3 text-sm font-medium text-[var(--color-text-primary)] focus:border-[var(--color-brand)] focus:outline-none focus:ring-1 focus:ring-[var(--color-brand)]"
+              className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-card)] py-2 pl-7 pr-3 text-sm font-medium text-[var(--color-text-primary)] focus:border-[var(--color-brand)] focus:outline-none focus:ring-1 focus:ring-[var(--color-brand)]"
             />
           </div>
         </div>
@@ -113,7 +113,7 @@ export default function DividendCalculator() {
               min={0.5}
               max={5}
               step={0.1}
-              className="w-full rounded-md border border-[var(--color-border)] bg-white py-2 pl-3 pr-7 text-sm font-medium text-[var(--color-text-primary)] focus:border-[var(--color-brand)] focus:outline-none focus:ring-1 focus:ring-[var(--color-brand)]"
+              className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-card)] py-2 pl-3 pr-7 text-sm font-medium text-[var(--color-text-primary)] focus:border-[var(--color-brand)] focus:outline-none focus:ring-1 focus:ring-[var(--color-brand)]"
             />
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[var(--color-text-muted)]">
               %

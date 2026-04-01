@@ -29,7 +29,7 @@ export const AXIS_PROPS = {
 /** Consistent tooltip wrapper used across all charts */
 export function ChartTooltipWrapper({ children }: { children: ReactNode }) {
   return (
-    <div className="rounded-lg border border-[var(--color-border)] bg-white px-3 py-2 shadow-lg">
+    <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] px-3 py-2 shadow-lg">
       {children}
     </div>
   );

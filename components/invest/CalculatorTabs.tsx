@@ -78,7 +78,7 @@ function CalculatorTabsInner({ history }: CalculatorTabsProps) {
             onClick={() => setActiveTab(tab.id)}
             className={`flex-1 min-w-0 rounded-lg px-3 py-2.5 text-sm font-medium transition-all whitespace-nowrap ${
               activeTab === tab.id
-                ? "bg-white text-[var(--color-text-primary)] shadow-sm"
+                ? "bg-[var(--color-card)] text-[var(--color-text-primary)] shadow-sm"
                 : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
             }`}
           >

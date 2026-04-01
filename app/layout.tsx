@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
+import ThemeProvider from "@/components/ThemeProvider";
 import { JsonLd } from "@/components/seo/JsonLd";
 import {
   SITE_URL,
@@ -93,7 +94,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={inter.variable}>
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var t=localStorage.getItem('buyveqt:theme');if(!t)t=matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';document.documentElement.dataset.theme=t})()`,
+          }}
+        />
+      </head>
       <body className="min-h-screen bg-[var(--color-base)] text-[var(--color-text-primary)]">
         <JsonLd
           data={{
@@ -184,7 +192,7 @@ export default function RootLayout({
               "Management Expense Ratio (MER) approximately 0.20%. Management fee reduced to 0.17% in November 2025.",
           }}
         />
-        {children}
+        <ThemeProvider>{children}</ThemeProvider>
         <Analytics />
         <SpeedInsights />
       </body>

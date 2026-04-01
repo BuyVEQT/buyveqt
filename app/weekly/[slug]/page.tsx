@@ -78,7 +78,7 @@ export default async function WeeklyRecapPage({
         </nav>
 
         {/* Header Card */}
-        <div className="rounded-xl border border-[var(--color-border)] bg-white p-5 sm:p-6 mb-8">
+        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-5 sm:p-6 mb-8">
           <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-1">
             {weekRange}
           </p>

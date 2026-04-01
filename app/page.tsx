@@ -38,7 +38,7 @@ export default function Home() {
               onClick={() => setView("overview")}
               className={`rounded-md px-4 py-1.5 text-sm font-medium transition-all ${
                 view === "overview"
-                  ? "bg-white text-[var(--color-text-primary)] shadow-sm"
+                  ? "bg-[var(--color-card)] text-[var(--color-text-primary)] shadow-sm"
                   : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
               }`}
             >
@@ -48,7 +48,7 @@ export default function Home() {
               onClick={() => setView("today")}
               className={`rounded-md px-4 py-1.5 text-sm font-medium transition-all ${
                 view === "today"
-                  ? "bg-white text-[var(--color-text-primary)] shadow-sm"
+                  ? "bg-[var(--color-card)] text-[var(--color-text-primary)] shadow-sm"
                   : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
               }`}
             >

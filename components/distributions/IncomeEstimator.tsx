@@ -48,7 +48,7 @@ export default function IncomeEstimator({
     holdingsValue > 0 ? (annualIncome / holdingsValue) * 100 : 0;
 
   return (
-    <div className="rounded-lg border border-[var(--color-border)] bg-white p-5">
+    <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5">
       <h3 className="text-sm font-semibold text-[var(--color-text-secondary)] mb-4">
         Income Estimator
       </h3>
@@ -62,7 +62,7 @@ export default function IncomeEstimator({
           inputMode="decimal"
           value={inputValue}
           onChange={(e) => handleChange(e.target.value)}
-          className="w-full sm:w-48 rounded-lg border border-[var(--color-border)] bg-white px-3 py-2.5 text-sm font-medium tabular-nums focus:outline-none focus:ring-2 focus:ring-[var(--color-brand)]/30 focus:border-[var(--color-brand)]"
+          className="w-full sm:w-48 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] px-3 py-2.5 text-sm font-medium tabular-nums focus:outline-none focus:ring-2 focus:ring-[var(--color-brand)]/30 focus:border-[var(--color-brand)]"
         />
         {currentPrice > 0 && (
           <p className="text-xs text-[var(--color-text-muted)] mt-1">

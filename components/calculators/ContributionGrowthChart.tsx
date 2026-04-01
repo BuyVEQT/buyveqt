@@ -105,8 +105,8 @@ export default function ContributionGrowthChart({
               type="monotone"
               dataKey="contributions"
               stackId="1"
-              stroke="#d1d5db"
-              fill="#e5e7eb"
+              stroke="var(--color-border-light)"
+              fill="var(--color-border)"
               fillOpacity={1}
             />
             <Area

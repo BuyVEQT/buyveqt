@@ -6,7 +6,7 @@ export default function ComparePreview() {
 
   return (
     <section className="py-10">
-      <div className="rounded-lg border border-[var(--color-border)] bg-white p-5 sm:p-6">
+      <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5 sm:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
           <div>
             <h2 className="text-xl font-bold text-[var(--color-text-primary)]">

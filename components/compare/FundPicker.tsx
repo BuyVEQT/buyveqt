@@ -23,7 +23,7 @@ export default function FundPicker({ selected, onToggle }: FundPickerProps) {
             className={`px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors border ${
               isActive
                 ? "bg-[var(--color-brand)] text-white border-[var(--color-brand)]"
-                : "bg-white text-[var(--color-text-muted)] border-[var(--color-border)] hover:border-[var(--color-border-light)] hover:text-[var(--color-text-secondary)]"
+                : "bg-[var(--color-card)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:border-[var(--color-border-light)] hover:text-[var(--color-text-secondary)]"
             } ${isVeqt ? "cursor-default" : "cursor-pointer"}`}
           >
             {fund.shortName}

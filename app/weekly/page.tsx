@@ -54,7 +54,7 @@ export default function WeeklyPage() {
                 <Link
                   key={recap.slug}
                   href={`/weekly/${recap.slug}`}
-                  className="block rounded-lg border border-[var(--color-border)] bg-white p-4 hover:border-[var(--color-brand)] hover:shadow-sm transition-all"
+                  className="block rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-4 hover:border-[var(--color-brand)] hover:shadow-sm transition-all"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div>

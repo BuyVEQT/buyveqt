@@ -13,7 +13,7 @@ export default function InsideVeqtPreview() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Geography Allocation */}
-        <div className="rounded-lg border border-[var(--color-border)] bg-white p-5">
+        <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5">
           <h3 className="text-sm font-semibold text-[var(--color-text-secondary)] mb-4">
             Geography Allocation
           </h3>
@@ -54,7 +54,7 @@ export default function InsideVeqtPreview() {
         </div>
 
         {/* Underlying ETFs */}
-        <div className="rounded-lg border border-[var(--color-border)] bg-white p-5">
+        <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5">
           <h3 className="text-sm font-semibold text-[var(--color-text-secondary)] mb-4">
             Underlying ETFs
           </h3>
@@ -86,7 +86,7 @@ export default function InsideVeqtPreview() {
         </div>
 
         {/* Top Holdings */}
-        <div className="rounded-lg border border-[var(--color-border)] bg-white p-5">
+        <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5">
           <h3 className="text-sm font-semibold text-[var(--color-text-secondary)] mb-4">
             Top Holdings
           </h3>

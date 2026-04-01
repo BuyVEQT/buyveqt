@@ -179,7 +179,7 @@ export default async function TodayPage() {
         {!quote ? (
           <DataUnavailable type="quote" />
         ) : (
-          <div className="rounded-lg border border-[var(--color-border)] bg-white p-5">
+          <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5">
             <div className="flex items-baseline gap-3 flex-wrap">
               <span className="text-3xl sm:text-4xl font-bold tabular-nums">
                 ${quote.price.toFixed(2)}
@@ -217,7 +217,7 @@ export default async function TodayPage() {
               return (
                 <div
                   key={m.label}
-                  className="rounded-lg border border-[var(--color-border)] bg-white p-2.5 text-center"
+                  className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-2.5 text-center"
                 >
                   <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide mb-1">
                     {m.label}
@@ -241,7 +241,7 @@ export default async function TodayPage() {
 
         {/* Section 3: Mini Price Chart */}
         {chartSlice.length >= 2 && (
-          <div className="rounded-lg border border-[var(--color-border)] bg-white p-4">
+          <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-4">
             <h2 className="text-sm font-semibold text-[var(--color-text-secondary)] mb-2">
               Last 3 Months
             </h2>
@@ -251,7 +251,7 @@ export default async function TodayPage() {
 
         {/* Section 4: Latest Distribution */}
         {latestDist && (
-          <div className="rounded-lg border border-[var(--color-border)] bg-white p-5">
+          <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5">
             <h2 className="text-sm font-semibold text-[var(--color-text-secondary)] mb-3">
               Latest Distribution
             </h2>
@@ -297,7 +297,7 @@ export default async function TodayPage() {
                   href={link.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="rounded-lg border border-[var(--color-border)] bg-white px-3 py-2.5 text-sm font-medium text-[var(--color-text-secondary)] hover:border-[var(--color-brand)] hover:text-[var(--color-brand)] transition-colors text-center"
+                  className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] px-3 py-2.5 text-sm font-medium text-[var(--color-text-secondary)] hover:border-[var(--color-brand)] hover:text-[var(--color-brand)] transition-colors text-center"
                 >
                   {link.label} &rarr;
                 </a>
@@ -305,7 +305,7 @@ export default async function TodayPage() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="rounded-lg border border-[var(--color-border)] bg-white px-3 py-2.5 text-sm font-medium text-[var(--color-text-secondary)] hover:border-[var(--color-brand)] hover:text-[var(--color-brand)] transition-colors text-center"
+                  className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] px-3 py-2.5 text-sm font-medium text-[var(--color-text-secondary)] hover:border-[var(--color-brand)] hover:text-[var(--color-brand)] transition-colors text-center"
                 >
                   {link.label} &rarr;
                 </Link>
@@ -322,7 +322,7 @@ export default async function TodayPage() {
             </h2>
             <Link
               href={`/weekly/${latestRecap.slug}`}
-              className="block rounded-lg border border-[var(--color-border)] bg-white p-4 hover:border-[var(--color-brand)] hover:shadow-sm transition-all"
+              className="block rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-4 hover:border-[var(--color-brand)] hover:shadow-sm transition-all"
             >
               <div className="flex items-center justify-between gap-3">
                 <p className="text-sm font-semibold text-[var(--color-text-primary)]">
@@ -349,7 +349,7 @@ export default async function TodayPage() {
             <h2 className="text-sm font-semibold text-[var(--color-text-secondary)] mb-3">
               Latest on r/JustBuyVEQT
             </h2>
-            <div className="rounded-lg border border-[var(--color-border)] bg-white p-4">
+            <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-4">
               <RedditFeed posts={posts} />
             </div>
           </div>

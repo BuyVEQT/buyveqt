@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import type { VeqtQuote, DataSourceType } from "@/lib/types";
 import { NAV_LINKS, NAV_LINKS_SECONDARY } from "@/lib/constants";
 import DataFreshness from "@/components/ui/DataFreshness";
+import { useTheme } from "@/components/ThemeProvider";
 
 interface NavBarProps {
   quote: VeqtQuote | null;
@@ -18,6 +19,7 @@ interface NavBarProps {
 export default function NavBar({ quote, loading, isFallback, quoteSource, quoteFetchedAt }: NavBarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
+  const { theme, toggleTheme } = useTheme();
   const isPositive = (quote?.changePercent ?? 0) >= 0;
   const isCache = quoteSource === "cache";
 
@@ -59,7 +61,7 @@ export default function NavBar({ quote, loading, isFallback, quoteSource, quoteF
 
   return (
     <>
-      <nav className="sticky top-0 z-50 border-b border-[var(--color-border)] bg-white/95 backdrop-blur-sm">
+      <nav className="sticky top-0 z-50 border-b border-[var(--color-border)] bg-[var(--color-card)]/95 backdrop-blur-sm">
         <div className="mx-auto max-w-6xl px-4 h-14 flex items-center justify-between gap-3">
           {/* Left: Logo */}
           <Link href="/" className="text-lg font-bold tracking-tight shrink-0">
@@ -129,6 +131,24 @@ export default function NavBar({ quote, loading, isFallback, quoteSource, quoteF
               )}
             </div>
 
+            {/* Theme toggle */}
+            <button
+              onClick={toggleTheme}
+              className="p-1.5 rounded-md text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-base)]"
+              aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {theme === "dark" ? (
+                <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <circle cx="12" cy="12" r="5" />
+                  <path strokeLinecap="round" d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+                </svg>
+              ) : (
+                <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+                </svg>
+              )}
+            </button>
+
             {/* Hamburger menu — visible below lg */}
             <button
               onClick={() => setMenuOpen(!menuOpen)}
@@ -165,7 +185,7 @@ export default function NavBar({ quote, loading, isFallback, quoteSource, quoteF
           />
 
           {/* Drawer panel */}
-          <div className="absolute top-14 right-0 w-64 max-h-[calc(100dvh-3.5rem)] bg-white border-l border-[var(--color-border)] shadow-xl overflow-y-auto animate-slide-in-right">
+          <div className="absolute top-14 right-0 w-64 max-h-[calc(100dvh-3.5rem)] bg-[var(--color-card)] border-l border-[var(--color-border)] shadow-xl overflow-y-auto animate-slide-in-right">
             <div className="p-4">
               {/* Primary nav */}
               <div className="space-y-1">

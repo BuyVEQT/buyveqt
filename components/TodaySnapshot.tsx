@@ -128,7 +128,7 @@ export default function TodaySnapshot({
           return (
             <div
               key={m.label}
-              className="rounded-lg border border-[var(--color-border)] bg-white p-2.5 text-center"
+              className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-2.5 text-center"
             >
               <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide mb-0.5">
                 {m.label}
@@ -151,7 +151,7 @@ export default function TodaySnapshot({
 
       {/* Mini chart */}
       {chartSlice.length >= 2 && (
-        <div className="rounded-lg border border-[var(--color-border)] bg-white p-4">
+        <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-4">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-semibold text-[var(--color-text-secondary)]">
               Last 3 Months

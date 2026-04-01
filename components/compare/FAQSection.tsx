@@ -7,7 +7,7 @@ export default function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <div className="rounded-lg border border-[var(--color-border)] bg-white">
+    <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)]">
       <h2 className="text-sm font-semibold text-[var(--color-text-secondary)] px-5 pt-5 pb-3">
         Frequently Asked Questions
       </h2>
