@@ -9,6 +9,10 @@ import { Summary } from "@/components/mdx/Summary";
 import { Callout } from "@/components/mdx/Callout";
 import { ComparisonTable } from "@/components/mdx/ComparisonTable";
 import { TableOfContents } from "@/components/mdx/TableOfContents";
+import { AccountFlowchart } from "@/components/mdx/AccountFlowchart";
+import { FHSATimeline } from "@/components/mdx/FHSATimeline";
+import { FeeCalculator } from "@/components/mdx/FeeCalculator";
+import { ProgressTracker } from "@/components/mdx/ProgressTracker";
 
 function slugify(text: string): string {
   return text
@@ -28,6 +32,10 @@ const mdxComponents = {
   Callout,
   ComparisonTable,
   TableOfContents,
+  AccountFlowchart,
+  FHSATimeline,
+  FeeCalculator,
+  ProgressTracker,
   h2: HeadingTwo,
 };
 
