@@ -74,7 +74,7 @@ export default function TFSARRSPCalculator() {
               onClick={() => setAccountType(type)}
               className={`rounded-md px-4 py-1.5 text-sm font-medium transition-all ${
                 accountType === type
-                  ? "bg-white text-[var(--color-text-primary)] shadow-sm"
+                  ? "bg-[var(--color-card)] text-[var(--color-text-primary)] shadow-sm"
                   : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
               }`}
             >
@@ -107,7 +107,7 @@ export default function TFSARRSPCalculator() {
               min={0}
               max={500000}
               step={1000}
-              className="w-full rounded-md border border-[var(--color-border)] bg-white py-2 pl-7 pr-3 text-sm font-medium text-[var(--color-text-primary)] focus:border-[var(--color-brand)] focus:outline-none focus:ring-1 focus:ring-[var(--color-brand)]"
+              className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-card)] py-2 pl-7 pr-3 text-sm font-medium text-[var(--color-text-primary)] focus:border-[var(--color-brand)] focus:outline-none focus:ring-1 focus:ring-[var(--color-brand)]"
             />
           </div>
         </div>
@@ -135,7 +135,7 @@ export default function TFSARRSPCalculator() {
               min={0}
               max={50000}
               step={500}
-              className="w-full rounded-md border border-[var(--color-border)] bg-white py-2 pl-7 pr-3 text-sm font-medium text-[var(--color-text-primary)] focus:border-[var(--color-brand)] focus:outline-none focus:ring-1 focus:ring-[var(--color-brand)]"
+              className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-card)] py-2 pl-7 pr-3 text-sm font-medium text-[var(--color-text-primary)] focus:border-[var(--color-brand)] focus:outline-none focus:ring-1 focus:ring-[var(--color-brand)]"
             />
           </div>
         </div>

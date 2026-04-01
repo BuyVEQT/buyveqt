@@ -18,7 +18,7 @@ export default function LearnPreview() {
             <Link
               key={article.slug}
               href={`/learn/${article.slug}`}
-              className={`group rounded-lg border bg-white p-5 transition-colors ${
+              className={`group rounded-lg border bg-[var(--color-card)] p-5 transition-colors ${
                 isEditorial
                   ? "border-[var(--color-brand)]/40 hover:border-[var(--color-brand)]"
                   : "border-[var(--color-border)] hover:border-[var(--color-border-light)]"

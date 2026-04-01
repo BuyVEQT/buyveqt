@@ -170,7 +170,7 @@ export default function StatsTable({ selectedFunds }: StatsTableProps) {
 
   return (
     <div className="space-y-3">
-      <div className="rounded-lg border border-[var(--color-border)] bg-white overflow-x-auto">
+      <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[var(--color-border)]">

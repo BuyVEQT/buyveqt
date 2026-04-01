@@ -6,7 +6,7 @@ interface DataUnavailableProps {
 
 function QuotePlaceholder({ message }: { message: string }) {
   return (
-    <div className="rounded-lg border border-[var(--color-border)] bg-white p-5">
+    <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5">
       <p className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider mb-3">
         Live Summary
       </p>
@@ -54,7 +54,7 @@ function ChartPlaceholder({
 
 function TablePlaceholder({ message }: { message: string }) {
   return (
-    <div className="rounded-lg border border-[var(--color-border)] bg-white overflow-hidden">
+    <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] overflow-hidden">
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-[var(--color-border)]">

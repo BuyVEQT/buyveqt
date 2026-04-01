@@ -21,6 +21,27 @@
   --font-sans: var(--font-inter, "Inter"), ui-sans-serif, system-ui, -apple-system, sans-serif;
 }
 
+/* Dark mode overrides — swap all design tokens when data-theme="dark" is set */
+[data-theme="dark"] {
+  --color-base: #0f1117;
+  --color-base-warm: #151820;
+  --color-card: #1a1d27;
+  --color-card-hover: #22252f;
+  --color-border: #2a2d37;
+  --color-border-light: #363944;
+  --color-text-primary: #e5e7eb;
+  --color-text-secondary: #b0b4bc;
+  --color-text-muted: #6b7280;
+  --color-positive: #4ade80;
+  --color-positive-bg: rgba(74, 222, 128, 0.12);
+  --color-negative: #f87171;
+  --color-negative-bg: rgba(248, 113, 113, 0.12);
+  --color-brand: #ef4444;
+  --color-brand-dark: #dc2626;
+  --color-chart-line: #60a5fa;
+  --color-chart-fill: rgba(96, 165, 250, 0.10);
+}
+
 body {
   background-color: var(--color-base);
   color: var(--color-text-primary);
@@ -201,4 +222,18 @@ body {
   background: var(--color-brand);
   height: 6px;
   border-radius: 3px;
+}
+
+/* Dark mode: skeleton shimmer */
+[data-theme="dark"] .skeleton {
+  background: linear-gradient(90deg, #2a2d37 25%, #363944 50%, #2a2d37 75%);
+  background-size: 200% 100%;
+}
+
+/* Dark mode: slider thumb border matches card bg */
+[data-theme="dark"] .calc-slider::-webkit-slider-thumb {
+  border-color: var(--color-card);
+}
+[data-theme="dark"] .calc-slider::-moz-range-thumb {
+  border-color: var(--color-card);
 }

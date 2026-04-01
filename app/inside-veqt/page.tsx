@@ -74,7 +74,7 @@ export default function InsideVeqtPage() {
             {veqt.underlyingETFs.map((etf) => (
               <div
                 key={etf.ticker}
-                className="rounded-lg border border-[var(--color-border)] bg-white p-4"
+                className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-4"
               >
                 <p className="text-base font-semibold" style={{ color: "#111827" }}>
                   {etf.ticker}
@@ -101,7 +101,7 @@ export default function InsideVeqtPage() {
             Geography Breakdown
           </h2>
 
-          <div className="rounded-lg border border-[var(--color-border)] bg-white p-5">
+          <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5">
             <div className="flex rounded-full overflow-hidden h-6 mb-5">
               {veqt.geographyAllocation.map((g) => (
                 <div
@@ -144,7 +144,7 @@ export default function InsideVeqtPage() {
           <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">
             Sector Allocation
           </h2>
-          <div className="rounded-lg border border-[var(--color-border)] bg-white p-5">
+          <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5">
             <SectorChart />
             <p className="text-[11px] text-[var(--color-text-muted)] mt-2">
               Approximate sector weights based on most recent available data
@@ -157,7 +157,7 @@ export default function InsideVeqtPage() {
           <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">
             Top 15 Holdings
           </h2>
-          <div className="rounded-lg border border-[var(--color-border)] bg-white overflow-x-auto">
+          <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[var(--color-border)]">
@@ -217,7 +217,7 @@ export default function InsideVeqtPage() {
           <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">
             How Often This Changes
           </h2>
-          <div className="rounded-lg border border-[var(--color-border)] bg-white p-5">
+          <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5">
             <p className="text-sm text-[var(--color-text-muted)] leading-relaxed max-w-prose">
               Vanguard periodically rebalances VEQT&apos;s target allocation
               across its four underlying ETFs. The underlying holdings themselves

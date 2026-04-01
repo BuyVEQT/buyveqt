@@ -61,7 +61,7 @@ export default function RelatedReading({
           <Link
             key={article.slug}
             href={`/learn/${article.slug}`}
-            className="group block rounded-lg border border-[var(--color-border)] bg-white p-4 hover:border-[var(--color-brand)] hover:shadow-sm transition-all"
+            className="group block rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-4 hover:border-[var(--color-brand)] hover:shadow-sm transition-all"
           >
             <h3 className="text-sm font-semibold text-[var(--color-text-primary)] group-hover:text-[var(--color-brand)] transition-colors leading-snug line-clamp-2">
               {article.title}

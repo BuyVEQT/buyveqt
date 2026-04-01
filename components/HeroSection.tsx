@@ -149,7 +149,7 @@ export default function HeroSection({
           {showQuoteUnavailable ? (
             <DataUnavailable type="quote" />
           ) : (
-            <div className="rounded-lg border border-[var(--color-border)] bg-white p-5">
+            <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5">
               <p className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider mb-3">
                 Live Summary
               </p>
@@ -186,7 +186,7 @@ export default function HeroSection({
                       <span className="text-[var(--color-text-muted)]">MER</span>
                       <span className="font-medium group relative cursor-help">
                         ~{STATIC_DATA.mer.toFixed(2)}%*
-                        <span className="invisible group-hover:visible absolute bottom-full right-0 w-64 p-2 text-[11px] text-[var(--color-text-muted)] bg-white border border-[var(--color-border)] rounded-lg shadow-lg z-10 font-normal leading-relaxed">
+                        <span className="invisible group-hover:visible absolute bottom-full right-0 w-64 p-2 text-[11px] text-[var(--color-text-muted)] bg-[var(--color-card)] border border-[var(--color-border)] rounded-lg shadow-lg z-10 font-normal leading-relaxed">
                           {MER_FOOTNOTE}
                         </span>
                       </span>

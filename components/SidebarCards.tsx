@@ -5,7 +5,7 @@ export default function SidebarCards() {
   return (
     <div className="flex flex-col gap-4">
       {/* Latest Distribution */}
-      <div className="rounded-lg border border-[var(--color-border)] bg-white p-5">
+      <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5">
         <h3 className="text-sm font-semibold text-[var(--color-text-secondary)] mb-3">
           Latest Distribution
         </h3>
@@ -34,7 +34,7 @@ export default function SidebarCards() {
       </div>
 
       {/* Quick Compare */}
-      <div className="rounded-lg border border-[var(--color-border)] bg-white p-5">
+      <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5">
         <h3 className="text-sm font-semibold text-[var(--color-text-secondary)] mb-2">
           Quick Compare
         </h3>
@@ -50,7 +50,7 @@ export default function SidebarCards() {
       </div>
 
       {/* Why VEQT */}
-      <div className="rounded-lg border border-[var(--color-border)] bg-white p-5">
+      <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5">
         <h3 className="text-sm font-semibold text-[var(--color-text-secondary)] mb-3">
           Why investors choose VEQT
         </h3>

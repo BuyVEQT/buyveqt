@@ -50,7 +50,7 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   if (!active || !payload?.length || !label) return null;
   const date = new Date(label + "T00:00:00");
   return (
-    <div className="rounded-lg border border-[var(--color-border)] bg-white px-3 py-2 shadow-md">
+    <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] px-3 py-2 shadow-md">
       <p className="text-[11px] text-[var(--color-text-muted)] mb-1">
         {date.toLocaleDateString("en-CA", { year: "numeric", month: "short", day: "numeric" })}
       </p>
@@ -150,7 +150,7 @@ export default function PerformanceChart({ selectedFunds }: PerformanceChartProp
   const allUnavailable = !loading && chartData.length === 0;
 
   return (
-    <div className="rounded-lg border border-[var(--color-border)] bg-white p-4 sm:p-5">
+    <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-4 sm:p-5">
       <div className="flex items-center justify-between gap-3 mb-2">
         <h2 className="text-sm font-semibold text-[var(--color-text-secondary)]">
           Normalized Performance (% change)
@@ -162,7 +162,7 @@ export default function PerformanceChart({ selectedFunds }: PerformanceChartProp
               onClick={() => setPeriod(p.key as ChartPeriod)}
               className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all ${
                 period === p.key
-                  ? "bg-white text-[var(--color-text-primary)] shadow-sm"
+                  ? "bg-[var(--color-card)] text-[var(--color-text-primary)] shadow-sm"
                   : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
               }`}
             >

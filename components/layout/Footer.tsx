@@ -4,7 +4,7 @@ import NewsletterSignup from "@/components/NewsletterSignup";
 
 export default function Footer() {
   return (
-    <footer className="border-t border-[var(--color-border)] bg-white mt-auto">
+    <footer className="border-t border-[var(--color-border)] bg-[var(--color-card)] mt-auto">
       <div className="mx-auto max-w-6xl px-4 py-8">
         {/* Top row */}
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6 mb-6">

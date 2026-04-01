@@ -15,7 +15,7 @@ export default function WhoThisSuits({ selectedFunds }: WhoThisSuitsProps) {
         return (
           <div
             key={ticker}
-            className="rounded-lg border border-[var(--color-border)] bg-white p-5"
+            className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5"
           >
             <div className="flex items-center gap-2 mb-2">
               <span

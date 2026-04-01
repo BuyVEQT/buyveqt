@@ -23,7 +23,7 @@ export default function AllocationBars({ selectedFunds }: AllocationBarsProps) {
   }
 
   return (
-    <div className="rounded-lg border border-[var(--color-border)] bg-white p-4 sm:p-5">
+    <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-4 sm:p-5">
       <h2 className="text-sm font-semibold text-[var(--color-text-secondary)] mb-4">
         Geographic Allocation Comparison
       </h2>
