@@ -2,8 +2,34 @@ import Link from "next/link";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import remarkGfm from "remark-gfm";
 import type { ArticleFrontmatter } from "@/lib/articles";
+import type { ReactNode } from "react";
 import RelatedReading from "./RelatedReading";
 import NewsletterSignup from "@/components/NewsletterSignup";
+import { Summary } from "@/components/mdx/Summary";
+import { Callout } from "@/components/mdx/Callout";
+import { ComparisonTable } from "@/components/mdx/ComparisonTable";
+import { TableOfContents } from "@/components/mdx/TableOfContents";
+
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+function HeadingTwo({ children }: { children?: ReactNode }) {
+  const text = typeof children === "string" ? children : String(children ?? "");
+  const id = slugify(text);
+  return <h2 id={id}>{children}</h2>;
+}
+
+const mdxComponents = {
+  Summary,
+  Callout,
+  ComparisonTable,
+  TableOfContents,
+  h2: HeadingTwo,
+};
 
 interface ArticleLayoutProps {
   frontmatter: ArticleFrontmatter;
@@ -37,7 +63,7 @@ export default function ArticleLayout({ frontmatter, content }: ArticleLayoutPro
 
       {/* MDX Content */}
       <div className="prose-custom">
-        <MDXRemote source={content} options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }} />
+        <MDXRemote source={content} components={mdxComponents} options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }} />
       </div>
 
       {/* Related Reading */}

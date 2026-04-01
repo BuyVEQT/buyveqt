@@ -224,6 +224,12 @@ body {
   border-radius: 3px;
 }
 
+/* Dark mode: callout backgrounds */
+[data-theme="dark"] .callout {
+  --callout-bg: var(--callout-bg-dark) !important;
+  background-color: var(--callout-bg-dark) !important;
+}
+
 /* Dark mode: skeleton shimmer */
 [data-theme="dark"] .skeleton {
   background: linear-gradient(90deg, #2a2d37 25%, #363944 50%, #2a2d37 75%);
