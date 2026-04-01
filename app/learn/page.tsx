@@ -3,8 +3,7 @@ import PageShell from "@/components/layout/PageShell";
 import { getAllArticles, type ArticleFrontmatter } from "@/lib/articles";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { buildBreadcrumbSchema, canonicalUrl } from "@/lib/seo-config";
-import ArticleCard from "@/components/learn/ArticleCard";
-import ArticleSection from "@/components/learn/ArticleSection";
+import LearnContent from "@/components/learn/LearnContent";
 
 export const metadata: Metadata = {
   title: "Learn About VEQT & Canadian Passive Investing",
@@ -38,14 +37,6 @@ function extract(
 function sortByOrder(articles: ArticleFrontmatter[]): ArticleFrontmatter[] {
   return articles.sort((a, b) => (a.order ?? 99) - (b.order ?? 99));
 }
-
-const FILTER_PILLS = [
-  { label: "All", href: "#articles" },
-  { label: "Beginner", href: "#basics" },
-  { label: "Comparisons", href: "#comparisons" },
-  { label: "Strategy", href: "#strategy" },
-  { label: "Our Takes", href: "#our-takes" },
-];
 
 export default function LearnPage() {
   const allArticles = getAllArticles();
@@ -83,7 +74,7 @@ export default function LearnPage() {
         ])}
       />
       <main className="flex-1 mx-auto w-full max-w-6xl px-4 py-8">
-        {/* Section 1: Header */}
+        {/* Header */}
         <div className="mb-6">
           <h1 className="text-2xl sm:text-3xl font-bold text-[var(--color-text-primary)]">
             Learn
@@ -94,70 +85,10 @@ export default function LearnPage() {
           </p>
         </div>
 
-        {/* Section 2: Category Filter Pills */}
-        <nav className="mb-8 -mx-4 px-4 overflow-x-auto">
-          <div className="flex gap-2 flex-nowrap">
-            {FILTER_PILLS.map((pill) => (
-              <a
-                key={pill.href}
-                href={pill.href}
-                className="shrink-0 px-4 py-2 text-sm font-medium rounded-full border border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-text-muted)] transition-colors"
-              >
-                {pill.label}
-              </a>
-            ))}
-          </div>
-        </nav>
-
-        <div id="articles" className="space-y-10 scroll-mt-24">
-          {/* Section 3: Start Here Hero Card */}
-          {startHere && (
-            <div className="mb-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-brand)] mb-2">
-                New to VEQT? Start here
-              </p>
-              <ArticleCard article={startHere} featured />
-            </div>
-          )}
-
-          {/* Section 4: Categorized Article Sections */}
-          <ArticleSection
-            id="basics"
-            heading="Understand the Basics"
-            description="Core concepts every VEQT investor should know."
-            articles={basics}
-          />
-
-          <ArticleSection
-            id="comparisons"
-            heading="Compare Your Options"
-            description="Side-by-side breakdowns to help you decide."
-            articles={comparisons}
-          />
-
-          <ArticleSection
-            id="strategy"
-            heading="Optimize Your Strategy"
-            description="Accounts, taxes, fees, and making VEQT work harder."
-            articles={strategy}
-          />
-
-          <ArticleSection
-            id="our-takes"
-            heading="Our Takes"
-            description="Opinionated but informed. Our honest views on VEQT and the market."
-            articles={editorial}
-          />
-
-          {uncategorized.length > 0 && (
-            <ArticleSection
-              id="more"
-              heading="More Reading"
-              description="Additional articles and resources."
-              articles={uncategorized}
-            />
-          )}
-        </div>
+        <LearnContent
+          startHere={startHere}
+          sections={{ basics, comparisons, strategy, editorial, uncategorized }}
+        />
 
         {/* Disclaimer */}
         <div className="mt-10 rounded-lg bg-[var(--color-base)] border border-[var(--color-border)] p-4">
