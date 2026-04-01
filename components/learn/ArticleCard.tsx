@@ -4,6 +4,7 @@ import type { ArticleFrontmatter } from "@/lib/articles";
 interface ArticleCardProps {
   article: ArticleFrontmatter;
   featured?: boolean;
+  step?: number;
 }
 
 const DIFFICULTY_STYLES = {
@@ -18,7 +19,7 @@ const DIFFICULTY_LABELS = {
   advanced: "Advanced",
 } as const;
 
-export default function ArticleCard({ article, featured }: ArticleCardProps) {
+export default function ArticleCard({ article, featured, step }: ArticleCardProps) {
   const isEditorial = article.isEditorial;
   const difficulty = article.difficulty;
 
@@ -35,7 +36,12 @@ export default function ArticleCard({ article, featured }: ArticleCardProps) {
     >
       {/* Top badges row */}
       <div className="flex items-center justify-between gap-2 mb-2 min-h-[20px]">
-        <div>
+        <div className="flex items-center gap-2">
+          {step !== undefined && (
+            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[var(--color-base)] text-[10px] font-bold text-[var(--color-text-muted)] border border-[var(--color-border)]">
+              {step}
+            </span>
+          )}
           {isEditorial && (
             <span className="inline-block text-[10px] font-semibold uppercase tracking-wider text-[var(--color-brand)]">
               Our Take

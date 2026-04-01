@@ -3,9 +3,8 @@
 import { useState } from "react";
 import type { ArticleFrontmatter } from "@/lib/articles";
 import ArticleCard from "./ArticleCard";
-import CompactArticleList from "./CompactArticleList";
 
-type FilterKey = "all" | "beginner" | "comparisons" | "strategy" | "our-takes";
+type FilterKey = "all" | "beginner" | "comparisons" | "strategy";
 
 interface SectionData {
   id: string;
@@ -13,7 +12,7 @@ interface SectionData {
   description: string;
   articles: ArticleFrontmatter[];
   truncateAt: number;
-  compact?: boolean;
+  showSteps?: boolean;
   filterKey: FilterKey;
 }
 
@@ -23,7 +22,6 @@ interface LearnContentProps {
     basics: ArticleFrontmatter[];
     comparisons: ArticleFrontmatter[];
     strategy: ArticleFrontmatter[];
-    editorial: ArticleFrontmatter[];
     uncategorized: ArticleFrontmatter[];
   };
 }
@@ -33,7 +31,6 @@ const FILTERS: { key: FilterKey; label: string }[] = [
   { key: "beginner", label: "Beginner" },
   { key: "comparisons", label: "Comparisons" },
   { key: "strategy", label: "Strategy" },
-  { key: "our-takes", label: "Our Takes" },
 ];
 
 function ExpandableSection({
@@ -42,8 +39,8 @@ function ExpandableSection({
   section: SectionData;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const { articles, truncateAt, compact } = section;
-  const needsTruncation = !compact && articles.length > truncateAt;
+  const { articles, truncateAt, showSteps } = section;
+  const needsTruncation = articles.length > truncateAt;
   const visible = expanded || !needsTruncation ? articles : articles.slice(0, truncateAt);
 
   return (
@@ -57,27 +54,25 @@ function ExpandableSection({
         </p>
       </div>
 
-      {compact ? (
-        <CompactArticleList articles={articles} />
-      ) : (
-        <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {visible.map((article) => (
-              <ArticleCard key={article.slug} article={article} />
-            ))}
-          </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {visible.map((article, i) => (
+          <ArticleCard
+            key={article.slug}
+            article={article}
+            step={showSteps ? i + 1 : undefined}
+          />
+        ))}
+      </div>
 
-          {needsTruncation && (
-            <button
-              onClick={() => setExpanded(!expanded)}
-              className="mt-4 text-sm font-medium text-[var(--color-brand)] hover:text-[var(--color-brand-dark)] transition-colors"
-            >
-              {expanded
-                ? "Show fewer"
-                : `Show all ${articles.length} articles \u2192`}
-            </button>
-          )}
-        </>
+      {needsTruncation && (
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="mt-4 text-sm font-medium text-[var(--color-brand)] hover:text-[var(--color-brand-dark)] transition-colors"
+        >
+          {expanded
+            ? "Show fewer"
+            : `Show all ${articles.length} articles \u2192`}
+        </button>
       )}
     </section>
   );
@@ -96,6 +91,7 @@ export default function LearnContent({
       description: "Core concepts every VEQT investor should know.",
       articles: sections.basics,
       truncateAt: 3,
+      showSteps: true,
       filterKey: "beginner",
     },
     {
@@ -113,16 +109,6 @@ export default function LearnContent({
       articles: sections.strategy,
       truncateAt: 3,
       filterKey: "strategy",
-    },
-    {
-      id: "our-takes",
-      heading: "Our Takes",
-      description:
-        "Opinionated but informed. Our honest views on VEQT and the market.",
-      articles: sections.editorial,
-      truncateAt: 99,
-      compact: true,
-      filterKey: "our-takes",
     },
   ];
 
@@ -151,9 +137,7 @@ export default function LearnContent({
           startHere.category === "comparison") ||
         (activeFilter === "strategy" &&
           (startHere.category === "tax-strategy" ||
-            startHere.category === "veqt-deep-dive")) ||
-        (activeFilter === "our-takes" &&
-          (startHere.isEditorial || startHere.category === "opinion"));
+            startHere.category === "veqt-deep-dive"));
       if (matchesFilter) {
         articles.unshift(startHere);
       }

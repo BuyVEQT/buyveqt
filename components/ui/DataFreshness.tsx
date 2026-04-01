@@ -62,14 +62,14 @@ export default function DataFreshness({
   return (
     <span
       className={`text-xs whitespace-nowrap ${
-        isCache ? "text-amber-500" : "text-gray-400"
+        isCache ? "text-amber-500" : "text-[var(--color-text-muted)]"
       } ${className ?? ""}`}
     >
       Updated {timeLabel}
       {!compact && (
         <>
           {" "}
-          <span className={isCache ? "text-amber-500/70" : "text-gray-300"}>
+          <span className={isCache ? "text-amber-500/70" : "text-[var(--color-text-muted)]/60"}>
             &middot;
           </span>{" "}
           {SOURCE_LABELS[source] ?? source}

@@ -11,17 +11,17 @@ function QuotePlaceholder({ message }: { message: string }) {
         Live Summary
       </p>
       <div className="flex items-baseline gap-2 mb-1">
-        <span className="text-2xl font-bold text-gray-300">&mdash;</span>
-        <span className="text-xs text-gray-300">CAD</span>
+        <span className="text-2xl font-bold text-[var(--color-text-muted)]">&mdash;</span>
+        <span className="text-xs text-[var(--color-text-muted)]">CAD</span>
       </div>
       <div className="flex items-center gap-2 mb-4">
-        <span className="text-sm text-gray-300">&mdash; (&mdash;%)</span>
+        <span className="text-sm text-[var(--color-text-muted)]">&mdash; (&mdash;%)</span>
       </div>
       <div className="space-y-2 text-sm">
         {["MER", "AUM", "Dividend Yield", "52-Week Range"].map((label) => (
           <div key={label} className="flex justify-between">
-            <span className="text-gray-300">{label}</span>
-            <span className="text-gray-300">&mdash;</span>
+            <span className="text-[var(--color-text-muted)]">{label}</span>
+            <span className="text-[var(--color-text-muted)]">&mdash;</span>
           </div>
         ))}
       </div>
@@ -41,7 +41,7 @@ function ChartPlaceholder({
 }) {
   return (
     <div
-      className={`flex items-center justify-center rounded-lg border-2 border-dashed border-gray-200 bg-gray-50/50 ${
+      className={`flex items-center justify-center rounded-lg border-2 border-dashed border-[var(--color-border)] bg-[var(--color-base)] ${
         className ?? "min-h-[320px]"
       }`}
     >
@@ -58,13 +58,13 @@ function TablePlaceholder({ message }: { message: string }) {
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-[var(--color-border)]">
-            <th className="text-left py-3 px-4 text-xs font-medium text-gray-300 uppercase tracking-wider w-40">
+            <th className="text-left py-3 px-4 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider w-40">
               Metric
             </th>
-            <th className="text-left py-3 px-4 text-xs font-medium text-gray-300 uppercase tracking-wider">
+            <th className="text-left py-3 px-4 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
               &mdash;
             </th>
-            <th className="text-left py-3 px-4 text-xs font-medium text-gray-300 uppercase tracking-wider">
+            <th className="text-left py-3 px-4 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
               &mdash;
             </th>
           </tr>
@@ -75,9 +75,9 @@ function TablePlaceholder({ message }: { message: string }) {
               key={label}
               className="border-b last:border-b-0 border-[var(--color-border)]"
             >
-              <td className="py-2.5 px-4 text-gray-300">{label}</td>
-              <td className="py-2.5 px-4 text-gray-300">&mdash;</td>
-              <td className="py-2.5 px-4 text-gray-300">&mdash;</td>
+              <td className="py-2.5 px-4 text-[var(--color-text-muted)]">{label}</td>
+              <td className="py-2.5 px-4 text-[var(--color-text-muted)]">&mdash;</td>
+              <td className="py-2.5 px-4 text-[var(--color-text-muted)]">&mdash;</td>
             </tr>
           ))}
         </tbody>

@@ -59,10 +59,6 @@ export default function LearnPage() {
     pool,
     (a) => a.category === "tax-strategy" || a.category === "veqt-deep-dive"
   );
-  const editorial = extract(
-    pool,
-    (a) => a.isEditorial === true || a.category === "opinion"
-  );
   const uncategorized = pool; // whatever's left
 
   return (
@@ -87,7 +83,7 @@ export default function LearnPage() {
 
         <LearnContent
           startHere={startHere}
-          sections={{ basics, comparisons, strategy, editorial, uncategorized }}
+          sections={{ basics, comparisons, strategy, uncategorized }}
         />
 
         {/* Disclaimer */}
