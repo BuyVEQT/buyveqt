@@ -3,19 +3,12 @@
 import { useState, useEffect } from "react";
 import type { RedditPost, SubredditStats } from "@/lib/data/reddit";
 
-type TabId = "trending" | "top" | "new";
+type TabId = "trending" | "new";
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "trending", label: "Trending" },
-  { id: "top", label: "Top this week" },
   { id: "new", label: "New" },
 ];
-
-const REDDIT_SORT: Record<TabId, string> = {
-  trending: "hot",
-  top: "top",
-  new: "new",
-};
 
 function timeAgo(isoString: string): string {
   const diff = Date.now() - new Date(isoString).getTime();
@@ -29,23 +22,28 @@ function timeAgo(isoString: string): string {
   return `${months}mo ago`;
 }
 
-/** Client-side fallback: fetch directly from Reddit when server-side data is empty
- *  (Reddit blocks requests from some cloud provider IPs like Vercel) */
-async function fetchRedditClient(
+/** Client-side Reddit fetch — used as fallback when server-side data is empty
+ *  (Reddit blocks requests from cloud provider IPs like Vercel) */
+export async function fetchRedditClient(
   sort: string,
-  timeFilter?: string
+  limit: number = 10
 ): Promise<RedditPost[]> {
   try {
-    let url = `https://www.reddit.com/r/JustBuyVEQT/${sort}.json?limit=10&raw_json=1`;
-    if (sort === "top" && timeFilter) url += `&t=${timeFilter}`;
+    const url = `https://www.reddit.com/r/JustBuyVEQT/${sort}.json?limit=${limit}&raw_json=1`;
 
-    const res = await fetch(url);
-    if (!res.ok) return [];
+    const res = await fetch(url, {
+      headers: { "User-Agent": "buyveqt.com/1.0" },
+    });
+
+    if (!res.ok) {
+      console.warn(`[Reddit] Client fetch ${sort} failed: HTTP ${res.status}`);
+      return [];
+    }
 
     const json = await res.json();
     const posts = json?.data?.children || [];
 
-    return posts
+    const result = posts
       .filter(
         (child: Record<string, Record<string, unknown>>) =>
           !child.data.stickied
@@ -67,7 +65,11 @@ async function fetchRedditClient(
           isStickied: d.stickied as boolean,
         };
       });
-  } catch {
+
+    console.log(`[Reddit] Client fetch ${sort}: ${result.length} posts`);
+    return result;
+  } catch (error) {
+    console.warn(`[Reddit] Client fetch ${sort} error:`, error);
     return [];
   }
 }
@@ -75,9 +77,13 @@ async function fetchRedditClient(
 async function fetchStatsClient(): Promise<SubredditStats | null> {
   try {
     const res = await fetch(
-      "https://www.reddit.com/r/JustBuyVEQT/about.json"
+      "https://www.reddit.com/r/JustBuyVEQT/about.json",
+      { headers: { "User-Agent": "buyveqt.com/1.0" } }
     );
-    if (!res.ok) return null;
+    if (!res.ok) {
+      console.warn(`[Reddit] Client stats fetch failed: HTTP ${res.status}`);
+      return null;
+    }
     const json = await res.json();
     const data = json?.data;
     if (!data) return null;
@@ -85,28 +91,26 @@ async function fetchStatsClient(): Promise<SubredditStats | null> {
       subscribers: (data.subscribers as number) ?? 0,
       activeUsers: (data.accounts_active as number) ?? null,
     };
-  } catch {
+  } catch (error) {
+    console.warn("[Reddit] Client stats fetch error:", error);
     return null;
   }
 }
 
 interface CommunityContentProps {
   hotPosts: RedditPost[];
-  topPosts: RedditPost[];
   newPosts: RedditPost[];
   stats: SubredditStats | null;
 }
 
 export default function CommunityContent({
   hotPosts: serverHot,
-  topPosts: serverTop,
   newPosts: serverNew,
   stats: serverStats,
 }: CommunityContentProps) {
   const [activeTab, setActiveTab] = useState<TabId>("trending");
   const [clientFeeds, setClientFeeds] = useState<Record<TabId, RedditPost[]>>({
     trending: serverHot,
-    top: serverTop,
     new: serverNew,
   });
   const [clientStats, setClientStats] = useState<SubredditStats | null>(
@@ -115,10 +119,7 @@ export default function CommunityContent({
   const [loading, setLoading] = useState(false);
 
   // Client-side fallback when all server feeds are empty (Reddit blocks Vercel IPs)
-  const serverEmpty =
-    serverHot.length === 0 &&
-    serverTop.length === 0 &&
-    serverNew.length === 0;
+  const serverEmpty = serverHot.length === 0 && serverNew.length === 0;
 
   useEffect(() => {
     if (!serverEmpty) return;
@@ -128,12 +129,11 @@ export default function CommunityContent({
 
     Promise.all([
       fetchRedditClient("hot"),
-      fetchRedditClient("top", "week"),
       fetchRedditClient("new"),
       fetchStatsClient(),
-    ]).then(([hot, top, fresh, stats]) => {
+    ]).then(([hot, fresh, stats]) => {
       if (cancelled) return;
-      setClientFeeds({ trending: hot, top, new: fresh });
+      setClientFeeds({ trending: hot, new: fresh });
       if (stats) setClientStats(stats);
       setLoading(false);
     });

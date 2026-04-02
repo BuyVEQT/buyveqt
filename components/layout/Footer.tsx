@@ -41,7 +41,7 @@ export default function Footer() {
             </Link>
             <span className="text-[var(--color-border)]">·</span>
             <a
-              href="https://reddit.com/r/justBuyVEQT"
+              href="https://reddit.com/r/JustBuyVEQT"
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"

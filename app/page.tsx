@@ -11,7 +11,7 @@ import InsideVeqtPreview from "@/components/InsideVeqtPreview";
 import ComparePreview from "@/components/ComparePreview";
 import LearnPreview from "@/components/LearnPreview";
 import CalculatorsPreview from "@/components/CalculatorsPreview";
-import CommunityStrip from "@/components/CommunityStrip";
+import CommunityWidget from "@/components/CommunityWidget";
 import TodaySnapshot from "@/components/TodaySnapshot";
 
 type HomeView = "overview" | "today";
@@ -104,7 +104,7 @@ export default function Home() {
         <CalculatorsPreview />
 
         {/* Section 7: Community */}
-        <CommunityStrip />
+        <CommunityWidget />
       </main>
 
       <Footer />
