@@ -128,6 +128,7 @@ export const NAV_LINKS = [
   { href: "/compare", label: "Compare" },
   { href: "/invest", label: "Calculator" },
   { href: "/learn", label: "Learn" },
+  { href: "/community", label: "Community" },
 ];
 
 export const NAV_LINKS_SECONDARY = [
