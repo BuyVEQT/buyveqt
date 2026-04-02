@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { RedditPost, SubredditStats } from "@/lib/data/reddit";
 
 type TabId = "trending" | "top" | "new";
@@ -10,6 +10,12 @@ const TABS: { id: TabId; label: string }[] = [
   { id: "top", label: "Top this week" },
   { id: "new", label: "New" },
 ];
+
+const REDDIT_SORT: Record<TabId, string> = {
+  trending: "hot",
+  top: "top",
+  new: "new",
+};
 
 function timeAgo(isoString: string): string {
   const diff = Date.now() - new Date(isoString).getTime();
@@ -23,6 +29,67 @@ function timeAgo(isoString: string): string {
   return `${months}mo ago`;
 }
 
+/** Client-side fallback: fetch directly from Reddit when server-side data is empty
+ *  (Reddit blocks requests from some cloud provider IPs like Vercel) */
+async function fetchRedditClient(
+  sort: string,
+  timeFilter?: string
+): Promise<RedditPost[]> {
+  try {
+    let url = `https://www.reddit.com/r/JustBuyVEQT/${sort}.json?limit=10&raw_json=1`;
+    if (sort === "top" && timeFilter) url += `&t=${timeFilter}`;
+
+    const res = await fetch(url);
+    if (!res.ok) return [];
+
+    const json = await res.json();
+    const posts = json?.data?.children || [];
+
+    return posts
+      .filter(
+        (child: Record<string, Record<string, unknown>>) =>
+          !child.data.stickied
+      )
+      .map((child: Record<string, Record<string, unknown>>) => {
+        const d = child.data;
+        return {
+          id: d.id as string,
+          title: d.title as string,
+          author: d.author as string,
+          createdAt: new Date(
+            (d.created_utc as number) * 1000
+          ).toISOString(),
+          score: d.score as number,
+          commentCount: d.num_comments as number,
+          permalink: `https://www.reddit.com${d.permalink as string}`,
+          flair: (d.link_flair_text as string) || null,
+          isSelf: d.is_self as boolean,
+          isStickied: d.stickied as boolean,
+        };
+      });
+  } catch {
+    return [];
+  }
+}
+
+async function fetchStatsClient(): Promise<SubredditStats | null> {
+  try {
+    const res = await fetch(
+      "https://www.reddit.com/r/JustBuyVEQT/about.json"
+    );
+    if (!res.ok) return null;
+    const json = await res.json();
+    const data = json?.data;
+    if (!data) return null;
+    return {
+      subscribers: (data.subscribers as number) ?? 0,
+      activeUsers: (data.accounts_active as number) ?? null,
+    };
+  } catch {
+    return null;
+  }
+}
+
 interface CommunityContentProps {
   hotPosts: RedditPost[];
   topPosts: RedditPost[];
@@ -31,19 +98,52 @@ interface CommunityContentProps {
 }
 
 export default function CommunityContent({
-  hotPosts,
-  topPosts,
-  newPosts,
-  stats,
+  hotPosts: serverHot,
+  topPosts: serverTop,
+  newPosts: serverNew,
+  stats: serverStats,
 }: CommunityContentProps) {
   const [activeTab, setActiveTab] = useState<TabId>("trending");
+  const [clientFeeds, setClientFeeds] = useState<Record<TabId, RedditPost[]>>({
+    trending: serverHot,
+    top: serverTop,
+    new: serverNew,
+  });
+  const [clientStats, setClientStats] = useState<SubredditStats | null>(
+    serverStats
+  );
+  const [loading, setLoading] = useState(false);
 
-  const feedMap: Record<TabId, RedditPost[]> = {
-    trending: hotPosts,
-    top: topPosts,
-    new: newPosts,
-  };
-  const posts = feedMap[activeTab];
+  // Client-side fallback when all server feeds are empty (Reddit blocks Vercel IPs)
+  const serverEmpty =
+    serverHot.length === 0 &&
+    serverTop.length === 0 &&
+    serverNew.length === 0;
+
+  useEffect(() => {
+    if (!serverEmpty) return;
+
+    let cancelled = false;
+    setLoading(true);
+
+    Promise.all([
+      fetchRedditClient("hot"),
+      fetchRedditClient("top", "week"),
+      fetchRedditClient("new"),
+      fetchStatsClient(),
+    ]).then(([hot, top, fresh, stats]) => {
+      if (cancelled) return;
+      setClientFeeds({ trending: hot, top, new: fresh });
+      if (stats) setClientStats(stats);
+      setLoading(false);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [serverEmpty]);
+
+  const posts = clientFeeds[activeTab];
 
   return (
     <>
@@ -67,7 +167,19 @@ export default function CommunityContent({
       </div>
 
       {/* Post list */}
-      {posts.length > 0 ? (
+      {loading ? (
+        <div className="space-y-4 py-4">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex items-start gap-4">
+              <div className="skeleton h-8 w-12 shrink-0" />
+              <div className="flex-1 space-y-2">
+                <div className="skeleton h-4 w-full" />
+                <div className="skeleton h-3 w-48" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : posts.length > 0 ? (
         <div className="divide-y divide-[var(--color-border)]">
           {posts.map((post) => (
             <a
@@ -158,19 +270,19 @@ export default function CommunityContent({
       )}
 
       {/* Stats bar */}
-      {stats && (
+      {clientStats && (
         <div className="mt-8 pt-6 border-t border-[var(--color-border)]">
           <div className="flex items-center gap-6 text-sm text-[var(--color-text-muted)]">
             <div>
               <span className="font-semibold text-[var(--color-text-primary)] tabular-nums">
-                {stats.subscribers.toLocaleString()}
+                {clientStats.subscribers.toLocaleString()}
               </span>{" "}
               members
             </div>
-            {stats.activeUsers !== null && stats.activeUsers > 0 && (
+            {clientStats.activeUsers !== null && clientStats.activeUsers > 0 && (
               <div>
                 <span className="font-semibold text-[var(--color-text-primary)] tabular-nums">
-                  {stats.activeUsers.toLocaleString()}
+                  {clientStats.activeUsers.toLocaleString()}
                 </span>{" "}
                 online now
               </div>
