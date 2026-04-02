@@ -21,16 +21,13 @@ export const metadata: Metadata = {
 };
 
 export default async function CommunityPage() {
-  const [hotResult, topResult, newResult, statsResult] =
-    await Promise.allSettled([
-      getRedditPosts("hot", 10),
-      getRedditPosts("top", 10, "week"),
-      getRedditPosts("new", 10),
-      getSubredditStats(),
-    ]);
+  const [hotResult, newResult, statsResult] = await Promise.allSettled([
+    getRedditPosts("hot", 10),
+    getRedditPosts("new", 10),
+    getSubredditStats(),
+  ]);
 
   const hotPosts = hotResult.status === "fulfilled" ? hotResult.value : [];
-  const topPosts = topResult.status === "fulfilled" ? topResult.value : [];
   const newPosts = newResult.status === "fulfilled" ? newResult.value : [];
   const stats = statsResult.status === "fulfilled" ? statsResult.value : null;
 
@@ -59,7 +56,6 @@ export default async function CommunityPage() {
 
         <CommunityContent
           hotPosts={hotPosts}
-          topPosts={topPosts}
           newPosts={newPosts}
           stats={stats}
         />

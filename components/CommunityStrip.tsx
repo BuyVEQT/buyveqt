@@ -9,7 +9,7 @@ export default function CommunityStrip() {
         </span>
         <div className="flex items-center gap-4">
           <a
-            href="https://reddit.com/r/justBuyVEQT"
+            href="https://reddit.com/r/JustBuyVEQT"
             target="_blank"
             rel="noopener noreferrer"
             className="font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors text-sm"
