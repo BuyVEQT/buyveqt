@@ -22,18 +22,117 @@ function timeAgo(isoString: string): string {
   return `${months}mo ago`;
 }
 
-/** Fetch Reddit posts via our caching API proxy */
+/** Direct browser-to-Reddit fetch (bypasses Vercel IP blocks) */
+async function fetchRedditDirect(
+  sort: string,
+  limit: number = 12
+): Promise<RedditPost[]> {
+  try {
+    let url = `https://www.reddit.com/r/JustBuyVEQT/${sort}.json?limit=${limit}&raw_json=1`;
+    if (sort === "top") url += "&t=all";
+
+    const res = await fetch(url, {
+      headers: { "User-Agent": "buyveqt.com/1.0" },
+    });
+    if (!res.ok) return [];
+
+    const json = await res.json();
+    return (json?.data?.children || [])
+      .filter(
+        (c: Record<string, Record<string, unknown>>) => !c.data.stickied
+      )
+      .map((c: Record<string, Record<string, unknown>>) => {
+        const d = c.data;
+        return {
+          id: d.id as string,
+          title: d.title as string,
+          author: d.author as string,
+          createdAt: new Date(
+            (d.created_utc as number) * 1000
+          ).toISOString(),
+          score: d.score as number,
+          commentCount: d.num_comments as number,
+          permalink: `https://www.reddit.com${d.permalink as string}`,
+          flair: (d.link_flair_text as string) || null,
+          isSelf: d.is_self as boolean,
+          isStickied: false,
+        };
+      });
+  } catch {
+    return [];
+  }
+}
+
+async function fetchStatsDirect(): Promise<SubredditStats | null> {
+  try {
+    const res = await fetch(
+      "https://www.reddit.com/r/JustBuyVEQT/about.json",
+      { headers: { "User-Agent": "buyveqt.com/1.0" } }
+    );
+    if (!res.ok) return null;
+    const json = await res.json();
+    const data = json?.data;
+    if (!data) return null;
+    return {
+      subscribers: (data.subscribers as number) ?? 0,
+      activeUsers: (data.accounts_active as number) ?? null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** Merge hot + top/all to ensure 10+ posts for low-activity subs */
+function mergePosts(hot: RedditPost[], topAll: RedditPost[]): RedditPost[] {
+  const seen = new Set<string>();
+  const result: RedditPost[] = [];
+  for (const post of [...hot, ...topAll]) {
+    if (!seen.has(post.id)) {
+      seen.add(post.id);
+      result.push(post);
+    }
+    if (result.length >= 10) break;
+  }
+  return result;
+}
+
+/**
+ * Fetch Reddit posts — tries API proxy first, falls back to direct browser fetch.
+ * The proxy runs on Vercel (blocked by Reddit), so the direct fallback is critical.
+ */
 export async function fetchRedditApi(): Promise<{
   posts: Record<string, RedditPost[]>;
   stats: SubredditStats | null;
 }> {
+  // Tier 1: Try our API proxy (works if Vercel cache is warm)
   try {
     const res = await fetch("/api/reddit");
-    if (!res.ok) return { posts: {}, stats: null };
-    return await res.json();
+    if (res.ok) {
+      const data = await res.json();
+      const hasPosts =
+        (data.posts?.trending?.length ?? 0) > 0 ||
+        (data.posts?.new?.length ?? 0) > 0;
+      if (hasPosts) return data;
+    }
   } catch {
-    return { posts: {}, stats: null };
+    // fall through to direct fetch
   }
+
+  // Tier 2: Direct browser-to-Reddit fetch (visitor IP not blocked)
+  const [hot, fresh, topAll, stats] = await Promise.all([
+    fetchRedditDirect("hot"),
+    fetchRedditDirect("new"),
+    fetchRedditDirect("top"),
+    fetchStatsDirect(),
+  ]);
+
+  return {
+    posts: {
+      trending: mergePosts(hot, topAll),
+      new: fresh.slice(0, 10),
+    },
+    stats,
+  };
 }
 
 interface CommunityContentProps {
