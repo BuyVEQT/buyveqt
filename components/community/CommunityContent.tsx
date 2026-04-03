@@ -22,78 +22,17 @@ function timeAgo(isoString: string): string {
   return `${months}mo ago`;
 }
 
-/** Client-side Reddit fetch — used as fallback when server-side data is empty
- *  (Reddit blocks requests from cloud provider IPs like Vercel) */
-export async function fetchRedditClient(
-  sort: string,
-  limit: number = 10
-): Promise<RedditPost[]> {
+/** Fetch Reddit posts via our caching API proxy */
+export async function fetchRedditApi(): Promise<{
+  posts: Record<string, RedditPost[]>;
+  stats: SubredditStats | null;
+}> {
   try {
-    const url = `https://www.reddit.com/r/JustBuyVEQT/${sort}.json?limit=${limit}&raw_json=1`;
-
-    const res = await fetch(url, {
-      headers: { "User-Agent": "buyveqt.com/1.0" },
-    });
-
-    if (!res.ok) {
-      console.warn(`[Reddit] Client fetch ${sort} failed: HTTP ${res.status}`);
-      return [];
-    }
-
-    const json = await res.json();
-    const posts = json?.data?.children || [];
-
-    const result = posts
-      .filter(
-        (child: Record<string, Record<string, unknown>>) =>
-          !child.data.stickied
-      )
-      .map((child: Record<string, Record<string, unknown>>) => {
-        const d = child.data;
-        return {
-          id: d.id as string,
-          title: d.title as string,
-          author: d.author as string,
-          createdAt: new Date(
-            (d.created_utc as number) * 1000
-          ).toISOString(),
-          score: d.score as number,
-          commentCount: d.num_comments as number,
-          permalink: `https://www.reddit.com${d.permalink as string}`,
-          flair: (d.link_flair_text as string) || null,
-          isSelf: d.is_self as boolean,
-          isStickied: d.stickied as boolean,
-        };
-      });
-
-    console.log(`[Reddit] Client fetch ${sort}: ${result.length} posts`);
-    return result;
-  } catch (error) {
-    console.warn(`[Reddit] Client fetch ${sort} error:`, error);
-    return [];
-  }
-}
-
-async function fetchStatsClient(): Promise<SubredditStats | null> {
-  try {
-    const res = await fetch(
-      "https://www.reddit.com/r/JustBuyVEQT/about.json",
-      { headers: { "User-Agent": "buyveqt.com/1.0" } }
-    );
-    if (!res.ok) {
-      console.warn(`[Reddit] Client stats fetch failed: HTTP ${res.status}`);
-      return null;
-    }
-    const json = await res.json();
-    const data = json?.data;
-    if (!data) return null;
-    return {
-      subscribers: (data.subscribers as number) ?? 0,
-      activeUsers: (data.accounts_active as number) ?? null,
-    };
-  } catch (error) {
-    console.warn("[Reddit] Client stats fetch error:", error);
-    return null;
+    const res = await fetch("/api/reddit");
+    if (!res.ok) return { posts: {}, stats: null };
+    return await res.json();
+  } catch {
+    return { posts: {}, stats: null };
   }
 }
 
@@ -127,13 +66,12 @@ export default function CommunityContent({
     let cancelled = false;
     setLoading(true);
 
-    Promise.all([
-      fetchRedditClient("hot"),
-      fetchRedditClient("new"),
-      fetchStatsClient(),
-    ]).then(([hot, fresh, stats]) => {
+    fetchRedditApi().then(({ posts, stats }) => {
       if (cancelled) return;
-      setClientFeeds({ trending: hot, new: fresh });
+      setClientFeeds({
+        trending: posts.trending || [],
+        new: posts.new || [],
+      });
       if (stats) setClientStats(stats);
       setLoading(false);
     });

@@ -21,15 +21,31 @@ export const metadata: Metadata = {
 };
 
 export default async function CommunityPage() {
-  const [hotResult, newResult, statsResult] = await Promise.allSettled([
-    getRedditPosts("hot", 10),
-    getRedditPosts("new", 10),
-    getSubredditStats(),
-  ]);
+  const [hotResult, newResult, topResult, statsResult] =
+    await Promise.allSettled([
+      getRedditPosts("hot", 12),
+      getRedditPosts("new", 12),
+      getRedditPosts("top", 12, "all"),
+      getSubredditStats(),
+    ]);
 
-  const hotPosts = hotResult.status === "fulfilled" ? hotResult.value : [];
-  const newPosts = newResult.status === "fulfilled" ? newResult.value : [];
+  const hot = hotResult.status === "fulfilled" ? hotResult.value : [];
+  const topAll = topResult.status === "fulfilled" ? topResult.value : [];
+  const newPosts = (
+    newResult.status === "fulfilled" ? newResult.value : []
+  ).slice(0, 10);
   const stats = statsResult.status === "fulfilled" ? statsResult.value : null;
+
+  // Merge hot + top/all to always have 10 posts for low-activity subs
+  const seen = new Set<string>();
+  const hotPosts: typeof hot = [];
+  for (const post of [...hot, ...topAll]) {
+    if (!seen.has(post.id)) {
+      seen.add(post.id);
+      hotPosts.push(post);
+    }
+    if (hotPosts.length >= 10) break;
+  }
 
   return (
     <PageShell>
