@@ -19,6 +19,7 @@ import { ForexLossStats } from "@/components/mdx/ForexLossStats";
 import { OpportunityCostCalculator } from "@/components/mdx/OpportunityCostCalculator";
 import { JourneyTimeline } from "@/components/mdx/JourneyTimeline";
 import { ZeroSumExplainer } from "@/components/mdx/ZeroSumExplainer";
+import { EarningPowerCalculator } from "@/components/mdx/EarningPowerCalculator";
 
 function slugify(text: string): string {
   return text
@@ -48,6 +49,7 @@ const mdxComponents = {
   OpportunityCostCalculator,
   JourneyTimeline,
   ZeroSumExplainer,
+  EarningPowerCalculator,
   h2: HeadingTwo,
 };
 
