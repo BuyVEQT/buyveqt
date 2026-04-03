@@ -48,6 +48,7 @@ const ARTICLE_ORDER = [
   "passive-investing-behavioral-edge",
   "veqt-vs-robo-advisors",
   "covered-call-dividend-trap",
+  "forex-vs-veqt",
 ];
 
 function applyDefaults(data: Record<string, unknown>): ArticleFrontmatter {
