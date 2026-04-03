@@ -8,7 +8,7 @@ export default function InsideVeqtPreview() {
         What&apos;s inside VEQT?
       </h2>
       <p className="text-sm text-[var(--color-text-muted)] mb-5">
-        One ETF, four underlying funds, 13,500+ stocks across the globe.
+        One ETF, four underlying funds, 13,700+ stocks across the globe.
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

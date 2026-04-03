@@ -19,9 +19,9 @@ export const VERDICTS: ComparisonVerdict[] = [
     points: [
       {
         label: "Lowest cost (MER)",
-        winner: "XEQT",
+        winner: "Tie",
         explanation:
-          "XEQT's MER is slightly lower. Over decades and large balances this compounds, but the difference is modest.",
+          "Both now have a 0.17% management fee and ~0.20% effective MER after late-2025 fee cuts. Cost is no longer a differentiator.",
       },
       {
         label: "Canadian allocation",
@@ -103,9 +103,9 @@ export const VERDICTS: ComparisonVerdict[] = [
       },
       {
         label: "MER",
-        winner: "ZEQT",
+        winner: "Tie",
         explanation:
-          "ZEQT's MER is competitive and may be slightly lower. Check current MERs as these can change year to year.",
+          "Both have an effective MER of ~0.20%. VEQT's management fee is 0.17%, ZEQT's is slightly higher but the all-in MERs are effectively identical.",
       },
       {
         label: "Track record",

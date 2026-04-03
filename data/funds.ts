@@ -100,7 +100,7 @@ export const FUNDS: Record<string, FundData> = {
     ],
     chartColor: "#2563eb",
     merFootnote:
-      "XEQT's management fee is 0.18%. The MER of 0.20% includes operating expenses.",
+      "XEQT's management fee was reduced from 0.18% to 0.17% in December 2025. The MER of 0.20% includes operating expenses.",
   },
   "ZEQT.TO": {
     ticker: "ZEQT.TO",
@@ -109,7 +109,7 @@ export const FUNDS: Record<string, FundData> = {
     provider: "BMO",
     mer: 0.20,
     aum: "$1.2B",
-    inceptionDate: "2022-02-15",
+    inceptionDate: "2022-01-24",
     numberOfHoldings: 9000,
     distributionFrequency: "Annually",
     currency: "CAD",
@@ -205,7 +205,7 @@ export const FUNDS: Record<string, FundData> = {
     ],
     chartColor: "#e11d48",
     merFootnote:
-      "XGRO's management fee is 0.18%. The MER of 0.20% includes operating expenses.",
+      "XGRO's management fee was reduced from 0.18% to 0.17% in December 2025. The MER of 0.20% includes operating expenses.",
   },
   "VFV.TO": {
     ticker: "VFV.TO",
