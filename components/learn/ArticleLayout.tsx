@@ -13,6 +13,8 @@ import { AccountFlowchart } from "@/components/mdx/AccountFlowchart";
 import { FHSATimeline } from "@/components/mdx/FHSATimeline";
 import { FeeCalculator } from "@/components/mdx/FeeCalculator";
 import { ProgressTracker } from "@/components/mdx/ProgressTracker";
+import { CoveredCallGrowthChart } from "@/components/mdx/CoveredCallGrowthChart";
+import { UpsideCapVisualizer } from "@/components/mdx/UpsideCapVisualizer";
 
 function slugify(text: string): string {
   return text
@@ -36,6 +38,8 @@ const mdxComponents = {
   FHSATimeline,
   FeeCalculator,
   ProgressTracker,
+  CoveredCallGrowthChart,
+  UpsideCapVisualizer,
   h2: HeadingTwo,
 };
 
