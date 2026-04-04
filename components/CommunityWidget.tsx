@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import type { RedditPost } from "@/lib/data/reddit";
-import { fetchRedditClient } from "@/components/community/CommunityContent";
+import { fetchRedditApi } from "@/components/community/CommunityContent";
 
 export default function CommunityWidget() {
   const [posts, setPosts] = useState<RedditPost[]>([]);
@@ -12,9 +12,9 @@ export default function CommunityWidget() {
   useEffect(() => {
     let cancelled = false;
 
-    fetchRedditClient("hot", 6).then((result) => {
+    fetchRedditApi().then(({ posts: feeds }) => {
       if (cancelled) return;
-      setPosts(result.slice(0, 5));
+      setPosts((feeds.trending || []).slice(0, 5));
       setLoading(false);
     });
 

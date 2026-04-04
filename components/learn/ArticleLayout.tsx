@@ -13,6 +13,13 @@ import { AccountFlowchart } from "@/components/mdx/AccountFlowchart";
 import { FHSATimeline } from "@/components/mdx/FHSATimeline";
 import { FeeCalculator } from "@/components/mdx/FeeCalculator";
 import { ProgressTracker } from "@/components/mdx/ProgressTracker";
+import { CoveredCallGrowthChart } from "@/components/mdx/CoveredCallGrowthChart";
+import { UpsideCapVisualizer } from "@/components/mdx/UpsideCapVisualizer";
+import { ForexLossStats } from "@/components/mdx/ForexLossStats";
+import { OpportunityCostCalculator } from "@/components/mdx/OpportunityCostCalculator";
+import { JourneyTimeline } from "@/components/mdx/JourneyTimeline";
+import { ZeroSumExplainer } from "@/components/mdx/ZeroSumExplainer";
+
 
 function slugify(text: string): string {
   return text
@@ -36,6 +43,12 @@ const mdxComponents = {
   FHSATimeline,
   FeeCalculator,
   ProgressTracker,
+  CoveredCallGrowthChart,
+  UpsideCapVisualizer,
+  ForexLossStats,
+  OpportunityCostCalculator,
+  JourneyTimeline,
+  ZeroSumExplainer,
   h2: HeadingTwo,
 };
 

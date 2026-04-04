@@ -27,11 +27,12 @@ export default async function OGImage({
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "#111827",
+          backgroundColor: "#f9fafb",
           padding: "60px",
           position: "relative",
         }}
       >
+        {/* Top accent bar */}
         <div
           style={{
             position: "absolute",
@@ -39,24 +40,35 @@ export default async function OGImage({
             left: 0,
             right: 0,
             height: "6px",
-            backgroundColor: "#16a34a",
+            background: "linear-gradient(90deg, #c8102e 0%, #e11d48 100%)",
           }}
         />
 
-        {/* BuyVEQT small branding */}
+        {/* Subtle grid pattern */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            backgroundImage:
+              "radial-gradient(circle, #e5e7eb 1px, transparent 1px)",
+            backgroundSize: "32px 32px",
+            opacity: 0.5,
+          }}
+        />
+
+        {/* BuyVEQT branding */}
         <div
           style={{
             position: "absolute",
             top: "30px",
             left: "60px",
-            fontSize: "20px",
+            fontSize: "22px",
             fontWeight: 700,
-            color: "#6b7280",
             display: "flex",
           }}
         >
-          <span>Buy</span>
-          <span style={{ color: "#16a34a" }}>VEQT</span>
+          <span style={{ color: "#111827" }}>Buy</span>
+          <span style={{ color: "#c8102e" }}>VEQT</span>
         </div>
 
         {/* VS display */}
@@ -65,13 +77,15 @@ export default async function OGImage({
             display: "flex",
             alignItems: "center",
             gap: "40px",
+            position: "relative",
           }}
         >
           <div
             style={{
-              fontSize: "80px",
+              fontSize: "84px",
               fontWeight: 800,
-              color: "#ffffff",
+              color: "#111827",
+              letterSpacing: "-2px",
             }}
           >
             {fundA}
@@ -79,17 +93,18 @@ export default async function OGImage({
           <div
             style={{
               fontSize: "36px",
-              fontWeight: 400,
-              color: "#16a34a",
+              fontWeight: 500,
+              color: "#c8102e",
             }}
           >
             vs
           </div>
           <div
             style={{
-              fontSize: "80px",
+              fontSize: "84px",
               fontWeight: 800,
-              color: "#ffffff",
+              color: "#111827",
+              letterSpacing: "-2px",
             }}
           >
             {fundB}
@@ -100,9 +115,10 @@ export default async function OGImage({
         <div
           style={{
             fontSize: "24px",
-            color: "#9ca3af",
-            marginTop: "24px",
+            color: "#6b7280",
+            marginTop: "20px",
             textAlign: "center",
+            position: "relative",
           }}
         >
           {comparison?.title || `${fundA} vs ${fundB} — Full Comparison`}
@@ -111,9 +127,10 @@ export default async function OGImage({
         <div
           style={{
             position: "absolute",
-            bottom: "40px",
+            bottom: "36px",
             fontSize: "18px",
-            color: "#6b7280",
+            fontWeight: 500,
+            color: "#9ca3af",
           }}
         >
           buyveqt.ca

@@ -192,7 +192,7 @@ export default function TFSARRSPCalculator() {
       <div className="flex justify-end">
         <button
           onClick={() => setShareOpen(true)}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-white px-3 py-2 text-sm font-medium text-[var(--color-text-secondary)] hover:bg-[var(--color-base)] transition-colors"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] px-3 py-2 text-sm font-medium text-[var(--color-text-secondary)] hover:bg-[var(--color-base)] transition-colors"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
@@ -224,7 +224,7 @@ export default function TFSARRSPCalculator() {
           <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed">
             In a TFSA, all investment growth is completely tax-free. You
             won&apos;t pay any tax when you withdraw funds. The current annual
-            TFSA contribution limit is $7,000 (2025). Unused room accumulates
+            TFSA contribution limit is $7,000 (2026). Unused room accumulates
             and carries forward.
           </p>
         ) : (
@@ -234,7 +234,7 @@ export default function TFSARRSPCalculator() {
             tax-deferred. However, all withdrawals in retirement are taxed as
             regular income. The annual RRSP contribution limit is 18% of your
             previous year&apos;s earned income, up to a maximum (currently
-            ~$32,490 for 2025).
+            ~$33,810 for 2026).
           </p>
         )}
       </div>

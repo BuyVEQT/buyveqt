@@ -16,11 +16,12 @@ export default async function OGImage() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "#111827",
+          backgroundColor: "#f9fafb",
           padding: "60px",
           position: "relative",
         }}
       >
+        {/* Top accent bar */}
         <div
           style={{
             position: "absolute",
@@ -28,32 +29,44 @@ export default async function OGImage() {
             left: 0,
             right: 0,
             height: "6px",
-            backgroundColor: "#16a34a",
+            background: "linear-gradient(90deg, #c8102e 0%, #e11d48 100%)",
           }}
         />
 
-        {/* BuyVEQT small branding */}
+        {/* Subtle grid pattern */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            backgroundImage:
+              "radial-gradient(circle, #e5e7eb 1px, transparent 1px)",
+            backgroundSize: "32px 32px",
+            opacity: 0.5,
+          }}
+        />
+
+        {/* BuyVEQT branding */}
         <div
           style={{
             position: "absolute",
             top: "30px",
             left: "60px",
-            fontSize: "20px",
+            fontSize: "22px",
             fontWeight: 700,
-            color: "#6b7280",
             display: "flex",
           }}
         >
-          <span>Buy</span>
-          <span style={{ color: "#16a34a" }}>VEQT</span>
+          <span style={{ color: "#111827" }}>Buy</span>
+          <span style={{ color: "#c8102e" }}>VEQT</span>
         </div>
 
         <div
           style={{
             fontSize: "56px",
             fontWeight: 800,
-            color: "#ffffff",
+            color: "#111827",
             letterSpacing: "-1px",
+            position: "relative",
           }}
         >
           Compare Canadian ETFs
@@ -62,29 +75,35 @@ export default async function OGImage() {
         <div
           style={{
             fontSize: "24px",
-            color: "#9ca3af",
-            marginTop: "16px",
+            color: "#6b7280",
+            marginTop: "12px",
+            position: "relative",
           }}
         >
-          VEQT vs XEQT &middot; VGRO &middot; ZEQT &middot; VFV &middot; VUN
+          VEQT · XEQT · VGRO · ZEQT · VFV · VUN
         </div>
 
+        {/* Feature pills */}
         <div
           style={{
             display: "flex",
-            gap: "16px",
-            marginTop: "40px",
+            gap: "12px",
+            marginTop: "36px",
+            position: "relative",
           }}
         >
           {["Performance", "Fees", "Allocation", "Verdict"].map((label) => (
             <div
               key={label}
               style={{
-                padding: "8px 20px",
-                borderRadius: "20px",
-                border: "1px solid #374151",
-                color: "#d1d5db",
+                padding: "10px 20px",
+                borderRadius: "24px",
+                backgroundColor: "#ffffff",
+                border: "1px solid #e5e7eb",
+                color: "#4b5563",
                 fontSize: "16px",
+                fontWeight: 500,
+                boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
               }}
             >
               {label}
@@ -95,9 +114,10 @@ export default async function OGImage() {
         <div
           style={{
             position: "absolute",
-            bottom: "40px",
+            bottom: "36px",
             fontSize: "18px",
-            color: "#6b7280",
+            fontWeight: 500,
+            color: "#9ca3af",
           }}
         >
           buyveqt.ca

@@ -15,7 +15,7 @@ export const COMPARISON_PAGES: Record<string, ComparisonPage> = {
     metaDescription:
       "Detailed comparison of VEQT and XEQT — Canada's two most popular all-equity ETFs. Compare MER, performance, holdings, and geographic allocation side by side.",
     intro:
-      "VEQT and XEQT are the two most popular all-equity ETFs in Canada. Both offer global diversification in a single purchase, but they differ in provider, fees, and geographic weighting. XEQT tilts more toward the US (45% vs 40%) and has a slightly lower MER (0.20% vs 0.24%), while VEQT offers more Canadian exposure.",
+      "VEQT and XEQT are the two most popular all-equity ETFs in Canada. Both offer global diversification in a single purchase with effectively identical MERs (~0.20%). They differ mainly in geographic weighting: XEQT tilts more toward the US (45% vs 40%), while VEQT offers more Canadian exposure (30% vs 25%).",
     funds: ["VEQT.TO", "XEQT.TO"],
   },
   "veqt-vs-zeqt": {
@@ -25,7 +25,7 @@ export const COMPARISON_PAGES: Record<string, ComparisonPage> = {
     metaDescription:
       "Compare VEQT and ZEQT — Vanguard's and BMO's all-equity ETFs. See how they differ in MER, AUM, holdings, and geographic allocation.",
     intro:
-      "VEQT from Vanguard and ZEQT from BMO both aim to give you 100% global equity exposure in one ETF. ZEQT is newer (2022 vs 2019) with a lower MER (0.20% vs 0.24%) but significantly smaller AUM. Their geographic allocations are similar, with ZEQT having slightly more US exposure.",
+      "VEQT from Vanguard and ZEQT from BMO both aim to give you 100% global equity exposure in one ETF. Both have an effective MER of ~0.20%. ZEQT is newer (2022 vs 2019) with significantly smaller AUM ($1.2B vs $11.2B). Their geographic allocations are similar, with ZEQT having slightly more US exposure.",
     funds: ["VEQT.TO", "ZEQT.TO"],
   },
   "veqt-vs-vgro": {
