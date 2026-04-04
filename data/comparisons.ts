@@ -25,7 +25,7 @@ export const COMPARISON_PAGES: Record<string, ComparisonPage> = {
     metaDescription:
       "Compare VEQT and ZEQT — Vanguard's and BMO's all-equity ETFs. See how they differ in MER, AUM, holdings, and geographic allocation.",
     intro:
-      "VEQT from Vanguard and ZEQT from BMO both aim to give you 100% global equity exposure in one ETF. Both have an effective MER of ~0.20%. ZEQT is newer (2022 vs 2019) with significantly smaller AUM ($1.2B vs $11.2B). Their geographic allocations are similar, with ZEQT having slightly more US exposure.",
+      "VEQT from Vanguard and ZEQT from BMO both aim to give you 100% global equity exposure in one ETF. Both have an effective MER of ~0.20%. ZEQT is newer (2022 vs 2019) with significantly smaller AUM ($591M vs $12.2B). Their geographic allocations are similar, with ZEQT having slightly more US exposure.",
     funds: ["VEQT.TO", "ZEQT.TO"],
   },
   "veqt-vs-vgro": {

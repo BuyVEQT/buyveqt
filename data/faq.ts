@@ -7,7 +7,7 @@ export const COMPARE_FAQ: FAQItem[] = [
   {
     question: "What's the difference between VEQT and XEQT?",
     answer:
-      "Both are all-equity, globally diversified ETFs designed for long-term Canadian investors. The main differences are provider (Vanguard vs iShares), MER (0.24% vs 0.20%), and geographic allocation — XEQT has more US exposure (45% vs 40%) and less Canada (25% vs 30%). In practice, their performance has been very similar. Choose based on your brokerage, preferred provider, or whether you want a slight Canada or US tilt. This is not financial advice — consider your own investment goals.",
+      "Both are all-equity, globally diversified ETFs designed for long-term Canadian investors. The main differences are provider (Vanguard vs iShares) and geographic allocation — XEQT has more US exposure (45% vs 40%) and less Canada (25% vs 30%). After late-2025 fee cuts, both have an effective MER of ~0.20%. In practice, their performance has been very similar. Choose based on your brokerage, preferred provider, or whether you want a slight Canada or US tilt. This is not financial advice — consider your own investment goals.",
   },
   {
     question: "Is a lower MER always better?",
@@ -17,7 +17,7 @@ export const COMPARE_FAQ: FAQItem[] = [
   {
     question: "Does it matter that ZEQT has lower AUM?",
     answer:
-      "Lower AUM (assets under management) can mean wider bid-ask spreads and slightly lower liquidity, which may result in marginally higher trading costs. However, ZEQT's AUM of ~$1.2B is still substantial and growing. For most buy-and-hold investors placing market orders during trading hours, the difference in liquidity between ZEQT and VEQT is negligible. AUM becomes more relevant for very large trades or limit orders.",
+      "Lower AUM (assets under management) can mean wider bid-ask spreads and slightly lower liquidity, which may result in marginally higher trading costs. However, ZEQT's AUM of ~$591M is still growing. For most buy-and-hold investors placing market orders during trading hours, the difference in liquidity between ZEQT and VEQT is negligible. AUM becomes more relevant for very large trades or limit orders.",
   },
   {
     question: "Should I pick VEQT or VGRO?",

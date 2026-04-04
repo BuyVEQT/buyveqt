@@ -4,7 +4,7 @@ export const VEQT_TICKER = "VEQT.TO";
 
 export const STATIC_DATA = {
   mer: 0.2,
-  aum: "$11.2B",
+  aum: "$12.2B",
 } as const;
 
 export const MER_FOOTNOTE =
@@ -38,7 +38,7 @@ export const COMPARISON_DATA = {
       ticker: "VEQT",
       name: "Vanguard All-Equity ETF",
       mer: "~0.20%*",
-      aum: "$11.2B",
+      aum: "$12.2B",
       holdings: "13,700+",
       inception: "Jan 2019",
     },
@@ -46,7 +46,7 @@ export const COMPARISON_DATA = {
       ticker: "XEQT",
       name: "iShares Core Equity ETF",
       mer: "0.20%",
-      aum: "$9.5B",
+      aum: "$14.7B",
       holdings: "9,300+",
       inception: "Aug 2019",
     },
@@ -54,7 +54,7 @@ export const COMPARISON_DATA = {
       ticker: "ZEQT",
       name: "BMO All-Equity ETF",
       mer: "0.20%",
-      aum: "$1.2B",
+      aum: "$591M",
       holdings: "9,000+",
       inception: "Jan 2022",
     },
