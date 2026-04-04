@@ -19,6 +19,7 @@ import { ForexLossStats } from "@/components/mdx/ForexLossStats";
 import { OpportunityCostCalculator } from "@/components/mdx/OpportunityCostCalculator";
 import { JourneyTimeline } from "@/components/mdx/JourneyTimeline";
 import { ZeroSumExplainer } from "@/components/mdx/ZeroSumExplainer";
+import { OwnershipDiagram } from "@/components/mdx/OwnershipDiagram";
 
 
 function slugify(text: string): string {
@@ -49,6 +50,7 @@ const mdxComponents = {
   OpportunityCostCalculator,
   JourneyTimeline,
   ZeroSumExplainer,
+  OwnershipDiagram,
   h2: HeadingTwo,
 };
 
