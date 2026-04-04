@@ -12,12 +12,12 @@ interface ChartSidebarProps {
   quoteFetchedAt?: string;
 }
 
-/* ── Return helpers ── */
+/* ── Return helpers (matches /today page logic exactly) ── */
 
-function calcReturn(data: HistoricalDataPoint[], daysBack: number): number | null {
+function calcReturn(data: HistoricalDataPoint[], tradingDaysBack: number): number | null {
   if (data.length < 2) return null;
   const latest = data[data.length - 1];
-  const idx = Math.max(0, data.length - 1 - daysBack);
+  const idx = Math.max(0, data.length - 1 - tradingDaysBack);
   const earlier = data[idx];
   if (!earlier || !latest || earlier.close <= 0) return null;
   return ((latest.close - earlier.close) / earlier.close) * 100;
@@ -30,14 +30,6 @@ function calcYTD(data: HistoricalDataPoint[]): number | null {
   const latest = data[data.length - 1];
   if (!startPoint || !latest || startPoint.close <= 0) return null;
   return ((latest.close - startPoint.close) / startPoint.close) * 100;
-}
-
-function calcSinceInception(data: HistoricalDataPoint[]): number | null {
-  if (data.length < 2) return null;
-  const first = data[0];
-  const latest = data[data.length - 1];
-  if (!first || !latest || first.close <= 0) return null;
-  return ((latest.close - first.close) / first.close) * 100;
 }
 
 function formatPct(val: number | null): string {
