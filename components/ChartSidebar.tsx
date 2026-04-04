@@ -1,19 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import type { VeqtQuote, HistoricalDataPoint, DataSourceType } from "@/lib/types";
 import DataFreshness from "@/components/ui/DataFreshness";
 
 interface ChartSidebarProps {
   quote: VeqtQuote | null;
-  historical: HistoricalDataPoint[];
   loading: boolean;
   quoteSource?: DataSourceType;
   quoteFetchedAt?: string;
 }
 
-/* ── Return helpers (from TodaySnapshot) ── */
+/* ── Return helpers ── */
 
 function calcReturn(data: HistoricalDataPoint[], daysBack: number): number | null {
   if (data.length < 2) return null;
@@ -33,6 +32,14 @@ function calcYTD(data: HistoricalDataPoint[]): number | null {
   return ((latest.close - startPoint.close) / startPoint.close) * 100;
 }
 
+function calcSinceInception(data: HistoricalDataPoint[]): number | null {
+  if (data.length < 2) return null;
+  const first = data[0];
+  const latest = data[data.length - 1];
+  if (!first || !latest || first.close <= 0) return null;
+  return ((latest.close - first.close) / first.close) * 100;
+}
+
 function formatPct(val: number | null): string {
   if (val === null) return "\u2014";
   const sign = val >= 0 ? "+" : "\u2212";
@@ -41,24 +48,47 @@ function formatPct(val: number | null): string {
 
 export default function ChartSidebar({
   quote,
-  historical,
-  loading,
+  loading: quoteLoading,
   quoteSource,
   quoteFetchedAt,
 }: ChartSidebarProps) {
   const [calcInput, setCalcInput] = useState(10000);
+  const [allHistory, setAllHistory] = useState<HistoricalDataPoint[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(true);
+
+  /* Fetch ALL-period data once for accurate returns + inception calculator */
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/veqt?period=ALL")
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((json) => {
+        if (!cancelled) {
+          setAllHistory(json.historical ?? []);
+          setHistoryLoading(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setHistoryLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  const loading = quoteLoading || historyLoading;
+
+  /* 1D uses the live quote change (intraday), not stale close-to-close */
+  const dayChange = quote ? quote.changePercent : null;
 
   const perfMetrics = [
-    { label: "1D", value: calcReturn(historical, 1) },
-    { label: "1W", value: calcReturn(historical, 5) },
-    { label: "1M", value: calcReturn(historical, 22) },
-    { label: "3M", value: calcReturn(historical, 66) },
-    { label: "YTD", value: calcYTD(historical) },
-    { label: "1Y", value: historical.length >= 252 ? calcReturn(historical, 252) : null },
+    { label: "1D", value: dayChange },
+    { label: "1W", value: calcReturn(allHistory, 5) },
+    { label: "1M", value: calcReturn(allHistory, 22) },
+    { label: "3M", value: calcReturn(allHistory, 66) },
+    { label: "YTD", value: calcYTD(allHistory) },
+    { label: "1Y", value: allHistory.length >= 252 ? calcReturn(allHistory, 252) : null },
   ];
 
-  /* Use first available data point as inception price — accurate to the loaded history */
-  const inceptionPrice = historical.length > 0 ? historical[0].close : null;
+  /* Calculator always uses inception price from full history */
+  const inceptionPrice = allHistory.length > 0 ? allHistory[0].close : null;
   const currentPrice = quote?.price ?? 0;
   const calcResult =
     currentPrice > 0 && inceptionPrice !== null && inceptionPrice > 0
@@ -91,7 +121,7 @@ export default function ChartSidebar({
               <div key={i} className="skeleton h-12 rounded-lg" />
             ))}
           </div>
-        ) : historical.length >= 2 ? (
+        ) : allHistory.length >= 2 ? (
           <div className="grid grid-cols-3 gap-2">
             {perfMetrics.map((m) => {
               const pos = m.value !== null && m.value >= 0;
@@ -187,14 +217,7 @@ export default function ChartSidebar({
               If you invested&hellip;
             </h3>
             <p className="text-[11px] text-[var(--color-text-muted)] mt-0.5">
-              {historical.length > 0 ? (
-                <>
-                  starting{" "}
-                  {new Date(historical[0].date + "T00:00:00").toLocaleDateString("en-CA", { month: "short", year: "numeric" })}
-                </>
-              ) : (
-                "based on chart range"
-              )}
+              at VEQT&apos;s inception (Jan 2019)
             </p>
           </div>
         </div>
