@@ -34,15 +34,21 @@ export const metadata: Metadata = {
 
 // ─── Helpers ──────────────────────────────────────────────────
 
+/** Calculate return by looking back a number of calendar days from the latest point. */
 function calcReturn(
   data: { date: string; adjustedClose: number }[],
-  daysBack: number
+  calendarDaysBack: number
 ): number | null {
   if (data.length < 2) return null;
   const latest = data[data.length - 1];
-  const targetIdx = Math.max(0, data.length - 1 - daysBack);
-  const earlier = data[targetIdx];
-  if (!earlier || !latest || earlier.adjustedClose <= 0) return null;
+  if (!latest || latest.adjustedClose <= 0) return null;
+
+  const cutoff = new Date(latest.date + "T00:00:00");
+  cutoff.setDate(cutoff.getDate() - calendarDaysBack);
+  const cutoffStr = cutoff.toISOString().split("T")[0];
+
+  const earlier = data.find((d) => d.date >= cutoffStr);
+  if (!earlier || earlier.adjustedClose <= 0) return null;
   return (
     ((latest.adjustedClose - earlier.adjustedClose) / earlier.adjustedClose) *
     100
@@ -111,15 +117,13 @@ export default async function TodayPage() {
 
   const perfMetrics = [
     { label: "1 Day", value: calcReturn(dailyData, 1) },
-    { label: "1 Week", value: calcReturn(dailyData, 5) },
-    { label: "1 Month", value: calcReturn(dailyData, 22) },
-    { label: "3 Months", value: calcReturn(dailyData, 66) },
+    { label: "1 Week", value: calcReturn(dailyData, 7) },
+    { label: "1 Month", value: calcReturn(dailyData, 30) },
+    { label: "3 Months", value: calcReturn(dailyData, 90) },
     { label: "YTD", value: calcYTDReturn(allData) },
     {
       label: "1 Year",
-      value: dailyData.length >= 252
-        ? calcReturn(dailyData, 252)
-        : calcReturn(monthlyData, 12),
+      value: calcReturn(dailyData, 365) ?? calcReturn(monthlyData, 365),
     },
     { label: "Since Inception", value: calcSinceInception(monthlyData) },
   ];

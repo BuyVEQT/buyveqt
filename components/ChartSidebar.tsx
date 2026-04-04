@@ -14,12 +14,18 @@ interface ChartSidebarProps {
 
 /* ── Return helpers (matches /today page logic exactly) ── */
 
-function calcReturn(data: HistoricalDataPoint[], tradingDaysBack: number): number | null {
+/** Calculate return by looking back a number of calendar days from the latest point. */
+function calcReturn(data: HistoricalDataPoint[], calendarDaysBack: number): number | null {
   if (data.length < 2) return null;
   const latest = data[data.length - 1];
-  const idx = Math.max(0, data.length - 1 - tradingDaysBack);
-  const earlier = data[idx];
-  if (!earlier || !latest || earlier.close <= 0) return null;
+  if (!latest || latest.close <= 0) return null;
+
+  const cutoff = new Date(latest.date + "T00:00:00");
+  cutoff.setDate(cutoff.getDate() - calendarDaysBack);
+  const cutoffStr = cutoff.toISOString().split("T")[0];
+
+  const earlier = data.find((d) => d.date >= cutoffStr);
+  if (!earlier || earlier.close <= 0) return null;
   return ((latest.close - earlier.close) / earlier.close) * 100;
 }
 
@@ -45,39 +51,27 @@ export default function ChartSidebar({
   quoteFetchedAt,
 }: ChartSidebarProps) {
   const [calcInput, setCalcInput] = useState(10000);
-  /* Compact daily data for accurate returns (same source as /today page) */
+  /* Full daily history — used for returns and inception calculator */
   const [dailyData, setDailyData] = useState<HistoricalDataPoint[]>([]);
-  /* Full history for inception price (calculator) */
   const [inceptionPrice, setInceptionPrice] = useState<number | null>(null);
   const [historyLoading, setHistoryLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
 
-    Promise.allSettled([
-      fetch("/api/history?symbol=VEQT&outputsize=compact").then((r) =>
-        r.ok ? r.json() : Promise.reject()
-      ),
-      fetch("/api/veqt?period=ALL").then((r) =>
-        r.ok ? r.json() : Promise.reject()
-      ),
-    ]).then(([compactResult, allResult]) => {
-      if (cancelled) return;
-      if (compactResult.status === "fulfilled") {
-        const points = (compactResult.value.data ?? []).map(
-          (d: { date: string; adjustedClose?: number; close: number }) => ({
-            date: d.date,
-            close: d.adjustedClose ?? d.close,
-          })
-        );
-        setDailyData(points);
-      }
-      if (allResult.status === "fulfilled") {
-        const hist = allResult.value.historical ?? [];
+    // Single fetch: ALL period gives us full history for both returns and inception
+    fetch("/api/veqt?period=ALL")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((data) => {
+        if (cancelled) return;
+        const hist: HistoricalDataPoint[] = data.historical ?? [];
+        setDailyData(hist);
         if (hist.length > 0) setInceptionPrice(hist[0].close);
-      }
-      setHistoryLoading(false);
-    });
+        setHistoryLoading(false);
+      })
+      .catch(() => {
+        if (!cancelled) setHistoryLoading(false);
+      });
 
     return () => { cancelled = true; };
   }, []);
@@ -89,11 +83,11 @@ export default function ChartSidebar({
 
   const perfMetrics = [
     { label: "1D", value: dayChange },
-    { label: "1W", value: calcReturn(dailyData, 5) },
-    { label: "1M", value: calcReturn(dailyData, 22) },
-    { label: "3M", value: calcReturn(dailyData, 66) },
+    { label: "1W", value: calcReturn(dailyData, 7) },
+    { label: "1M", value: calcReturn(dailyData, 30) },
+    { label: "3M", value: calcReturn(dailyData, 90) },
     { label: "YTD", value: calcYTD(dailyData) },
-    { label: "1Y", value: dailyData.length >= 252 ? calcReturn(dailyData, 252) : null },
+    { label: "1Y", value: calcReturn(dailyData, 365) },
   ];
   const currentPrice = quote?.price ?? 0;
   const calcResult =
