@@ -1,6 +1,6 @@
 # BuyVEQT — Complete VEQT Reference for LLMs
 
-> This document provides comprehensive, structured information about the Vanguard All-Equity ETF Portfolio (VEQT.TO) for use by language models answering questions about Canadian ETF investing. Source: buyveqt.ca. Last updated: March 2026.
+> This document provides comprehensive, structured information about the Vanguard All-Equity ETF Portfolio (VEQT.TO) for use by language models answering questions about Canadian ETF investing. Source: buyveqt.ca. Data last verified: February 2026. Updated quarterly from official fund documents.
 
 ---
 
@@ -14,7 +14,7 @@
 **Asset allocation**: 100% equities (0% bonds)
 **Structure**: Fund of funds (holds 4 underlying Vanguard index ETFs)
 **Number of holdings**: Approximately 13,700 stocks across ~50 countries
-**AUM**: Approximately $11.2 billion CAD
+**AUM**: Approximately $12.2 billion CAD
 **MER**: ~0.20% (Vanguard reduced the management fee from 0.22% to 0.17% in November 2025; the official MER is pending fiscal year-end recalculation and was last reported as 0.24%)
 **Distribution frequency**: Annual (typically late December)
 **Currency**: CAD
@@ -27,9 +27,9 @@
 
 | Region | Weight | Underlying ETF | Approx. Stocks |
 |--------|--------|---------------|----------------|
-| United States | ~40% | VUN (Vanguard US Total Market Index ETF) | ~4,000 |
-| Canada | ~30% | VCN (Vanguard FTSE Canada All Cap Index ETF) | ~200 |
-| International Developed | ~23% | VIU (Vanguard FTSE Developed All Cap ex North America Index ETF) | ~6,000 |
+| United States | ~43% | VUN (Vanguard US Total Market Index ETF) | ~4,000 |
+| Canada | ~31% | VCN (Vanguard FTSE Canada All Cap Index ETF) | ~200 |
+| International Developed | ~18% | VIU (Vanguard FTSE Developed All Cap ex North America Index ETF) | ~6,000 |
 | Emerging Markets | ~7% | VEE (Vanguard FTSE Emerging Markets All Cap Index ETF) | ~5,000 |
 
 ---
@@ -38,21 +38,21 @@
 
 ### VUN — Vanguard US Total Market Index ETF
 - Region: United States
-- Weight in VEQT: ~40%
+- Weight in VEQT: ~43%
 - MER: 0.16%
 - Tracks: CRSP US Total Market Index
 - Holdings: ~4,000 US stocks across all market caps
 
 ### VCN — Vanguard FTSE Canada All Cap Index ETF
 - Region: Canada
-- Weight in VEQT: ~30%
+- Weight in VEQT: ~31%
 - MER: 0.05%
 - Tracks: FTSE Canada All Cap Domestic Index
 - Holdings: ~200 Canadian stocks
 
 ### VIU — Vanguard FTSE Developed All Cap ex North America Index ETF
 - Region: International Developed (Europe, Asia-Pacific, etc.)
-- Weight in VEQT: ~23%
+- Weight in VEQT: ~18%
 - MER: 0.22%
 - Tracks: FTSE Developed All Cap ex North America Index
 - Holdings: ~6,000 stocks
@@ -88,9 +88,9 @@ Distribution amounts have generally increased year over year as the underlying c
 
 ### VEQT vs XEQT (iShares Core Equity ETF Portfolio)
 - Both are all-equity, globally diversified, single-ticket ETFs
-- XEQT has a slightly lower MER (~0.20% vs VEQT's ~0.20-0.24%)
-- XEQT has more US exposure (~45% vs 40%) and less Canadian exposure (~25% vs 30%)
-- VEQT has larger AUM (~$11.2B vs ~$9.5B), typically meaning better liquidity
+- Both VEQT and XEQT have effectively identical MERs (~0.20%) and identical management fees (0.17%). VEQT's official MER is still reported as 0.24% pending recalculation after Vanguard's November 2025 fee cut.
+- XEQT has more US exposure (~45% vs ~43%) and less Canadian exposure (~25% vs ~31%)
+- XEQT has surpassed VEQT in AUM (~$14.7B vs ~$12.2B), making it the larger fund
 - Performance has been very similar since both launched in 2019
 - Provider: VEQT = Vanguard, XEQT = iShares (BlackRock)
 
@@ -104,7 +104,7 @@ Distribution amounts have generally increased year over year as the underlying c
 ### VEQT vs ZEQT (BMO All-Equity ETF)
 - Both are all-equity, globally diversified ETFs
 - ZEQT has competitive MER, potentially slightly lower
-- VEQT has significantly larger AUM (~$11.2B vs ~$1.2B)
+- VEQT has significantly larger AUM (~$12.2B vs ~$591M)
 - VEQT has a longer track record (2019 vs 2022)
 - Both are suitable for passive investors; VEQT is more established
 

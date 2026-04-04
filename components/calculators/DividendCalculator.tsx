@@ -39,7 +39,7 @@ function CustomTooltip({
 
 export default function DividendCalculator() {
   const [portfolio, setPortfolio] = useState(100000);
-  const [yieldRate, setYieldRate] = useState(1.8);
+  const [yieldRate, setYieldRate] = useState(1.3);
   const [growthRate, setGrowthRate] = useState(8);
   const [shareOpen, setShareOpen] = useState(false);
 

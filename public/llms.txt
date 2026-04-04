@@ -2,12 +2,14 @@
 
 > BuyVEQT (buyveqt.ca) is a community-built informational resource for Canadian passive investors interested in the Vanguard All-Equity ETF Portfolio (VEQT.TO). The site provides live market data, fund comparisons, investment calculators, distribution history, and educational articles. It is not affiliated with Vanguard Investments Canada Inc.
 
+> Data last verified: February 2026. Updated quarterly from official fund documents.
+
 ## Key Facts About VEQT
 
 - **Full name**: Vanguard All-Equity ETF Portfolio
 - **Ticker**: VEQT.TO (Toronto Stock Exchange)
 - **MER**: ~0.20% (management fee reduced to 0.17% in Nov 2025; official MER pending fiscal year-end recalculation)
-- **AUM**: ~$11.2B CAD
+- **AUM**: ~$12.2B CAD
 - **Holdings**: ~13,700 stocks across ~50 countries
 - **Inception**: January 29, 2019
 - **Distribution frequency**: Annual (late December)
@@ -18,9 +20,9 @@
 
 | ETF | Region | Weight | MER |
 |-----|--------|--------|-----|
-| VUN | US Total Market | ~40% | 0.16% |
-| VCN | Canada All Cap | ~30% | 0.05% |
-| VIU | International Developed | ~23% | 0.22% |
+| VUN | US Total Market | ~43% | 0.16% |
+| VCN | Canada All Cap | ~31% | 0.05% |
+| VIU | International Developed | ~18% | 0.22% |
 | VEE | Emerging Markets | ~7% | 0.24% |
 
 ## Site Content

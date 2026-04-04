@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import PageShell from "@/components/layout/PageShell";
 import SectorChart from "@/components/inside/SectorChart";
-import { FUNDS } from "@/data/funds";
+import { FUNDS, FUND_DATA_LAST_UPDATED } from "@/data/funds";
 import { VEQT_TOP_HOLDINGS, TOP_HOLDINGS_TOTAL_WEIGHT } from "@/data/holdings";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { buildBreadcrumbSchema, canonicalUrl } from "@/lib/seo-config";
@@ -147,7 +147,9 @@ export default function InsideVeqtPage() {
           <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5">
             <SectorChart />
             <p className="text-[11px] text-[var(--color-text-muted)] mt-2">
-              Approximate sector weights based on most recent available data
+              Approximate sector weights. Portfolio data as of{" "}
+              {new Date(FUND_DATA_LAST_UPDATED + "T00:00:00").toLocaleDateString("en-CA", { year: "numeric", month: "short", day: "numeric" })}
+              . Source: Vanguard Canada.
             </p>
           </div>
         </section>

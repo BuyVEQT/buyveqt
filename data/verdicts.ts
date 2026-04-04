@@ -195,7 +195,7 @@ export const VERDICTS: ComparisonVerdict[] = [
         label: "Currency risk",
         winner: "VEQT",
         explanation:
-          "VFV is 100% exposed to USD/CAD fluctuations. VEQT's ~30% Canadian allocation provides a natural hedge. When the Canadian dollar strengthens, VFV holders feel it.",
+          "VFV is 100% exposed to USD/CAD fluctuations. VEQT's ~31% Canadian allocation provides a natural hedge. When the Canadian dollar strengthens, VFV holders feel it.",
       },
       {
         label: "Concentration risk",
@@ -207,7 +207,7 @@ export const VERDICTS: ComparisonVerdict[] = [
         label: "Canadian tax efficiency",
         winner: "VEQT",
         explanation:
-          "VEQT's Canadian equity allocation (~30%) receives eligible dividend treatment in taxable accounts. VFV's distributions are 100% foreign income. In registered accounts, the difference is minimal.",
+          "VEQT's Canadian equity allocation (~31%) receives eligible dividend treatment in taxable accounts. VFV's distributions are 100% foreign income. In registered accounts, the difference is minimal.",
       },
     ],
     recommendation:

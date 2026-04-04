@@ -33,6 +33,28 @@ export interface FundData {
   merFootnote?: string;
 }
 
+/**
+ * Fund data last verified: February 28, 2026
+ * Sources: Vanguard Canada fact sheets, BlackRock Canada fact sheets, BMO ETF Centre
+ *
+ * UPDATE SCHEDULE: Quarterly (next: ~May 2026)
+ *
+ * What to update each quarter:
+ * 1. Allocation percentages — from each fund's product page
+ * 2. Holdings count — from fact sheets
+ * 3. AUM — from product pages
+ * 4. Yield — from product pages
+ * 5. Sector weightings — from fact sheets
+ * 6. FUND_DATA_LAST_UPDATED constant below
+ *
+ * What to update only on announcement:
+ * - MER / management fee changes (add to footnote with effective date)
+ * - Distribution frequency changes
+ */
+
+/** ISO date of last fund data verification. Update quarterly. */
+export const FUND_DATA_LAST_UPDATED = "2026-02-28";
+
 export const FUNDS: Record<string, FundData> = {
   "VEQT.TO": {
     ticker: "VEQT.TO",
@@ -53,15 +75,15 @@ export const FUNDS: Record<string, FundData> = {
     whoThisSuits:
       "The original all-in-one equity ETF, built by the company that invented index investing. Broadest diversification (13,700+ holdings), market-cap-weighted global allocation, and backed by Vanguard's investor-owned structure.",
     geographyAllocation: [
-      { region: "United States", weight: 40, color: "#2563eb" },
-      { region: "Canada", weight: 30, color: "#dc2626" },
-      { region: "International Developed", weight: 23, color: "#16a34a" },
+      { region: "United States", weight: 43, color: "#2563eb" },
+      { region: "Canada", weight: 31, color: "#dc2626" },
+      { region: "International Developed", weight: 18, color: "#16a34a" },
       { region: "Emerging Markets", weight: 7, color: "#f59e0b" },
     ],
     underlyingETFs: [
-      { ticker: "VUN", name: "Vanguard US Total Market Index ETF", weight: 40, region: "United States" },
-      { ticker: "VCN", name: "Vanguard FTSE Canada All Cap Index ETF", weight: 30, region: "Canada" },
-      { ticker: "VIU", name: "Vanguard FTSE Developed All Cap ex North America Index ETF", weight: 23, region: "International" },
+      { ticker: "VUN", name: "Vanguard US Total Market Index ETF", weight: 43, region: "United States" },
+      { ticker: "VCN", name: "Vanguard FTSE Canada All Cap Index ETF", weight: 31, region: "Canada" },
+      { ticker: "VIU", name: "Vanguard FTSE Developed All Cap ex North America Index ETF", weight: 18, region: "International" },
       { ticker: "VEE", name: "Vanguard FTSE Emerging Markets All Cap Index ETF", weight: 7, region: "Emerging Markets" },
     ],
     chartColor: "#dc2626",
@@ -76,7 +98,7 @@ export const FUNDS: Record<string, FundData> = {
     mer: 0.20,
     aum: "$14.7B",
     inceptionDate: "2019-08-07",
-    numberOfHoldings: 9300,
+    numberOfHoldings: 8400,
     distributionFrequency: "Quarterly",
     currency: "CAD",
     exchangeListed: "TSX",
@@ -169,7 +191,7 @@ export const FUNDS: Record<string, FundData> = {
     ],
     chartColor: "#8b5cf6",
     merFootnote:
-      "Vanguard's November 2025 fee cuts applied to its asset allocation ETFs, including VGRO. The effective MER is expected to decrease from 0.24% to approximately 0.20%.",
+      "Vanguard reduced VGRO's management fee from 0.22% to 0.17% in November 2025. The official MER is still reported as 0.24% pending fiscal year-end recalculation. The effective MER is expected to be approximately 0.19%–0.20%.",
   },
   "XGRO.TO": {
     ticker: "XGRO.TO",
@@ -205,7 +227,7 @@ export const FUNDS: Record<string, FundData> = {
     ],
     chartColor: "#e11d48",
     merFootnote:
-      "XGRO has a management fee of 0.18% and an MER of 0.20% which includes operating expenses.",
+      "XGRO's management fee was reduced from 0.18% to 0.17% in December 2025. The MER of 0.20% includes operating expenses.",
   },
   "VFV.TO": {
     ticker: "VFV.TO",

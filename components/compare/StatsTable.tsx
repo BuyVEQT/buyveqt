@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { FUNDS } from "@/data/funds";
+import { FUNDS, FUND_DATA_LAST_UPDATED } from "@/data/funds";
 import type { DataSourceType } from "@/lib/types";
 import DataFreshness from "@/components/ui/DataFreshness";
 import StaleBanner from "@/components/ui/StaleBanner";
@@ -94,12 +94,6 @@ export default function StatsTable({ selectedFunds }: StatsTableProps) {
       highlight: "none",
     },
     {
-      label: "Dividend Yield",
-      getValue: (_, q) => q?.dividendYield != null ? `${q.dividendYield.toFixed(2)}%` : "\u2014",
-      highlight: "highest",
-      getNumericValue: (_, q) => q?.dividendYield ?? null,
-    },
-    {
       label: "YTD Return",
       getValue: (_, q) =>
         q?.ytdReturn != null
@@ -118,15 +112,6 @@ export default function StatsTable({ selectedFunds }: StatsTableProps) {
       getNumericValue: (_, q) => q?.oneYearReturn ?? null,
     },
     {
-      label: "Holdings",
-      getValue: (t) =>
-        FUNDS[t]?.numberOfHoldings
-          ? FUNDS[t].numberOfHoldings.toLocaleString() + "+"
-          : "\u2014",
-      highlight: "highest",
-      getNumericValue: (t) => FUNDS[t]?.numberOfHoldings ?? null,
-    },
-    {
       label: "Inception Date",
       getValue: (t) => {
         const d = FUNDS[t]?.inceptionDate;
@@ -142,11 +127,6 @@ export default function StatsTable({ selectedFunds }: StatsTableProps) {
         if (!f) return "\u2014";
         return `${f.equityAllocation}% / ${f.fixedIncomeAllocation}%`;
       },
-      highlight: "none",
-    },
-    {
-      label: "Distribution Freq.",
-      getValue: (t) => FUNDS[t]?.distributionFrequency ?? "\u2014",
       highlight: "none",
     },
   ];
@@ -209,7 +189,7 @@ export default function StatsTable({ selectedFunds }: StatsTableProps) {
                             : "text-[var(--color-text-primary)]"
                         }`}
                       >
-                        {loading && row.label !== "MER" && row.label !== "AUM" && row.label !== "Holdings" && row.label !== "Inception Date" && row.label !== "Equity / Fixed Income" && row.label !== "Distribution Freq." ? (
+                        {loading && row.label !== "MER" && row.label !== "AUM" && row.label !== "Inception Date" && row.label !== "Equity / Fixed Income" ? (
                           <div className="skeleton h-4 w-16" />
                         ) : (
                           value
@@ -224,7 +204,7 @@ export default function StatsTable({ selectedFunds }: StatsTableProps) {
         </table>
 
         {/* Data freshness footer */}
-        <div className="px-4 py-2 border-t border-[var(--color-border)]">
+        <div className="px-4 py-2 border-t border-[var(--color-border)] space-y-0.5">
           {!loading && lastUpdated ? (
             <DataFreshness source={displaySource} fetchedAt={oldestFetchedAt} />
           ) : (
@@ -232,6 +212,11 @@ export default function StatsTable({ selectedFunds }: StatsTableProps) {
               Live data from Alpha Vantage / Yahoo Finance
             </p>
           )}
+          <p className="text-[11px] text-[var(--color-text-muted)]">
+            Fund data as of{" "}
+            {new Date(FUND_DATA_LAST_UPDATED + "T00:00:00").toLocaleDateString("en-CA", { year: "numeric", month: "short", day: "numeric" })}
+            . Sources: Vanguard Canada, BlackRock Canada.
+          </p>
         </div>
       </div>
 

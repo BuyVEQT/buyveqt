@@ -15,7 +15,7 @@ export const COMPARISON_PAGES: Record<string, ComparisonPage> = {
     metaDescription:
       "Detailed comparison of VEQT and XEQT — Canada's two most popular all-equity ETFs. Compare MER, performance, holdings, and geographic allocation side by side.",
     intro:
-      "VEQT and XEQT are the two most popular all-equity ETFs in Canada. Both offer global diversification in a single purchase with effectively identical MERs (~0.20%). They differ mainly in geographic weighting: XEQT tilts more toward the US (45% vs 40%), while VEQT offers more Canadian exposure (30% vs 25%).",
+      "VEQT and XEQT are the two most popular all-equity ETFs in Canada. Both offer global diversification in a single purchase with effectively identical MERs (~0.20%). They differ mainly in geographic weighting: XEQT tilts more toward the US (~45% vs ~43%), while VEQT offers more Canadian exposure (~31% vs ~25%).",
     funds: ["VEQT.TO", "XEQT.TO"],
   },
   "veqt-vs-zeqt": {
