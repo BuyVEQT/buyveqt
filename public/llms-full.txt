@@ -1,6 +1,6 @@
 # BuyVEQT — Complete VEQT Reference for LLMs
 
-> This document provides comprehensive, structured information about the Vanguard All-Equity ETF Portfolio (VEQT.TO) for use by language models answering questions about Canadian ETF investing. Source: buyveqt.com. Last updated: March 2026.
+> This document provides comprehensive, structured information about the Vanguard All-Equity ETF Portfolio (VEQT.TO) for use by language models answering questions about Canadian ETF investing. Source: buyveqt.ca. Last updated: March 2026.
 
 ---
 
@@ -144,19 +144,19 @@ BuyVEQT is a community-built, unofficial informational resource. It is not affil
 
 **Live data sources**: Yahoo Finance (primary), Alpha Vantage (backup)
 **Static data**: Manually compiled from official fund documents and regulatory filings
-**Site**: https://www.buyveqt.com
+**Site**: https://www.buyveqt.ca
 **Community**: https://reddit.com/r/JustBuyVEQT
 
 ---
 
 ## Key URLs
 
-- Homepage: https://www.buyveqt.com
-- VEQT Today (live snapshot): https://www.buyveqt.com/today
-- Fund comparisons: https://www.buyveqt.com/compare
-- Historical return calculator: https://www.buyveqt.com/invest
-- Investment calculators: https://www.buyveqt.com/calculators
-- Distribution history: https://www.buyveqt.com/distributions
-- Inside VEQT (holdings breakdown): https://www.buyveqt.com/inside-veqt
-- Educational articles: https://www.buyveqt.com/learn
-- Methodology & data sources: https://www.buyveqt.com/methodology
+- Homepage: https://www.buyveqt.ca
+- VEQT Today (live snapshot): https://www.buyveqt.ca/today
+- Fund comparisons: https://www.buyveqt.ca/compare
+- Historical return calculator: https://www.buyveqt.ca/invest
+- Investment calculators: https://www.buyveqt.ca/calculators
+- Distribution history: https://www.buyveqt.ca/distributions
+- Inside VEQT (holdings breakdown): https://www.buyveqt.ca/inside-veqt
+- Educational articles: https://www.buyveqt.ca/learn
+- Methodology & data sources: https://www.buyveqt.ca/methodology

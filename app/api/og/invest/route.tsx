@@ -104,7 +104,7 @@ function CardShell({ children, badge }: { children: React.ReactNode; badge?: str
         }}
       >
         <div style={{ fontSize: 22, color: WHITE_50, display: "flex" }}>
-          Run your own numbers → buyveqt.com/invest
+          Run your own numbers → buyveqt.ca/invest
         </div>
         <div
           style={{
@@ -350,7 +350,7 @@ function FallbackCard() {
           display: "flex",
         }}
       >
-        Run your numbers at buyveqt.com/invest
+        Run your numbers at buyveqt.ca/invest
       </div>
     </div>
   );

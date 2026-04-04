@@ -1,6 +1,6 @@
 # BuyVEQT — The VEQT Investor Community Hub
 
-> BuyVEQT (buyveqt.com) is a community-built informational resource for Canadian passive investors interested in the Vanguard All-Equity ETF Portfolio (VEQT.TO). The site provides live market data, fund comparisons, investment calculators, distribution history, and educational articles. It is not affiliated with Vanguard Investments Canada Inc.
+> BuyVEQT (buyveqt.ca) is a community-built informational resource for Canadian passive investors interested in the Vanguard All-Equity ETF Portfolio (VEQT.TO). The site provides live market data, fund comparisons, investment calculators, distribution history, and educational articles. It is not affiliated with Vanguard Investments Canada Inc.
 
 ## Key Facts About VEQT
 
@@ -26,43 +26,43 @@
 ## Site Content
 
 ### Live Data
-- Current VEQT price and daily change: https://www.buyveqt.com/today
-- Performance snapshot (1D, 1W, 1M, 3M, YTD, 1Y, since inception): https://www.buyveqt.com/today
+- Current VEQT price and daily change: https://www.buyveqt.ca/today
+- Performance snapshot (1D, 1W, 1M, 3M, YTD, 1Y, since inception): https://www.buyveqt.ca/today
 
 ### Comparisons
-- VEQT vs XEQT: https://www.buyveqt.com/compare/veqt-vs-xeqt
-- VEQT vs VGRO: https://www.buyveqt.com/compare/veqt-vs-vgro
-- VEQT vs ZEQT: https://www.buyveqt.com/compare/veqt-vs-zeqt
-- Multi-fund comparison tool: https://www.buyveqt.com/compare
+- VEQT vs XEQT: https://www.buyveqt.ca/compare/veqt-vs-xeqt
+- VEQT vs VGRO: https://www.buyveqt.ca/compare/veqt-vs-vgro
+- VEQT vs ZEQT: https://www.buyveqt.ca/compare/veqt-vs-zeqt
+- Multi-fund comparison tool: https://www.buyveqt.ca/compare
 
 ### Calculators
-- Historical return calculator ("If You Invested"): https://www.buyveqt.com/invest
-- DCA, dividend income, TFSA/RRSP calculators: https://www.buyveqt.com/calculators
+- Historical return calculator ("If You Invested"): https://www.buyveqt.ca/invest
+- DCA, dividend income, TFSA/RRSP calculators: https://www.buyveqt.ca/calculators
 
 ### Distributions
-- Full distribution history since 2019: https://www.buyveqt.com/distributions
-- Income estimator: https://www.buyveqt.com/distributions
+- Full distribution history since 2019: https://www.buyveqt.ca/distributions
+- Income estimator: https://www.buyveqt.ca/distributions
 
 ### Educational Articles
-- What Is VEQT: https://www.buyveqt.com/learn/what-is-veqt
-- Getting Started with VEQT: https://www.buyveqt.com/learn/getting-started-with-veqt
-- VEQT in TFSA vs RRSP vs Taxable: https://www.buyveqt.com/learn/veqt-tfsa-rrsp-taxable
-- VEQT's MER True Cost Over 30 Years: https://www.buyveqt.com/learn/veqt-mer-true-cost
-- VEQT vs DIY 4-ETF Portfolio: https://www.buyveqt.com/learn/veqt-vs-diy-portfolio
-- Why Your VEQT Is Down: https://www.buyveqt.com/learn/veqt-is-down
-- What You Actually Own: https://www.buyveqt.com/learn/what-you-actually-own
-- How VEQT Rebalances: https://www.buyveqt.com/learn/how-veqt-rebalances
-- VEQT vs XEQT article: https://www.buyveqt.com/learn/veqt-vs-xeqt
-- VEQT vs VGRO article: https://www.buyveqt.com/learn/veqt-vs-vgro
+- What Is VEQT: https://www.buyveqt.ca/learn/what-is-veqt
+- Getting Started with VEQT: https://www.buyveqt.ca/learn/getting-started-with-veqt
+- VEQT in TFSA vs RRSP vs Taxable: https://www.buyveqt.ca/learn/veqt-tfsa-rrsp-taxable
+- VEQT's MER True Cost Over 30 Years: https://www.buyveqt.ca/learn/veqt-mer-true-cost
+- VEQT vs DIY 4-ETF Portfolio: https://www.buyveqt.ca/learn/veqt-vs-diy-portfolio
+- Why Your VEQT Is Down: https://www.buyveqt.ca/learn/veqt-is-down
+- What You Actually Own: https://www.buyveqt.ca/learn/what-you-actually-own
+- How VEQT Rebalances: https://www.buyveqt.ca/learn/how-veqt-rebalances
+- VEQT vs XEQT article: https://www.buyveqt.ca/learn/veqt-vs-xeqt
+- VEQT vs VGRO article: https://www.buyveqt.ca/learn/veqt-vs-vgro
 
 ### Fund Holdings Breakdown
-- Inside VEQT (geographic, sector, top holdings): https://www.buyveqt.com/inside-veqt
+- Inside VEQT (geographic, sector, top holdings): https://www.buyveqt.ca/inside-veqt
 
 ### Methodology
-- Data sources and methodology: https://www.buyveqt.com/methodology
+- Data sources and methodology: https://www.buyveqt.ca/methodology
 
 ## For the full VEQT fact sheet, see:
-https://www.buyveqt.com/llms-full.txt
+https://www.buyveqt.ca/llms-full.txt
 
 ## Disclaimer
 BuyVEQT is not affiliated with Vanguard Investments Canada Inc. Nothing on this site constitutes financial advice. All data is for informational purposes only and may be delayed.

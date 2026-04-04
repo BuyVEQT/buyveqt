@@ -100,7 +100,7 @@ export default async function OGImage() {
             color: "#6b7280",
           }}
         >
-          buyveqt.com
+          buyveqt.ca
         </div>
       </div>
     ),

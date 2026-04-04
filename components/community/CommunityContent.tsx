@@ -32,7 +32,7 @@ export async function fetchRedditClient(
     const url = `https://www.reddit.com/r/JustBuyVEQT/${sort}.json?limit=${limit}&raw_json=1`;
 
     const res = await fetch(url, {
-      headers: { "User-Agent": "buyveqt.com/1.0" },
+      headers: { "User-Agent": "buyveqt.ca/1.0" },
     });
 
     if (!res.ok) {
@@ -78,7 +78,7 @@ async function fetchStatsClient(): Promise<SubredditStats | null> {
   try {
     const res = await fetch(
       "https://www.reddit.com/r/JustBuyVEQT/about.json",
-      { headers: { "User-Agent": "buyveqt.com/1.0" } }
+      { headers: { "User-Agent": "buyveqt.ca/1.0" } }
     );
     if (!res.ok) {
       console.warn(`[Reddit] Client stats fetch failed: HTTP ${res.status}`);

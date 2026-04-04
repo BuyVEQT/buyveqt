@@ -1,4 +1,4 @@
-export const SITE_URL = 'https://www.buyveqt.com';
+export const SITE_URL = 'https://www.buyveqt.ca';
 export const SITE_NAME = 'BuyVEQT';
 export const SITE_DESCRIPTION =
   'The community hub for VEQT investors. Live data, fund comparisons, and educational content for Canadian passive investors.';

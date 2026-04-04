@@ -66,7 +66,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   const pageUrl = `${SITE_URL}/invest?${ogParams.toString()}`;
 
   let title = "VEQT Calculator Results";
-  let description = "See my VEQT investment calculator results at buyveqt.com";
+  let description = "See my VEQT investment calculator results at buyveqt.ca";
 
   const g = (key: string) => (typeof sp[key] === "string" ? sp[key] as string : "");
 
