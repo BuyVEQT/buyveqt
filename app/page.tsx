@@ -50,7 +50,6 @@ export default function Home() {
             </div>
             <ChartSidebar
               quote={data?.quote ?? null}
-              historical={data?.historical ?? []}
               loading={loading}
               quoteSource={data?.quoteSource}
               quoteFetchedAt={data?.quoteFetchedAt}
