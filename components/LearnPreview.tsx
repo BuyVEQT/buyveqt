@@ -30,7 +30,7 @@ export default function LearnPreview() {
               <span className="inline-block text-[10px] font-semibold uppercase tracking-widest text-[var(--color-brand)] mb-2">
                 Our Take
               </span>
-              <h3 className="font-serif text-lg sm:text-xl font-normal text-[var(--color-text-primary)] group-hover:text-[var(--color-brand)] transition-colors leading-snug">
+              <h3 className="font-serif text-lg sm:text-xl font-medium text-[var(--color-text-primary)] group-hover:text-[var(--color-brand)] transition-colors leading-snug">
                 {featured.title}
               </h3>
               <p className="text-sm text-[var(--color-text-muted)] mt-3 leading-relaxed">
@@ -51,7 +51,7 @@ export default function LearnPreview() {
               href={`/learn/${article.slug}`}
               className="group card-editorial p-5 flex-1"
             >
-              <h3 className="font-serif text-base font-normal text-[var(--color-text-primary)] group-hover:text-[var(--color-brand)] transition-colors leading-snug">
+              <h3 className="text-sm font-semibold text-[var(--color-text-primary)] group-hover:text-[var(--color-brand)] transition-colors leading-snug">
                 {article.title}
               </h3>
               <p className="text-sm text-[var(--color-text-muted)] mt-2.5 leading-relaxed">

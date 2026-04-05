@@ -27,6 +27,30 @@
   --font-serif: var(--font-newsreader, "Newsreader"), "Georgia", "Times New Roman", serif;
 }
 
+/* ── Light mode — explicit overrides for reliability ──────── */
+
+:root,
+[data-theme="light"] {
+  --color-base: #f7f5f0;
+  --color-base-warm: #f0ece4;
+  --color-card: #ffffff;
+  --color-card-hover: #faf8f4;
+  --color-border: #ddd8cf;
+  --color-border-light: #cbc5b9;
+  --color-text-primary: #111827;
+  --color-text-secondary: #1f2937;
+  --color-text-muted: #4b5563;
+  --color-positive: #1a7a4c;
+  --color-positive-bg: rgba(26, 122, 76, 0.07);
+  --color-negative: #b91c3a;
+  --color-negative-bg: rgba(185, 28, 58, 0.07);
+  --color-brand: #9b1b30;
+  --color-brand-dark: #7a1526;
+  --color-chart-line: #1a365d;
+  --color-chart-fill: rgba(26, 54, 93, 0.06);
+  --color-accent: #a67c2e;
+}
+
 /* ── Dark mode ─────────────────────────────────────────────── */
 
 [data-theme="dark"] {

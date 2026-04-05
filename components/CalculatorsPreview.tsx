@@ -33,7 +33,7 @@ export default function CalculatorsPreview() {
       <div className="flex items-center justify-between mb-5">
         <div>
           <p className="section-label mb-1">Tools</p>
-          <h2 className="font-serif text-xl font-normal text-[var(--color-text-primary)]">
+          <h2 className="font-serif text-xl font-medium text-[var(--color-text-primary)]">
             Calculators
           </h2>
         </div>
@@ -52,7 +52,7 @@ export default function CalculatorsPreview() {
             href={`/invest${calc.tab}`}
             className="group card-editorial p-5"
           >
-            <h3 className="font-serif text-base font-normal text-[var(--color-text-primary)] group-hover:text-[var(--color-brand)] transition-colors">
+            <h3 className="text-sm font-semibold text-[var(--color-text-primary)] group-hover:text-[var(--color-brand)] transition-colors">
               {calc.title}
             </h3>
             <p className="text-sm text-[var(--color-text-muted)] mt-2 leading-relaxed">

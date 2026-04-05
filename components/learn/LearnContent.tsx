@@ -81,7 +81,7 @@ function ExpandableSection({ section }: { section: SectionData }) {
           {section.icon}
         </div>
         <div>
-          <h2 className="font-serif text-xl font-normal text-[var(--color-text-primary)]">
+          <h2 className="font-serif text-xl font-medium text-[var(--color-text-primary)]">
             {section.heading}
           </h2>
           <p className="mt-0.5 text-sm text-[var(--color-text-muted)]">

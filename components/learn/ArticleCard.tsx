@@ -63,7 +63,7 @@ export default function ArticleCard({
               )}
             </div>
 
-            <h3 className="font-serif text-xl sm:text-2xl font-normal text-[var(--color-text-primary)] group-hover:text-[var(--color-brand)] transition-colors leading-snug">
+            <h3 className="font-serif text-xl sm:text-2xl font-medium text-[var(--color-text-primary)] group-hover:text-[var(--color-brand)] transition-colors leading-snug">
               {article.title}
             </h3>
 
@@ -116,7 +116,7 @@ export default function ArticleCard({
       </div>
 
       <h3
-        className="font-serif text-base font-normal text-[var(--color-text-primary)] group-hover:text-[var(--color-brand)] transition-colors leading-snug"
+        className="text-sm font-semibold text-[var(--color-text-primary)] group-hover:text-[var(--color-brand)] transition-colors leading-snug"
       >
         {article.title}
       </h3>

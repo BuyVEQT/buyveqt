@@ -36,7 +36,7 @@ export default function BottomLine({ slug, fundA, fundB, className }: BottomLine
 
   return (
     <section className={`mt-8 pt-8 border-t border-[var(--color-border)] ${className ?? ""}`}>
-      <h2 className="text-xl font-serif font-normal text-[var(--color-text-primary)] mb-4">
+      <h2 className="text-xl font-serif font-medium text-[var(--color-text-primary)] mb-4">
         The Bottom Line
       </h2>
 

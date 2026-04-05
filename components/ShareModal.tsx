@@ -253,7 +253,7 @@ export default function ShareModal({ tab, params, isOpen, onClose }: ShareModalP
           </svg>
         </button>
 
-        <h2 className="text-lg font-serif font-normal text-[var(--color-text-primary)] mb-4">
+        <h2 className="text-lg font-serif font-medium text-[var(--color-text-primary)] mb-4">
           Share Results
         </h2>
 

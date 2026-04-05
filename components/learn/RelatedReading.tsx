@@ -46,7 +46,7 @@ export default function RelatedReading({
     <div
       className={`mt-10 pt-8 border-t border-[var(--color-border)] ${className ?? ""}`}
     >
-      <h2 className="font-serif text-lg font-normal text-[var(--color-text-primary)] mb-4">
+      <h2 className="font-serif text-lg font-medium text-[var(--color-text-primary)] mb-4">
         Continue Reading
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -56,7 +56,7 @@ export default function RelatedReading({
             href={`/learn/${article.slug}`}
             className="group card-editorial p-4"
           >
-            <h3 className="font-serif text-sm font-normal text-[var(--color-text-primary)] group-hover:text-[var(--color-brand)] transition-colors leading-snug line-clamp-2">
+            <h3 className="text-sm font-semibold text-[var(--color-text-primary)] group-hover:text-[var(--color-brand)] transition-colors leading-snug line-clamp-2">
               {article.title}
             </h3>
             <p className="mt-1.5 text-xs text-[var(--color-text-muted)] leading-relaxed line-clamp-2">
