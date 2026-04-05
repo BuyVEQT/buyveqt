@@ -29,7 +29,7 @@ export async function getRedditPosts(
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), REDDIT_FETCH_TIMEOUT);
 
-    let url = `https://old.reddit.com/r/${SUBREDDIT}/${sort}.json?limit=${limit}&raw_json=1`;
+    let url = `https://www.reddit.com/r/${SUBREDDIT}/${sort}.json?limit=${limit}&raw_json=1`;
     if (sort === 'top' && timeFilter) {
       url += `&t=${timeFilter}`;
     }
@@ -79,7 +79,7 @@ export async function getSubredditStats(): Promise<SubredditStats | null> {
     const timeout = setTimeout(() => controller.abort(), REDDIT_FETCH_TIMEOUT);
 
     const response = await fetch(
-      `https://old.reddit.com/r/${SUBREDDIT}/about.json`,
+      `https://www.reddit.com/r/${SUBREDDIT}/about.json`,
       {
         signal: controller.signal,
         headers: {
