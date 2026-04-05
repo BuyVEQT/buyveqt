@@ -33,7 +33,6 @@ function fmtDate(raw: string): string {
 type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
-  // Expand short param keys (t→tab, r→result, etc.) so both short and long URLs work
   const sp = expandParams(await searchParams);
   const tab = typeof sp.tab === "string" ? sp.tab : null;
   const hasResult =
@@ -55,14 +54,11 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
     };
   }
 
-  // Build the OG image URL forwarding all params
   const ogParams = new URLSearchParams();
   for (const [k, v] of Object.entries(sp)) {
     if (typeof v === "string") ogParams.set(k, v);
   }
   const ogImageUrl = `${SITE_URL}/api/og/invest?${ogParams.toString()}`;
-
-  // Build URL with params for canonical
   const pageUrl = `${SITE_URL}/invest?${ogParams.toString()}`;
 
   let title = "VEQT Calculator Results";
@@ -157,25 +153,43 @@ export default async function InvestPage() {
           },
         }}
       />
-      <main className="flex-1 mx-auto w-full max-w-4xl px-4 py-8">
-        <div className="mb-6">
-          <h1 className="text-2xl sm:text-3xl font-serif font-normal text-[var(--color-text-primary)]">
+      <main className="flex-1 mx-auto w-full max-w-6xl px-4 py-10">
+        {/* Editorial hero */}
+        <div className="mb-10">
+          <p className="section-label mb-3">Investment Tools</p>
+          <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-normal text-[var(--color-text-primary)] leading-[1.1] max-w-2xl">
             VEQT Calculators
           </h1>
-          <p className="mt-2 text-[var(--color-text-muted)] max-w-prose">
+          <p className="mt-4 text-[var(--color-text-secondary)] max-w-xl leading-relaxed">
             Four tools to help you plan, visualize, and understand your VEQT
-            investment.
+            investment. Powered by real historical data.
           </p>
+          {/* Stats bar */}
+          <div className="mt-5 flex items-center gap-5 text-xs text-[var(--color-text-muted)]">
+            <span className="flex items-center gap-1.5">
+              <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" className="text-[var(--color-accent)]">
+                <path d="M8 2a.75.75 0 01.75.75v4.5h4.5a.75.75 0 010 1.5h-4.5v4.5a.75.75 0 01-1.5 0v-4.5h-4.5a.75.75 0 010-1.5h4.5v-4.5A.75.75 0 018 2z" />
+              </svg>
+              4 calculators
+            </span>
+            <span className="text-[var(--color-border)]">&middot;</span>
+            <span>Real VEQT prices since 2019</span>
+            <span className="text-[var(--color-border)]">&middot;</span>
+            <span>Free, no signup</span>
+          </div>
         </div>
 
         <CalculatorTabs history={historyResult} />
 
-        <p className="text-[11px] text-[var(--color-text-muted)] mt-8 max-w-prose">
-          These calculators use simplified assumptions for illustration purposes.
-          They do not account for all fees, taxes, inflation, or market
-          volatility. Past performance does not guarantee future results. Not
-          financial advice.
-        </p>
+        {/* Disclaimer */}
+        <div className="card-editorial p-4 mt-10">
+          <p className="text-[11px] text-[var(--color-text-muted)] leading-relaxed max-w-prose">
+            These calculators use simplified assumptions for illustration purposes.
+            They do not account for all fees, taxes, inflation, or market
+            volatility. Past performance does not guarantee future results. Not
+            financial advice.
+          </p>
+        </div>
       </main>
     </PageShell>
   );
