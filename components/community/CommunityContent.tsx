@@ -22,119 +22,6 @@ function timeAgo(isoString: string): string {
   return `${months}mo ago`;
 }
 
-/** Direct browser-to-Reddit fetch (bypasses Vercel IP blocks) */
-async function fetchRedditDirect(
-  sort: string,
-  limit: number = 12
-): Promise<RedditPost[]> {
-  try {
-    let url = `https://old.reddit.com/r/JustBuyVEQT/${sort}.json?limit=${limit}&raw_json=1`;
-    if (sort === "top") url += "&t=all";
-
-    const res = await fetch(url, {
-      headers: { Accept: "application/json" },
-    });
-    if (!res.ok) return [];
-
-    const json = await res.json();
-    return (json?.data?.children || [])
-      .filter(
-        (c: Record<string, Record<string, unknown>>) => !c.data.stickied
-      )
-      .map((c: Record<string, Record<string, unknown>>) => {
-        const d = c.data;
-        return {
-          id: d.id as string,
-          title: d.title as string,
-          author: d.author as string,
-          createdAt: new Date(
-            (d.created_utc as number) * 1000
-          ).toISOString(),
-          score: d.score as number,
-          commentCount: d.num_comments as number,
-          permalink: `https://www.reddit.com${d.permalink as string}`,
-          flair: (d.link_flair_text as string) || null,
-          isSelf: d.is_self as boolean,
-          isStickied: false,
-        };
-      });
-  } catch {
-    return [];
-  }
-}
-
-async function fetchStatsDirect(): Promise<SubredditStats | null> {
-  try {
-    const res = await fetch(
-      "https://old.reddit.com/r/JustBuyVEQT/about.json",
-      { headers: { Accept: "application/json" } }
-    );
-    if (!res.ok) return null;
-    const json = await res.json();
-    const data = json?.data;
-    if (!data) return null;
-    return {
-      subscribers: (data.subscribers as number) ?? 0,
-      activeUsers: (data.accounts_active as number) ?? null,
-    };
-  } catch {
-    return null;
-  }
-}
-
-/** Merge hot + top/all to ensure 10+ posts for low-activity subs */
-function mergePosts(hot: RedditPost[], topAll: RedditPost[]): RedditPost[] {
-  const seen = new Set<string>();
-  const result: RedditPost[] = [];
-  for (const post of [...hot, ...topAll]) {
-    if (!seen.has(post.id)) {
-      seen.add(post.id);
-      result.push(post);
-    }
-    if (result.length >= 10) break;
-  }
-  return result;
-}
-
-/**
- * Fetch Reddit posts — tries API proxy first, falls back to direct browser fetch.
- * The proxy runs on Vercel (blocked by Reddit), so the direct fallback is critical.
- */
-export async function fetchRedditApi(): Promise<{
-  posts: Record<string, RedditPost[]>;
-  stats: SubredditStats | null;
-}> {
-  // Tier 1: Try our API proxy (works if Vercel cache is warm)
-  try {
-    const res = await fetch("/api/reddit");
-    if (res.ok) {
-      const data = await res.json();
-      const hasPosts =
-        (data.posts?.trending?.length ?? 0) > 0 ||
-        (data.posts?.new?.length ?? 0) > 0;
-      if (hasPosts) return data;
-    }
-  } catch {
-    // fall through to direct fetch
-  }
-
-  // Tier 2: Direct browser-to-Reddit fetch (visitor IP not blocked)
-  const [hot, fresh, topAll, stats] = await Promise.all([
-    fetchRedditDirect("hot"),
-    fetchRedditDirect("new"),
-    fetchRedditDirect("top"),
-    fetchStatsDirect(),
-  ]);
-
-  return {
-    posts: {
-      trending: mergePosts(hot, topAll),
-      new: fresh.slice(0, 10),
-    },
-    stats,
-  };
-}
-
 interface CommunityContentProps {
   hotPosts: RedditPost[];
   newPosts: RedditPost[];
@@ -156,7 +43,7 @@ export default function CommunityContent({
   );
   const [loading, setLoading] = useState(false);
 
-  // Client-side fallback when all server feeds are empty (Reddit blocks Vercel IPs)
+  // Client-side fallback when server feeds are empty (Reddit blocks Vercel IPs)
   const serverEmpty = serverHot.length === 0 && serverNew.length === 0;
 
   useEffect(() => {
@@ -165,15 +52,26 @@ export default function CommunityContent({
     let cancelled = false;
     setLoading(true);
 
-    fetchRedditApi().then(({ posts, stats }) => {
-      if (cancelled) return;
-      setClientFeeds({
-        trending: posts.trending || [],
-        new: posts.new || [],
+    // Fetch from our API proxy which has RSS fallback built in
+    fetch("/api/reddit")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (cancelled || !data) return;
+        const hasPosts =
+          (data.posts?.trending?.length ?? 0) > 0 ||
+          (data.posts?.new?.length ?? 0) > 0;
+        if (hasPosts) {
+          setClientFeeds({
+            trending: data.posts.trending || [],
+            new: data.posts.new || [],
+          });
+        }
+        if (data.stats) setClientStats(data.stats);
+        setLoading(false);
+      })
+      .catch(() => {
+        if (!cancelled) setLoading(false);
       });
-      if (stats) setClientStats(stats);
-      setLoading(false);
-    });
 
     return () => {
       cancelled = true;
@@ -181,6 +79,9 @@ export default function CommunityContent({
   }, [serverEmpty]);
 
   const posts = clientFeeds[activeTab];
+
+  // Check if scores are available (RSS fallback returns score=0 for all posts)
+  const hasScores = posts.some((p) => p.score > 0);
 
   return (
     <>
@@ -208,7 +109,6 @@ export default function CommunityContent({
         <div className="space-y-4 py-4">
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="flex items-start gap-4">
-              <div className="skeleton h-8 w-12 shrink-0" />
               <div className="flex-1 space-y-2">
                 <div className="skeleton h-4 w-full" />
                 <div className="skeleton h-3 w-48" />
@@ -226,29 +126,31 @@ export default function CommunityContent({
               rel="noopener noreferrer"
               className="group flex items-start gap-4 py-4 first:pt-0"
             >
-              {/* Score */}
-              <div className="shrink-0 w-12 text-center pt-0.5">
-                <div
-                  className={`text-sm font-bold tabular-nums ${
-                    post.score >= 10
-                      ? "text-[var(--color-positive)]"
-                      : "text-[var(--color-text-muted)]"
-                  }`}
-                >
-                  {post.score >= 1000
-                    ? `${(post.score / 1000).toFixed(1)}k`
-                    : post.score}
+              {/* Score — only show when we have real score data */}
+              {hasScores && (
+                <div className="shrink-0 w-12 text-center pt-0.5">
+                  <div
+                    className={`text-sm font-bold tabular-nums ${
+                      post.score >= 10
+                        ? "text-[var(--color-positive)]"
+                        : "text-[var(--color-text-muted)]"
+                    }`}
+                  >
+                    {post.score >= 1000
+                      ? `${(post.score / 1000).toFixed(1)}k`
+                      : post.score}
+                  </div>
+                  <svg
+                    viewBox="0 0 16 16"
+                    width="10"
+                    height="10"
+                    fill="currentColor"
+                    className="mx-auto text-[var(--color-text-muted)]"
+                  >
+                    <path d="M8 2l5 6H9v6H7V8H3l5-6z" />
+                  </svg>
                 </div>
-                <svg
-                  viewBox="0 0 16 16"
-                  width="10"
-                  height="10"
-                  fill="currentColor"
-                  className="mx-auto text-[var(--color-text-muted)]"
-                >
-                  <path d="M8 2l5 6H9v6H7V8H3l5-6z" />
-                </svg>
-              </div>
+              )}
 
               {/* Content */}
               <div className="flex-1 min-w-0">
@@ -264,17 +166,19 @@ export default function CommunityContent({
                 </div>
                 <div className="flex items-center gap-3 mt-1.5 text-xs text-[var(--color-text-muted)]">
                   <span>u/{post.author}</span>
-                  <span className="flex items-center gap-0.5">
-                    <svg
-                      viewBox="0 0 16 16"
-                      width="12"
-                      height="12"
-                      fill="currentColor"
-                    >
-                      <path d="M2 2h12a1 1 0 011 1v8a1 1 0 01-1 1H5l-3 3V3a1 1 0 011-1z" />
-                    </svg>
-                    {post.commentCount} comments
-                  </span>
+                  {post.commentCount > 0 && (
+                    <span className="flex items-center gap-0.5">
+                      <svg
+                        viewBox="0 0 16 16"
+                        width="12"
+                        height="12"
+                        fill="currentColor"
+                      >
+                        <path d="M2 2h12a1 1 0 011 1v8a1 1 0 01-1 1H5l-3 3V3a1 1 0 011-1z" />
+                      </svg>
+                      {post.commentCount} comments
+                    </span>
+                  )}
                   <span>{timeAgo(post.createdAt)}</span>
                 </div>
               </div>
@@ -286,8 +190,8 @@ export default function CommunityContent({
         <div className="text-center py-16">
           <p className="text-[var(--color-text-muted)] mb-3">
             {activeTab === "trending"
-              ? "Couldn't load posts right now."
-              : "No posts yet — be the first to start a discussion!"}
+              ? "Couldn\u2019t load posts right now."
+              : "No posts yet \u2014 be the first to start a discussion!"}
           </p>
           <a
             href={
@@ -300,8 +204,8 @@ export default function CommunityContent({
             className="text-sm font-medium text-[var(--color-brand)] hover:text-[var(--color-brand-dark)] transition-colors"
           >
             {activeTab === "trending"
-              ? "Visit r/JustBuyVEQT directly →"
-              : "Start a discussion on Reddit →"}
+              ? "Visit r/JustBuyVEQT directly \u2192"
+              : "Start a discussion on Reddit \u2192"}
           </a>
         </div>
       )}

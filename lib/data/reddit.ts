@@ -20,11 +20,54 @@ const SUBREDDIT = 'JustBuyVEQT';
 const REDDIT_FETCH_TIMEOUT = 8000;
 const REDDIT_USER_AGENT = 'BuyVEQT/1.0 (community site; buyveqt.ca)';
 
+/* ── RSS fallback via rss2json (not blocked by Reddit) ────── */
+interface Rss2JsonItem {
+  title: string;
+  pubDate: string;
+  link: string;
+  guid: string;
+  author: string;
+}
+
+async function getRedditPostsRss(sort: string): Promise<RedditPost[]> {
+  try {
+    const rssUrl = `https://www.reddit.com/r/${SUBREDDIT}/${sort}.rss`;
+    const res = await fetch(
+      `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`,
+      { next: { revalidate: 600 } }
+    );
+    if (!res.ok) return [];
+
+    const json = await res.json();
+    if (json.status !== 'ok' || !json.items?.length) return [];
+
+    return (json.items as Rss2JsonItem[]).map((item) => {
+      const idMatch = item.guid?.match(/t3_(\w+)/);
+      const authorClean = item.author?.replace(/^\/u\//, '') || 'unknown';
+      return {
+        id: idMatch ? idMatch[1] : item.guid || Math.random().toString(36),
+        title: item.title,
+        author: authorClean,
+        createdAt: new Date(item.pubDate).toISOString(),
+        score: 0,
+        commentCount: 0,
+        permalink: item.link,
+        flair: null,
+        isSelf: true,
+        isStickied: false,
+      };
+    });
+  } catch {
+    return [];
+  }
+}
+
 export async function getRedditPosts(
   sort: 'hot' | 'new' | 'top' = 'hot',
   limit: number = 8,
   timeFilter?: 'hour' | 'day' | 'week' | 'month' | 'year' | 'all'
 ): Promise<RedditPost[]> {
+  // Tier 1: Reddit JSON API (may be blocked on Vercel)
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), REDDIT_FETCH_TIMEOUT);
@@ -45,32 +88,37 @@ export async function getRedditPosts(
 
     clearTimeout(timeout);
 
-    if (!response.ok) return [];
+    if (response.ok) {
+      const json = await response.json();
+      const posts = json?.data?.children || [];
 
-    const json = await response.json();
-    const posts = json?.data?.children || [];
+      const result = posts
+        .map((child: Record<string, Record<string, unknown>>) => {
+          const d = child.data;
+          return {
+            id: d.id as string,
+            title: d.title as string,
+            author: d.author as string,
+            createdAt: new Date((d.created_utc as number) * 1000).toISOString(),
+            score: d.score as number,
+            commentCount: d.num_comments as number,
+            permalink: `https://www.reddit.com${d.permalink as string}`,
+            flair: (d.link_flair_text as string) || null,
+            isSelf: d.is_self as boolean,
+            isStickied: d.stickied as boolean,
+          };
+        })
+        .filter((post: RedditPost) => !post.isStickied);
 
-    return posts
-      .map((child: Record<string, Record<string, unknown>>) => {
-        const d = child.data;
-        return {
-          id: d.id as string,
-          title: d.title as string,
-          author: d.author as string,
-          createdAt: new Date((d.created_utc as number) * 1000).toISOString(),
-          score: d.score as number,
-          commentCount: d.num_comments as number,
-          permalink: `https://www.reddit.com${d.permalink as string}`,
-          flair: (d.link_flair_text as string) || null,
-          isSelf: d.is_self as boolean,
-          isStickied: d.stickied as boolean,
-        };
-      })
-      .filter((post: RedditPost) => !post.isStickied);
-  } catch (error) {
-    console.warn('[Reddit] Failed to fetch posts:', error);
-    return [];
+      if (result.length > 0) return result;
+    }
+  } catch {
+    // fall through to RSS
   }
+
+  // Tier 2: RSS via rss2json (Reddit blocks Vercel IPs, rss2json is not blocked)
+  console.info(`[Reddit] JSON fetch failed for ${sort}, falling back to RSS`);
+  return getRedditPostsRss(sort);
 }
 
 export async function getSubredditStats(): Promise<SubredditStats | null> {

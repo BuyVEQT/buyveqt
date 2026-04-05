@@ -25,8 +25,8 @@ let statsCache: CacheEntry<SubredditStats | null> = {
 const POSTS_TTL = 5 * 60_000; // 5 min
 const STATS_TTL = 30 * 60_000; // 30 min
 
-/* ── Fetch helpers ───────────────────────────────────────── */
-async function fetchPosts(
+/* ── Reddit JSON fetch (may be blocked by Reddit on Vercel) ── */
+async function fetchPostsJson(
   sort: string,
   limit: number,
   timeFilter?: string
@@ -75,13 +75,55 @@ async function fetchPosts(
   }
 }
 
+/* ── RSS fallback via rss2json (not blocked by Reddit) ────── */
+interface Rss2JsonItem {
+  title: string;
+  pubDate: string;
+  link: string;
+  guid: string;
+  author: string;
+}
+
+async function fetchPostsRss(sort: string): Promise<RedditPost[]> {
+  try {
+    const rssUrl = `https://www.reddit.com/r/${SUBREDDIT}/${sort}.rss`;
+    const res = await fetch(
+      `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`,
+      { cache: 'no-store' }
+    );
+    if (!res.ok) return [];
+
+    const json = await res.json();
+    if (json.status !== 'ok' || !json.items?.length) return [];
+
+    return (json.items as Rss2JsonItem[]).map((item) => {
+      const idMatch = item.guid?.match(/t3_(\w+)/);
+      const authorClean = item.author?.replace(/^\/u\//, '') || 'unknown';
+      return {
+        id: idMatch ? idMatch[1] : item.guid || Math.random().toString(36),
+        title: item.title,
+        author: authorClean,
+        createdAt: new Date(item.pubDate).toISOString(),
+        score: 0,
+        commentCount: 0,
+        permalink: item.link,
+        flair: null,
+        isSelf: true,
+        isStickied: false,
+      };
+    });
+  } catch {
+    return [];
+  }
+}
+
 async function fetchStats(): Promise<SubredditStats | null> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REDDIT_TIMEOUT);
 
   try {
     const res = await fetch(
-      `https://www.reddit.com/r/${SUBREDDIT}/about.json`,
+      `https://old.reddit.com/r/${SUBREDDIT}/about.json`,
       {
         signal: controller.signal,
         headers: { 'User-Agent': UA, 'Accept': 'application/json' },
@@ -119,33 +161,48 @@ export async function GET() {
     );
   }
 
-  // Fetch fresh data — try hot + new + top/all as fallback
+  // Tier 1: Try Reddit JSON API directly
   const [hot, fresh, topAll] = await Promise.all([
-    fetchPosts('hot', 12),
-    fetchPosts('new', 12),
-    fetchPosts('top', 12, 'all'),
+    fetchPostsJson('hot', 12),
+    fetchPostsJson('new', 12),
+    fetchPostsJson('top', 12, 'all'),
   ]);
 
-  // For "trending" tab: prefer hot, backfill with top/all to always have 10+
-  const seenIds = new Set<string>();
-  const trending: RedditPost[] = [];
-  for (const post of [...hot, ...topAll]) {
-    if (!seenIds.has(post.id)) {
-      seenIds.add(post.id);
-      trending.push(post);
+  let trending: RedditPost[] = [];
+  let newFeed: RedditPost[] = [];
+  const gotJsonData = hot.length > 0 || fresh.length > 0;
+
+  if (gotJsonData) {
+    // Merge hot + top/all for trending
+    const seenIds = new Set<string>();
+    for (const post of [...hot, ...topAll]) {
+      if (!seenIds.has(post.id)) {
+        seenIds.add(post.id);
+        trending.push(post);
+      }
+      if (trending.length >= 10) break;
     }
-    if (trending.length >= 10) break;
+    newFeed = fresh.slice(0, 10);
   }
 
-  const newPosts: Record<string, RedditPost[]> = {
+  // Tier 2: RSS fallback via rss2json (Reddit blocks Vercel IPs but rss2json is not blocked)
+  if (!gotJsonData) {
+    const [rssHot, rssNew] = await Promise.all([
+      fetchPostsRss('hot'),
+      fetchPostsRss('new'),
+    ]);
+    trending = rssHot.slice(0, 10);
+    newFeed = rssNew.slice(0, 10);
+  }
+
+  const posts: Record<string, RedditPost[]> = {
     trending,
-    new: fresh.slice(0, 10),
+    new: newFeed,
   };
 
-  // Only update cache if we got real data
-  const gotData = trending.length > 0 || fresh.length > 0;
+  const gotData = trending.length > 0 || newFeed.length > 0;
   if (gotData) {
-    postsCache = { data: newPosts, fetchedAt: now };
+    postsCache = { data: posts, fetchedAt: now };
   }
 
   // Stats
@@ -158,8 +215,7 @@ export async function GET() {
     }
   }
 
-  // Return fresh data, or stale cache if fetch failed
-  const finalPosts = gotData ? newPosts : postsCache.data;
+  const finalPosts = gotData ? posts : postsCache.data;
 
   return NextResponse.json(
     { posts: finalPosts, stats, cached: !gotData },

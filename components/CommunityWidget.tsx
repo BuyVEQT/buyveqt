@@ -3,7 +3,18 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import type { RedditPost } from "@/lib/data/reddit";
-import { fetchRedditApi } from "@/components/community/CommunityContent";
+
+function timeAgo(isoString: string): string {
+  const diff = Date.now() - new Date(isoString).getTime();
+  const mins = Math.floor(diff / 60_000);
+  if (mins < 60) return `${mins}m`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h`;
+  const days = Math.floor(hrs / 24);
+  if (days < 30) return `${days}d`;
+  const months = Math.floor(days / 30);
+  return `${months}mo`;
+}
 
 export default function CommunityWidget() {
   const [posts, setPosts] = useState<RedditPost[]>([]);
@@ -12,11 +23,16 @@ export default function CommunityWidget() {
   useEffect(() => {
     let cancelled = false;
 
-    fetchRedditApi().then(({ posts: feeds }) => {
-      if (cancelled) return;
-      setPosts((feeds.trending || []).slice(0, 5));
-      setLoading(false);
-    });
+    fetch("/api/reddit")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (cancelled || !data) return;
+        setPosts((data.posts?.trending || []).slice(0, 5));
+        setLoading(false);
+      })
+      .catch(() => {
+        if (!cancelled) setLoading(false);
+      });
 
     return () => {
       cancelled = true;
@@ -63,15 +79,21 @@ export default function CommunityWidget() {
                 {post.title}
               </p>
               <span className="shrink-0 text-xs text-[var(--color-text-muted)] flex items-center gap-1">
-                <svg
-                  viewBox="0 0 16 16"
-                  width="11"
-                  height="11"
-                  fill="currentColor"
-                >
-                  <path d="M2 2h12a1 1 0 011 1v8a1 1 0 01-1 1H5l-3 3V3a1 1 0 011-1z" />
-                </svg>
-                {post.commentCount}
+                {post.commentCount > 0 ? (
+                  <>
+                    <svg
+                      viewBox="0 0 16 16"
+                      width="11"
+                      height="11"
+                      fill="currentColor"
+                    >
+                      <path d="M2 2h12a1 1 0 011 1v8a1 1 0 01-1 1H5l-3 3V3a1 1 0 011-1z" />
+                    </svg>
+                    {post.commentCount}
+                  </>
+                ) : (
+                  timeAgo(post.createdAt)
+                )}
               </span>
             </a>
           ))}
