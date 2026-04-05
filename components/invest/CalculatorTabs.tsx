@@ -104,16 +104,19 @@ function CalculatorTabsInner({ history, volatilityStats }: CalculatorTabsProps) 
 
   return (
     <div>
-      {/* Tab bar — editorial card with icons */}
+      {/* Tab bar — horizontal scroll on mobile, 5-col grid on desktop */}
       <div className="card-editorial p-1.5 mb-6">
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
+        <div
+          className="flex sm:grid sm:grid-cols-5 gap-1.5 overflow-x-auto hide-scrollbar snap-x snap-mandatory"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
           {TABS.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition-all cursor-pointer ${
+                className={`flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition-all cursor-pointer shrink-0 snap-start min-h-[44px] ${
                   isActive
                     ? "bg-[var(--color-brand)] text-white shadow-sm"
                     : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-card-hover)]"
@@ -156,9 +159,9 @@ export default function CalculatorTabs({ history, volatilityStats }: CalculatorT
     <Suspense
       fallback={
         <div className="card-editorial p-1.5 mb-6">
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
+          <div className="flex sm:grid sm:grid-cols-5 gap-1.5 overflow-x-auto hide-scrollbar">
             {[1,2,3,4,5].map(i => (
-              <div key={i} className="skeleton h-10 rounded-lg" />
+              <div key={i} className="skeleton h-11 min-w-[90px] shrink-0 rounded-lg" />
             ))}
           </div>
         </div>
