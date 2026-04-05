@@ -61,9 +61,9 @@ export const COMPARISON_DATA = {
 
 export const LEARN_ARTICLES = [
   {
-    slug: "why-we-choose-veqt-over-xeqt",
-    title: "Why We Choose VEQT Over XEQT",
-    teaser: "VEQT and XEQT are close on paper. But the company behind VEQT, and how it's built, make the difference.",
+    slug: "veqt-vs-xeqt",
+    title: "VEQT vs XEQT: What's the Difference (And Which Should You Buy)?",
+    teaser: "The most common VEQT question, answered. Two similar ETFs — here's what actually differs and why we lean VEQT.",
     editorial: true,
   },
   {

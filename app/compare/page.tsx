@@ -88,10 +88,10 @@ export default function ComparePage() {
                 trust favours the company that was built to serve you.
               </p>
               <Link
-                href="/learn/why-we-choose-veqt-over-xeqt"
+                href="/learn/veqt-vs-xeqt"
                 className="inline-flex items-center px-5 py-2.5 rounded-lg bg-[var(--color-brand)] text-white text-sm font-semibold hover:bg-[var(--color-brand-dark)] transition-all hover:shadow-lg hover:shadow-[var(--color-brand)]/10"
               >
-                Read: Why We Choose VEQT Over XEQT &rarr;
+                Read: VEQT vs XEQT &rarr;
               </Link>
             </div>
           </div>

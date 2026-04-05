@@ -28,12 +28,11 @@ const CONTENT_DIR = path.join(process.cwd(), "content", "learn");
 
 /** Display order for the learn hub */
 const ARTICLE_ORDER = [
-  "why-we-choose-veqt-over-xeqt",
+  "veqt-decision-flowchart",
+  "veqt-vs-xeqt",
   "what-is-veqt",
   "getting-started-with-veqt",
-  "what-you-actually-own",
   "veqt-distributions-explained",
-  "veqt-vs-xeqt",
   "veqt-vs-vgro",
   "veqt-vs-vfv",
   "veqt-is-down",
@@ -42,13 +41,17 @@ const ARTICLE_ORDER = [
   "automate-veqt-purchases",
   "veqt-mer-true-cost",
   "veqt-vs-diy-portfolio",
-  "how-veqt-rebalances",
   "lump-sum-vs-dca",
   "veqt-currency-risk",
   "passive-investing-behavioral-edge",
   "veqt-vs-robo-advisors",
   "covered-call-dividend-trap",
   "forex-vs-veqt",
+  "veqt-vs-gics-hisa",
+  "why-stocks-go-up",
+  "veqt-withdrawal-strategy",
+  "veqt-canadian-home-bias",
+  "veqt-asset-location",
 ];
 
 function applyDefaults(data: Record<string, unknown>): ArticleFrontmatter {
