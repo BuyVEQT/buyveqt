@@ -3,6 +3,21 @@ import type { QuoteData, HistoricalData } from './types';
 
 const yf = new YahooFinance({ suppressNotices: ['ripHistorical', 'yahooSurvey'] });
 
+const QUOTE_TIMEOUT_MS = 8000;
+const HISTORY_TIMEOUT_MS = 10000;
+
+/**
+ * Race a promise against a timeout. The timeout rejects with a descriptive
+ * error and clearTimeout is always called regardless of outcome.
+ */
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout>;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms);
+  });
+  return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timer));
+}
+
 /**
  * Fetch current quote from Yahoo Finance.
  * Returns null on any failure — caller handles fallback.
@@ -12,11 +27,11 @@ export async function getQuoteYahoo(
   displaySymbol: string
 ): Promise<QuoteData | null> {
   try {
-    const quotePromise = yf.quote(yahooSymbol);
-    const timeoutPromise = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error('Yahoo quote request timed out after 8s')), 8000)
+    const result = await withTimeout(
+      yf.quote(yahooSymbol),
+      QUOTE_TIMEOUT_MS,
+      `Yahoo quote for ${yahooSymbol}`
     );
-    const result = await Promise.race([quotePromise, timeoutPromise]);
 
     if (!result || !result.regularMarketPrice) return null;
 
@@ -68,30 +83,28 @@ export async function getHistoryYahoo(
     yesterday.setDate(yesterday.getDate() - 1);
     const endDate = options?.period2 ?? yesterday;
 
-    // Race against a timeout — yahoo-finance2 has no built-in timeout for
-    // .historical() and can hang indefinitely on network issues.
-    const historyPromise = yf.historical(yahooSymbol, {
-      period1: options?.period1 ?? defaultStart,
-      period2: endDate,
-      interval: options?.interval ?? '1d',
-    });
-    const timeoutPromise = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error('Yahoo historical request timed out after 10s')), 10000)
+    const result = await withTimeout(
+      yf.historical(yahooSymbol, {
+        period1: options?.period1 ?? defaultStart,
+        period2: endDate,
+        interval: options?.interval ?? '1d',
+      }),
+      HISTORY_TIMEOUT_MS,
+      `Yahoo history for ${yahooSymbol}`
     );
-    const result = await Promise.race([historyPromise, timeoutPromise]);
 
     if (!result || result.length === 0) return null;
 
     // Filter out any rows with null close as an extra safety net
     const cleanRows = result.filter(
-      (row) => row.close != null && row.close > 0
+      (row: { close: number | null }) => row.close != null && row.close > 0
     );
 
     if (cleanRows.length === 0) return null;
 
     return {
       symbol: displaySymbol,
-      data: cleanRows.map((row) => ({
+      data: cleanRows.map((row: { date: Date; open: number; high: number; low: number; close: number; adjClose?: number; volume: number }) => ({
         date: new Date(row.date).toISOString().split('T')[0],
         open: row.open ?? 0,
         high: row.high ?? 0,

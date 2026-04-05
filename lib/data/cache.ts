@@ -22,18 +22,25 @@ function getCacheKey(type: string, symbol: string, ...extras: string[]): string 
   return [type, symbol, ...extras].filter(Boolean).join('-');
 }
 
+/** Default max age: 24 hours for quotes, callers can override */
+const DEFAULT_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+
 /**
  * Read cached data. Checks in-memory first, then filesystem.
- * Returns null if neither has data.
+ * Returns null if neither has data or if the data exceeds maxAgeMs.
  */
-async function readCache<T>(key: string): Promise<T | null> {
+async function readCache<T>(key: string, maxAgeMs = DEFAULT_MAX_AGE_MS): Promise<T | null> {
   // 1. Try in-memory cache first (always available in warm containers)
   const memEntry = memoryCache.get(key);
   if (memEntry) {
-    try {
-      return JSON.parse(memEntry.data) as T;
-    } catch {
-      // corrupted memory entry, continue to filesystem
+    if (Date.now() - memEntry.writtenAt > maxAgeMs) {
+      memoryCache.delete(key);
+    } else {
+      try {
+        return JSON.parse(memEntry.data) as T;
+      } catch {
+        // corrupted memory entry, continue to filesystem
+      }
     }
   }
 
@@ -41,11 +48,18 @@ async function readCache<T>(key: string): Promise<T | null> {
   try {
     await fs.mkdir(CACHE_DIR, { recursive: true });
     const filePath = path.join(CACHE_DIR, `${key}.json`);
+    const stat = await fs.stat(filePath);
+
+    // Reject stale filesystem cache
+    if (Date.now() - stat.mtimeMs > maxAgeMs) {
+      return null;
+    }
+
     const raw = await fs.readFile(filePath, 'utf-8');
     const parsed = JSON.parse(raw) as T;
 
     // Backfill memory cache from filesystem
-    memoryCache.set(key, { data: raw, writtenAt: Date.now() });
+    memoryCache.set(key, { data: raw, writtenAt: stat.mtimeMs });
 
     return parsed;
   } catch {

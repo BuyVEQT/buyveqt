@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getQuote, getDailyHistory } from "@/lib/data";
-
-const ALLOWED_TICKERS = ["VEQT", "XEQT", "ZEQT", "VGRO", "XGRO", "VFV", "VUN"];
+import { ALLOWED_SYMBOLS } from "@/lib/data/symbols";
+import { computeReturn, ytdCutoff, oneYearAgoCutoff } from "@/lib/data/returns";
 
 export const revalidate = 300; // 5 minutes — Yahoo is free, refresh frequently
 
@@ -14,7 +14,7 @@ export async function GET(
   const symbol = ticker.toUpperCase().replace(/\.TO$/, "");
   const displayTicker = `${symbol}.TO`;
 
-  if (!ALLOWED_TICKERS.includes(symbol)) {
+  if (!ALLOWED_SYMBOLS.includes(symbol)) {
     return NextResponse.json(
       { error: true, message: "Unsupported ticker" },
       { status: 400 }
@@ -30,27 +30,8 @@ export async function GET(
 
     try {
       const history = await getDailyHistory(symbol, "full");
-      const currentPrice = quoteData.price;
-
-      if (history.data.length > 0 && currentPrice > 0) {
-        const yearStart = new Date(new Date().getFullYear(), 0, 1)
-          .toISOString()
-          .split("T")[0];
-        const ytdStart = history.data.find((d) => d.date >= yearStart);
-        if (ytdStart) {
-          const sp = ytdStart.adjustedClose || ytdStart.close;
-          if (sp > 0) ytdReturn = ((currentPrice - sp) / sp) * 100;
-        }
-
-        const oneYearAgo = new Date();
-        oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-        const oneYearStr = oneYearAgo.toISOString().split("T")[0];
-        const yearStart1Y = history.data.find((d) => d.date >= oneYearStr);
-        if (yearStart1Y) {
-          const sp = yearStart1Y.adjustedClose || yearStart1Y.close;
-          if (sp > 0) oneYearReturn = ((currentPrice - sp) / sp) * 100;
-        }
-      }
+      ytdReturn = computeReturn(history.data, quoteData.price, ytdCutoff());
+      oneYearReturn = computeReturn(history.data, quoteData.price, oneYearAgoCutoff());
     } catch {
       // non-critical
     }

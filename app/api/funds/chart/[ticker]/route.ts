@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { getDailyHistory } from "@/lib/data";
-
-const ALLOWED_TICKERS = ["VEQT", "XEQT", "ZEQT", "VGRO", "XGRO", "VFV", "VUN"];
+import { ALLOWED_SYMBOLS } from "@/lib/data/symbols";
 
 function getStartDate(range: string): string {
   const now = new Date();
@@ -41,7 +40,7 @@ export async function GET(
   const symbol = ticker.toUpperCase().replace(/\.TO$/, "");
   const displayTicker = `${symbol}.TO`;
 
-  if (!ALLOWED_TICKERS.includes(symbol)) {
+  if (!ALLOWED_SYMBOLS.includes(symbol)) {
     return NextResponse.json(
       { error: true, message: "Unsupported ticker" },
       { status: 400 }
@@ -55,8 +54,8 @@ export async function GET(
   const revalidateTime = ["6M", "1Y", "3Y", "5Y", "ALL"].includes(range) ? 86400 : 3600;
 
   try {
-    const outputsize = ["ALL", "3Y", "5Y", "1Y"].includes(range) ? "full" : "compact";
-    const historyData = await getDailyHistory(symbol, outputsize as "compact" | "full");
+    const outputsize: "compact" | "full" = ["ALL", "3Y", "5Y", "1Y"].includes(range) ? "full" : "compact";
+    const historyData = await getDailyHistory(symbol, outputsize);
 
     const cutoff = getStartDate(range);
     const data = historyData.data

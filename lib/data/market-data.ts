@@ -10,6 +10,15 @@ import { logDataFetch } from './logger';
 import { shouldUseAlphaVantage } from './market-hours';
 import type { QuoteData, HistoricalData } from './types';
 
+/** Extract a readable message from an unknown thrown value */
+function errorMsg(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'object' && error !== null && 'message' in error) {
+    return String((error as { message: unknown }).message);
+  }
+  return 'unknown error';
+}
+
 // ─── Quote fetching ───────────────────────────────────────────
 
 /**
@@ -34,7 +43,7 @@ async function fetchQuoteFromSource(
       logDataFetch('alpha-vantage', config.displayName, true, Date.now() - start);
       return data;
     } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : typeof error === 'object' && error !== null && 'message' in error ? String((error as { message: unknown }).message) : 'unknown error';
+      const msg = errorMsg(error);
       logDataFetch('alpha-vantage', config.displayName, false, Date.now() - start, msg);
       return null;
     }
@@ -116,7 +125,7 @@ async function fetchDailyHistoryFromSource(
       logDataFetch('alpha-vantage', config.displayName, true, Date.now() - start);
       return data;
     } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : typeof error === 'object' && error !== null && 'message' in error ? String((error as { message: unknown }).message) : 'unknown error';
+      const msg = errorMsg(error);
       logDataFetch('alpha-vantage', config.displayName, false, Date.now() - start, msg);
       return null;
     }
@@ -194,7 +203,7 @@ async function fetchMonthlyHistoryFromSource(
       logDataFetch('alpha-vantage', config.displayName, true, Date.now() - start);
       return data;
     } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : typeof error === 'object' && error !== null && 'message' in error ? String((error as { message: unknown }).message) : 'unknown error';
+      const msg = errorMsg(error);
       logDataFetch('alpha-vantage', config.displayName, false, Date.now() - start, msg);
       return null;
     }
@@ -250,33 +259,6 @@ export async function getMonthlyHistory(
   throw new Error(
     `All data sources unavailable for ${symbol} monthly history`
   );
-}
-
-// ─── Compare page helper ─────────────────────────────────────
-
-export async function getCompareData(symbols: string[]): Promise<{
-  quotes: Record<string, QuoteData | null>;
-  history: Record<string, HistoricalData | null>;
-}> {
-  const results = await Promise.allSettled(
-    symbols.map(async (sym) => ({
-      symbol: sym,
-      quote: await getQuote(sym).catch(() => null),
-      history: await getMonthlyHistory(sym).catch(() => null),
-    }))
-  );
-
-  const quotes: Record<string, QuoteData | null> = {};
-  const history: Record<string, HistoricalData | null> = {};
-
-  for (const result of results) {
-    if (result.status === 'fulfilled') {
-      quotes[result.value.symbol] = result.value.quote;
-      history[result.value.symbol] = result.value.history;
-    }
-  }
-
-  return { quotes, history };
 }
 
 // ─── Convenience aliases ──────────────────────────────────────

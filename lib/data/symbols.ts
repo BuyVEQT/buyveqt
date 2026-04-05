@@ -64,6 +64,9 @@ export const SYMBOLS: Record<string, SymbolConfig> = {
   },
 } as const;
 
+/** All supported symbol names, derived from the SYMBOLS config */
+export const ALLOWED_SYMBOLS = Object.keys(SYMBOLS);
+
 /** Helper: get config by display name (case-insensitive) */
 export function getSymbolConfig(displayName: string): SymbolConfig | undefined {
   return SYMBOLS[displayName.toUpperCase()];

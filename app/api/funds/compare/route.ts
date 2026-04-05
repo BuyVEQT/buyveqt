@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getQuote, getDailyHistory } from "@/lib/data";
-
-const ALLOWED_SYMBOLS = ["VEQT", "XEQT", "ZEQT", "VGRO", "VFV", "VUN"];
+import { ALLOWED_SYMBOLS } from "@/lib/data/symbols";
+import { computeReturn, ytdCutoff, oneYearAgoCutoff } from "@/lib/data/returns";
 
 export const revalidate = 300; // 5 minutes — Yahoo is free, refresh frequently
 
@@ -20,34 +20,21 @@ interface FundQuote {
 async function fetchQuote(symbol: string): Promise<FundQuote> {
   const displayTicker = `${symbol}.TO`;
   try {
-    const quoteData = await getQuote(symbol);
-    const currentPrice = quoteData.price;
+    // Parallelize — quote and history are independent
+    const [quoteResult, historyResult] = await Promise.allSettled([
+      getQuote(symbol),
+      getDailyHistory(symbol, "full"),
+    ]);
+
+    if (quoteResult.status !== "fulfilled") throw quoteResult.reason;
+    const quoteData = quoteResult.value;
+    const history = historyResult.status === "fulfilled" ? historyResult.value : null;
 
     let ytdReturn: number | null = null;
     let oneYearReturn: number | null = null;
-
-    try {
-      const history = await getDailyHistory(symbol, "full");
-
-      if (history.data.length > 0 && currentPrice > 0) {
-        const yearStart = `${new Date().getFullYear()}-01-01`;
-        const ytdStart = history.data.find((d) => d.date >= yearStart);
-        if (ytdStart) {
-          const sp = ytdStart.adjustedClose || ytdStart.close;
-          if (sp > 0) ytdReturn = ((currentPrice - sp) / sp) * 100;
-        }
-
-        const oneYearAgo = new Date();
-        oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-        const oneYearStr = oneYearAgo.toISOString().split("T")[0];
-        const yearStart1Y = history.data.find((d) => d.date >= oneYearStr);
-        if (yearStart1Y) {
-          const sp = yearStart1Y.adjustedClose || yearStart1Y.close;
-          if (sp > 0) oneYearReturn = ((currentPrice - sp) / sp) * 100;
-        }
-      }
-    } catch {
-      // non-critical
+    if (history) {
+      ytdReturn = computeReturn(history.data, quoteData.price, ytdCutoff());
+      oneYearReturn = computeReturn(history.data, quoteData.price, oneYearAgoCutoff());
     }
 
     return {

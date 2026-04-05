@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getQuote, getDailyHistory } from "@/lib/data";
+import { computeReturn, ytdCutoff } from "@/lib/data/returns";
 import { FALLBACK_QUOTE } from "@/lib/constants";
 import type { VeqtQuote, HistoricalDataPoint, VeqtApiResponse } from "@/lib/types";
 
@@ -95,16 +96,8 @@ export async function GET(request: Request) {
     isFallback = quoteData.source === "cache";
 
     // Try to compute YTD return from history
-    if (historyData && historyData.data.length > 0) {
-      const yearStart = `${new Date().getFullYear()}-01-01`;
-      const startPoint = historyData.data.find((d) => d.date >= yearStart);
-      if (startPoint) {
-        const startPrice = startPoint.adjustedClose || startPoint.close;
-        if (startPrice > 0) {
-          quote.ytdReturn =
-            ((quoteData.price - startPrice) / startPrice) * 100;
-        }
-      }
+    if (historyData) {
+      quote.ytdReturn = computeReturn(historyData.data, quoteData.price, ytdCutoff());
     }
   } else {
     // Both APIs failed AND cache is empty — use hardcoded fallback.
