@@ -457,7 +457,7 @@ export default function InvestCalculator({ history }: InvestCalculatorProps) {
 
       {/* Validation message */}
       {validationMsg && (
-        <p className="text-sm text-amber-600 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
+        <p className="text-sm text-[var(--color-accent)] bg-[var(--color-accent)]/[0.06] border border-[var(--color-accent)]/15 rounded-lg px-3 py-2">
           {validationMsg}
         </p>
       )}
@@ -466,12 +466,12 @@ export default function InvestCalculator({ history }: InvestCalculatorProps) {
       {result && !validationMsg && (
         <>
           {/* Hero Result */}
-          <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-5 sm:p-6">
+          <div className="card-editorial p-5 sm:p-6">
             <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-1">
               {isDCA ? "Your portfolio would be worth" : "Your investment would be worth"}
             </p>
             <p
-              className={`text-3xl sm:text-4xl font-extrabold tabular-nums ${
+              className={`text-3xl sm:text-4xl font-bold font-serif tabular-nums ${
                 isPositive
                   ? "text-[var(--color-positive)]"
                   : "text-[var(--color-negative)]"
@@ -564,13 +564,14 @@ export default function InvestCalculator({ history }: InvestCalculatorProps) {
           />
 
           {/* Chart */}
-          <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-4 sm:p-5">
-            <h3 className="text-sm font-semibold text-[var(--color-text-secondary)] mb-3">
+          <div className="card-editorial p-0 overflow-hidden">
+            <h3 className="text-sm font-semibold text-[var(--color-text-secondary)] mb-3 px-4 pt-4 sm:px-5 sm:pt-5">
               {isDCA
                 ? "Portfolio Value vs. Contributions"
                 : "Portfolio Value Over Time"}
             </h3>
 
+            <div className="chart-atmosphere">
             <ResponsiveContainer width="100%" height={350}>
               {isDCA ? (
                 <LineChart data={result.chartData as Record<string, unknown>[]}>
@@ -718,9 +719,10 @@ export default function InvestCalculator({ history }: InvestCalculatorProps) {
                 </AreaChart>
               )}
             </ResponsiveContainer>
+            </div>
 
             {/* Data freshness */}
-            <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div className="mt-3 px-4 pb-4 sm:px-5 sm:pb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               {history.source && history.fetchedAt && (
                 <DataFreshness
                   source={history.source}
