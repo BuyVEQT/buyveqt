@@ -5,6 +5,7 @@ import CompareContent from "@/components/compare/CompareContent";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { buildBreadcrumbSchema, canonicalUrl } from "@/lib/seo-config";
 import { COMPARE_FAQ } from "@/data/faq";
+import EditorialCTA from "@/components/compare/EditorialCTA";
 
 export const metadata: Metadata = {
   title: "Compare VEQT vs Other Canadian ETFs",
@@ -78,6 +79,8 @@ export default function ComparePage() {
             Read: Why We Choose VEQT Over XEQT &rarr;
           </Link>
         </div>
+
+        <EditorialCTA />
       </main>
     </PageShell>
   );

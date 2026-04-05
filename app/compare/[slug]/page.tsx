@@ -5,6 +5,7 @@ import PageShell from "@/components/layout/PageShell";
 import CompareContent from "@/components/compare/CompareContent";
 import { COMPARISON_PAGES, getComparison } from "@/data/comparisons";
 import BottomLine from "@/components/compare/BottomLine";
+import EditorialCTA from "@/components/compare/EditorialCTA";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { buildBreadcrumbSchema, canonicalUrl } from "@/lib/seo-config";
 
@@ -94,9 +95,12 @@ export default async function CompareSlugPage({ params }: PageProps) {
         />
 
         {slug === "veqt-vs-xeqt" && (
-          <div className="mt-6">
-            <EditorialCallout />
-          </div>
+          <>
+            <div className="mt-6">
+              <EditorialCallout />
+            </div>
+            <EditorialCTA />
+          </>
         )}
 
         <div className="mt-8 pt-6 border-t border-[var(--color-border)]">
