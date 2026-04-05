@@ -75,9 +75,10 @@ export const LEARN_ARTICLES = [
     editorial: true,
   },
   {
-    slug: "what-is-veqt",
-    title: "What Is VEQT? A Simple Explanation",
-    teaser: "A beginner-friendly explanation of what VEQT is, how it works, and why Canadian investors love it.",
+    slug: "passive-investing-behavioral-edge",
+    title: "The Real Edge of Passive Investing Isn't What You Think",
+    teaser: "Low fees matter. Diversification matters. But the biggest advantage of buying VEQT and doing nothing? You stop making expensive mistakes.",
+    editorial: true,
   },
   {
     slug: "getting-started-with-veqt",

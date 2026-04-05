@@ -163,7 +163,7 @@ export default function ChartSidebar({
 
       {/* ── Widget 2: New to VEQT? ── */}
       <Link
-        href="/learn/what-is-veqt"
+        href="/learn/getting-started-with-veqt"
         className="group relative rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5 overflow-hidden hover:border-[var(--color-brand)]/40 transition-all"
       >
         {/* Decorative gradient accent */}
@@ -189,8 +189,8 @@ export default function ChartSidebar({
               New to VEQT?
             </h3>
             <p className="text-[13px] text-[var(--color-text-muted)] mt-1 leading-relaxed">
-              Learn why thousands of Canadians chose this single ETF for their
-              entire portfolio.
+              Everything you need to open an account, buy your first shares,
+              and start building wealth.
             </p>
           </div>
         </div>
