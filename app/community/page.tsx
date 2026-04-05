@@ -21,22 +21,18 @@ export const metadata: Metadata = {
 };
 
 export default async function CommunityPage() {
-  const [hotResult, newResult, topResult, statsResult] =
+  const [hotResult, topResult, statsResult] =
     await Promise.allSettled([
       getRedditPosts("hot", 12),
-      getRedditPosts("new", 12),
       getRedditPosts("top", 12, "all"),
       getSubredditStats(),
     ]);
 
   const hot = hotResult.status === "fulfilled" ? hotResult.value : [];
   const topAll = topResult.status === "fulfilled" ? topResult.value : [];
-  const newPosts = (
-    newResult.status === "fulfilled" ? newResult.value : []
-  ).slice(0, 10);
   const stats = statsResult.status === "fulfilled" ? statsResult.value : null;
 
-  // Merge hot + top/all to always have 10 posts for low-activity subs
+  // Merge hot + top/all for trending to always have 10+ posts
   const seen = new Set<string>();
   const hotPosts: typeof hot = [];
   for (const post of [...hot, ...topAll]) {
@@ -46,6 +42,8 @@ export default async function CommunityPage() {
     }
     if (hotPosts.length >= 10) break;
   }
+
+  const topPosts = topAll.slice(0, 10);
 
   return (
     <PageShell>
@@ -72,7 +70,7 @@ export default async function CommunityPage() {
 
         <CommunityContent
           hotPosts={hotPosts}
-          newPosts={newPosts}
+          topPosts={topPosts}
           stats={stats}
         />
       </main>

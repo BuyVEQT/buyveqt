@@ -170,9 +170,8 @@ export async function GET() {
     );
   }
 
-  const [hot, fresh, topAll] = await Promise.all([
+  const [hot, topAll] = await Promise.all([
     fetchPosts('hot', 12),
-    fetchPosts('new', 12),
     fetchPosts('top', 12, 'all'),
   ]);
 
@@ -189,10 +188,10 @@ export async function GET() {
 
   const posts: Record<string, RedditPost[]> = {
     trending,
-    new: fresh.slice(0, 10),
+    top: topAll.slice(0, 10),
   };
 
-  const gotData = trending.length > 0 || fresh.length > 0;
+  const gotData = trending.length > 0 || topAll.length > 0;
   if (gotData) {
     postsCache = { data: posts, fetchedAt: now };
   }

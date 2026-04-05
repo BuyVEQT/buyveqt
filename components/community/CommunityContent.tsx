@@ -3,11 +3,11 @@
 import { useState, useEffect } from "react";
 import type { RedditPost, SubredditStats } from "@/lib/data/reddit";
 
-type TabId = "trending" | "new";
+type TabId = "trending" | "top";
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "trending", label: "Trending" },
-  { id: "new", label: "New" },
+  { id: "top", label: "Top" },
 ];
 
 function timeAgo(isoString: string): string {
@@ -24,19 +24,19 @@ function timeAgo(isoString: string): string {
 
 interface CommunityContentProps {
   hotPosts: RedditPost[];
-  newPosts: RedditPost[];
+  topPosts: RedditPost[];
   stats: SubredditStats | null;
 }
 
 export default function CommunityContent({
   hotPosts: serverHot,
-  newPosts: serverNew,
+  topPosts: serverTop,
   stats: serverStats,
 }: CommunityContentProps) {
   const [activeTab, setActiveTab] = useState<TabId>("trending");
   const [clientFeeds, setClientFeeds] = useState<Record<TabId, RedditPost[]>>({
     trending: serverHot,
-    new: serverNew,
+    top: serverTop,
   });
   const [clientStats, setClientStats] = useState<SubredditStats | null>(
     serverStats
@@ -45,9 +45,9 @@ export default function CommunityContent({
 
   // Client-side refresh when server data is empty OR missing scores
   // (ISR cache may have stale RSS data without scores/comments)
-  const serverEmpty = serverHot.length === 0 && serverNew.length === 0;
+  const serverEmpty = serverHot.length === 0 && serverTop.length === 0;
   const serverMissingScores =
-    !serverEmpty && [...serverHot, ...serverNew].every((p) => p.score === 0);
+    !serverEmpty && [...serverHot, ...serverTop].every((p) => p.score === 0);
   const needsClientFetch = serverEmpty || serverMissingScores;
 
   useEffect(() => {
@@ -63,11 +63,11 @@ export default function CommunityContent({
         if (cancelled || !data) return;
         const hasPosts =
           (data.posts?.trending?.length ?? 0) > 0 ||
-          (data.posts?.new?.length ?? 0) > 0;
+          (data.posts?.top?.length ?? 0) > 0;
         if (hasPosts) {
           setClientFeeds({
             trending: data.posts.trending || [],
-            new: data.posts.new || [],
+            top: data.posts.top || [],
           });
         }
         if (data.stats) setClientStats(data.stats);
@@ -193,23 +193,15 @@ export default function CommunityContent({
         /* Empty state */
         <div className="text-center py-16">
           <p className="text-[var(--color-text-muted)] mb-3">
-            {activeTab === "trending"
-              ? "Couldn\u2019t load posts right now."
-              : "No posts yet \u2014 be the first to start a discussion!"}
+            {"Couldn\u2019t load posts right now."}
           </p>
           <a
-            href={
-              activeTab === "trending"
-                ? "https://www.reddit.com/r/JustBuyVEQT/"
-                : "https://www.reddit.com/r/JustBuyVEQT/submit"
-            }
+            href="https://www.reddit.com/r/JustBuyVEQT/"
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm font-medium text-[var(--color-brand)] hover:text-[var(--color-brand-dark)] transition-colors"
           >
-            {activeTab === "trending"
-              ? "Visit r/JustBuyVEQT directly \u2192"
-              : "Start a discussion on Reddit \u2192"}
+            {"Visit r/JustBuyVEQT directly \u2192"}
           </a>
         </div>
       )}
