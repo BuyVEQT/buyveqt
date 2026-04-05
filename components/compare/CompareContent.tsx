@@ -26,14 +26,18 @@ export default function CompareContent({ initialFunds }: CompareContentProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <FundPicker selected={selected} onToggle={handleToggle} />
+
       <PerformanceChart selectedFunds={selected} />
+
       <StatsTable selectedFunds={selected} />
+
       <AllocationBars selectedFunds={selected} />
 
       <div>
-        <h2 className="text-base font-semibold text-[var(--color-text-primary)] mb-3">
+        <p className="section-label mb-1">Suitability</p>
+        <h2 className="font-serif text-xl font-medium text-[var(--color-text-primary)] mb-4">
           Who each fund suits best
         </h2>
         <WhoThisSuits selectedFunds={selected} />
