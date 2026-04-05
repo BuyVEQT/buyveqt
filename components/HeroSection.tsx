@@ -95,17 +95,17 @@ export default function HeroSection({
   return (
     <section className="hero-gradient py-12 sm:py-16 lg:py-20">
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-10 lg:gap-16">
-        {/* Left: Editorial copy */}
-        <div className="lg:max-w-[55%] animate-fade-up">
+        {/* Left: Editorial copy — asymmetric width for visual tension */}
+        <div className="lg:max-w-[58%] animate-fade-up">
           {/* Section label */}
           <p className="section-label mb-4">The Global ETF</p>
 
-          <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl font-normal tracking-tight text-[var(--color-text-primary)] leading-[1.1]">
+          <h1 className="font-serif text-4xl sm:text-5xl md:text-[3.5rem] lg:text-[4rem] font-normal tracking-tight text-[var(--color-text-primary)] leading-[1.08]">
             One ETF.
             <br />
             The whole world.
             <br />
-            <span className="text-[var(--color-text-muted)] text-3xl sm:text-4xl md:text-5xl">
+            <span className="text-[var(--color-text-muted)] text-3xl sm:text-4xl md:text-[2.75rem]">
               VEQT, <RotatingWord />.
             </span>
           </h1>

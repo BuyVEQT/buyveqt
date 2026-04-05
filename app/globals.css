@@ -267,6 +267,44 @@ body::after {
   );
 }
 
+/* ── Chart atmosphere ─────────────────────────────────────── */
+
+.chart-atmosphere {
+  position: relative;
+  background:
+    radial-gradient(
+      ellipse 80% 60% at 60% 80%,
+      var(--color-chart-fill) 0%,
+      transparent 70%
+    );
+}
+
+/* ── Spatial: asymmetric section break ────────────────────── */
+
+.section-break-asymmetric {
+  display: grid;
+  grid-template-columns: 1fr 2px 1fr;
+  gap: 0;
+  align-items: center;
+  padding: 1.5rem 0;
+}
+
+.section-break-asymmetric::before,
+.section-break-asymmetric::after {
+  content: "";
+  height: 1px;
+  background: var(--color-border);
+}
+
+.section-break-asymmetric::before {
+  justify-self: end;
+  width: 40%;
+}
+
+.section-break-asymmetric::after {
+  width: 80%;
+}
+
 /* ── Scrollbar ────────────────────────────────────────────── */
 
 .hide-scrollbar {
