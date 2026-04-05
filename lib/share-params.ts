@@ -8,11 +8,14 @@
  *
  * Single-char assignments:
  *   a  amount        b  starting (Balance)    c  contributed
- *   e  ratE          g  growth                h  horizon
- *   i  annualIncome  l  annuaL contribution   m  mode
- *   n  contributioNs o  mOnthly               p  portfolio
- *   q  returnPct (Q) r  result                s  start
- *   u  accoUnt       w  groWthRate            y  yield
+ *   d  coastFire     e  ratE                  f  (reserved)
+ *   g  growth        h  horizon               i  annualIncome
+ *   j  withdrawalRate k yearsToFire           l  annuaL contribution
+ *   m  mode          n  contributioNs         o  mOnthly
+ *   p  portfolio     q  returnPct (Q)         r  result
+ *   s  start         u  accoUnt               v  expenses
+ *   w  groWthRate    x  currentAge            y  yield
+ *   z  retirementAge
  */
 
 export const SHORT_TO_LONG: Record<string, string> = {
@@ -39,6 +42,13 @@ export const SHORT_TO_LONG: Record<string, string> = {
   u: "account",
   b: "starting",
   l: "annual",
+  // fire
+  x: "currentAge",
+  z: "retirementAge",
+  v: "expenses",
+  j: "withdrawalRate",
+  d: "coastFire",
+  k: "yearsToFire",
 };
 
 // Also accept the old 2-char keys for backwards compatibility
@@ -70,6 +80,10 @@ export function inferTab(
   const explicit = params.tab || params.t;
   if (typeof explicit === "string") return explicit;
 
+  // FIRE must be checked before DCA (both share "monthly"/"o")
+  if (params.expenses       || params.v) return "fire";
+  if (params.withdrawalRate || params.j) return "fire";
+  if (params.currentAge     || params.x) return "fire";
   if (params.mode   || params.m) return "historical";
   if (params.start  || params.s) return "historical";
   if (params.monthly|| params.o) return "dca";

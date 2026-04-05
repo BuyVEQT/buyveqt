@@ -293,6 +293,29 @@ function TFSARRSPCard(sp: URLSearchParams) {
   );
 }
 
+function FIRECard(sp: URLSearchParams) {
+  const expenses = p(sp, "expenses");
+  const withdrawalRate = p(sp, "withdrawalRate");
+  const result = p(sp, "result");
+  const coastFire = p(sp, "coastFire");
+  const yearsToFire = p(sp, "yearsToFire");
+  const yearsNum = Number(yearsToFire) || 0;
+
+  const headline = yearsNum > 0
+    ? `FIRE in ~${yearsNum} years with VEQT`
+    : "My FIRE plan with VEQT";
+
+  return (
+    <CardShell badge="FIRE">
+      <Headline text={headline} />
+      <HeroNumber text={fmtDollars(result)} />
+      <SupportingRow
+        text={`${fmtDollars(expenses)}/yr expenses · ${pct(withdrawalRate)} withdrawal rate · ${fmtDollars(coastFire)} Coast FIRE`}
+      />
+    </CardShell>
+  );
+}
+
 function FallbackCard() {
   return (
     <div
@@ -376,6 +399,9 @@ export async function GET(request: NextRequest) {
       break;
     case "tfsa-rrsp":
       card = TFSARRSPCard(sp);
+      break;
+    case "fire":
+      card = FIRECard(sp);
       break;
     default:
       card = FallbackCard();

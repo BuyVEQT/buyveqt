@@ -8,6 +8,7 @@ import {
   YAxis,
   Tooltip,
   CartesianGrid,
+  ReferenceDot,
 } from "recharts";
 import { formatDollars, ChartTooltipWrapper, GRID_PROPS, AXIS_PROPS } from "@/lib/chart-utils";
 import { STAT_CARD } from "@/lib/styles";
@@ -17,12 +18,21 @@ export interface GrowthDataPoint {
   contributions: number;
   growth: number;
   total: number;
+  /** Optional: after-MER total for fee impact overlay */
+  totalAfterFees?: number;
 }
 
 export interface StatItem {
   label: string;
   value: number;
   highlight?: boolean;
+}
+
+const MILESTONE_THRESHOLDS = [100_000, 250_000, 500_000, 1_000_000, 2_500_000, 5_000_000];
+
+function formatMilestone(n: number): string {
+  if (n >= 1_000_000) return `$${n / 1_000_000}M`;
+  return `$${n / 1_000}K`;
 }
 
 interface TooltipPayloadItem {
@@ -34,9 +44,11 @@ interface TooltipPayloadItem {
 function GrowthTooltip({
   active,
   payload,
+  showFees,
 }: {
   active?: boolean;
   payload?: TooltipPayloadItem[];
+  showFees?: boolean;
 }) {
   if (!active || !payload?.length) return null;
   const d = payload[0].payload;
@@ -52,6 +64,14 @@ function GrowthTooltip({
       <p className="text-[11px] text-[var(--color-positive)]">
         Growth: {formatDollars(d.growth)}
       </p>
+      {showFees && d.totalAfterFees != null && (
+        <p className="text-[11px] text-[var(--color-text-muted)]">
+          After fees: {formatDollars(d.totalAfterFees)}
+          <span className="text-[var(--color-negative)] ml-1">
+            (-{formatDollars(d.total - d.totalAfterFees)})
+          </span>
+        </p>
+      )}
     </ChartTooltipWrapper>
   );
 }
@@ -59,12 +79,35 @@ function GrowthTooltip({
 interface ContributionGrowthChartProps {
   chartData: GrowthDataPoint[];
   stats: StatItem[];
+  /** Show the after-fees dashed area (requires totalAfterFees in data) */
+  showFees?: boolean;
+  /** Show milestone markers at standard thresholds */
+  showMilestones?: boolean;
 }
 
 export default function ContributionGrowthChart({
   chartData,
   stats,
+  showFees = false,
+  showMilestones = false,
 }: ContributionGrowthChartProps) {
+  // Find milestone crossing points
+  const milestones: { year: number; total: number; label: string }[] = [];
+  if (showMilestones) {
+    for (const threshold of MILESTONE_THRESHOLDS) {
+      const point = chartData.find((d) => d.total >= threshold);
+      if (point && point.year > 0) {
+        milestones.push({
+          year: point.year,
+          total: point.total,
+          label: formatMilestone(threshold),
+        });
+      }
+    }
+  }
+
+  const hasFeeData = showFees && chartData.some((d) => d.totalAfterFees != null);
+
   return (
     <>
       {/* Stats row */}
@@ -100,7 +143,7 @@ export default function ContributionGrowthChart({
               tickFormatter={(v: number) => formatDollars(v)}
               width={70}
             />
-            <Tooltip content={<GrowthTooltip />} />
+            <Tooltip content={<GrowthTooltip showFees={hasFeeData} />} />
             <Area
               type="monotone"
               dataKey="contributions"
@@ -117,8 +160,48 @@ export default function ContributionGrowthChart({
               fill="var(--color-positive)"
               fillOpacity={0.25}
             />
+            {/* After-fees overlay line */}
+            {hasFeeData && (
+              <Area
+                type="monotone"
+                dataKey="totalAfterFees"
+                stroke="var(--color-negative)"
+                strokeWidth={1.5}
+                strokeDasharray="4 4"
+                fill="none"
+                dot={false}
+              />
+            )}
+            {/* Milestone markers */}
+            {milestones.map((m) => (
+              <ReferenceDot
+                key={m.label}
+                x={m.year}
+                y={m.total}
+                r={4}
+                fill="var(--color-brand)"
+                stroke="var(--color-card)"
+                strokeWidth={2}
+                label={{
+                  value: m.label,
+                  position: "top",
+                  fill: "var(--color-brand)",
+                  fontSize: 10,
+                  fontWeight: 600,
+                  offset: 8,
+                }}
+              />
+            ))}
           </AreaChart>
         </ResponsiveContainer>
+        {hasFeeData && (
+          <div className="flex items-center gap-2 mt-1 text-[10px] text-[var(--color-text-muted)]">
+            <span className="flex items-center gap-1">
+              <span className="inline-block w-4 h-0 border-t-2 border-dashed border-[var(--color-negative)]" />
+              After MER (0.24%)
+            </span>
+          </div>
+        )}
       </div>
     </>
   );

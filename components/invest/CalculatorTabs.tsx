@@ -6,7 +6,9 @@ import InvestCalculator from "./InvestCalculator";
 import DCACalculator from "@/components/calculators/DCACalculator";
 import DividendCalculator from "@/components/calculators/DividendCalculator";
 import TFSARRSPCalculator from "@/components/calculators/TFSARRSPCalculator";
+import FIRECalculator from "@/components/calculators/FIRECalculator";
 import type { HistoricalData } from "@/lib/data/types";
+import type { VolatilityStats } from "@/lib/data/volatility";
 import { inferTab } from "@/lib/share-params";
 
 const TABS = [
@@ -55,15 +57,27 @@ const TABS = [
       </svg>
     ),
   },
+  {
+    id: "fire",
+    label: "FIRE Calculator",
+    shortLabel: "FIRE",
+    description: "Find your Financial Independence number and when you could reach it",
+    icon: (
+      <svg viewBox="0 0 20 20" width="16" height="16" fill="currentColor">
+        <path fillRule="evenodd" d="M13.5 4.938a7 7 0 11-9.006 1.737c.202-.257.59-.218.793.039.278.352.594.672.943.954.332.269.786-.049.773-.476a5.977 5.977 0 01.572-2.759 6.026 6.026 0 012.486-2.665c.247-.14.55-.016.677.238A6.967 6.967 0 0013.5 4.938zM14 12a4.002 4.002 0 01-3.178 3.919c-.209.049-.413-.106-.413-.315 0-.576-.262-1.115-.675-1.5.275-.09.547-.203.808-.344a.946.946 0 00.35-1.285A5.977 5.977 0 0110 8.5c-.595 0-1.17.083-1.716.24a5.99 5.99 0 00-2.284 1.349 4 4 0 108 1.911z" clipRule="evenodd" />
+      </svg>
+    ),
+  },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
 
 interface CalculatorTabsProps {
   history: HistoricalData | null;
+  volatilityStats: VolatilityStats | null;
 }
 
-function CalculatorTabsInner({ history }: CalculatorTabsProps) {
+function CalculatorTabsInner({ history, volatilityStats }: CalculatorTabsProps) {
   const searchParams = useSearchParams();
 
   const rawParams: Record<string, string> = {};
@@ -92,7 +106,7 @@ function CalculatorTabsInner({ history }: CalculatorTabsProps) {
     <div>
       {/* Tab bar — editorial card with icons */}
       <div className="card-editorial p-1.5 mb-6">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
           {TABS.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
@@ -128,28 +142,29 @@ function CalculatorTabsInner({ history }: CalculatorTabsProps) {
         {activeTab === "historical" && (
           <InvestCalculator history={history} />
         )}
-        {activeTab === "dca" && <DCACalculator />}
+        {activeTab === "dca" && <DCACalculator volatilityStats={volatilityStats} />}
         {activeTab === "dividends" && <DividendCalculator />}
-        {activeTab === "tfsa-rrsp" && <TFSARRSPCalculator />}
+        {activeTab === "tfsa-rrsp" && <TFSARRSPCalculator volatilityStats={volatilityStats} />}
+        {activeTab === "fire" && <FIRECalculator volatilityStats={volatilityStats} />}
       </div>
     </div>
   );
 }
 
-export default function CalculatorTabs({ history }: CalculatorTabsProps) {
+export default function CalculatorTabs({ history, volatilityStats }: CalculatorTabsProps) {
   return (
     <Suspense
       fallback={
         <div className="card-editorial p-1.5 mb-6">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-            {[1,2,3,4].map(i => (
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
+            {[1,2,3,4,5].map(i => (
               <div key={i} className="skeleton h-10 rounded-lg" />
             ))}
           </div>
         </div>
       }
     >
-      <CalculatorTabsInner history={history} />
+      <CalculatorTabsInner history={history} volatilityStats={volatilityStats} />
     </Suspense>
   );
 }

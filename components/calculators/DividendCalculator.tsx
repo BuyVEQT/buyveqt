@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useAnimatedNumber } from "./useAnimatedNumber";
 import {
   ResponsiveContainer,
   BarChart,
@@ -42,6 +43,7 @@ export default function DividendCalculator() {
   const [yieldRate, setYieldRate] = useState(1.3);
   const [growthRate, setGrowthRate] = useState(8);
   const [shareOpen, setShareOpen] = useState(false);
+  const [showInflation, setShowInflation] = useState(false);
 
   const { annual, quarterly, monthly, chartData } = useMemo(() => {
     const annual = portfolio * (yieldRate / 100);
@@ -52,15 +54,20 @@ export default function DividendCalculator() {
     const points = [0, 1, 2, 3, 5, 7, 10, 15, 20];
     const chartData = points.map((yr) => {
       const futurePortfolio = portfolio * Math.pow(1 + growthRate / 100, yr);
+      const inflationFactor = showInflation ? Math.pow(1.02, yr) : 1;
       return {
         year: yr === 0 ? "Now" : `Yr ${yr}`,
-        income: futurePortfolio * (yieldRate / 100),
-        portfolioValue: futurePortfolio,
+        income: (futurePortfolio * (yieldRate / 100)) / inflationFactor,
+        portfolioValue: futurePortfolio / inflationFactor,
       };
     });
 
     return { annual, quarterly, monthly, chartData };
-  }, [portfolio, yieldRate, growthRate]);
+  }, [portfolio, yieldRate, growthRate, showInflation]);
+
+  const animAnnual = useAnimatedNumber(Math.round(annual));
+  const animQuarterly = useAnimatedNumber(Math.round(quarterly));
+  const animMonthly = useAnimatedNumber(Math.round(monthly));
 
   return (
     <div className={CARD}>
@@ -148,12 +155,25 @@ export default function DividendCalculator() {
         </div>
       </div>
 
+      {/* Inflation toggle */}
+      <div className="flex flex-wrap gap-3 mb-6">
+        <label className="flex items-center gap-2 text-xs text-[var(--color-text-secondary)] cursor-pointer">
+          <input
+            type="checkbox"
+            checked={showInflation}
+            onChange={(e) => setShowInflation(e.target.checked)}
+            className="accent-[var(--color-brand)] w-3.5 h-3.5"
+          />
+          Today&apos;s dollars
+        </label>
+      </div>
+
       {/* Outputs */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
         {[
-          { label: "Est. Annual Income", value: annual },
-          { label: "Est. Quarterly", value: quarterly },
-          { label: "Est. Monthly", value: monthly },
+          { label: "Est. Annual Income", value: animAnnual },
+          { label: "Est. Quarterly", value: animQuarterly },
+          { label: "Est. Monthly", value: animMonthly },
         ].map((s) => (
           <div key={s.label} className={STAT_CARD}>
             <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">

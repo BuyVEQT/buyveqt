@@ -3,10 +3,20 @@
 import { useState, useMemo } from "react";
 import { formatDollars } from "@/lib/chart-utils";
 import { CARD } from "@/lib/styles";
+import { useAnimatedNumber } from "./useAnimatedNumber";
 import ContributionGrowthChart from "./ContributionGrowthChart";
+import MonteCarloChart from "./MonteCarloChart";
 import ShareModal from "@/components/ShareModal";
+import type { VolatilityStats } from "@/lib/data/volatility";
 
-export default function TFSARRSPCalculator() {
+const VEQT_MER = 0.0024;
+const INFLATION_RATE = 0.02;
+
+interface TFSARRSPCalculatorProps {
+  volatilityStats: VolatilityStats | null;
+}
+
+export default function TFSARRSPCalculator({ volatilityStats }: TFSARRSPCalculatorProps) {
   const [accountType, setAccountType] = useState<"TFSA" | "RRSP">("TFSA");
   const [startingBalance, setStartingBalance] = useState(0);
   const [annualContribution, setAnnualContribution] = useState(7000);
@@ -14,44 +24,67 @@ export default function TFSARRSPCalculator() {
   const [returnRate, setReturnRate] = useState(8);
   const [shareOpen, setShareOpen] = useState(false);
 
-  const { totalContributions, portfolioValue, totalGrowth, chartData } =
+  // Enhancement toggles
+  const [showMonteCarlo, setShowMonteCarlo] = useState(false);
+  const [showFees, setShowFees] = useState(false);
+  const [showInflation, setShowInflation] = useState(false);
+
+  const { totalContributions, portfolioValue, totalGrowth, feeImpact, chartData } =
     useMemo(() => {
       const rate = returnRate / 100;
-      const totalContributions = startingBalance + annualContribution * years;
+      const rateAfterFees = rate - VEQT_MER;
 
       const points: {
         year: number;
         contributions: number;
         growth: number;
         total: number;
+        totalAfterFees?: number;
       }[] = [
         {
           year: 0,
           contributions: startingBalance,
           growth: 0,
           total: startingBalance,
+          totalAfterFees: startingBalance,
         },
       ];
 
       let balance = startingBalance;
+      let balanceAfterFees = startingBalance;
+
       for (let y = 1; y <= years; y++) {
         balance = (balance + annualContribution) * (1 + rate);
+        balanceAfterFees = (balanceAfterFees + annualContribution) * (1 + rateAfterFees);
         const contrib = startingBalance + annualContribution * y;
+        const inflationFactor = showInflation ? Math.pow(1 + INFLATION_RATE, y) : 1;
+
         points.push({
           year: y,
-          contributions: contrib,
-          growth: balance - contrib,
-          total: balance,
+          contributions: Math.round(contrib / inflationFactor),
+          growth: Math.round((balance - contrib) / inflationFactor),
+          total: Math.round(balance / inflationFactor),
+          totalAfterFees: Math.round(balanceAfterFees / inflationFactor),
         });
       }
 
+      const totalContributions = startingBalance + annualContribution * years;
+      const inflationFactor = showInflation ? Math.pow(1 + INFLATION_RATE, years) : 1;
+      const adjustedBalance = balance / inflationFactor;
+      const adjustedContrib = totalContributions / inflationFactor;
+
       return {
-        totalContributions,
-        portfolioValue: balance,
-        totalGrowth: balance - totalContributions,
+        totalContributions: Math.round(adjustedContrib),
+        portfolioValue: Math.round(adjustedBalance),
+        totalGrowth: Math.round(adjustedBalance - adjustedContrib),
+        feeImpact: Math.round((balance - balanceAfterFees) / inflationFactor),
         chartData: points,
       };
-    }, [startingBalance, annualContribution, years, returnRate]);
+    }, [startingBalance, annualContribution, years, returnRate, showInflation]);
+
+  const animContrib = useAnimatedNumber(totalContributions);
+  const animValue = useAnimatedNumber(portfolioValue);
+  const animGrowth = useAnimatedNumber(totalGrowth);
 
   return (
     <div className={CARD}>
@@ -179,14 +212,71 @@ export default function TFSARRSPCalculator() {
         </div>
       </div>
 
-      <ContributionGrowthChart
-        chartData={chartData}
-        stats={[
-          { label: "Total Contributions", value: totalContributions },
-          { label: "Est. Portfolio Value", value: portfolioValue },
-          { label: "Total Growth", value: totalGrowth, highlight: true },
-        ]}
-      />
+      {/* Enhancement toggles */}
+      <div className="flex flex-wrap gap-3 mb-6">
+        <label className="flex items-center gap-2 text-xs text-[var(--color-text-secondary)] cursor-pointer">
+          <input
+            type="checkbox"
+            checked={showMonteCarlo}
+            onChange={(e) => setShowMonteCarlo(e.target.checked)}
+            className="accent-[var(--color-brand)] w-3.5 h-3.5"
+          />
+          Show uncertainty
+        </label>
+        <label className="flex items-center gap-2 text-xs text-[var(--color-text-secondary)] cursor-pointer">
+          <input
+            type="checkbox"
+            checked={showFees}
+            onChange={(e) => setShowFees(e.target.checked)}
+            className="accent-[var(--color-brand)] w-3.5 h-3.5"
+          />
+          Show fee impact
+        </label>
+        <label className="flex items-center gap-2 text-xs text-[var(--color-text-secondary)] cursor-pointer">
+          <input
+            type="checkbox"
+            checked={showInflation}
+            onChange={(e) => setShowInflation(e.target.checked)}
+            className="accent-[var(--color-brand)] w-3.5 h-3.5"
+          />
+          Today&apos;s dollars
+        </label>
+      </div>
+
+      {/* Main chart or Monte Carlo */}
+      {showMonteCarlo ? (
+        <div className="mb-6">
+          <MonteCarloChart
+            volatilityStats={volatilityStats}
+            startingValue={startingBalance}
+            annualContribution={annualContribution}
+            years={years}
+          />
+        </div>
+      ) : (
+        <ContributionGrowthChart
+          chartData={chartData}
+          stats={[
+            { label: showInflation ? "Contributions (real)" : "Total Contributions", value: animContrib },
+            { label: showInflation ? "Est. Value (real)" : "Est. Portfolio Value", value: animValue },
+            { label: "Total Growth", value: animGrowth, highlight: true },
+          ]}
+          showFees={showFees}
+          showMilestones
+        />
+      )}
+
+      {/* Fee impact callout */}
+      {showFees && !showMonteCarlo && feeImpact > 0 && (
+        <div className="rounded-lg bg-[var(--color-base)] border border-[var(--color-border)] p-3 mb-6">
+          <p className="text-xs text-[var(--color-text-secondary)]">
+            <span className="font-medium text-[var(--color-negative)]">
+              Estimated fee impact: {formatDollars(feeImpact)}
+            </span>{" "}
+            over {years} years at VEQT&apos;s 0.24% MER.
+          </p>
+        </div>
+      )}
 
       {/* Share Results */}
       <div className="flex justify-end">
@@ -249,9 +339,15 @@ export default function TFSARRSPCalculator() {
           TFSA and RRSP contribution limits change annually and depend on your
           individual situation. Check the CRA website for current limits.
         </p>
+        {showInflation && (
+          <p>
+            Values shown in today&apos;s purchasing power, assuming 2% annual inflation.
+          </p>
+        )}
         <p>
-          This calculator does not model taxes, inflation, fees, or employer
-          matching (for group RRSPs).
+          {showFees
+            ? "Fee impact shown uses VEQT's 0.24% MER."
+            : "This calculator does not model taxes, inflation, fees, or employer matching (for group RRSPs)."}
         </p>
         <p>
           The RRSP projection does not estimate the tax owed on withdrawal, which

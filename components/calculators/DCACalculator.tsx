@@ -3,18 +3,34 @@
 import { useState, useMemo } from "react";
 import { formatDollars } from "@/lib/chart-utils";
 import { CARD } from "@/lib/styles";
+import { useAnimatedNumber } from "./useAnimatedNumber";
 import ContributionGrowthChart from "./ContributionGrowthChart";
+import MonteCarloChart from "./MonteCarloChart";
 import ShareModal from "@/components/ShareModal";
+import type { VolatilityStats } from "@/lib/data/volatility";
 
-export default function DCACalculator() {
+const VEQT_MER = 0.0024; // 0.24%
+const INFLATION_RATE = 0.02; // 2%
+
+interface DCACalculatorProps {
+  volatilityStats: VolatilityStats | null;
+}
+
+export default function DCACalculator({ volatilityStats }: DCACalculatorProps) {
   const [monthly, setMonthly] = useState(500);
   const [years, setYears] = useState(20);
   const [returnRate, setReturnRate] = useState(8);
   const [shareOpen, setShareOpen] = useState(false);
 
-  const { totalContributed, portfolioValue, investmentGrowth, chartData } =
+  // Enhancement toggles
+  const [showMonteCarlo, setShowMonteCarlo] = useState(false);
+  const [showFees, setShowFees] = useState(false);
+  const [showInflation, setShowInflation] = useState(false);
+
+  const { totalContributed, portfolioValue, investmentGrowth, feeImpact, chartData } =
     useMemo(() => {
       const monthlyRate = returnRate / 100 / 12;
+      const monthlyRateAfterFees = (returnRate / 100 - VEQT_MER) / 12;
       const totalMonths = years * 12;
       const totalContributed = monthly * totalMonths;
 
@@ -23,7 +39,8 @@ export default function DCACalculator() {
         contributions: number;
         growth: number;
         total: number;
-      }[] = [{ year: 0, contributions: 0, growth: 0, total: 0 }];
+        totalAfterFees?: number;
+      }[] = [{ year: 0, contributions: 0, growth: 0, total: 0, totalAfterFees: 0 }];
 
       for (let y = 1; y <= years; y++) {
         const months = y * 12;
@@ -31,23 +48,38 @@ export default function DCACalculator() {
           monthlyRate === 0
             ? monthly * months
             : monthly * ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate);
+        const fvAfterFees =
+          monthlyRateAfterFees === 0
+            ? monthly * months
+            : monthly * ((Math.pow(1 + monthlyRateAfterFees, months) - 1) / monthlyRateAfterFees);
+
         const contrib = monthly * months;
+        const inflationFactor = showInflation ? Math.pow(1 + INFLATION_RATE, y) : 1;
+
         points.push({
           year: y,
-          contributions: contrib,
-          growth: fv - contrib,
-          total: fv,
+          contributions: Math.round(contrib / inflationFactor),
+          growth: Math.round((fv - contrib) / inflationFactor),
+          total: Math.round(fv / inflationFactor),
+          totalAfterFees: Math.round(fvAfterFees / inflationFactor),
         });
       }
 
       const finalValue = points[points.length - 1].total;
+      const finalAfterFees = points[points.length - 1].totalAfterFees ?? finalValue;
       return {
-        totalContributed,
+        totalContributed: points[points.length - 1].contributions,
         portfolioValue: finalValue,
-        investmentGrowth: finalValue - totalContributed,
+        investmentGrowth: finalValue - points[points.length - 1].contributions,
+        feeImpact: finalValue - finalAfterFees,
         chartData: points,
       };
-    }, [monthly, years, returnRate]);
+    }, [monthly, years, returnRate, showInflation]);
+
+  // Animated numbers
+  const animContributed = useAnimatedNumber(totalContributed);
+  const animValue = useAnimatedNumber(portfolioValue);
+  const animGrowth = useAnimatedNumber(investmentGrowth);
 
   return (
     <div className={CARD}>
@@ -123,14 +155,72 @@ export default function DCACalculator() {
         </div>
       </div>
 
-      <ContributionGrowthChart
-        chartData={chartData}
-        stats={[
-          { label: "Total Contributed", value: totalContributed },
-          { label: "Est. Portfolio Value", value: portfolioValue },
-          { label: "Investment Growth", value: investmentGrowth, highlight: true },
-        ]}
-      />
+      {/* Enhancement toggles */}
+      <div className="flex flex-wrap gap-3 mb-6">
+        <label className="flex items-center gap-2 text-xs text-[var(--color-text-secondary)] cursor-pointer">
+          <input
+            type="checkbox"
+            checked={showMonteCarlo}
+            onChange={(e) => setShowMonteCarlo(e.target.checked)}
+            className="accent-[var(--color-brand)] w-3.5 h-3.5"
+          />
+          Show uncertainty
+        </label>
+        <label className="flex items-center gap-2 text-xs text-[var(--color-text-secondary)] cursor-pointer">
+          <input
+            type="checkbox"
+            checked={showFees}
+            onChange={(e) => setShowFees(e.target.checked)}
+            className="accent-[var(--color-brand)] w-3.5 h-3.5"
+          />
+          Show fee impact
+        </label>
+        <label className="flex items-center gap-2 text-xs text-[var(--color-text-secondary)] cursor-pointer">
+          <input
+            type="checkbox"
+            checked={showInflation}
+            onChange={(e) => setShowInflation(e.target.checked)}
+            className="accent-[var(--color-brand)] w-3.5 h-3.5"
+          />
+          Today&apos;s dollars
+        </label>
+      </div>
+
+      {/* Main chart or Monte Carlo */}
+      {showMonteCarlo ? (
+        <div className="mb-6">
+          <MonteCarloChart
+            volatilityStats={volatilityStats}
+            startingValue={0}
+            annualContribution={monthly * 12}
+            years={years}
+          />
+        </div>
+      ) : (
+        <ContributionGrowthChart
+          chartData={chartData}
+          stats={[
+            { label: showInflation ? "Contributed (real)" : "Total Contributed", value: animContributed },
+            { label: showInflation ? "Est. Value (real)" : "Est. Portfolio Value", value: animValue },
+            { label: "Investment Growth", value: animGrowth, highlight: true },
+          ]}
+          showFees={showFees}
+          showMilestones
+        />
+      )}
+
+      {/* Fee impact callout */}
+      {showFees && !showMonteCarlo && feeImpact > 0 && (
+        <div className="rounded-lg bg-[var(--color-base)] border border-[var(--color-border)] p-3 mb-6">
+          <p className="text-xs text-[var(--color-text-secondary)]">
+            <span className="font-medium text-[var(--color-negative)]">
+              Estimated fee impact: {formatDollars(feeImpact)}
+            </span>{" "}
+            over {years} years at VEQT&apos;s 0.24% MER. Still far lower than
+            most mutual funds (1-2% MER).
+          </p>
+        </div>
+      )}
 
       {/* Share Results */}
       <div className="flex justify-end">
@@ -164,14 +254,29 @@ export default function DCACalculator() {
         <p>
           This calculator uses a fixed annual return compounded monthly. Actual
           VEQT returns vary significantly year to year — some years may be +25%,
-          others may be -30%.
+          others may be -30%.{" "}
+          {!showMonteCarlo && (
+            <button
+              onClick={() => setShowMonteCarlo(true)}
+              className="underline hover:text-[var(--color-text-secondary)]"
+            >
+              Toggle &ldquo;Show uncertainty&rdquo; to see the range of outcomes.
+            </button>
+          )}
         </p>
         <p>
           The average historical return of global equity markets has been
           approximately 7-10% annually over long periods, but past performance
           does not guarantee future results.
         </p>
-        <p>Does not account for management fees (MER), taxes, or inflation.</p>
+        {showInflation && (
+          <p>
+            Values shown in today&apos;s purchasing power, assuming 2% annual inflation.
+          </p>
+        )}
+        {!showFees && (
+          <p>Does not account for management fees (MER), taxes, or inflation.</p>
+        )}
       </div>
     </div>
   );

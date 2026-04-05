@@ -11,7 +11,7 @@ import { buildShareUrl } from "@/lib/share-params";
 
 // ─── Types ────────────────────────────────────────────────────
 
-type Tab = "historical" | "dca" | "dividends" | "tfsa-rrsp";
+type Tab = "historical" | "dca" | "dividends" | "tfsa-rrsp" | "fire";
 
 export interface ShareModalProps {
   tab: Tab;
@@ -79,6 +79,13 @@ function getPreview(tab: Tab, params: Record<string, string | number>) {
         headline: `My ${String(g("account") || "TFSA").toUpperCase()} with VEQT`,
         hero: fmtDlr(n("result")),
       };
+    case "fire": {
+      const years = n("yearsToFire");
+      return {
+        headline: years > 0 ? `FIRE in ~${years} years with VEQT` : "FIRE plan with VEQT",
+        hero: fmtDlr(n("result")),
+      };
+    }
   }
 }
 
@@ -119,6 +126,12 @@ function getSnippet(tab: Tab, params: Record<string, string | number>, url: stri
         horizon: n("horizon"),
         url,
       });
+    case "fire": {
+      const years = n("yearsToFire");
+      const target = fmtDlr(n("result"));
+      const expenses = fmtDlr(n("expenses"));
+      return `My FIRE plan with VEQT:\n${target} target (${expenses}/yr expenses)\n${years > 0 ? `~${years} years to FIRE` : "FIRE achieved!"}\n\n${url}`;
+    }
   }
 }
 

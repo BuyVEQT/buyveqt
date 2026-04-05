@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import PageShell from "@/components/layout/PageShell";
 import CalculatorTabs from "@/components/invest/CalculatorTabs";
 import { getDailyHistory } from "@/lib/data";
+import { computeVolatilityStats } from "@/lib/data/volatility";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { buildBreadcrumbSchema, canonicalUrl, SITE_NAME, SITE_URL } from "@/lib/seo-config";
 import { expandParams } from "@/lib/share-params";
@@ -41,9 +42,9 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 
   if (!tab || !hasResult) {
     return {
-      title: "VEQT Calculators — Historical Returns, DCA, Dividends & TFSA/RRSP",
+      title: "VEQT Calculators — Historical Returns, DCA, Dividends, TFSA/RRSP & FIRE",
       description:
-        "Free VEQT investment calculators. See what your investment would be worth today, plan DCA contributions, estimate dividend income, and project TFSA/RRSP growth.",
+        "Free VEQT investment calculators. See what your investment would be worth today, plan DCA contributions, estimate dividend income, project TFSA/RRSP growth, and plan your path to FIRE.",
       alternates: { canonical: canonicalUrl("/invest") },
       openGraph: {
         title: "VEQT Investment Calculators",
@@ -95,6 +96,13 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
       description = `${fmtDollars(g("starting"))} starting · ${fmtDollars(g("annual"))}/year · ${g("horizon")} years · ${g("rate")}% return`;
       break;
     }
+    case "fire": {
+      const years = g("yearsToFire");
+      const target = fmtDollars(g("result"));
+      title = years ? `FIRE in ${years} years — ${target} target` : `My FIRE plan with VEQT → ${target}`;
+      description = `${fmtDollars(g("expenses"))}/yr expenses · ${g("withdrawalRate")}% withdrawal rate · ${fmtDollars(g("coastFire"))} Coast FIRE number`;
+      break;
+    }
   }
 
   return {
@@ -123,6 +131,9 @@ export default async function InvestPage() {
   } catch {
     // Will show DataUnavailable in the component
   }
+
+  // Compute volatility stats server-side (once per 24h ISR cycle)
+  const volatilityStats = computeVolatilityStats(historyResult);
 
   return (
     <PageShell>
@@ -161,7 +172,7 @@ export default async function InvestPage() {
             VEQT Calculators
           </h1>
           <p className="mt-4 text-[var(--color-text-secondary)] max-w-xl leading-relaxed">
-            Four tools to help you plan, visualize, and understand your VEQT
+            Five tools to help you plan, visualize, and understand your VEQT
             investment. Powered by real historical data.
           </p>
           {/* Stats bar */}
@@ -170,7 +181,7 @@ export default async function InvestPage() {
               <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" className="text-[var(--color-accent)]">
                 <path d="M8 2a.75.75 0 01.75.75v4.5h4.5a.75.75 0 010 1.5h-4.5v4.5a.75.75 0 01-1.5 0v-4.5h-4.5a.75.75 0 010-1.5h4.5v-4.5A.75.75 0 018 2z" />
               </svg>
-              4 calculators
+              5 calculators
             </span>
             <span className="text-[var(--color-border)]">&middot;</span>
             <span>Real VEQT prices since 2019</span>
@@ -179,7 +190,7 @@ export default async function InvestPage() {
           </div>
         </div>
 
-        <CalculatorTabs history={historyResult} />
+        <CalculatorTabs history={historyResult} volatilityStats={volatilityStats} />
 
         {/* Disclaimer */}
         <div className="card-editorial p-4 mt-10">
