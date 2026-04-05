@@ -12,9 +12,10 @@ export default function InsideVeqtPreview() {
         One ETF, four underlying funds, 13,700+ stocks across the globe.
       </p>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Geography Allocation */}
-        <div className="card-editorial p-5">
+      {/* Asymmetric grid: geography gets 2 cols on large screens */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Geography Allocation — wider for visual weight */}
+        <div className="card-editorial p-5 lg:col-span-2">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)] mb-4">
             Geography Allocation
           </h3>
