@@ -11,7 +11,7 @@ import { buildBreadcrumbSchema, canonicalUrl } from "@/lib/seo-config";
 function EditorialCallout() {
   return (
     <Link
-      href="/learn/why-we-choose-veqt-over-xeqt"
+      href="/learn/veqt-vs-xeqt"
       className="block rounded-lg border border-[var(--color-brand)]/30 bg-[var(--color-brand)]/[0.04] p-4 hover:border-[var(--color-brand)]/60 transition-colors"
     >
       <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-brand)] mb-1">

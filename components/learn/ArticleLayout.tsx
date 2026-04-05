@@ -19,6 +19,15 @@ import { ForexLossStats } from "@/components/mdx/ForexLossStats";
 import { OpportunityCostCalculator } from "@/components/mdx/OpportunityCostCalculator";
 import { JourneyTimeline } from "@/components/mdx/JourneyTimeline";
 import { ZeroSumExplainer } from "@/components/mdx/ZeroSumExplainer";
+import { OwnershipStructure } from "@/components/mdx/OwnershipStructure";
+import { VanguardEffectTimeline } from "@/components/mdx/VanguardEffectTimeline";
+import { FundStructure } from "@/components/mdx/FundStructure";
+import { DriftCalculator } from "@/components/mdx/DriftCalculator";
+import { InvestmentDecisionTree } from "@/components/mdx/InvestmentDecisionTree";
+import { TimeHorizonCalculator } from "@/components/mdx/TimeHorizonCalculator";
+import { EquityPremiumTimeline } from "@/components/mdx/EquityPremiumTimeline";
+import { WithdrawalSimulator } from "@/components/mdx/WithdrawalSimulator";
+import { AssetLocationOptimizer } from "@/components/mdx/AssetLocationOptimizer";
 
 
 function slugify(text: string): string {
@@ -49,6 +58,15 @@ const mdxComponents = {
   OpportunityCostCalculator,
   JourneyTimeline,
   ZeroSumExplainer,
+  OwnershipStructure,
+  VanguardEffectTimeline,
+  FundStructure,
+  DriftCalculator,
+  InvestmentDecisionTree,
+  TimeHorizonCalculator,
+  EquityPremiumTimeline,
+  WithdrawalSimulator,
+  AssetLocationOptimizer,
   h2: HeadingTwo,
 };
 
