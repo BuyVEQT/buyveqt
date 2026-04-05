@@ -47,7 +47,7 @@ function CustomTooltip({
   if (!active || !payload?.length || !label) return null;
   const date = new Date(label + "T00:00:00");
   return (
-    <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] px-3 py-2 shadow-md">
+    <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] px-3 py-2 shadow-lg">
       <p className="text-[11px] text-[var(--color-text-muted)]">
         {date.toLocaleDateString("en-CA", {
           weekday: "short",
@@ -56,8 +56,8 @@ function CustomTooltip({
           day: "numeric",
         })}
       </p>
-      <p className="text-sm font-semibold text-[var(--color-text-primary)]">
-        ${payload[0].value.toFixed(2)} CAD
+      <p className="font-serif text-base font-normal text-[var(--color-text-primary)]">
+        ${payload[0].value.toFixed(2)} <span className="text-xs text-[var(--color-text-muted)]">CAD</span>
       </p>
     </div>
   );
@@ -78,12 +78,31 @@ export default function PriceChart({
   const isCache = historySource === "cache";
   const chartUnavailable = !loading && data.length === 0;
 
+  // Compute change across visible range for color coding
+  const rangePositive =
+    prices.length >= 2 ? prices[prices.length - 1] >= prices[0] : true;
+
   return (
-    <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-4 sm:p-5">
-      <div className="flex items-center justify-between gap-3 mb-2">
-        <h2 className="text-sm font-semibold text-[var(--color-text-secondary)]">
-          VEQT.TO Price History
-        </h2>
+    <div className="card-editorial p-0 overflow-hidden">
+      {/* Chart header bar */}
+      <div className="flex items-center justify-between gap-3 px-5 pt-5 pb-3">
+        <div className="flex items-center gap-3">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
+            VEQT.TO Price History
+          </h2>
+          {!loading && prices.length >= 2 && (
+            <span
+              className={`text-xs font-semibold tabular-nums px-2 py-0.5 rounded-md ${
+                rangePositive
+                  ? "text-[var(--color-positive)] bg-[var(--color-positive-bg)]"
+                  : "text-[var(--color-negative)] bg-[var(--color-negative-bg)]"
+              }`}
+            >
+              {rangePositive ? "+" : ""}
+              {(((prices[prices.length - 1] - prices[0]) / prices[0]) * 100).toFixed(1)}%
+            </span>
+          )}
+        </div>
         <div className="flex gap-0.5 rounded-lg bg-[var(--color-base)] p-0.5">
           {CHART_PERIODS.map((p) => (
             <button
@@ -101,61 +120,83 @@ export default function PriceChart({
         </div>
       </div>
 
-      {/* Stale banner above chart */}
       {isCache && historyFetchedAt && (
-        <StaleBanner fetchedAt={historyFetchedAt} className="mb-3" />
+        <div className="px-5">
+          <StaleBanner fetchedAt={historyFetchedAt} className="mb-3" />
+        </div>
       )}
 
-      <div>
+      {/* Chart area — flush edges for drama */}
+      <div className="chart-atmosphere">
         {loading ? (
-          <div className="skeleton h-[320px] w-full rounded-lg" />
+          <div className="skeleton h-[360px] w-full" />
         ) : chartUnavailable ? (
-          <DataUnavailable type="chart" className="min-h-[320px]" />
+          <DataUnavailable type="chart" className="min-h-[360px]" />
         ) : (
-          <ResponsiveContainer width="100%" height={320}>
-            <AreaChart data={data}>
+          <ResponsiveContainer width="100%" height={360}>
+            <AreaChart data={data} margin={{ top: 8, right: 0, bottom: 0, left: 0 }}>
               <defs>
                 <linearGradient id="colorClose" x1="0" y1="0" x2="0" y2="1">
                   <stop
-                    offset="5%"
+                    offset="0%"
                     stopColor="var(--color-chart-line)"
-                    stopOpacity={0.12}
+                    stopOpacity={0.20}
                   />
                   <stop
-                    offset="95%"
+                    offset="40%"
+                    stopColor="var(--color-chart-line)"
+                    stopOpacity={0.08}
+                  />
+                  <stop
+                    offset="100%"
                     stopColor="var(--color-chart-line)"
                     stopOpacity={0}
                   />
                 </linearGradient>
+                {/* Subtle glow filter for the line */}
+                <filter id="chartGlow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
+                  <feMerge>
+                    <feMergeNode in="blur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="var(--color-border)"
+                vertical={false}
+              />
               <XAxis
                 dataKey="date"
                 tickFormatter={(d) => formatDate(d, period)}
-                tick={{ fontSize: 11, fill: "var(--color-text-muted)" }}
+                tick={{ fontSize: 10, fill: "var(--color-text-muted)" }}
                 tickLine={false}
                 axisLine={false}
                 interval="preserveStartEnd"
-                minTickGap={50}
+                minTickGap={60}
+                dy={4}
               />
               <YAxis
                 domain={[minPrice, maxPrice]}
                 tickFormatter={(v: number) => `$${v}`}
-                tick={{ fontSize: 11, fill: "var(--color-text-muted)" }}
+                tick={{ fontSize: 10, fill: "var(--color-text-muted)" }}
                 tickLine={false}
                 axisLine={false}
-                width={50}
+                width={48}
+                dx={-4}
               />
               <Tooltip content={<CustomTooltip />} />
               <Area
                 type="monotone"
                 dataKey="close"
                 stroke="var(--color-chart-line)"
-                strokeWidth={2}
+                strokeWidth={2.5}
                 fill="url(#colorClose)"
                 dot={false}
+                filter="url(#chartGlow)"
                 activeDot={{
-                  r: 4,
+                  r: 5,
                   fill: "var(--color-chart-line)",
                   stroke: "var(--color-card)",
                   strokeWidth: 2,
@@ -166,8 +207,8 @@ export default function PriceChart({
         )}
       </div>
 
-      {/* Data freshness footer */}
-      <div className="mt-2">
+      {/* Footer */}
+      <div className="px-5 py-3 border-t border-[var(--color-border)]">
         {historySource && historyFetchedAt ? (
           <DataFreshness source={historySource} fetchedAt={historyFetchedAt} />
         ) : (

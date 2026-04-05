@@ -61,7 +61,7 @@ export default async function CommunityPage() {
           <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)] mb-1">
             Community
           </p>
-          <h1 className="text-2xl sm:text-3xl font-bold text-[var(--color-text-primary)]">
+          <h1 className="text-2xl sm:text-3xl font-serif font-normal text-[var(--color-text-primary)]">
             r/JustBuyVEQT
           </h1>
           <p className="mt-2 text-[var(--color-text-secondary)] max-w-2xl">

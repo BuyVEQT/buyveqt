@@ -155,7 +155,7 @@ export async function getDailyHistory(
     config,
     outputsize
   );
-  if (primaryResult) {
+  if (primaryResult && primaryResult.data.length > 0) {
     await writeCache(cacheKey, primaryResult);
     return primaryResult;
   }
@@ -165,13 +165,13 @@ export async function getDailyHistory(
     config,
     outputsize
   );
-  if (secondaryResult) {
+  if (secondaryResult && secondaryResult.data.length > 0) {
     await writeCache(cacheKey, secondaryResult);
     return secondaryResult;
   }
 
   const cached = await readCache<HistoricalData>(cacheKey);
-  if (cached) {
+  if (cached && cached.data.length > 0) {
     console.log(`[MarketData] Serving cached daily history for ${symbol}`);
     return { ...cached, source: 'cache' };
   }
@@ -227,7 +227,7 @@ export async function getMonthlyHistory(
     primarySource,
     config
   );
-  if (primaryResult) {
+  if (primaryResult && primaryResult.data.length > 0) {
     await writeCache(cacheKey, primaryResult);
     return primaryResult;
   }
@@ -236,13 +236,13 @@ export async function getMonthlyHistory(
     secondarySource,
     config
   );
-  if (secondaryResult) {
+  if (secondaryResult && secondaryResult.data.length > 0) {
     await writeCache(cacheKey, secondaryResult);
     return secondaryResult;
   }
 
   const cached = await readCache<HistoricalData>(cacheKey);
-  if (cached) {
+  if (cached && cached.data.length > 0) {
     console.log(`[MarketData] Serving cached monthly history for ${symbol}`);
     return { ...cached, source: 'cache' };
   }

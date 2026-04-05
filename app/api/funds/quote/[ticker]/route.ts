@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getQuote, getDailyHistory } from "@/lib/data";
 
-const ALLOWED_TICKERS = ["VEQT", "XEQT", "ZEQT", "VGRO", "VFV", "VUN"];
+const ALLOWED_TICKERS = ["VEQT", "XEQT", "ZEQT", "VGRO", "XGRO", "VFV", "VUN"];
 
 export const revalidate = 300; // 5 minutes — Yahoo is free, refresh frequently
 

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Newsreader, Outfit } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
@@ -11,11 +11,19 @@ import {
   SITE_DESCRIPTION,
 } from "@/lib/seo-config";
 
-const inter = Inter({
+const newsreader = Newsreader({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-inter",
-  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-newsreader",
+  weight: ["300", "400", "500", "600"],
+  style: ["normal", "italic"],
+});
+
+const outfit = Outfit({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-outfit",
+  weight: ["300", "400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -94,7 +102,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={inter.variable} suppressHydrationWarning>
+    <html lang="en" className={`${newsreader.variable} ${outfit.variable}`} suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -135,7 +143,7 @@ export default function RootLayout({
                 name: "What is VEQT?",
                 acceptedAnswer: {
                   "@type": "Answer",
-                  text: "VEQT (Vanguard All-Equity ETF Portfolio) is a single-ticket ETF that provides instant exposure to approximately 13,700 stocks across 50 countries. It holds 4 underlying Vanguard index ETFs covering the US (~40%), Canada (~30%), international developed (~23%), and emerging markets (~7%). It is designed for long-term Canadian passive investors.",
+                  text: "VEQT (Vanguard All-Equity ETF Portfolio) is a single-ticket ETF that provides instant exposure to approximately 13,700 stocks across 50 countries. It holds 4 underlying Vanguard index ETFs covering the US (~43%), Canada (~31%), international developed (~18%), and emerging markets (~7%). It is designed for long-term Canadian passive investors.",
                 },
               },
               {
@@ -159,7 +167,7 @@ export default function RootLayout({
                 name: "What is the difference between VEQT and XEQT?",
                 acceptedAnswer: {
                   "@type": "Answer",
-                  text: "Both are all-equity, globally diversified single-ticket ETFs. XEQT (iShares) has slightly more US exposure (~45% vs 40%) and a slightly lower MER. VEQT (Vanguard) has more Canadian exposure (~30% vs 25%) and larger AUM. Performance has been very similar. The differences are small enough that most investors won't notice over a 20-year horizon.",
+                  text: "Both are all-equity, globally diversified single-ticket ETFs with identical management fees (0.17%) and effectively identical MERs (~0.20%). XEQT (iShares) has slightly more US exposure (~45% vs ~43%). VEQT (Vanguard) has more Canadian exposure (~31% vs ~25%). Performance has been very similar. The differences are small enough that most investors won't notice over a 20-year horizon.",
                 },
               },
               {

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import PageShell from "@/components/layout/PageShell";
 import SectorChart from "@/components/inside/SectorChart";
-import { FUNDS } from "@/data/funds";
+import { FUNDS, FUND_DATA_LAST_UPDATED } from "@/data/funds";
 import { VEQT_TOP_HOLDINGS, TOP_HOLDINGS_TOTAL_WEIGHT } from "@/data/holdings";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { buildBreadcrumbSchema, canonicalUrl } from "@/lib/seo-config";
@@ -40,7 +40,7 @@ export default function InsideVeqtPage() {
       <main className="flex-1 mx-auto w-full max-w-6xl px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-[var(--color-text-primary)]">
+          <h1 className="text-2xl sm:text-3xl font-serif font-normal text-[var(--color-text-primary)]">
             What&apos;s Inside VEQT?
           </h1>
           <p className="mt-2 text-[var(--color-text-muted)] max-w-prose leading-relaxed">
@@ -52,7 +52,7 @@ export default function InsideVeqtPage() {
 
         {/* Section 1: Fund-of-Funds Structure */}
         <section className="mb-10">
-          <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">
+          <h2 className="text-lg font-serif font-normal text-[var(--color-text-primary)] mb-3">
             The Fund-of-Funds Structure
           </h2>
           <div className="text-sm text-[var(--color-text-muted)] leading-relaxed max-w-prose space-y-3 mb-6">
@@ -74,19 +74,19 @@ export default function InsideVeqtPage() {
             {veqt.underlyingETFs.map((etf) => (
               <div
                 key={etf.ticker}
-                className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-4"
+                className="card-editorial p-4"
               >
-                <p className="text-base font-semibold" style={{ color: "#111827" }}>
+                <p className="text-base font-semibold text-[var(--color-text-primary)]">
                   {etf.ticker}
                 </p>
-                <p className="text-xs mt-0.5 leading-snug" style={{ color: "#6b7280" }}>
+                <p className="text-xs mt-0.5 leading-snug text-[var(--color-text-muted)]">
                   {etf.name}
                 </p>
                 <div className="flex items-center justify-between mt-3 pt-2 border-t border-[var(--color-border)]">
-                  <span className="text-xs" style={{ color: "#6b7280" }}>
+                  <span className="text-xs text-[var(--color-text-muted)]">
                     {etf.region}
                   </span>
-                  <span className="text-sm font-semibold tabular-nums" style={{ color: "#111827" }}>
+                  <span className="text-sm font-semibold tabular-nums text-[var(--color-text-primary)]">
                     {etf.weight}%
                   </span>
                 </div>
@@ -97,11 +97,11 @@ export default function InsideVeqtPage() {
 
         {/* Section 2: Geography Breakdown */}
         <section className="mb-10">
-          <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">
+          <h2 className="text-lg font-serif font-normal text-[var(--color-text-primary)] mb-3">
             Geography Breakdown
           </h2>
 
-          <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5">
+          <div className="card-editorial p-5">
             <div className="flex rounded-full overflow-hidden h-6 mb-5">
               {veqt.geographyAllocation.map((g) => (
                 <div
@@ -141,23 +141,25 @@ export default function InsideVeqtPage() {
 
         {/* Section 3: Sector Allocation */}
         <section className="mb-10">
-          <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">
+          <h2 className="text-lg font-serif font-normal text-[var(--color-text-primary)] mb-3">
             Sector Allocation
           </h2>
-          <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5">
+          <div className="card-editorial p-5">
             <SectorChart />
             <p className="text-[11px] text-[var(--color-text-muted)] mt-2">
-              Approximate sector weights based on most recent available data
+              Approximate sector weights. Portfolio data as of{" "}
+              {new Date(FUND_DATA_LAST_UPDATED + "T00:00:00").toLocaleDateString("en-CA", { year: "numeric", month: "short", day: "numeric" })}
+              . Source: Vanguard Canada.
             </p>
           </div>
         </section>
 
         {/* Section 4: Top Holdings */}
         <section className="mb-10">
-          <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">
+          <h2 className="text-lg font-serif font-normal text-[var(--color-text-primary)] mb-3">
             Top 15 Holdings
           </h2>
-          <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] overflow-x-auto">
+          <div className="card-editorial overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[var(--color-border)]">
@@ -214,10 +216,10 @@ export default function InsideVeqtPage() {
 
         {/* Section 5: How Often This Changes */}
         <section className="mb-6">
-          <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">
+          <h2 className="text-lg font-serif font-normal text-[var(--color-text-primary)] mb-3">
             How Often This Changes
           </h2>
-          <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5">
+          <div className="card-editorial p-5">
             <p className="text-sm text-[var(--color-text-muted)] leading-relaxed max-w-prose">
               Vanguard periodically rebalances VEQT&apos;s target allocation
               across its four underlying ETFs. The underlying holdings themselves

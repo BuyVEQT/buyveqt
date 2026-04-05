@@ -5,21 +5,21 @@ import NewsletterSignup from "@/components/NewsletterSignup";
 export default function Footer() {
   return (
     <footer className="border-t border-[var(--color-border)] bg-[var(--color-card)] mt-auto">
-      <div className="mx-auto max-w-6xl px-4 py-8">
+      <div className="mx-auto max-w-6xl px-4 py-10">
         {/* Top row */}
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6 mb-6">
-          {/* Branding */}
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6 mb-8">
+          {/* Branding — editorial serif */}
           <div>
-            <p className="text-lg font-extrabold tracking-tight text-[var(--color-text-primary)]">
+            <p className="font-serif text-xl tracking-tight text-[var(--color-text-primary)]">
               Buy<span className="text-[var(--color-brand)]">VEQT</span>
             </p>
-            <p className="text-sm text-[var(--color-text-secondary)] mt-1">
+            <p className="text-sm text-[var(--color-text-muted)] mt-1.5">
               The unofficial VEQT investor resource
             </p>
           </div>
 
           {/* Nav links */}
-          <div className="flex flex-wrap gap-x-4 gap-y-0">
+          <div className="flex flex-wrap gap-x-5 gap-y-0">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
@@ -39,7 +39,7 @@ export default function Footer() {
             >
               Methodology
             </Link>
-            <span className="text-[var(--color-border)]">·</span>
+            <span className="text-[var(--color-border)]">&middot;</span>
             <a
               href="https://reddit.com/r/JustBuyVEQT"
               target="_blank"
@@ -62,21 +62,27 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Newsletter signup */}
-        <div className="border-t border-[var(--color-border)] pt-4 pb-4">
-          <p className="text-xs text-[var(--color-text-muted)] mb-2">
+        {/* Editorial rule */}
+        <div className="editorial-rule mb-6" />
+
+        {/* Newsletter */}
+        <div className="pb-6">
+          <p className="section-label mb-2">
+            Stay informed
+          </p>
+          <p className="text-xs text-[var(--color-text-muted)] mb-3">
             Get notified when we launch our newsletter
           </p>
           <NewsletterSignup variant="inline" className="max-w-sm" />
         </div>
 
         {/* Disclaimer + copyright */}
-        <div className="border-t border-[var(--color-border)] pt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div className="border-t border-[var(--color-border)] pt-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <p className="text-xs text-[var(--color-text-muted)] leading-relaxed max-w-2xl">
             {DISCLAIMER}
           </p>
           <p className="text-xs text-[var(--color-text-muted)] shrink-0">
-            &copy; {new Date().getFullYear()} BuyVEQT.com
+            &copy; {new Date().getFullYear()} BuyVEQT.ca
           </p>
         </div>
       </div>

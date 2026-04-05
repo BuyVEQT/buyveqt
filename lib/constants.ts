@@ -1,26 +1,24 @@
 import { AssetAllocation, VeqtQuote } from "./types";
 
-export const VEQT_TICKER = "VEQT.TO";
-
 export const STATIC_DATA = {
   mer: 0.2,
-  aum: "$11.2B",
+  aum: "$12.2B",
 } as const;
 
 export const MER_FOOTNOTE =
   "Vanguard reduced VEQT's management fee from 0.22% to 0.17% in November 2025. The official MER (which includes operating expenses and taxes) is still reported as 0.24% pending fiscal year-end recalculation. The effective MER is expected to be approximately 0.19%–0.20%.";
 
 export const ASSET_ALLOCATION: AssetAllocation[] = [
-  { name: "US", value: 40, color: "#2563eb" },
-  { name: "Canada", value: 30, color: "#16a34a" },
-  { name: "International", value: 23, color: "#f59e0b" },
+  { name: "US", value: 43, color: "#2563eb" },
+  { name: "Canada", value: 31, color: "#16a34a" },
+  { name: "International", value: 18, color: "#f59e0b" },
   { name: "Emerging Markets", value: 7, color: "#8b5cf6" },
 ];
 
 export const UNDERLYING_ETFS = [
-  { ticker: "VUN", name: "US Total Market", region: "US", weight: 40 },
-  { ticker: "VCN", name: "Canada All Cap", region: "Canada", weight: 30 },
-  { ticker: "VIU", name: "Developed ex-NA", region: "International", weight: 23 },
+  { ticker: "VUN", name: "US Total Market", region: "US", weight: 43 },
+  { ticker: "VCN", name: "Canada All Cap", region: "Canada", weight: 31 },
+  { ticker: "VIU", name: "Developed ex-NA", region: "International", weight: 18 },
   { ticker: "VEE", name: "Emerging Markets", region: "Emerging Markets", weight: 7 },
 ];
 
@@ -38,7 +36,7 @@ export const COMPARISON_DATA = {
       ticker: "VEQT",
       name: "Vanguard All-Equity ETF",
       mer: "~0.20%*",
-      aum: "$11.2B",
+      aum: "$12.2B",
       holdings: "13,700+",
       inception: "Jan 2019",
     },
@@ -46,25 +44,19 @@ export const COMPARISON_DATA = {
       ticker: "XEQT",
       name: "iShares Core Equity ETF",
       mer: "0.20%",
-      aum: "$9.5B",
-      holdings: "9,300+",
+      aum: "$14.7B",
+      holdings: "8,400+",
       inception: "Aug 2019",
     },
     {
       ticker: "ZEQT",
       name: "BMO All-Equity ETF",
       mer: "0.20%",
-      aum: "$1.2B",
+      aum: "$591M",
       holdings: "9,000+",
       inception: "Jan 2022",
     },
   ],
-};
-
-export const LATEST_DISTRIBUTION = {
-  amount: "$0.76018",
-  exDivDate: "Dec 30, 2025",
-  payableDate: "Jan 7, 2026",
 };
 
 export const LEARN_ARTICLES = [
@@ -75,9 +67,15 @@ export const LEARN_ARTICLES = [
     editorial: true,
   },
   {
-    slug: "what-is-veqt",
-    title: "What Is VEQT? A Simple Explanation",
-    teaser: "A beginner-friendly explanation of what VEQT is, how it works, and why Canadian investors love it.",
+    slug: "passive-investing-behavioral-edge",
+    title: "The Real Edge of Passive Investing Isn't What You Think",
+    teaser: "Low fees matter. Diversification matters. But the biggest advantage of buying VEQT and doing nothing? You stop making expensive mistakes.",
+    editorial: true,
+  },
+  {
+    slug: "getting-started-with-veqt",
+    title: "Getting Started with VEQT: A Beginner's Complete Guide",
+    teaser: "Everything you need to know to buy your first shares of VEQT. Account types, brokerages, and what to expect.",
   },
 ];
 

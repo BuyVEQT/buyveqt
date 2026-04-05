@@ -24,11 +24,14 @@ export default function CommunityWidget() {
   }, []);
 
   return (
-    <section className="py-8">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-bold text-[var(--color-text-primary)]">
-          From the community
-        </h2>
+    <section className="py-10">
+      <div className="flex items-center justify-between mb-5">
+        <div>
+          <p className="section-label mb-1">Community</p>
+          <h2 className="font-serif text-xl font-medium text-[var(--color-text-primary)]">
+            From the community
+          </h2>
+        </div>
         <Link
           href="/community"
           className="text-sm font-medium text-[var(--color-brand)] hover:text-[var(--color-brand-dark)] transition-colors"
@@ -54,7 +57,7 @@ export default function CommunityWidget() {
               href={post.permalink}
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex items-start justify-between gap-4 py-2.5 first:pt-0 last:pb-0"
+              className="group flex items-start justify-between gap-4 py-3 first:pt-0 last:pb-0"
             >
               <p className="text-sm text-[var(--color-text-secondary)] group-hover:text-[var(--color-brand)] transition-colors leading-snug line-clamp-1 flex-1">
                 {post.title}

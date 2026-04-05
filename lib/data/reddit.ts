@@ -18,7 +18,7 @@ export interface SubredditStats {
 
 const SUBREDDIT = 'JustBuyVEQT';
 const REDDIT_FETCH_TIMEOUT = 8000;
-const REDDIT_USER_AGENT = 'BuyVEQT/1.0 (community site)';
+const REDDIT_USER_AGENT = 'BuyVEQT/1.0 (community site; buyveqt.ca)';
 
 export async function getRedditPosts(
   sort: 'hot' | 'new' | 'top' = 'hot',
@@ -29,14 +29,17 @@ export async function getRedditPosts(
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), REDDIT_FETCH_TIMEOUT);
 
-    let url = `https://www.reddit.com/r/${SUBREDDIT}/${sort}.json?limit=${limit}&raw_json=1`;
+    let url = `https://old.reddit.com/r/${SUBREDDIT}/${sort}.json?limit=${limit}&raw_json=1`;
     if (sort === 'top' && timeFilter) {
       url += `&t=${timeFilter}`;
     }
 
     const response = await fetch(url, {
       signal: controller.signal,
-      headers: { 'User-Agent': REDDIT_USER_AGENT },
+      headers: {
+        'User-Agent': REDDIT_USER_AGENT,
+        'Accept': 'application/json',
+      },
       next: { revalidate: 600 },
     });
 
@@ -76,10 +79,13 @@ export async function getSubredditStats(): Promise<SubredditStats | null> {
     const timeout = setTimeout(() => controller.abort(), REDDIT_FETCH_TIMEOUT);
 
     const response = await fetch(
-      `https://www.reddit.com/r/${SUBREDDIT}/about.json`,
+      `https://old.reddit.com/r/${SUBREDDIT}/about.json`,
       {
         signal: controller.signal,
-        headers: { 'User-Agent': REDDIT_USER_AGENT },
+        headers: {
+          'User-Agent': REDDIT_USER_AGENT,
+          'Accept': 'application/json',
+        },
         next: { revalidate: 1800 },
       }
     );

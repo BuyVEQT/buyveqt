@@ -33,6 +33,28 @@ export interface FundData {
   merFootnote?: string;
 }
 
+/**
+ * Fund data last verified: February 28, 2026
+ * Sources: Vanguard Canada fact sheets, BlackRock Canada fact sheets, BMO ETF Centre
+ *
+ * UPDATE SCHEDULE: Quarterly (next: ~May 2026)
+ *
+ * What to update each quarter:
+ * 1. Allocation percentages — from each fund's product page
+ * 2. Holdings count — from fact sheets
+ * 3. AUM — from product pages
+ * 4. Yield — from product pages
+ * 5. Sector weightings — from fact sheets
+ * 6. FUND_DATA_LAST_UPDATED constant below
+ *
+ * What to update only on announcement:
+ * - MER / management fee changes (add to footnote with effective date)
+ * - Distribution frequency changes
+ */
+
+/** ISO date of last fund data verification. Update quarterly. */
+export const FUND_DATA_LAST_UPDATED = "2026-02-28";
+
 export const FUNDS: Record<string, FundData> = {
   "VEQT.TO": {
     ticker: "VEQT.TO",
@@ -40,7 +62,7 @@ export const FUNDS: Record<string, FundData> = {
     shortName: "VEQT",
     provider: "Vanguard",
     mer: 0.2,
-    aum: "$11.2B",
+    aum: "$12.2B",
     inceptionDate: "2019-01-29",
     numberOfHoldings: 13700,
     distributionFrequency: "Annually",
@@ -53,15 +75,15 @@ export const FUNDS: Record<string, FundData> = {
     whoThisSuits:
       "The original all-in-one equity ETF, built by the company that invented index investing. Broadest diversification (13,700+ holdings), market-cap-weighted global allocation, and backed by Vanguard's investor-owned structure.",
     geographyAllocation: [
-      { region: "United States", weight: 40, color: "#2563eb" },
-      { region: "Canada", weight: 30, color: "#dc2626" },
-      { region: "International Developed", weight: 23, color: "#16a34a" },
+      { region: "United States", weight: 43, color: "#2563eb" },
+      { region: "Canada", weight: 31, color: "#dc2626" },
+      { region: "International Developed", weight: 18, color: "#16a34a" },
       { region: "Emerging Markets", weight: 7, color: "#f59e0b" },
     ],
     underlyingETFs: [
-      { ticker: "VUN", name: "Vanguard US Total Market Index ETF", weight: 40, region: "United States" },
-      { ticker: "VCN", name: "Vanguard FTSE Canada All Cap Index ETF", weight: 30, region: "Canada" },
-      { ticker: "VIU", name: "Vanguard FTSE Developed All Cap ex North America Index ETF", weight: 23, region: "International" },
+      { ticker: "VUN", name: "Vanguard US Total Market Index ETF", weight: 43, region: "United States" },
+      { ticker: "VCN", name: "Vanguard FTSE Canada All Cap Index ETF", weight: 31, region: "Canada" },
+      { ticker: "VIU", name: "Vanguard FTSE Developed All Cap ex North America Index ETF", weight: 18, region: "International" },
       { ticker: "VEE", name: "Vanguard FTSE Emerging Markets All Cap Index ETF", weight: 7, region: "Emerging Markets" },
     ],
     chartColor: "#dc2626",
@@ -74,10 +96,10 @@ export const FUNDS: Record<string, FundData> = {
     shortName: "XEQT",
     provider: "iShares (BlackRock)",
     mer: 0.20,
-    aum: "$9.5B",
+    aum: "$14.7B",
     inceptionDate: "2019-08-07",
-    numberOfHoldings: 9300,
-    distributionFrequency: "Annually",
+    numberOfHoldings: 8400,
+    distributionFrequency: "Quarterly",
     currency: "CAD",
     exchangeListed: "TSX",
     equityAllocation: 100,
@@ -85,7 +107,7 @@ export const FUNDS: Record<string, FundData> = {
     description:
       "iShares' all-equity portfolio ETF offering global diversification with a slightly higher US allocation than VEQT.",
     whoThisSuits:
-      "Investors who want slightly lower fees with more US tilt. Nearly identical to VEQT in purpose.",
+      "Investors who want more US tilt. Nearly identical to VEQT in cost and purpose.",
     geographyAllocation: [
       { region: "United States", weight: 45, color: "#2563eb" },
       { region: "Canada", weight: 25, color: "#dc2626" },
@@ -108,10 +130,10 @@ export const FUNDS: Record<string, FundData> = {
     shortName: "ZEQT",
     provider: "BMO",
     mer: 0.20,
-    aum: "$1.2B",
+    aum: "$591M",
     inceptionDate: "2022-01-24",
     numberOfHoldings: 9000,
-    distributionFrequency: "Annually",
+    distributionFrequency: "Quarterly",
     currency: "CAD",
     exchangeListed: "TSX",
     equityAllocation: 100,
@@ -140,10 +162,10 @@ export const FUNDS: Record<string, FundData> = {
     shortName: "VGRO",
     provider: "Vanguard",
     mer: 0.2,
-    aum: "$6.5B",
+    aum: "$9.2B",
     inceptionDate: "2018-01-25",
     numberOfHoldings: 13700,
-    distributionFrequency: "Annually",
+    distributionFrequency: "Quarterly",
     currency: "CAD",
     exchangeListed: "TSX",
     equityAllocation: 80,
@@ -169,7 +191,7 @@ export const FUNDS: Record<string, FundData> = {
     ],
     chartColor: "#8b5cf6",
     merFootnote:
-      "Vanguard's November 2025 fee cuts applied to its asset allocation ETFs, including VGRO. The effective MER is expected to decrease from 0.24% to approximately 0.20%.",
+      "Vanguard reduced VGRO's management fee from 0.22% to 0.17% in November 2025. The official MER is still reported as 0.24% pending fiscal year-end recalculation. The effective MER is expected to be approximately 0.19%–0.20%.",
   },
   "XGRO.TO": {
     ticker: "XGRO.TO",
@@ -177,7 +199,7 @@ export const FUNDS: Record<string, FundData> = {
     shortName: "XGRO",
     provider: "iShares (BlackRock)",
     mer: 0.20,
-    aum: "$2.5B",
+    aum: "$4.2B",
     inceptionDate: "2007-06-21",
     numberOfHoldings: 9300,
     distributionFrequency: "Quarterly",
@@ -213,10 +235,10 @@ export const FUNDS: Record<string, FundData> = {
     shortName: "VFV",
     provider: "Vanguard",
     mer: 0.09,
-    aum: "$11B",
+    aum: "$28.3B",
     inceptionDate: "2012-11-02",
     numberOfHoldings: 500,
-    distributionFrequency: "Annually",
+    distributionFrequency: "Quarterly",
     currency: "CAD",
     exchangeListed: "TSX",
     equityAllocation: 100,
@@ -240,7 +262,7 @@ export const FUNDS: Record<string, FundData> = {
     aum: "$8.5B",
     inceptionDate: "2013-08-02",
     numberOfHoldings: 3700,
-    distributionFrequency: "Annually",
+    distributionFrequency: "Quarterly",
     currency: "CAD",
     exchangeListed: "TSX",
     equityAllocation: 100,

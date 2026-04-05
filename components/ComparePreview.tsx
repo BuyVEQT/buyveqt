@@ -5,20 +5,21 @@ export default function ComparePreview() {
   const headers = ["", "MER", "AUM", "Holdings", "Inception"];
 
   return (
-    <section className="py-10">
-      <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5 sm:p-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+    <section className="py-12">
+      <div className="card-editorial p-6 sm:p-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
-            <h2 className="text-xl font-bold text-[var(--color-text-primary)]">
+            <p className="section-label mb-2">Comparison</p>
+            <h2 className="font-serif text-2xl sm:text-3xl font-normal text-[var(--color-text-primary)]">
               How does VEQT stack up?
             </h2>
-            <p className="text-sm text-[var(--color-text-muted)] mt-0.5">
+            <p className="text-sm text-[var(--color-text-muted)] mt-1">
               A quick comparison of Canada&apos;s most popular all-equity ETFs.
             </p>
           </div>
           <Link
             href="/compare"
-            className="inline-flex items-center px-4 py-2 rounded-lg bg-[var(--color-brand)] text-white text-sm font-semibold hover:bg-[var(--color-brand-dark)] transition-colors shrink-0"
+            className="inline-flex items-center px-5 py-2.5 rounded-lg bg-[var(--color-brand)] text-white text-sm font-semibold hover:bg-[var(--color-brand-dark)] transition-all hover:shadow-lg hover:shadow-[var(--color-brand)]/10 shrink-0"
           >
             Explore full comparison &rarr;
           </Link>
@@ -32,7 +33,7 @@ export default function ComparePreview() {
                 {headers.map((h) => (
                   <th
                     key={h}
-                    className="text-left py-2 px-3 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider"
+                    className="text-left py-2.5 px-3 text-[10px] font-semibold text-[var(--color-text-muted)] uppercase tracking-widest"
                   >
                     {h}
                   </th>
@@ -43,9 +44,9 @@ export default function ComparePreview() {
               {COMPARISON_DATA.etfs.map((etf) => (
                 <tr
                   key={etf.ticker}
-                  className="border-b last:border-b-0 border-[var(--color-border)]"
+                  className="border-b last:border-b-0 border-[var(--color-border)] hover:bg-[var(--color-card-hover)] transition-colors"
                 >
-                  <td className="py-2.5 px-3">
+                  <td className="py-3 px-3">
                     <span className="font-semibold text-[var(--color-text-primary)]">
                       {etf.ticker}
                     </span>
@@ -53,10 +54,10 @@ export default function ComparePreview() {
                       {etf.name}
                     </span>
                   </td>
-                  <td className="py-2.5 px-3 tabular-nums">{etf.mer}</td>
-                  <td className="py-2.5 px-3 tabular-nums">{etf.aum}</td>
-                  <td className="py-2.5 px-3 tabular-nums">{etf.holdings}</td>
-                  <td className="py-2.5 px-3 text-[var(--color-text-muted)]">
+                  <td className="py-3 px-3 tabular-nums font-medium">{etf.mer}</td>
+                  <td className="py-3 px-3 tabular-nums">{etf.aum}</td>
+                  <td className="py-3 px-3 tabular-nums">{etf.holdings}</td>
+                  <td className="py-3 px-3 text-[var(--color-text-muted)]">
                     {etf.inception}
                   </td>
                 </tr>
@@ -70,7 +71,7 @@ export default function ComparePreview() {
           {COMPARISON_DATA.etfs.map((etf) => (
             <div
               key={etf.ticker}
-              className="rounded-lg border border-[var(--color-border)] p-3"
+              className="rounded-lg border border-[var(--color-border)] p-4"
             >
               <p className="font-semibold text-[var(--color-text-primary)] mb-2">
                 {etf.ticker}
@@ -78,9 +79,9 @@ export default function ComparePreview() {
                   {etf.name}
                 </span>
               </p>
-              <div className="grid grid-cols-2 gap-y-1.5 text-sm">
+              <div className="grid grid-cols-2 gap-y-2 text-sm">
                 <span className="text-[var(--color-text-muted)]">MER</span>
-                <span className="tabular-nums">{etf.mer}</span>
+                <span className="tabular-nums font-medium">{etf.mer}</span>
                 <span className="text-[var(--color-text-muted)]">AUM</span>
                 <span className="tabular-nums">{etf.aum}</span>
                 <span className="text-[var(--color-text-muted)]">Holdings</span>

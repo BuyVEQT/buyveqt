@@ -10,6 +10,12 @@ export async function GET(request: Request) {
 
   try {
     const history = await getDailyHistory(symbol, outputsize);
+    if (!history.data.length) {
+      return NextResponse.json(
+        { error: 'No historical data available' },
+        { status: 503 }
+      );
+    }
     return NextResponse.json(history);
   } catch {
     return NextResponse.json(

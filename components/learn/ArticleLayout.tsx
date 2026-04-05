@@ -19,6 +19,7 @@ import { ForexLossStats } from "@/components/mdx/ForexLossStats";
 import { OpportunityCostCalculator } from "@/components/mdx/OpportunityCostCalculator";
 import { JourneyTimeline } from "@/components/mdx/JourneyTimeline";
 import { ZeroSumExplainer } from "@/components/mdx/ZeroSumExplainer";
+import { OwnershipDiagram } from "@/components/mdx/OwnershipDiagram";
 import { OwnershipStructure } from "@/components/mdx/OwnershipStructure";
 import { VanguardEffectTimeline } from "@/components/mdx/VanguardEffectTimeline";
 import { FundStructure } from "@/components/mdx/FundStructure";
@@ -58,6 +59,7 @@ const mdxComponents = {
   OpportunityCostCalculator,
   JourneyTimeline,
   ZeroSumExplainer,
+  OwnershipDiagram,
   OwnershipStructure,
   VanguardEffectTimeline,
   FundStructure,
@@ -92,7 +94,7 @@ export default function ArticleLayout({ frontmatter, content }: ArticleLayoutPro
 
       {/* Header */}
       <header className="mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold text-[var(--color-text-primary)] leading-tight">
+        <h1 className="text-2xl sm:text-3xl font-serif font-normal text-[var(--color-text-primary)] leading-tight">
           {frontmatter.title}
         </h1>
         <p className="mt-2 text-sm text-[var(--color-text-muted)]">

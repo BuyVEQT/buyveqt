@@ -32,13 +32,13 @@ async function fetchPosts(
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REDDIT_TIMEOUT);
 
-  let url = `https://www.reddit.com/r/${SUBREDDIT}/${sort}.json?limit=${limit}&raw_json=1`;
+  let url = `https://old.reddit.com/r/${SUBREDDIT}/${sort}.json?limit=${limit}&raw_json=1`;
   if (sort === 'top' && timeFilter) url += `&t=${timeFilter}`;
 
   try {
     const res = await fetch(url, {
       signal: controller.signal,
-      headers: { 'User-Agent': UA },
+      headers: { 'User-Agent': UA, 'Accept': 'application/json' },
       cache: 'no-store',
     });
     clearTimeout(timeout);
@@ -82,7 +82,7 @@ async function fetchStats(): Promise<SubredditStats | null> {
       `https://www.reddit.com/r/${SUBREDDIT}/about.json`,
       {
         signal: controller.signal,
-        headers: { 'User-Agent': UA },
+        headers: { 'User-Agent': UA, 'Accept': 'application/json' },
         cache: 'no-store',
       }
     );

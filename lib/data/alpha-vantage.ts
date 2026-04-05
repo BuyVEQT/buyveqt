@@ -131,7 +131,16 @@ export async function getDailyHistoryAV(
 
   const displaySymbol = avSymbol.replace(/\.TRT$/, '');
 
-  const data = Object.entries(timeSeries)
+  const entries = Object.entries(timeSeries);
+  if (entries.length === 0) {
+    throw {
+      type: 'unknown',
+      message: 'Time Series (Daily) exists but contains no data',
+      source: 'alpha-vantage',
+    } satisfies DataError;
+  }
+
+  const data = entries
     .map(([date, values]) => ({
       date,
       open: parseFloat(values['1. open']),
@@ -142,7 +151,16 @@ export async function getDailyHistoryAV(
       volume: parseInt(values['6. volume'], 10),
       dividendAmount: parseFloat(values['7. dividend amount']),
     }))
+    .filter((d) => d.close > 0)
     .sort((a, b) => a.date.localeCompare(b.date)); // oldest first
+
+  if (data.length === 0) {
+    throw {
+      type: 'unknown',
+      message: 'All daily rows had invalid close prices',
+      source: 'alpha-vantage',
+    } satisfies DataError;
+  }
 
   return {
     symbol: displaySymbol,
@@ -177,7 +195,16 @@ export async function getMonthlyHistoryAV(
 
   const displaySymbol = avSymbol.replace(/\.TRT$/, '');
 
-  const data = Object.entries(timeSeries)
+  const entries = Object.entries(timeSeries);
+  if (entries.length === 0) {
+    throw {
+      type: 'unknown',
+      message: 'Monthly Adjusted Time Series exists but contains no data',
+      source: 'alpha-vantage',
+    } satisfies DataError;
+  }
+
+  const data = entries
     .map(([date, values]) => ({
       date,
       open: parseFloat(values['1. open']),
@@ -188,7 +215,16 @@ export async function getMonthlyHistoryAV(
       volume: parseInt(values['6. volume'], 10),
       dividendAmount: parseFloat(values['7. dividend amount']),
     }))
+    .filter((d) => d.close > 0)
     .sort((a, b) => a.date.localeCompare(b.date)); // oldest first
+
+  if (data.length === 0) {
+    throw {
+      type: 'unknown',
+      message: 'All monthly rows had invalid close prices',
+      source: 'alpha-vantage',
+    } satisfies DataError;
+  }
 
   return {
     symbol: displaySymbol,

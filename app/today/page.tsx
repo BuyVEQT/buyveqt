@@ -34,15 +34,21 @@ export const metadata: Metadata = {
 
 // ─── Helpers ──────────────────────────────────────────────────
 
+/** Calculate return by looking back a number of calendar days from the latest point. */
 function calcReturn(
   data: { date: string; adjustedClose: number }[],
-  daysBack: number
+  calendarDaysBack: number
 ): number | null {
   if (data.length < 2) return null;
   const latest = data[data.length - 1];
-  const targetIdx = Math.max(0, data.length - 1 - daysBack);
-  const earlier = data[targetIdx];
-  if (!earlier || !latest || earlier.adjustedClose <= 0) return null;
+  if (!latest || latest.adjustedClose <= 0) return null;
+
+  const cutoff = new Date(latest.date + "T00:00:00");
+  cutoff.setDate(cutoff.getDate() - calendarDaysBack);
+  const cutoffStr = cutoff.toISOString().split("T")[0];
+
+  const earlier = data.find((d) => d.date >= cutoffStr);
+  if (!earlier || earlier.adjustedClose <= 0) return null;
   return (
     ((latest.adjustedClose - earlier.adjustedClose) / earlier.adjustedClose) *
     100
@@ -111,15 +117,13 @@ export default async function TodayPage() {
 
   const perfMetrics = [
     { label: "1 Day", value: calcReturn(dailyData, 1) },
-    { label: "1 Week", value: calcReturn(dailyData, 5) },
-    { label: "1 Month", value: calcReturn(dailyData, 22) },
-    { label: "3 Months", value: calcReturn(dailyData, 66) },
+    { label: "1 Week", value: calcReturn(dailyData, 7) },
+    { label: "1 Month", value: calcReturn(dailyData, 30) },
+    { label: "3 Months", value: calcReturn(dailyData, 90) },
     { label: "YTD", value: calcYTDReturn(allData) },
     {
       label: "1 Year",
-      value: dailyData.length >= 252
-        ? calcReturn(dailyData, 252)
-        : calcReturn(monthlyData, 12),
+      value: calcReturn(dailyData, 365) ?? calcReturn(monthlyData, 365),
     },
     { label: "Since Inception", value: calcSinceInception(monthlyData) },
   ];
@@ -167,7 +171,7 @@ export default async function TodayPage() {
       />
       <main className="flex-1 mx-auto w-full max-w-3xl px-4 py-8 space-y-8">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-[var(--color-text-primary)]">
+          <h1 className="text-2xl sm:text-3xl font-serif font-normal text-[var(--color-text-primary)]">
             VEQT Today
           </h1>
           <p className="mt-1 text-sm text-[var(--color-text-muted)]">
@@ -179,7 +183,7 @@ export default async function TodayPage() {
         {!quote ? (
           <DataUnavailable type="quote" />
         ) : (
-          <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5">
+          <div className="card-editorial p-5">
             <div className="flex items-baseline gap-3 flex-wrap">
               <span className="text-3xl sm:text-4xl font-bold tabular-nums">
                 ${quote.price.toFixed(2)}
@@ -217,7 +221,7 @@ export default async function TodayPage() {
               return (
                 <div
                   key={m.label}
-                  className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-2.5 text-center"
+                  className="card-editorial p-2.5 text-center"
                 >
                   <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide mb-1">
                     {m.label}
@@ -241,7 +245,7 @@ export default async function TodayPage() {
 
         {/* Section 3: Mini Price Chart */}
         {chartSlice.length >= 2 && (
-          <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-4">
+          <div className="card-editorial p-4">
             <h2 className="text-sm font-semibold text-[var(--color-text-secondary)] mb-2">
               Last 3 Months
             </h2>
@@ -251,7 +255,7 @@ export default async function TodayPage() {
 
         {/* Section 4: Latest Distribution */}
         {latestDist && (
-          <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5">
+          <div className="card-editorial p-5">
             <h2 className="text-sm font-semibold text-[var(--color-text-secondary)] mb-3">
               Latest Distribution
             </h2>
@@ -297,7 +301,7 @@ export default async function TodayPage() {
                   href={link.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] px-3 py-2.5 text-sm font-medium text-[var(--color-text-secondary)] hover:border-[var(--color-brand)] hover:text-[var(--color-brand)] transition-colors text-center"
+                  className="card-editorial px-3 py-2.5 text-sm font-medium text-[var(--color-text-secondary)] hover:border-[var(--color-brand)] hover:text-[var(--color-brand)] transition-colors text-center"
                 >
                   {link.label} &rarr;
                 </a>
@@ -305,7 +309,7 @@ export default async function TodayPage() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] px-3 py-2.5 text-sm font-medium text-[var(--color-text-secondary)] hover:border-[var(--color-brand)] hover:text-[var(--color-brand)] transition-colors text-center"
+                  className="card-editorial px-3 py-2.5 text-sm font-medium text-[var(--color-text-secondary)] hover:border-[var(--color-brand)] hover:text-[var(--color-brand)] transition-colors text-center"
                 >
                   {link.label} &rarr;
                 </Link>
@@ -322,7 +326,7 @@ export default async function TodayPage() {
             </h2>
             <Link
               href={`/weekly/${latestRecap.slug}`}
-              className="block rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-4 hover:border-[var(--color-brand)] hover:shadow-sm transition-all"
+              className="block card-editorial p-4 hover:border-[var(--color-brand)] hover:shadow-sm transition-all"
             >
               <div className="flex items-center justify-between gap-3">
                 <p className="text-sm font-semibold text-[var(--color-text-primary)]">
@@ -331,8 +335,8 @@ export default async function TodayPage() {
                 <span
                   className={`text-sm font-bold tabular-nums shrink-0 ${
                     latestRecap.weeklyChange >= 0
-                      ? "text-[#15803d]"
-                      : "text-[#b91c1c]"
+                      ? "text-[var(--color-positive)]"
+                      : "text-[var(--color-negative)]"
                   }`}
                 >
                   {latestRecap.weeklyChange >= 0 ? "+" : ""}
@@ -349,7 +353,7 @@ export default async function TodayPage() {
             <h2 className="text-sm font-semibold text-[var(--color-text-secondary)] mb-3">
               Latest on r/JustBuyVEQT
             </h2>
-            <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-4">
+            <div className="card-editorial p-4">
               <RedditFeed posts={posts} />
             </div>
           </div>

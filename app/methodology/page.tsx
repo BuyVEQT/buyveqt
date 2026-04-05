@@ -26,7 +26,7 @@ function Section({
 }) {
   return (
     <section className="mb-8">
-      <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">
+      <h2 className="text-lg font-serif font-normal text-[var(--color-text-primary)] mb-3">
         {title}
       </h2>
       <div className="text-sm text-[var(--color-text-secondary)] leading-relaxed space-y-3">
@@ -46,7 +46,7 @@ export default function MethodologyPage() {
         ])}
       />
       <main className="flex-1 mx-auto w-full max-w-3xl px-4 py-8">
-        <h1 className="text-2xl sm:text-3xl font-bold text-[var(--color-text-primary)] mb-2">
+        <h1 className="text-2xl sm:text-3xl font-serif font-normal text-[var(--color-text-primary)] mb-2">
           Methodology & Data Sources
         </h1>
         <p className="text-[var(--color-text-secondary)] mb-8">

@@ -28,11 +28,11 @@ async function fetchRedditDirect(
   limit: number = 12
 ): Promise<RedditPost[]> {
   try {
-    let url = `https://www.reddit.com/r/JustBuyVEQT/${sort}.json?limit=${limit}&raw_json=1`;
+    let url = `https://old.reddit.com/r/JustBuyVEQT/${sort}.json?limit=${limit}&raw_json=1`;
     if (sort === "top") url += "&t=all";
 
     const res = await fetch(url, {
-      headers: { "User-Agent": "buyveqt.ca/1.0" },
+      headers: { Accept: "application/json" },
     });
     if (!res.ok) return [];
 
@@ -66,8 +66,8 @@ async function fetchRedditDirect(
 async function fetchStatsDirect(): Promise<SubredditStats | null> {
   try {
     const res = await fetch(
-      "https://www.reddit.com/r/JustBuyVEQT/about.json",
-      { headers: { "User-Agent": "buyveqt.ca/1.0" } }
+      "https://old.reddit.com/r/JustBuyVEQT/about.json",
+      { headers: { Accept: "application/json" } }
     );
     if (!res.ok) return null;
     const json = await res.json();

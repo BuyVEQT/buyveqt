@@ -93,7 +93,7 @@ export default function NewsletterSignup({
         </div>
       ) : (
         <>
-          <h3 className="text-lg font-bold text-[var(--color-text-primary)]">
+          <h3 className="text-lg font-serif font-medium text-[var(--color-text-primary)]">
             Stay in the Loop
           </h3>
           <p className="mt-2 text-sm text-[var(--color-text-muted)] leading-relaxed max-w-lg">

@@ -68,7 +68,7 @@ export default async function DistributionsPage() {
       <main className="flex-1 mx-auto w-full max-w-6xl px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-[var(--color-text-primary)]">
+          <h1 className="text-2xl sm:text-3xl font-serif font-normal text-[var(--color-text-primary)]">
             VEQT Distributions
           </h1>
           <p className="mt-2 text-[var(--color-text-muted)] max-w-prose">
@@ -81,7 +81,7 @@ export default async function DistributionsPage() {
         <section className="mb-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Next payout card */}
-            <div className="rounded-lg border-2 border-[var(--color-brand)] bg-[var(--color-card)] p-5">
+            <div className="card-editorial border-2 !border-[var(--color-brand)] p-5">
               <p className="text-xs font-medium text-[var(--color-brand)] uppercase tracking-wider mb-2">
                 Next Expected Distribution
               </p>
@@ -104,7 +104,7 @@ export default async function DistributionsPage() {
             </div>
 
             {/* Latest confirmed + yield */}
-            <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5">
+            <div className="card-editorial p-5">
               <p className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider mb-2">
                 Latest Confirmed
               </p>
@@ -137,10 +137,10 @@ export default async function DistributionsPage() {
 
         {/* Section 2: Distribution History Table */}
         <section className="mb-8">
-          <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">
+          <h2 className="text-lg font-serif font-normal text-[var(--color-text-primary)] mb-3">
             Annual Distribution History
           </h2>
-          <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] overflow-x-auto">
+          <div className="card-editorial overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[var(--color-border)]">
@@ -196,10 +196,10 @@ export default async function DistributionsPage() {
 
         {/* Section 3: Distribution Chart */}
         <section className="mb-8">
-          <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">
+          <h2 className="text-lg font-serif font-normal text-[var(--color-text-primary)] mb-3">
             Distribution Amounts Over Time
           </h2>
-          <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5">
+          <div className="card-editorial p-5">
             <DistributionChart />
             <p className="text-[11px] text-[var(--color-text-muted)] mt-2">
               Each bar represents one annual distribution
@@ -210,7 +210,7 @@ export default async function DistributionsPage() {
         {/* Section 4: Income Estimator */}
         {currentPrice > 0 && (
           <section className="mb-8">
-            <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">
+            <h2 className="text-lg font-serif font-normal text-[var(--color-text-primary)] mb-3">
               Estimate Your Income
             </h2>
             <IncomeEstimator
@@ -222,10 +222,10 @@ export default async function DistributionsPage() {
 
         {/* Section 5: Understanding Distributions */}
         <section className="mb-6">
-          <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">
+          <h2 className="text-lg font-serif font-normal text-[var(--color-text-primary)] mb-3">
             Understanding Distributions
           </h2>
-          <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5">
+          <div className="card-editorial p-5">
             <div className="text-sm text-[var(--color-text-muted)] leading-relaxed max-w-prose space-y-3">
               <p>
                 A distribution is a payment from the fund to its unitholders,

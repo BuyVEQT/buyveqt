@@ -55,7 +55,6 @@ export function ProgressTracker({ labels, anchors }: ProgressTrackerProps) {
           const isDone = i < activeIndex;
           const isActive = i === activeIndex;
           const isFirst = i === 0;
-          const isLast = i === steps.length - 1;
 
           return (
             <div key={i} className="flex-1 flex flex-col items-center relative">
@@ -103,8 +102,6 @@ export function ProgressTracker({ labels, anchors }: ProgressTrackerProps) {
                 {step}
               </p>
 
-              {/* Suppress TS unused-var warning */}
-              {isLast && null}
             </div>
           );
         })}

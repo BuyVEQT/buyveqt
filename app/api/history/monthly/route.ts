@@ -9,6 +9,12 @@ export async function GET(request: Request) {
 
   try {
     const history = await getMonthlyHistory(symbol);
+    if (!history.data.length) {
+      return NextResponse.json(
+        { error: 'No monthly data available' },
+        { status: 503 }
+      );
+    }
     return NextResponse.json(history);
   } catch {
     return NextResponse.json(

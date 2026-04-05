@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDailyHistory } from "@/lib/data";
 
-const ALLOWED_TICKERS = ["VEQT", "XEQT", "ZEQT", "VGRO", "VFV", "VUN"];
+const ALLOWED_TICKERS = ["VEQT", "XEQT", "ZEQT", "VGRO", "XGRO", "VFV", "VUN"];
 
 function getStartDate(range: string): string {
   const now = new Date();
@@ -65,6 +65,16 @@ export async function GET(
         date: d.date,
         close: d.adjustedClose || d.close,
       }));
+
+    if (data.length === 0) {
+      return NextResponse.json({
+        ticker: displayTicker,
+        range,
+        data: [],
+        error: true,
+        message: "No data available for this period",
+      });
+    }
 
     return NextResponse.json(
       {

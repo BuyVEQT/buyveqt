@@ -150,9 +150,9 @@ export default function PerformanceChart({ selectedFunds }: PerformanceChartProp
   const allUnavailable = !loading && chartData.length === 0;
 
   return (
-    <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-4 sm:p-5">
-      <div className="flex items-center justify-between gap-3 mb-2">
-        <h2 className="text-sm font-semibold text-[var(--color-text-secondary)]">
+    <div className="card-editorial p-0 overflow-hidden">
+      <div className="flex items-center justify-between gap-3 px-5 pt-5 pb-3">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
           Normalized Performance (% change)
         </h2>
         <div className="flex gap-0.5 rounded-lg bg-[var(--color-base)] p-0.5">
@@ -172,19 +172,20 @@ export default function PerformanceChart({ selectedFunds }: PerformanceChartProp
         </div>
       </div>
 
-      {/* Stale banner above chart */}
       {hasCached && fetchedAt && (
-        <StaleBanner fetchedAt={fetchedAt} className="mb-3" />
+        <div className="px-5">
+          <StaleBanner fetchedAt={fetchedAt} className="mb-3" />
+        </div>
       )}
 
-      <div>
+      <div className="chart-atmosphere">
         {loading ? (
           <div className="skeleton h-[320px] w-full rounded-lg" />
         ) : allUnavailable ? (
           <DataUnavailable type="chart" className="min-h-[320px]" />
         ) : (
           <>
-            <ResponsiveContainer width="100%" height={320}>
+            <ResponsiveContainer width="100%" height={360}>
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
                 <XAxis
@@ -237,7 +238,7 @@ export default function PerformanceChart({ selectedFunds }: PerformanceChartProp
       </div>
 
       {/* Data freshness footer */}
-      <div className="mt-2">
+      <div className="px-5 py-3 border-t border-[var(--color-border)]">
         {!loading && fetchedAt ? (
           <DataFreshness source={displaySource} fetchedAt={fetchedAt} />
         ) : (

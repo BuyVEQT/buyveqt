@@ -12,7 +12,11 @@ export async function getQuoteYahoo(
   displaySymbol: string
 ): Promise<QuoteData | null> {
   try {
-    const result = await yf.quote(yahooSymbol);
+    const quotePromise = yf.quote(yahooSymbol);
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Yahoo quote request timed out after 8s')), 8000)
+    );
+    const result = await Promise.race([quotePromise, timeoutPromise]);
 
     if (!result || !result.regularMarketPrice) return null;
 
@@ -64,11 +68,17 @@ export async function getHistoryYahoo(
     yesterday.setDate(yesterday.getDate() - 1);
     const endDate = options?.period2 ?? yesterday;
 
-    const result = await yf.historical(yahooSymbol, {
+    // Race against a timeout — yahoo-finance2 has no built-in timeout for
+    // .historical() and can hang indefinitely on network issues.
+    const historyPromise = yf.historical(yahooSymbol, {
       period1: options?.period1 ?? defaultStart,
       period2: endDate,
       interval: options?.interval ?? '1d',
     });
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Yahoo historical request timed out after 10s')), 10000)
+    );
+    const result = await Promise.race([historyPromise, timeoutPromise]);
 
     if (!result || result.length === 0) return null;
 

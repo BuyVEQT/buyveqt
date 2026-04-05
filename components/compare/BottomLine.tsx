@@ -36,7 +36,7 @@ export default function BottomLine({ slug, fundA, fundB, className }: BottomLine
 
   return (
     <section className={`mt-8 pt-8 border-t border-[var(--color-border)] ${className ?? ""}`}>
-      <h2 className="text-xl font-bold text-[var(--color-text-primary)] mb-4">
+      <h2 className="text-xl font-serif font-medium text-[var(--color-text-primary)] mb-4">
         The Bottom Line
       </h2>
 
@@ -50,7 +50,7 @@ export default function BottomLine({ slug, fundA, fundB, className }: BottomLine
         {verdict.points.map((point) => (
           <div
             key={point.label}
-            className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-4"
+            className="card-editorial p-4"
           >
             <div className="flex items-center justify-between gap-2 mb-2">
               <span className="text-sm font-semibold text-[var(--color-text-primary)]">

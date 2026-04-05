@@ -41,7 +41,6 @@ function sortByOrder(articles: ArticleFrontmatter[]): ArticleFrontmatter[] {
 export default function LearnPage() {
   const allArticles = getAllArticles();
 
-  // Find the Start Here article
   const startHere =
     allArticles.find((a) => a.slug === "getting-started-with-veqt") ||
     allArticles
@@ -49,17 +48,17 @@ export default function LearnPage() {
       .sort((a, b) => (a.order ?? 99) - (b.order ?? 99))[0] ||
     null;
 
-  // Build pool of remaining articles (excluding Start Here)
   const pool = allArticles.filter((a) => a.slug !== startHere?.slug);
 
-  // Extract groups in priority order (each article appears in only one group)
   const basics = extract(pool, (a) => a.category === "beginner");
   const comparisons = extract(pool, (a) => a.category === "comparison");
   const strategy = extract(
     pool,
     (a) => a.category === "tax-strategy" || a.category === "veqt-deep-dive"
   );
-  const uncategorized = pool; // whatever's left
+  const uncategorized = pool;
+
+  const articleCount = allArticles.length;
 
   return (
     <PageShell>
@@ -69,16 +68,30 @@ export default function LearnPage() {
           { name: "Learn", path: "/learn" },
         ])}
       />
-      <main className="flex-1 mx-auto w-full max-w-6xl px-4 py-8">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl sm:text-3xl font-bold text-[var(--color-text-primary)]">
+      <main className="flex-1 mx-auto w-full max-w-6xl px-4 py-10">
+        {/* Editorial hero header */}
+        <div className="mb-10">
+          <p className="section-label mb-3">Research &amp; Education</p>
+          <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-normal text-[var(--color-text-primary)] leading-[1.1] max-w-2xl">
             Learn
           </h1>
-          <p className="mt-2 text-[var(--color-text-secondary)] max-w-2xl">
+          <p className="mt-4 text-[var(--color-text-secondary)] max-w-xl leading-relaxed">
             Whether you&apos;re buying your first ETF or optimizing a six-figure
             portfolio, start with the guide that fits where you are.
           </p>
+          {/* Stats bar */}
+          <div className="mt-5 flex items-center gap-5 text-xs text-[var(--color-text-muted)]">
+            <span className="flex items-center gap-1.5">
+              <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" className="text-[var(--color-accent)]">
+                <path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V4zm2-.5a.5.5 0 00-.5.5v8a.5.5 0 00.5.5h8a.5.5 0 00.5-.5V4a.5.5 0 00-.5-.5H4z" />
+              </svg>
+              {articleCount} articles
+            </span>
+            <span className="text-[var(--color-border)]">&middot;</span>
+            <span>Plain English, no jargon</span>
+            <span className="text-[var(--color-border)]">&middot;</span>
+            <span>Updated regularly</span>
+          </div>
         </div>
 
         <LearnContent
@@ -87,7 +100,7 @@ export default function LearnPage() {
         />
 
         {/* Disclaimer */}
-        <div className="mt-10 rounded-lg bg-[var(--color-base)] border border-[var(--color-border)] p-4">
+        <div className="mt-12 card-editorial p-4">
           <p className="text-xs text-[var(--color-text-muted)] leading-relaxed">
             All content is educational and informational only — not financial
             advice. Consider your personal situation and consult a qualified

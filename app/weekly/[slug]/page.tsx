@@ -78,17 +78,17 @@ export default async function WeeklyRecapPage({
         </nav>
 
         {/* Header Card */}
-        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-5 sm:p-6 mb-8">
+        <div className="card-editorial p-5 sm:p-6 mb-8">
           <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-1">
             {weekRange}
           </p>
-          <h1 className="text-xl sm:text-2xl font-bold text-[var(--color-text-primary)]">
+          <h1 className="text-xl sm:text-2xl font-serif font-normal text-[var(--color-text-primary)]">
             {recap.title}
           </h1>
           <div className="mt-3 flex items-baseline gap-4 flex-wrap">
             <span
               className={`text-2xl font-extrabold tabular-nums ${
-                isPos ? "text-[#15803d]" : "text-[#b91c1c]"
+                isPos ? "text-[var(--color-positive)]" : "text-[var(--color-negative)]"
               }`}
             >
               {isPos ? "+" : ""}
@@ -99,7 +99,7 @@ export default async function WeeklyRecapPage({
             </span>
             <span
               className={`text-sm font-medium tabular-nums ${
-                isPos ? "text-[#15803d]" : "text-[#b91c1c]"
+                isPos ? "text-[var(--color-positive)]" : "text-[var(--color-negative)]"
               }`}
             >
               ({isPos ? "+" : ""}${recap.weeklyChange.toFixed(2)})

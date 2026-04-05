@@ -37,9 +37,9 @@ export const VERDICTS: ComparisonVerdict[] = [
       },
       {
         label: "Fund size (AUM)",
-        winner: "VEQT",
+        winner: "XEQT",
         explanation:
-          "VEQT has a larger asset base, which generally means tighter bid-ask spreads and more liquidity for large trades.",
+          "XEQT has surpassed VEQT in assets under management (~$14.7B vs ~$12.2B). Both are highly liquid with tight bid-ask spreads.",
       },
       {
         label: "Simplicity",
@@ -49,7 +49,7 @@ export const VERDICTS: ComparisonVerdict[] = [
       },
     ],
     recommendation:
-      "If you already hold one, there's no compelling reason to switch. If choosing fresh, both are excellent. Pick whichever your brokerage makes easier to buy, or go with VEQT if you value a slight home-country tilt and XEQT if you want marginally lower fees.",
+      "If you already hold one, there's no compelling reason to switch. If choosing fresh, both are excellent. Pick whichever your brokerage makes easier to buy, or go with VEQT if you value a slight home-country tilt and Vanguard's investor-owned structure.",
   },
   {
     slug: "veqt-vs-vgro",
@@ -82,9 +82,9 @@ export const VERDICTS: ComparisonVerdict[] = [
       },
       {
         label: "Lowest cost (MER)",
-        winner: "VEQT",
+        winner: "Tie",
         explanation:
-          "VEQT's MER is slightly lower. Bond funds add a small cost layer in VGRO.",
+          "Both VEQT and VGRO have the same ~0.20% effective MER after Vanguard's November 2025 fee cuts.",
       },
     ],
     recommendation:
@@ -99,13 +99,13 @@ export const VERDICTS: ComparisonVerdict[] = [
         label: "Fund size and liquidity",
         winner: "VEQT",
         explanation:
-          "VEQT has significantly more assets under management, which typically means better liquidity and tighter bid-ask spreads.",
+          "VEQT has ~$12.2B in AUM vs ZEQT's ~$591M, which means better liquidity and tighter bid-ask spreads.",
       },
       {
         label: "MER",
         winner: "Tie",
         explanation:
-          "Both have an effective MER of ~0.20%. VEQT's management fee is 0.17%, ZEQT's is slightly higher but the all-in MERs are effectively identical.",
+          "Both have an effective MER of ~0.20%. VEQT's management fee is 0.17%, ZEQT's is 0.15%. The all-in MERs are effectively identical.",
       },
       {
         label: "Track record",
@@ -195,7 +195,7 @@ export const VERDICTS: ComparisonVerdict[] = [
         label: "Currency risk",
         winner: "VEQT",
         explanation:
-          "VFV is 100% exposed to USD/CAD fluctuations. VEQT's ~30% Canadian allocation provides a natural hedge. When the Canadian dollar strengthens, VFV holders feel it.",
+          "VFV is 100% exposed to USD/CAD fluctuations. VEQT's ~31% Canadian allocation provides a natural hedge. When the Canadian dollar strengthens, VFV holders feel it.",
       },
       {
         label: "Concentration risk",
@@ -207,7 +207,7 @@ export const VERDICTS: ComparisonVerdict[] = [
         label: "Canadian tax efficiency",
         winner: "VEQT",
         explanation:
-          "VEQT's Canadian equity allocation (~30%) receives eligible dividend treatment in taxable accounts. VFV's distributions are 100% foreign income. In registered accounts, the difference is minimal.",
+          "VEQT's Canadian equity allocation (~31%) receives eligible dividend treatment in taxable accounts. VFV's distributions are 100% foreign income. In registered accounts, the difference is minimal.",
       },
     ],
     recommendation:

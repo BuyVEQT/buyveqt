@@ -239,7 +239,7 @@ export default function ShareModal({ tab, params, isOpen, onClose }: ShareModalP
 
       {/* Modal */}
       <div
-        className="relative w-full sm:max-w-md bg-white rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 shadow-xl"
+        className="relative w-full max-w-[calc(100vw-2rem)] sm:max-w-md bg-white rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 shadow-xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close button */}
@@ -253,7 +253,7 @@ export default function ShareModal({ tab, params, isOpen, onClose }: ShareModalP
           </svg>
         </button>
 
-        <h2 className="text-lg font-bold text-[var(--color-text-primary)] mb-4">
+        <h2 className="text-lg font-serif font-medium text-[var(--color-text-primary)] mb-4">
           Share Results
         </h2>
 

@@ -31,7 +31,7 @@ export default function WeeklyPage() {
         ])}
       />
       <main className="flex-1 mx-auto w-full max-w-3xl px-4 py-8">
-        <h1 className="text-2xl sm:text-3xl font-bold text-[var(--color-text-primary)]">
+        <h1 className="text-2xl sm:text-3xl font-serif font-normal text-[var(--color-text-primary)]">
           VEQT This Week
         </h1>
 
@@ -54,7 +54,7 @@ export default function WeeklyPage() {
                 <Link
                   key={recap.slug}
                   href={`/weekly/${recap.slug}`}
-                  className="block rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-4 hover:border-[var(--color-brand)] hover:shadow-sm transition-all"
+                  className="block card-editorial p-4 hover:border-[var(--color-brand)] hover:shadow-sm transition-all"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div>
@@ -76,7 +76,7 @@ export default function WeeklyPage() {
                     </div>
                     <span
                       className={`text-sm font-bold tabular-nums ${
-                        isPos ? "text-[#15803d]" : "text-[#b91c1c]"
+                        isPos ? "text-[var(--color-positive)]" : "text-[var(--color-negative)]"
                       }`}
                     >
                       {isPos ? "+" : ""}

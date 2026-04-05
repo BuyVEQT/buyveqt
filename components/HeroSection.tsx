@@ -33,7 +33,6 @@ function useCountUp(target: number, duration = 1200, decimals = 0) {
           const animate = (now: number) => {
             const elapsed = now - start;
             const progress = Math.min(elapsed / duration, 1);
-            // ease-out cubic
             const eased = 1 - Math.pow(1 - progress, 3);
             setValue(parseFloat((eased * target).toFixed(decimals)));
             if (progress < 1) requestAnimationFrame(animate);
@@ -62,14 +61,14 @@ function RotatingWord() {
       setTimeout(() => {
         setIndex((i) => (i + 1) % ROTATING_WORDS.length);
         setIsVisible(true);
-      }, 300);
+      }, 350);
     }, 3000);
     return () => clearInterval(interval);
   }, []);
 
   return (
     <span
-      className={`inline-block transition-all duration-300 text-[var(--color-brand)] ${
+      className={`inline-block transition-all duration-350 font-serif italic text-[var(--color-brand)] ${
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
       }`}
     >
@@ -94,50 +93,56 @@ export default function HeroSection({
   const isCache = quoteSource === "cache";
 
   return (
-    <section className="py-10 sm:py-14">
-      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8 lg:gap-12">
-        {/* Left: Copy */}
-        <div className="lg:max-w-[55%]">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[var(--color-text-primary)] leading-[1.15]">
+    <section className="hero-gradient py-12 sm:py-16 lg:py-20">
+      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-10 lg:gap-16">
+        {/* Left: Editorial copy — asymmetric width for visual tension */}
+        <div className="lg:max-w-[58%] animate-fade-up">
+          {/* Section label */}
+          <p className="section-label mb-4">The Global ETF</p>
+
+          <h1 className="font-serif text-4xl sm:text-5xl md:text-[3.5rem] lg:text-[4rem] font-normal tracking-tight text-[var(--color-text-primary)] leading-[1.08]">
             One ETF.
             <br />
             The whole world.
             <br />
-            <span className="text-[var(--color-text-muted)] font-medium text-2xl sm:text-3xl md:text-4xl">
+            <span className="text-[var(--color-text-muted)] text-3xl sm:text-4xl md:text-[2.75rem]">
               VEQT, <RotatingWord />.
             </span>
           </h1>
 
-          {/* Animated stat pills */}
-          <div className="mt-5 flex flex-wrap gap-3">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--color-brand)]/[0.07] border border-[var(--color-brand)]/20">
-              <span ref={stocks.ref} className="text-sm font-bold text-[var(--color-brand)] tabular-nums">
+          {/* Editorial rule */}
+          <div className="editorial-rule my-6 sm:my-8 max-w-xs" />
+
+          {/* Stat pills */}
+          <div className="flex flex-wrap gap-3 animate-fade-up delay-2">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[var(--color-brand)]/15 bg-[var(--color-brand)]/[0.04]">
+              <span ref={stocks.ref} className="text-sm font-semibold text-[var(--color-brand)] tabular-nums tracking-tight">
                 {stocks.value.toLocaleString()}+
               </span>
               <span className="text-xs text-[var(--color-text-muted)]">stocks</span>
             </div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--color-chart-line)]/[0.07] border border-[var(--color-chart-line)]/20">
-              <span ref={countries.ref} className="text-sm font-bold text-[var(--color-chart-line)] tabular-nums">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[var(--color-chart-line)]/15 bg-[var(--color-chart-line)]/[0.04]">
+              <span ref={countries.ref} className="text-sm font-semibold text-[var(--color-chart-line)] tabular-nums tracking-tight">
                 {countries.value}+
               </span>
               <span className="text-xs text-[var(--color-text-muted)]">countries</span>
             </div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#8b5cf6]/[0.07] border border-[#8b5cf6]/20">
-              <span className="text-sm font-bold text-[#8b5cf6]">~0.20%</span>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/[0.04]">
+              <span className="text-sm font-semibold text-[var(--color-accent)]">~0.20%</span>
               <span className="text-xs text-[var(--color-text-muted)]">MER</span>
             </div>
           </div>
 
-          <div className="mt-6 flex flex-wrap gap-3">
+          <div className="mt-8 flex flex-wrap gap-3 animate-fade-up delay-3">
             <Link
               href="/compare"
-              className="inline-flex items-center px-5 py-2.5 rounded-lg bg-[var(--color-brand)] text-white text-sm font-semibold hover:bg-[var(--color-brand-dark)] transition-colors"
+              className="inline-flex items-center px-6 py-3 rounded-lg bg-[var(--color-brand)] text-white text-sm font-semibold hover:bg-[var(--color-brand-dark)] transition-all hover:shadow-lg hover:shadow-[var(--color-brand)]/10"
             >
               Compare VEQT vs XEQT
             </Link>
             <Link
               href="/inside-veqt"
-              className="inline-flex items-center px-5 py-2.5 rounded-lg border border-[var(--color-border)] text-sm font-semibold text-[var(--color-text-secondary)] hover:bg-[var(--color-base)] transition-colors"
+              className="inline-flex items-center px-6 py-3 rounded-lg border border-[var(--color-border)] text-sm font-semibold text-[var(--color-text-secondary)] hover:bg-[var(--color-card)] hover:border-[var(--color-border-light)] transition-all"
             >
               See what&apos;s inside VEQT
             </Link>
@@ -145,33 +150,36 @@ export default function HeroSection({
         </div>
 
         {/* Right: Live Summary Card */}
-        <div className="w-full lg:w-auto lg:min-w-[300px] space-y-3">
+        <div className="w-full lg:w-auto lg:min-w-[320px] space-y-3 animate-fade-up delay-2">
           {showQuoteUnavailable ? (
             <DataUnavailable type="quote" />
           ) : (
-            <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5">
-              <p className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider mb-3">
-                Live Summary
-              </p>
+            <div className="card-editorial p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-positive)] animate-pulse" />
+                <p className="section-label">
+                  Live Summary
+                </p>
+              </div>
 
               {loading ? (
                 <div className="space-y-3">
-                  <div className="skeleton h-8 w-32" />
-                  <div className="skeleton h-4 w-24" />
+                  <div className="skeleton h-9 w-36" />
+                  <div className="skeleton h-5 w-24" />
                   <div className="skeleton h-4 w-full" />
                   <div className="skeleton h-4 w-full" />
                 </div>
               ) : quote && (
                 <>
-                  <div className="flex items-baseline gap-2 mb-1">
-                    <span className="text-2xl font-bold tabular-nums">
+                  <div className="flex items-baseline gap-2 mb-1.5">
+                    <span className="font-serif text-3xl font-normal tabular-nums tracking-tight">
                       ${quote.price.toFixed(2)}
                     </span>
-                    <span className="text-xs text-[var(--color-text-muted)]">CAD</span>
+                    <span className="text-xs text-[var(--color-text-muted)] font-medium tracking-wide">CAD</span>
                   </div>
-                  <div className="flex items-center gap-2 mb-4">
+                  <div className="flex items-center gap-2 mb-5">
                     <span
-                      className={`text-sm font-medium tabular-nums px-1.5 py-0.5 rounded ${
+                      className={`text-sm font-semibold tabular-nums px-2 py-0.5 rounded-md ${
                         isPositive
                           ? "text-[var(--color-positive)] bg-[var(--color-positive-bg)]"
                           : "text-[var(--color-negative)] bg-[var(--color-negative-bg)]"
@@ -181,12 +189,15 @@ export default function HeroSection({
                     </span>
                   </div>
 
-                  <div className="space-y-2 text-sm">
+                  {/* Thin rule */}
+                  <div className="border-t border-[var(--color-border)] mb-4" />
+
+                  <div className="space-y-2.5 text-sm">
                     <div className="flex justify-between">
                       <span className="text-[var(--color-text-muted)]">MER</span>
                       <span className="font-medium group relative cursor-help">
                         ~{STATIC_DATA.mer.toFixed(2)}%*
-                        <span className="invisible group-hover:visible absolute bottom-full right-0 w-64 p-2 text-[11px] text-[var(--color-text-muted)] bg-[var(--color-card)] border border-[var(--color-border)] rounded-lg shadow-lg z-10 font-normal leading-relaxed">
+                        <span className="invisible group-hover:visible absolute bottom-full right-0 w-64 p-2.5 text-[11px] text-[var(--color-text-muted)] bg-[var(--color-card)] border border-[var(--color-border)] rounded-lg shadow-xl z-10 font-normal leading-relaxed">
                           {MER_FOOTNOTE}
                         </span>
                       </span>
@@ -203,7 +214,7 @@ export default function HeroSection({
                     )}
                     {quote.fiftyTwoWeekHigh > 0 && quote.fiftyTwoWeekLow > 0 && (
                       <div className="flex justify-between">
-                        <span className="text-[var(--color-text-muted)]">52-Week Range</span>
+                        <span className="text-[var(--color-text-muted)]">52-Wk Range</span>
                         <span className="font-medium tabular-nums">
                           ${quote.fiftyTwoWeekLow.toFixed(2)} – ${quote.fiftyTwoWeekHigh.toFixed(2)}
                         </span>
@@ -211,8 +222,7 @@ export default function HeroSection({
                     )}
                   </div>
 
-                  {/* Data freshness indicator */}
-                  <div className="mt-3 pt-3 border-t border-[var(--color-border)]">
+                  <div className="mt-4 pt-3 border-t border-[var(--color-border)]">
                     {quoteSource && quoteFetchedAt ? (
                       <DataFreshness source={quoteSource} fetchedAt={quoteFetchedAt} />
                     ) : (
@@ -226,7 +236,6 @@ export default function HeroSection({
             </div>
           )}
 
-          {/* Stale banner below the card when data is cached */}
           {isCache && quoteFetchedAt && (
             <StaleBanner fetchedAt={quoteFetchedAt} />
           )}

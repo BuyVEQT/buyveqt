@@ -7,10 +7,13 @@ export default function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)]">
-      <h2 className="text-sm font-semibold text-[var(--color-text-secondary)] px-5 pt-5 pb-3">
-        Frequently Asked Questions
-      </h2>
+    <div className="card-editorial overflow-hidden">
+      <div className="px-5 pt-5 pb-3">
+        <p className="section-label mb-1">Common Questions</p>
+        <h2 className="font-serif text-xl font-medium text-[var(--color-text-primary)]">
+          Frequently Asked Questions
+        </h2>
+      </div>
       <div className="divide-y divide-[var(--color-border)]">
         {COMPARE_FAQ.map((item, i) => {
           const isOpen = openIndex === i;
@@ -18,9 +21,9 @@ export default function FAQSection() {
             <div key={i}>
               <button
                 onClick={() => setOpenIndex(isOpen ? null : i)}
-                className="w-full flex items-center justify-between gap-3 px-5 py-3 text-left group"
+                className="w-full flex items-center justify-between gap-3 px-5 py-3.5 text-left group cursor-pointer hover:bg-[var(--color-card-hover)] transition-colors"
               >
-                <span className="text-sm font-medium text-[var(--color-text-primary)] group-hover:text-[var(--color-brand)] transition-colors">
+                <span className="text-sm font-semibold text-[var(--color-text-primary)] group-hover:text-[var(--color-brand)] transition-colors">
                   {item.question}
                 </span>
                 <svg

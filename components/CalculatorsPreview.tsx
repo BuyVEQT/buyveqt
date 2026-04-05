@@ -29,11 +29,14 @@ const CALCULATORS = [
 
 export default function CalculatorsPreview() {
   return (
-    <section className="py-8">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-base font-semibold text-[var(--color-text-primary)]">
-          Calculators
-        </h2>
+    <section className="py-10">
+      <div className="flex items-center justify-between mb-5">
+        <div>
+          <p className="section-label mb-1">Tools</p>
+          <h2 className="font-serif text-xl font-medium text-[var(--color-text-primary)]">
+            Calculators
+          </h2>
+        </div>
         <Link
           href="/invest"
           className="text-sm font-medium text-[var(--color-brand)] hover:text-[var(--color-brand-dark)] transition-colors"
@@ -47,7 +50,7 @@ export default function CalculatorsPreview() {
           <Link
             key={calc.title}
             href={`/invest${calc.tab}`}
-            className="group rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5 hover:border-[var(--color-border-light)] transition-colors"
+            className="group card-editorial p-5"
           >
             <h3 className="text-sm font-semibold text-[var(--color-text-primary)] group-hover:text-[var(--color-brand)] transition-colors">
               {calc.title}
