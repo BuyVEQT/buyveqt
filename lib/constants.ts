@@ -80,9 +80,9 @@ export const LEARN_ARTICLES = [
     teaser: "A beginner-friendly explanation of what VEQT is, how it works, and why Canadian investors love it.",
   },
   {
-    slug: "veqt-vs-xeqt",
-    title: "VEQT vs XEQT: What's the Difference?",
-    teaser: "The most common VEQT question, answered. Two similar ETFs — here's what actually differs.",
+    slug: "getting-started-with-veqt",
+    title: "Getting Started with VEQT: A Beginner's Complete Guide",
+    teaser: "Everything you need to know to buy your first shares of VEQT. Account types, brokerages, and what to expect.",
   },
 ];
 
