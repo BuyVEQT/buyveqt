@@ -92,11 +92,11 @@ export default function DividendCalculator() {
             <input
               type="number"
               value={portfolio}
-              onChange={(e) => {
-                const v = Math.max(1000, Math.min(5000000, Number(e.target.value) || 1000));
-                setPortfolio(v);
+              onChange={(e) => setPortfolio(Number(e.target.value) || 0)}
+              onBlur={() => {
+                const clamped = Math.max(1000, Math.min(5000000, portfolio));
+                setPortfolio(Math.round(clamped / 1000) * 1000);
               }}
-              onBlur={() => setPortfolio(Math.round(portfolio / 1000) * 1000)}
               min={1000}
               max={5000000}
               step={1000}
@@ -113,9 +113,10 @@ export default function DividendCalculator() {
             <input
               type="number"
               value={yieldRate}
-              onChange={(e) => {
-                const v = Math.max(0.5, Math.min(5, Number(e.target.value) || 0.5));
-                setYieldRate(v);
+              onChange={(e) => setYieldRate(Number(e.target.value) || 0)}
+              onBlur={() => {
+                const clamped = Math.max(0.5, Math.min(5, yieldRate));
+                setYieldRate(Math.round(clamped * 10) / 10);
               }}
               min={0.5}
               max={5}

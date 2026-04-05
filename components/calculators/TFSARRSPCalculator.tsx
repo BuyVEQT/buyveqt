@@ -185,9 +185,11 @@ export default function TFSARRSPCalculator({ volatilityStats }: TFSARRSPCalculat
               <input
                 type="number"
                 value={birthYear}
-                onChange={(e) =>
-                  setBirthYear(Math.max(1940, Math.min(2008, Number(e.target.value) || 1990)))
-                }
+                onChange={(e) => setBirthYear(Number(e.target.value) || 0)}
+                onBlur={() => {
+                  const clamped = Math.max(1940, Math.min(2008, birthYear));
+                  setBirthYear(clamped);
+                }}
                 min={1940}
                 max={2008}
                 className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] py-2 px-3 text-sm font-medium text-[var(--color-text-primary)] focus:border-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand)]"
@@ -202,12 +204,11 @@ export default function TFSARRSPCalculator({ volatilityStats }: TFSARRSPCalculat
                 <input
                   type="number"
                   value={pastContributions}
-                  onChange={(e) =>
-                    setPastContributions(Math.max(0, Math.min(200000, Number(e.target.value) || 0)))
-                  }
-                  onBlur={() =>
-                    setPastContributions(Math.round(pastContributions / 500) * 500)
-                  }
+                  onChange={(e) => setPastContributions(Number(e.target.value) || 0)}
+                  onBlur={() => {
+                    const clamped = Math.max(0, Math.min(200000, pastContributions));
+                    setPastContributions(Math.round(clamped / 500) * 500);
+                  }}
                   min={0}
                   max={200000}
                   step={500}
@@ -371,11 +372,11 @@ export default function TFSARRSPCalculator({ volatilityStats }: TFSARRSPCalculat
             <input
               type="number"
               value={startingBalance}
-              onChange={(e) => {
-                const v = Math.max(0, Math.min(500000, Number(e.target.value) || 0));
-                setStartingBalance(v);
+              onChange={(e) => setStartingBalance(Number(e.target.value) || 0)}
+              onBlur={() => {
+                const clamped = Math.max(0, Math.min(500000, startingBalance));
+                setStartingBalance(Math.round(clamped / 1000) * 1000);
               }}
-              onBlur={() => setStartingBalance(Math.round(startingBalance / 1000) * 1000)}
               min={0}
               max={500000}
               step={1000}
@@ -393,11 +394,11 @@ export default function TFSARRSPCalculator({ volatilityStats }: TFSARRSPCalculat
             <input
               type="number"
               value={annualContribution}
-              onChange={(e) => {
-                const v = Math.max(0, Math.min(50000, Number(e.target.value) || 0));
-                setAnnualContribution(v);
+              onChange={(e) => setAnnualContribution(Number(e.target.value) || 0)}
+              onBlur={() => {
+                const clamped = Math.max(0, Math.min(50000, annualContribution));
+                setAnnualContribution(Math.round(clamped / 500) * 500);
               }}
-              onBlur={() => setAnnualContribution(Math.round(annualContribution / 500) * 500)}
               min={0}
               max={50000}
               step={500}

@@ -103,11 +103,11 @@ export default function DCACalculator({ volatilityStats }: DCACalculatorProps) {
             <input
               type="number"
               value={monthly}
-              onChange={(e) => {
-                const v = Math.max(50, Math.min(10000, Number(e.target.value) || 50));
-                setMonthly(v);
+              onChange={(e) => setMonthly(Number(e.target.value) || 0)}
+              onBlur={() => {
+                const clamped = Math.max(50, Math.min(10000, monthly));
+                setMonthly(Math.round(clamped / 50) * 50);
               }}
-              onBlur={() => setMonthly(Math.round(monthly / 50) * 50)}
               min={50}
               max={10000}
               step={50}

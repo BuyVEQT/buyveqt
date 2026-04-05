@@ -91,7 +91,11 @@ export default function FIRECalculator({ volatilityStats }: FIRECalculatorProps)
           <input
             type="number"
             value={currentAge}
-            onChange={(e) => setCurrentAge(Math.max(18, Math.min(70, Number(e.target.value) || 18)))}
+            onChange={(e) => setCurrentAge(Number(e.target.value) || 0)}
+            onBlur={() => {
+              const clamped = Math.max(18, Math.min(70, currentAge));
+              setCurrentAge(clamped);
+            }}
             min={18}
             max={70}
             className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] py-2 px-3 text-sm font-medium text-[var(--color-text-primary)] focus:border-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand)]"
@@ -128,8 +132,11 @@ export default function FIRECalculator({ volatilityStats }: FIRECalculatorProps)
             <input
               type="number"
               value={portfolioValue}
-              onChange={(e) => setPortfolioValue(Math.max(0, Math.min(10000000, Number(e.target.value) || 0)))}
-              onBlur={() => setPortfolioValue(Math.round(portfolioValue / 1000) * 1000)}
+              onChange={(e) => setPortfolioValue(Number(e.target.value) || 0)}
+              onBlur={() => {
+                const clamped = Math.max(0, Math.min(10000000, portfolioValue));
+                setPortfolioValue(Math.round(clamped / 1000) * 1000);
+              }}
               min={0}
               max={10000000}
               step={1000}
@@ -148,8 +155,11 @@ export default function FIRECalculator({ volatilityStats }: FIRECalculatorProps)
             <input
               type="number"
               value={monthlyContribution}
-              onChange={(e) => setMonthlyContribution(Math.max(0, Math.min(50000, Number(e.target.value) || 0)))}
-              onBlur={() => setMonthlyContribution(Math.round(monthlyContribution / 50) * 50)}
+              onChange={(e) => setMonthlyContribution(Number(e.target.value) || 0)}
+              onBlur={() => {
+                const clamped = Math.max(0, Math.min(50000, monthlyContribution));
+                setMonthlyContribution(Math.round(clamped / 50) * 50);
+              }}
               min={0}
               max={50000}
               step={50}
@@ -168,8 +178,11 @@ export default function FIRECalculator({ volatilityStats }: FIRECalculatorProps)
             <input
               type="number"
               value={annualExpenses}
-              onChange={(e) => setAnnualExpenses(Math.max(10000, Math.min(500000, Number(e.target.value) || 10000)))}
-              onBlur={() => setAnnualExpenses(Math.round(annualExpenses / 1000) * 1000)}
+              onChange={(e) => setAnnualExpenses(Number(e.target.value) || 0)}
+              onBlur={() => {
+                const clamped = Math.max(10000, Math.min(500000, annualExpenses));
+                setAnnualExpenses(Math.round(clamped / 1000) * 1000);
+              }}
               min={10000}
               max={500000}
               step={1000}
