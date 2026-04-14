@@ -63,12 +63,14 @@ function AnimatedNumber({
   value,
   duration = 600,
   className,
+  style,
   prefix = "",
   suffix = "",
 }: {
   value: number;
   duration?: number;
   className?: string;
+  style?: React.CSSProperties;
   prefix?: string;
   suffix?: string;
 }) {
@@ -99,7 +101,7 @@ function AnimatedNumber({
   }, [value, duration]);
 
   return (
-    <span className={className}>
+    <span className={className} style={style}>
       {prefix}
       {display.toLocaleString("en-CA")}
       {suffix}
@@ -155,12 +157,21 @@ export function BobTimeline() {
   const totalSteps = 6; // intro + 4 purchases + reveal
 
   return (
-    <div className="my-6 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5 sm:p-6">
+    <div
+      className="my-6 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5 sm:p-6"
+      style={{ color: "var(--color-text-secondary)" }}
+    >
       {/* Header */}
-      <h3 className="text-base font-semibold text-[var(--color-text-primary)] mb-1">
+      <h3
+        className="text-base font-semibold mb-1"
+        style={{ color: "var(--color-text-primary)" }}
+      >
         Bob, the World&apos;s Worst Market Timer
       </h3>
-      <p className="text-sm text-[var(--color-text-muted)] mb-4">
+      <p
+        className="text-sm mb-4"
+        style={{ color: "var(--color-text-muted)" }}
+      >
         Step through Bob&apos;s four purchases — each one at the absolute worst
         possible moment.
       </p>
@@ -189,10 +200,16 @@ export function BobTimeline() {
         {isIntro && (
           <div className="flex-1 flex flex-col items-center justify-center text-center px-4 py-6">
             <div className="text-4xl mb-4">📉</div>
-            <p className="text-lg font-semibold text-[var(--color-text-primary)] mb-2">
+            <p
+              className="text-lg font-semibold mb-2"
+              style={{ color: "var(--color-text-primary)" }}
+            >
               Meet Bob.
             </p>
-            <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed max-w-md">
+            <p
+              className="text-sm leading-relaxed max-w-md"
+              style={{ color: "var(--color-text-secondary)" }}
+            >
               Bob is the unluckiest investor in history. He only invested his
               money at the absolute worst times — right before every major
               market crash. Let&apos;s see how he did.
@@ -205,16 +222,31 @@ export function BobTimeline() {
           <div className="flex-1 flex flex-col">
             {/* Year + Event header */}
             <div className="flex items-center gap-3 mb-4">
-              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-[var(--color-negative)]/10 border border-[var(--color-negative)]/30 shrink-0">
-                <span className="text-sm font-bold text-[var(--color-negative)]">
+              <div
+                className="flex items-center justify-center w-12 h-12 rounded-full border shrink-0"
+                style={{
+                  backgroundColor: "rgba(239, 68, 68, 0.1)",
+                  borderColor: "rgba(239, 68, 68, 0.3)",
+                }}
+              >
+                <span
+                  className="text-sm font-bold"
+                  style={{ color: "var(--color-negative)" }}
+                >
                   {currentStep.year}
                 </span>
               </div>
               <div>
-                <p className="text-base font-bold text-[var(--color-text-primary)]">
+                <p
+                  className="text-base font-bold"
+                  style={{ color: "var(--color-text-primary)" }}
+                >
                   {currentStep.event}
                 </p>
-                <p className="text-xs text-[var(--color-text-muted)]">
+                <p
+                  className="text-xs"
+                  style={{ color: "var(--color-text-muted)" }}
+                >
                   Purchase {step + 1} of 4
                 </p>
               </div>
@@ -222,10 +254,16 @@ export function BobTimeline() {
 
             {/* Investment amount */}
             <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-base)] p-4 mb-3">
-              <p className="text-xs text-[var(--color-text-muted)] mb-1">
+              <p
+                className="text-xs mb-1"
+                style={{ color: "var(--color-text-muted)" }}
+              >
                 Bob invests
               </p>
-              <p className="text-2xl font-bold tabular-nums text-[var(--color-text-primary)]">
+              <p
+                className="text-2xl font-bold tabular-nums"
+                style={{ color: "var(--color-text-primary)" }}
+              >
                 {formatDollars(currentStep.invested)}
               </p>
             </div>
@@ -244,25 +282,35 @@ export function BobTimeline() {
                 transform: showCrash ? "scale(1)" : "scale(0.98)",
               }}
             >
-              <p className="text-xs text-[var(--color-text-muted)] mb-1">
+              <p
+                className="text-xs mb-1"
+                style={{ color: "var(--color-text-muted)" }}
+              >
                 Then the market crashes
               </p>
               <div className="flex items-baseline gap-2">
                 {showCrash ? (
                   <AnimatedNumber
                     value={currentStep.crash}
-                    className="text-2xl font-bold tabular-nums text-[var(--color-negative)]"
+                    className="text-2xl font-bold tabular-nums"
+                    style={{ color: "var(--color-negative)" }}
                     suffix="%"
                     duration={800}
                   />
                 ) : (
-                  <span className="text-2xl font-bold tabular-nums text-[var(--color-text-muted)]">
+                  <span
+                    className="text-2xl font-bold tabular-nums"
+                    style={{ color: "var(--color-text-muted)" }}
+                  >
                     ...
                   </span>
                 )}
               </div>
               {showCrash && (
-                <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed mt-2">
+                <p
+                  className="text-xs leading-relaxed mt-2"
+                  style={{ color: "var(--color-text-secondary)" }}
+                >
                   {currentStep.description}
                 </p>
               )}
@@ -270,13 +318,18 @@ export function BobTimeline() {
 
             {/* "Bob doesn't sell" */}
             <div
-              className="rounded-md border border-[var(--color-positive)]/30 bg-[var(--color-positive-bg)] p-3 transition-all duration-500"
+              className="rounded-md border p-3 transition-all duration-500"
               style={{
+                borderColor: "rgba(26, 122, 76, 0.3)",
+                backgroundColor: "var(--color-positive-bg)",
                 opacity: showHold ? 1 : 0,
                 transform: showHold ? "translateY(0)" : "translateY(8px)",
               }}
             >
-              <p className="text-sm font-semibold text-[var(--color-positive)] text-center">
+              <p
+                className="text-sm font-semibold text-center"
+                style={{ color: "var(--color-positive)" }}
+              >
                 {currentStep.afterCrashFeeling}
               </p>
             </div>
@@ -286,30 +339,52 @@ export function BobTimeline() {
         {/* REVEAL */}
         {isReveal && (
           <div className="flex-1 flex flex-col items-center justify-center text-center py-4">
-            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)] mb-2">
+            <p
+              className="text-xs font-semibold uppercase tracking-wider mb-2"
+              style={{ color: "var(--color-text-muted)" }}
+            >
               Total invested over 34 years
             </p>
-            <p className="text-xl font-bold tabular-nums text-[var(--color-text-primary)] mb-4">
+            <p
+              className="text-xl font-bold tabular-nums mb-4"
+              style={{ color: "var(--color-text-primary)" }}
+            >
               {formatDollars(184000)}
             </p>
 
-            <div className="text-2xl text-[var(--color-positive)] mb-4">
+            <div
+              className="text-2xl mb-4"
+              style={{ color: "var(--color-positive)" }}
+            >
               &darr;
             </div>
 
-            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)] mb-2">
+            <p
+              className="text-xs font-semibold uppercase tracking-wider mb-2"
+              style={{ color: "var(--color-text-muted)" }}
+            >
               Final portfolio value (2013)
             </p>
             <AnimatedNumber
               value={1160000}
-              className="text-4xl sm:text-5xl font-bold tabular-nums text-[var(--color-positive)]"
+              className="text-4xl sm:text-5xl font-bold tabular-nums"
+              style={{ color: "var(--color-positive)" }}
               prefix="$"
               duration={1500}
             />
 
-            <div className="mt-5 rounded-md border border-[var(--color-positive)]/20 bg-[var(--color-positive-bg)] p-3 max-w-sm">
-              <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed">
-                <strong className="text-[var(--color-positive)]">
+            <div
+              className="mt-5 rounded-md border p-3 max-w-sm"
+              style={{
+                borderColor: "rgba(26, 122, 76, 0.2)",
+                backgroundColor: "var(--color-positive-bg)",
+              }}
+            >
+              <p
+                className="text-xs leading-relaxed"
+                style={{ color: "var(--color-text-secondary)" }}
+              >
+                <strong style={{ color: "var(--color-positive)" }}>
                   Bob&apos;s only rule:
                 </strong>{" "}
                 never sell. Despite the worst timing imaginable, holding through
@@ -323,12 +398,16 @@ export function BobTimeline() {
       {/* Running total bar (visible during purchase steps) */}
       {step >= 0 && step <= 3 && (
         <div className="flex items-center justify-between rounded-md bg-[var(--color-base)] border border-[var(--color-border)] px-4 py-2 mt-3">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
+          <span
+            className="text-[11px] font-semibold uppercase tracking-wider"
+            style={{ color: "var(--color-text-muted)" }}
+          >
             Running total invested
           </span>
           <AnimatedNumber
             value={totalInvested}
-            className="text-sm font-bold tabular-nums text-[var(--color-text-primary)]"
+            className="text-sm font-bold tabular-nums"
+            style={{ color: "var(--color-text-primary)" }}
             prefix="$"
           />
         </div>
@@ -339,12 +418,16 @@ export function BobTimeline() {
         <button
           onClick={isReveal ? restart : prev}
           disabled={isIntro}
-          className="px-4 py-2 text-sm font-medium rounded-md border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-base)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="px-4 py-2 text-sm font-medium rounded-md border border-[var(--color-border)] hover:bg-[var(--color-base)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          style={{ color: "var(--color-text-secondary)" }}
         >
           {isReveal ? "Start over" : "Back"}
         </button>
 
-        <span className="text-[11px] text-[var(--color-text-muted)] tabular-nums">
+        <span
+          className="text-[11px] tabular-nums"
+          style={{ color: "var(--color-text-muted)" }}
+        >
           {step + 2} / {totalSteps}
         </span>
 
@@ -368,7 +451,10 @@ export function BobTimeline() {
         {isReveal && <div className="w-[88px]" />}
       </div>
 
-      <p className="mt-4 text-[11px] text-[var(--color-text-muted)]">
+      <p
+        className="mt-4 text-[11px]"
+        style={{ color: "var(--color-text-muted)" }}
+      >
         Based on Ben Carlson&apos;s analysis at A Wealth of Common Sense.
         S&amp;P 500 total return data. Amounts and timing are approximate.
       </p>
