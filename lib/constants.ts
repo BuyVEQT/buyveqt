@@ -67,9 +67,9 @@ export const LEARN_ARTICLES = [
     editorial: true,
   },
   {
-    slug: "passive-investing-behavioral-edge",
-    title: "The Real Edge of Passive Investing Isn't What You Think",
-    teaser: "Low fees matter. Diversification matters. But the biggest advantage of buying VEQT and doing nothing? You stop making expensive mistakes.",
+    slug: "why-timing-the-market-fails",
+    title: "Why Timing the Market Fails (And What to Do Instead)",
+    teaser: "Everyone thinks they can spot the top or buy the dip. The data says otherwise — overwhelmingly. Meet Bob, the world's worst market timer.",
     editorial: true,
   },
   {

@@ -29,6 +29,9 @@ import { TimeHorizonCalculator } from "@/components/mdx/TimeHorizonCalculator";
 import { EquityPremiumTimeline } from "@/components/mdx/EquityPremiumTimeline";
 import { WithdrawalSimulator } from "@/components/mdx/WithdrawalSimulator";
 import { AssetLocationOptimizer } from "@/components/mdx/AssetLocationOptimizer";
+import { BobTimeline } from "@/components/mdx/BobTimeline";
+import { MissedDaysChart } from "@/components/mdx/MissedDaysChart";
+import { SPIVAFunnel } from "@/components/mdx/SPIVAFunnel";
 
 
 function slugify(text: string): string {
@@ -69,6 +72,9 @@ const mdxComponents = {
   EquityPremiumTimeline,
   WithdrawalSimulator,
   AssetLocationOptimizer,
+  BobTimeline,
+  MissedDaysChart,
+  SPIVAFunnel,
   h2: HeadingTwo,
 };
 

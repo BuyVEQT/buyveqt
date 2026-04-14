@@ -32,6 +32,7 @@ const ARTICLE_ORDER = [
   "veqt-vs-xeqt",
   "what-is-veqt",
   "getting-started-with-veqt",
+  "why-timing-the-market-fails",
   "veqt-distributions-explained",
   "veqt-vs-vgro",
   "veqt-vs-vfv",
