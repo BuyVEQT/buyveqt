@@ -151,8 +151,7 @@ BuyVEQT is a community-built, unofficial informational resource. It is not affil
 
 ## Key URLs
 
-- Homepage: https://www.buyveqt.ca
-- VEQT Today (live snapshot): https://www.buyveqt.ca/today
+- Homepage (live price + daily snapshot): https://www.buyveqt.ca
 - Fund comparisons: https://www.buyveqt.ca/compare
 - Historical return calculator: https://www.buyveqt.ca/invest
 - Investment calculators: https://www.buyveqt.ca/calculators

@@ -1,96 +1,27 @@
-"use client";
+import HomeClient from "@/components/home/HomeClient";
+import { getLatestWeeklyRecap } from "@/lib/weekly";
+import { VEQT_DISTRIBUTIONS } from "@/data/distributions";
 
-import { useVeqtData } from "@/lib/useVeqtData";
-import NavBar from "@/components/layout/NavBar";
-import Footer from "@/components/layout/Footer";
-import HeroSection from "@/components/HeroSection";
-import PriceChart from "@/components/PriceChart";
-import ChartSidebar from "@/components/ChartSidebar";
-import InsideVeqtPreview from "@/components/InsideVeqtPreview";
-import ComparePreview from "@/components/ComparePreview";
-import LearnPreview from "@/components/LearnPreview";
-import CalculatorsPreview from "@/components/CalculatorsPreview";
-import CommunityWidget from "@/components/CommunityWidget";
-import AnimateIn from "@/components/ui/AnimateIn";
+/**
+ * Home page is now a Server Component. Server-only reads (filesystem MDX for
+ * weekly recaps, static distributions data) happen here; the interactive tree
+ * (chart, live quote polling) lives inside HomeClient.
+ *
+ * ISR matches the underlying /api/veqt route so the server-rendered shell
+ * refreshes in sync with the chart data.
+ */
+export const revalidate = 300;
 
-export default function Home() {
-  const { data, loading, period, setPeriod } = useVeqtData();
+export default async function Home() {
+  const latestRecap = getLatestWeeklyRecap();
+  // Surface only confirmed distributions; skip Vanguard's forward-looking estimate.
+  const latestDistribution =
+    VEQT_DISTRIBUTIONS.distributions.find((d) => !d.estimated) ?? null;
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <NavBar
-        quote={data?.quote ?? null}
-        loading={loading}
-        isFallback={data?.isFallback ?? false}
-        quoteSource={data?.quoteSource}
-        quoteFetchedAt={data?.quoteFetchedAt}
-      />
-
-      <main className="flex-1 mx-auto w-full max-w-6xl px-4">
-        {/* 1. Hero */}
-        <HeroSection
-          quote={data?.quote ?? null}
-          loading={loading}
-          isFallback={data?.isFallback ?? false}
-          quoteSource={data?.quoteSource}
-          quoteFetchedAt={data?.quoteFetchedAt}
-        />
-
-        {/* 2. Price Chart + Sidebar */}
-        <AnimateIn as="section" className="py-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
-            <div className="lg:col-span-2">
-              <PriceChart
-                data={data?.historical ?? []}
-                loading={loading}
-                period={period}
-                onPeriodChange={setPeriod}
-                historySource={data?.historySource}
-                historyFetchedAt={data?.historyFetchedAt}
-              />
-            </div>
-            <ChartSidebar
-              quote={data?.quote ?? null}
-              loading={loading}
-              quoteSource={data?.quoteSource}
-              quoteFetchedAt={data?.quoteFetchedAt}
-            />
-          </div>
-        </AnimateIn>
-
-        {/* Editorial divider */}
-        <div className="editorial-rule my-4" />
-
-        {/* 3. Calculators */}
-        <AnimateIn>
-          <CalculatorsPreview />
-        </AnimateIn>
-
-        {/* 4. What's inside VEQT */}
-        <AnimateIn>
-          <InsideVeqtPreview />
-        </AnimateIn>
-
-        {/* 5. Comparison table */}
-        <AnimateIn>
-          <ComparePreview />
-        </AnimateIn>
-
-        {/* 6. Learn articles */}
-        <AnimateIn>
-          <LearnPreview />
-        </AnimateIn>
-
-        {/* Editorial divider */}
-        <div className="editorial-rule my-4" />
-
-        {/* 7. Community */}
-        <AnimateIn>
-          <CommunityWidget />
-        </AnimateIn>
-      </main>
-
-      <Footer />
-    </div>
+    <HomeClient
+      latestRecap={latestRecap}
+      latestDistribution={latestDistribution}
+    />
   );
 }

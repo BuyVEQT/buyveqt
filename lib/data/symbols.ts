@@ -62,6 +62,28 @@ export const SYMBOLS: Record<string, SymbolConfig> = {
     fullName: 'Vanguard US Total Market Index ETF',
     priority: ['yahoo', 'alpha-vantage'],
   },
+  // VEQT's underlying sleeves — used for regional daily attribution on the home page.
+  VCN: {
+    alphaVantage: 'VCN.TRT',
+    yahoo: 'VCN.TO',
+    displayName: 'VCN',
+    fullName: 'Vanguard FTSE Canada All Cap Index ETF',
+    priority: ['yahoo', 'alpha-vantage'],
+  },
+  VIU: {
+    alphaVantage: 'VIU.TRT',
+    yahoo: 'VIU.TO',
+    displayName: 'VIU',
+    fullName: 'Vanguard FTSE Developed All Cap ex North America Index ETF',
+    priority: ['yahoo', 'alpha-vantage'],
+  },
+  VEE: {
+    alphaVantage: 'VEE.TRT',
+    yahoo: 'VEE.TO',
+    displayName: 'VEE',
+    fullName: 'Vanguard FTSE Emerging Markets All Cap Index ETF',
+    priority: ['yahoo', 'alpha-vantage'],
+  },
 } as const;
 
 /** All supported symbol names, derived from the SYMBOLS config */
