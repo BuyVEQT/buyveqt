@@ -110,6 +110,12 @@ export default function RootLayout({
             __html: `(function(){var t=localStorage.getItem('buyveqt:theme');if(!t)t=matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';document.documentElement.dataset.theme=t})()`,
           }}
         />
+        <link
+          rel="alternate"
+          type="application/rss+xml"
+          title="BuyVEQT Weekly"
+          href="/feed.xml"
+        />
       </head>
       <body className="min-h-screen bg-[var(--color-base)] text-[var(--color-text-primary)]">
         <JsonLd

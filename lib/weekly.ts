@@ -15,6 +15,8 @@ export interface WeeklyRecap {
   veqtClose: number;
   weeklyChange: number;
   weeklyChangePercent: number;
+  /** Optional byline author — used on /weekly/[slug] and the home recap card. */
+  author?: string;
   content: string;
 }
 
@@ -41,6 +43,7 @@ export function getAllWeeklyRecaps(): WeeklyRecap[] {
       veqtClose: (data.veqtClose as number) || 0,
       weeklyChange: (data.weeklyChange as number) || 0,
       weeklyChangePercent: (data.weeklyChangePercent as number) || 0,
+      author: (data.author as string) || undefined,
       content,
     };
   });

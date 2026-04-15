@@ -48,6 +48,14 @@ export default function Footer() {
             >
               r/JustBuyVEQT
             </a>
+            <span className="text-[var(--color-border)]">&middot;</span>
+            <a
+              href="/feed.xml"
+              className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
+              title="Weekly RSS feed"
+            >
+              RSS
+            </a>
             <a
               href="https://twitter.com/BuyVEQT"
               target="_blank"
