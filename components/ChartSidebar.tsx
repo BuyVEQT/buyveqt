@@ -4,17 +4,44 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import type { VeqtQuote, HistoricalDataPoint, DataSourceType } from "@/lib/types";
 import DataFreshness from "@/components/ui/DataFreshness";
-import {
-  calcReturn,
-  calcYTDReturn,
-  formatPct,
-} from "@/lib/calculations";
 
 interface ChartSidebarProps {
   quote: VeqtQuote | null;
   loading: boolean;
   quoteSource?: DataSourceType;
   quoteFetchedAt?: string;
+}
+
+/* ── Return helpers (matches /today page logic exactly) ── */
+
+/** Calculate return by looking back a number of calendar days from the latest point. */
+function calcReturn(data: HistoricalDataPoint[], calendarDaysBack: number): number | null {
+  if (data.length < 2) return null;
+  const latest = data[data.length - 1];
+  if (!latest || latest.close <= 0) return null;
+
+  const cutoff = new Date(latest.date + "T00:00:00");
+  cutoff.setDate(cutoff.getDate() - calendarDaysBack);
+  const cutoffStr = cutoff.toISOString().split("T")[0];
+
+  const earlier = data.find((d) => d.date >= cutoffStr);
+  if (!earlier || earlier.close <= 0) return null;
+  return ((latest.close - earlier.close) / earlier.close) * 100;
+}
+
+function calcYTD(data: HistoricalDataPoint[]): number | null {
+  if (data.length < 2) return null;
+  const yearStart = `${new Date().getFullYear()}-01-01`;
+  const startPoint = data.find((d) => d.date >= yearStart);
+  const latest = data[data.length - 1];
+  if (!startPoint || !latest || startPoint.close <= 0) return null;
+  return ((latest.close - startPoint.close) / startPoint.close) * 100;
+}
+
+function formatPct(val: number | null): string {
+  if (val === null) return "\u2014";
+  const sign = val >= 0 ? "+" : "\u2212";
+  return `${sign}${Math.abs(val).toFixed(2)}%`;
 }
 
 export default function ChartSidebar({
@@ -59,7 +86,7 @@ export default function ChartSidebar({
     { label: "1W", value: calcReturn(dailyData, 7) },
     { label: "1M", value: calcReturn(dailyData, 30) },
     { label: "3M", value: calcReturn(dailyData, 90) },
-    { label: "YTD", value: calcYTDReturn(dailyData) },
+    { label: "YTD", value: calcYTD(dailyData) },
     { label: "1Y", value: calcReturn(dailyData, 365) },
   ];
   const currentPrice = quote?.price ?? 0;
@@ -80,6 +107,12 @@ export default function ChartSidebar({
           <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
             Returns
           </h3>
+          <Link
+            href="/today"
+            className="text-xs font-medium text-[var(--color-brand)] hover:text-[var(--color-brand-dark)] transition-colors"
+          >
+            Full dashboard &rarr;
+          </Link>
         </div>
 
         {loading ? (

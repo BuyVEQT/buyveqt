@@ -28,8 +28,8 @@
 ## Site Content
 
 ### Live Data
-- Current VEQT price and daily change: https://www.buyveqt.ca
-- Performance snapshot (1D, 1W, 1M, 3M, YTD, 1Y, since inception): https://www.buyveqt.ca
+- Current VEQT price and daily change: https://www.buyveqt.ca/today
+- Performance snapshot (1D, 1W, 1M, 3M, YTD, 1Y, since inception): https://www.buyveqt.ca/today
 
 ### Comparisons
 - VEQT vs XEQT: https://www.buyveqt.ca/compare/veqt-vs-xeqt

@@ -18,13 +18,6 @@ const nextConfig: NextConfig = {
         destination: "/learn/veqt-vs-diy-portfolio",
         permanent: true,
       },
-      // /today was a standalone daily snapshot. Its content is now folded into
-      // the home page with a richer "Daily Pulse" band. 301 preserves backlinks.
-      {
-        source: "/today",
-        destination: "/",
-        permanent: true,
-      },
     ];
   },
 };
