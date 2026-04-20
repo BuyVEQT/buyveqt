@@ -17,6 +17,8 @@ import OrnateRule from "@/components/broadsheet/OrnateRule";
 import EngravingChart from "@/components/broadsheet/EngravingChart";
 import RegionCards from "@/components/broadsheet/RegionCards";
 import Letters from "@/components/broadsheet/Letters";
+import { useRegions } from "@/lib/useRegions";
+import { computeLeadHeadline } from "@/lib/lead-headline";
 
 function formatCAD(n: number, digits = 0): string {
   return n.toLocaleString("en-CA", {
@@ -51,12 +53,40 @@ export default function Home() {
 
   const latestDist = VEQT_DISTRIBUTIONS.distributions.find((d) => !d.estimated);
 
+  // Live sleeve data — shared between the dynamic lead eyebrow and RegionCards.
+  const { payload: regionsPayload, loading: regionsLoading } = useRegions();
+  const regions = regionsPayload?.regions ?? [];
+
+  // Dynamic editorial eyebrow — composes magnitude × driving sleeve.
+  const leadEyebrow = useMemo(
+    () => computeLeadHeadline(quote?.changePercent, regions),
+    [quote?.changePercent, regions]
+  );
+
+  // 52-week range position, clamped so the dot is always fully visible.
   const rangePct =
     quote && quote.fiftyTwoWeekHigh > quote.fiftyTwoWeekLow
       ? ((quote.price - quote.fiftyTwoWeekLow) /
           (quote.fiftyTwoWeekHigh - quote.fiftyTwoWeekLow)) *
         100
       : null;
+  const rangeDotPct = rangePct !== null ? Math.min(97, Math.max(3, rangePct)) : null;
+
+  // Editorial framing of where we are in the range.
+  const rangeCaption = (() => {
+    if (rangePct === null) return "";
+    if (!quote) return "";
+    const highDist = quote.fiftyTwoWeekHigh - quote.price;
+    const lowDist = quote.price - quote.fiftyTwoWeekLow;
+    if (rangePct >= 97) return "at the 52-week high";
+    if (rangePct >= 90)
+      return `$${highDist.toFixed(2)} from the 52-week high`;
+    if (rangePct >= 75) return "pressing the highs";
+    if (rangePct <= 3) return "at the 52-week low";
+    if (rangePct <= 10) return `$${lowDist.toFixed(2)} from the 52-week low`;
+    if (rangePct <= 25) return "pressing the lows";
+    return `${rangePct.toFixed(0)}% of range`;
+  })();
 
   return (
     <div
@@ -72,7 +102,7 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
             {/* Column A — giant italic headline */}
             <div className="lg:col-span-8">
-              <p className="bs-stamp mb-4">The Lead &middot; Today</p>
+              <p className="bs-stamp mb-4">{leadEyebrow}</p>
               <h2 className="bs-display-italic text-[3.25rem] sm:text-[5rem] lg:text-[7.5rem] text-[var(--ink)]">
                 {isPositive ? "Another green day" : "Another red day"}
                 <br />
@@ -123,19 +153,19 @@ export default function Home() {
               )}
 
               {/* 52-week range bar */}
-              {quote && rangePct !== null && (
+              {quote && rangePct !== null && rangeDotPct !== null && (
                 <div className="mt-6">
                   <div className="flex items-baseline justify-between bs-caption">
                     <span>52-wk range</span>
-                    <span className="bs-numerals text-xs opacity-60">
-                      {rangePct.toFixed(0)}% of span
+                    <span className="italic text-xs opacity-70">
+                      {rangeCaption}
                     </span>
                   </div>
                   <div className="relative mt-2 h-px bg-[var(--ink)]">
                     <span
                       aria-hidden
                       className="absolute w-2.5 h-2.5 rounded-full bg-[var(--stamp)] -translate-y-1/2 -translate-x-1/2 top-1/2"
-                      style={{ left: `${rangePct}%` }}
+                      style={{ left: `${rangeDotPct}%` }}
                     />
                   </div>
                   <div className="flex items-baseline justify-between mt-2 bs-numerals text-sm">
@@ -218,7 +248,7 @@ export default function Home() {
             </p>
           </div>
 
-          <RegionCards />
+          <RegionCards regions={regions} loading={regionsLoading} />
         </section>
 
         <OrnateRule label="If You Invested" />
@@ -306,19 +336,6 @@ export default function Home() {
           </div>
         </section>
 
-        <OrnateRule label="The Hold Line" />
-
-        {/* ─────────────────────── PULL QUOTE ─────────────────────── */}
-        <section className="py-12 sm:py-20 bs-enter">
-          <blockquote className="bs-display-italic text-[2.25rem] sm:text-[3.25rem] lg:text-[4.5rem] leading-[1.02] max-w-4xl text-[var(--ink)]">
-            &ldquo;Time in the market beats timing the market. A globally
-            diversified portfolio is, according to the Nobel committee, the
-            closest thing to a free lunch in investing. Stay in the
-            building.&rdquo;
-          </blockquote>
-          <p className="bs-label mt-8">&mdash; The Hold Line</p>
-        </section>
-
         <OrnateRule label="The Comparison" />
 
         {/* ─────────────────────── COMPARISON TABLE ─────────────────────── */}
@@ -366,14 +383,18 @@ export default function Home() {
                     {etf.ticker}
                     {etf.ticker === "VEQT" && (
                       <span
-                        className="ml-2 bs-stamp inline-block"
+                        className="ml-2 inline-block align-middle"
                         style={{
-                          background: "var(--stamp)",
-                          color: "var(--paper)",
-                          padding: "2px 7px",
+                          fontFamily: "var(--font-sans)",
+                          fontWeight: 700,
                           fontSize: "9px",
-                          transform: "rotate(-2deg)",
+                          letterSpacing: "0.14em",
+                          textTransform: "uppercase",
+                          color: "var(--stamp)",
+                          padding: "2px 6px 1px",
                           border: "1px solid var(--stamp)",
+                          borderRadius: "1px",
+                          lineHeight: 1.1,
                         }}
                       >
                         House Choice

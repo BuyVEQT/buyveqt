@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { VeqtQuote } from "@/lib/types";
+import { isMarketOpen } from "@/lib/data/market-hours";
 
 interface MastheadProps {
   quote: VeqtQuote | null;
@@ -36,11 +37,16 @@ function todayInToronto(): { weekday: string; full: string } {
 
 export default function Masthead({ quote, loading }: MastheadProps) {
   const [date, setDate] = useState(() => ({ full: "", weekday: "" }));
+  const [marketOpen, setMarketOpen] = useState(false);
 
-  // Compute dates on the client so we don't mismatch SSR vs. locale.
+  // Compute dates + market state on the client so we don't mismatch SSR vs. locale.
   useEffect(() => {
-    setDate(todayInToronto());
-    const interval = setInterval(() => setDate(todayInToronto()), 60_000);
+    const tick = () => {
+      setDate(todayInToronto());
+      setMarketOpen(isMarketOpen());
+    };
+    tick();
+    const interval = setInterval(tick, 60_000);
     return () => clearInterval(interval);
   }, []);
 
@@ -48,12 +54,22 @@ export default function Masthead({ quote, loading }: MastheadProps) {
 
   return (
     <header className="border-b border-[var(--ink)] pt-4 pb-2 relative z-10">
-      {/* Top strip — issue info, subscribe CTA */}
+      {/* Top strip — live state on the left, date center, community right */}
       <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.2em] font-sans pb-3">
-        <span className="bs-stamp hidden sm:inline">
-          <span className="bs-live-dot" />
-          Live Wire
-        </span>
+        {marketOpen ? (
+          <span className="bs-stamp hidden sm:inline">
+            <span className="bs-live-dot" />
+            Live Wire
+          </span>
+        ) : (
+          <span className="bs-label hidden sm:inline text-[var(--ink-soft)]">
+            <span
+              aria-hidden
+              className="inline-block w-[6px] h-[6px] rounded-full bg-[var(--ink-soft)] align-middle mr-[0.45em]"
+            />
+            After Hours
+          </span>
+        )}
         <span className="bs-label tabular-nums text-[var(--ink-soft)]">
           {date.full || "\u00A0"}
         </span>

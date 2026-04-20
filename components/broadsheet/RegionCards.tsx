@@ -1,26 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import type { Region } from "@/lib/useRegions";
 
-interface Region {
-  ticker: string;
-  region: string;
-  label: string;
-  weight: number;
-  fullName: string;
-  price: number | null;
-  change: number | null;
-  changePercent: number | null;
-  contribution: number | null;
-  error: boolean;
+interface RegionCardsProps {
+  regions: readonly Region[];
+  loading: boolean;
 }
-
-interface RegionsPayload {
-  regions: Region[];
-  fetchedAt: string;
-}
-
-const REFRESH_MS = 5 * 60 * 1000;
 
 function formatPct(val: number | null): string {
   if (val === null || Number.isNaN(val)) return "—";
@@ -34,35 +19,7 @@ function formatBps(val: number | null): string {
   return `${sign}${Math.abs(val).toFixed(2)}pp`;
 }
 
-export default function RegionCards() {
-  const [payload, setPayload] = useState<RegionsPayload | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      try {
-        const res = await fetch("/api/regions");
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data: RegionsPayload = await res.json();
-        if (!cancelled) {
-          setPayload(data);
-          setLoading(false);
-        }
-      } catch {
-        if (!cancelled) setLoading(false);
-      }
-    }
-    load();
-    const interval = setInterval(load, REFRESH_MS);
-    return () => {
-      cancelled = true;
-      clearInterval(interval);
-    };
-  }, []);
-
-  const regions = payload?.regions ?? [];
-
+export default function RegionCards({ regions, loading }: RegionCardsProps) {
   if (loading && regions.length === 0) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-0 border border-[var(--ink)]">
@@ -82,28 +39,6 @@ export default function RegionCards() {
 
   return (
     <div className="relative">
-      {/* Graph-paper backing for subtle visual continuity with the engraving chart */}
-      <div
-        aria-hidden
-        className="absolute inset-0 pointer-events-none opacity-40"
-        style={{
-          backgroundImage: `repeating-linear-gradient(
-            0deg,
-            transparent 0,
-            transparent 25px,
-            var(--rule) 25px,
-            var(--rule) 25.5px
-          ), repeating-linear-gradient(
-            90deg,
-            transparent 0,
-            transparent 50px,
-            var(--rule) 50px,
-            var(--rule) 50.5px
-          )`,
-          opacity: 0.12,
-        }}
-      />
-
       <div className="relative grid grid-cols-1 sm:grid-cols-2 border border-[var(--ink)] bg-[var(--paper)]">
         {regions.map((r, idx) => {
           const isPositive =
@@ -112,7 +47,6 @@ export default function RegionCards() {
             ? "var(--print-green)"
             : "var(--print-red)";
 
-          // Grid border logic — right border except rightmost col; bottom border except bottom row
           const onRight = idx % 2 === 1;
           const onBottom = idx >= 2;
 
@@ -123,7 +57,6 @@ export default function RegionCards() {
                 !onRight ? "sm:border-r" : ""
               } ${!onBottom ? "border-b sm:border-b" : ""} border-[var(--ink)]`}
             >
-              {/* Top row — region label + big weight % */}
               <div className="flex items-baseline justify-between mb-5">
                 <div>
                   <p className="bs-label">{r.label}</p>
@@ -135,7 +68,6 @@ export default function RegionCards() {
                 </p>
               </div>
 
-              {/* Ticker, underlined */}
               <p
                 className="bs-label tracking-[0.35em] border-b border-[var(--ink)] pb-2 mb-4"
                 style={{ letterSpacing: "0.35em" }}
@@ -143,7 +75,6 @@ export default function RegionCards() {
                 {r.ticker}
               </p>
 
-              {/* Bottom row — price + change */}
               <div className="mt-auto flex items-end justify-between gap-3 flex-wrap">
                 <div>
                   {r.error || r.price === null ? (
