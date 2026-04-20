@@ -571,15 +571,29 @@ body::after {
   color: var(--ink);
 }
 
+[data-broadsheet] .bs-lede {
+  /* Gives the float room to clear; keeps subsequent text flowing cleanly. */
+  overflow: hidden;
+}
+
 [data-broadsheet] .bs-lede::first-letter {
   font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 4.5em;
-  line-height: 0.85;
+  font-weight: 700;
+  font-size: 4.1em;
+  line-height: 0.86;
   float: left;
   padding: 0.08em 0.14em 0 0;
+  margin-top: 0.04em;
   color: var(--stamp);
   font-feature-settings: "ss01";
+  shape-outside: margin-box;
+}
+
+@media (max-width: 640px) {
+  [data-broadsheet] .bs-lede::first-letter {
+    font-size: 3.4em;
+    padding: 0.06em 0.12em 0 0;
+  }
 }
 
 [data-broadsheet] .bs-label {

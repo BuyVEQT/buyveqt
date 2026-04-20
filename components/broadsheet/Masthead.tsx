@@ -16,7 +16,7 @@ function formatPrice(n: number): string {
   });
 }
 
-function todayInToronto(): { weekday: string; full: string; issue: number } {
+function todayInToronto(): { weekday: string; full: string } {
   const now = new Date();
   const fmt = new Intl.DateTimeFormat("en-CA", {
     timeZone: "America/Toronto",
@@ -28,18 +28,14 @@ function todayInToronto(): { weekday: string; full: string; issue: number } {
   const parts = Object.fromEntries(
     fmt.formatToParts(now).map((p) => [p.type, p.value])
   );
-  // "Issue" — days since VEQT inception (Jan 29, 2019) for a little persistence.
-  const inception = new Date("2019-01-29T00:00:00Z").getTime();
-  const issue = Math.floor((now.getTime() - inception) / 86_400_000);
   return {
     weekday: parts.weekday ?? "",
     full: `${parts.weekday}, ${parts.month} ${parts.day}, ${parts.year}`,
-    issue,
   };
 }
 
 export default function Masthead({ quote, loading }: MastheadProps) {
-  const [date, setDate] = useState(() => ({ full: "", weekday: "", issue: 0 }));
+  const [date, setDate] = useState(() => ({ full: "", weekday: "" }));
 
   // Compute dates on the client so we don't mismatch SSR vs. locale.
   useEffect(() => {
@@ -60,12 +56,6 @@ export default function Masthead({ quote, loading }: MastheadProps) {
         </span>
         <span className="bs-label tabular-nums text-[var(--ink-soft)]">
           {date.full || "\u00A0"}
-          {date.issue > 0 && (
-            <>
-              <span className="mx-2 opacity-40">·</span>
-              Vol. VII · No. {date.issue}
-            </>
-          )}
         </span>
         <Link
           href="/community"
@@ -117,7 +107,6 @@ export default function Masthead({ quote, loading }: MastheadProps) {
           { href: "/compare", label: "The Comparison" },
           { href: "/learn", label: "The Archive" },
           { href: "/inside-veqt", label: "The Portfolio" },
-          { href: "/distributions", label: "Distributions" },
           { href: "/community", label: "Letters" },
         ].map((l) => (
           <Link

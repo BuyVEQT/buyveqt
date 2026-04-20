@@ -4,7 +4,6 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useVeqtData } from "@/lib/useVeqtData";
 import {
-  UNDERLYING_ETFS,
   COMPARISON_DATA,
   LEARN_ARTICLES,
   STATIC_DATA,
@@ -16,6 +15,8 @@ import {
 import Masthead from "@/components/broadsheet/Masthead";
 import OrnateRule from "@/components/broadsheet/OrnateRule";
 import EngravingChart from "@/components/broadsheet/EngravingChart";
+import RegionCards from "@/components/broadsheet/RegionCards";
+import Letters from "@/components/broadsheet/Letters";
 
 function formatCAD(n: number, digits = 0): string {
   return n.toLocaleString("en-CA", {
@@ -49,9 +50,13 @@ export default function Home() {
   }, [quote]);
 
   const latestDist = VEQT_DISTRIBUTIONS.distributions.find((d) => !d.estimated);
-  const veqtComparisonRow = COMPARISON_DATA.etfs.find(
-    (e) => e.ticker === "VEQT"
-  );
+
+  const rangePct =
+    quote && quote.fiftyTwoWeekHigh > quote.fiftyTwoWeekLow
+      ? ((quote.price - quote.fiftyTwoWeekLow) /
+          (quote.fiftyTwoWeekHigh - quote.fiftyTwoWeekLow)) *
+        100
+      : null;
 
   return (
     <div
@@ -65,7 +70,7 @@ export default function Home() {
         {/* ─────────────────────── THE LEAD ─────────────────────── */}
         <section className="py-10 sm:py-14 lg:py-20 bs-enter">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
-            {/* Column A — giant headline */}
+            {/* Column A — giant italic headline */}
             <div className="lg:col-span-8">
               <p className="bs-stamp mb-4">The Lead &middot; Today</p>
               <h2 className="bs-display-italic text-[3.25rem] sm:text-[5rem] lg:text-[7.5rem] text-[var(--ink)]">
@@ -79,7 +84,8 @@ export default function Home() {
               </h2>
 
               <p className="bs-caption mt-6 max-w-lg">
-                &mdash; VEQT closed at {loading || !quote ? "—" : `$${quote.price.toFixed(2)}`},{" "}
+                &mdash; VEQT closed at{" "}
+                {loading || !quote ? "—" : `$${quote.price.toFixed(2)}`},{" "}
                 {!loading && quote && (
                   <>
                     {isPositive ? "up" : "down"}{" "}
@@ -92,69 +98,88 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Column B — dense stats block */}
-            <aside className="lg:col-span-4 border-t border-[var(--ink)] pt-4">
-              <dl className="grid grid-cols-2 gap-y-4 gap-x-6 bs-numerals">
+            {/* Column B — focused ticker block */}
+            <aside className="lg:col-span-4 border-t-2 border-[var(--ink)] pt-5">
+              <p className="bs-label">Last Trade</p>
+              <p className="bs-display bs-numerals text-[3.75rem] sm:text-[4.25rem] leading-[0.95] mt-1 text-[var(--ink)]">
+                {loading || !quote ? "—" : `$${quote.price.toFixed(2)}`}
+              </p>
+              {!loading && quote && (
+                <p
+                  className="bs-numerals text-lg mt-1"
+                  style={{
+                    color: isPositive
+                      ? "var(--print-green)"
+                      : "var(--print-red)",
+                  }}
+                >
+                  {isPositive ? "▲" : "▼"} {isPositive ? "+" : ""}$
+                  {Math.abs(quote.change).toFixed(2)}{" "}
+                  <span className="opacity-70">
+                    ({isPositive ? "+" : ""}
+                    {quote.changePercent.toFixed(2)}%)
+                  </span>
+                </p>
+              )}
+
+              {/* 52-week range bar */}
+              {quote && rangePct !== null && (
+                <div className="mt-6">
+                  <div className="flex items-baseline justify-between bs-caption">
+                    <span>52-wk range</span>
+                    <span className="bs-numerals text-xs opacity-60">
+                      {rangePct.toFixed(0)}% of span
+                    </span>
+                  </div>
+                  <div className="relative mt-2 h-px bg-[var(--ink)]">
+                    <span
+                      aria-hidden
+                      className="absolute w-2.5 h-2.5 rounded-full bg-[var(--stamp)] -translate-y-1/2 -translate-x-1/2 top-1/2"
+                      style={{ left: `${rangePct}%` }}
+                    />
+                  </div>
+                  <div className="flex items-baseline justify-between mt-2 bs-numerals text-sm">
+                    <span>${quote.fiftyTwoWeekLow.toFixed(2)}</span>
+                    <span>${quote.fiftyTwoWeekHigh.toFixed(2)}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Compact inline metrics */}
+              <div className="mt-6 pt-5 border-t border-[var(--color-border)] grid grid-cols-3 gap-4">
                 <div>
-                  <dt className="bs-label mb-1">Last</dt>
-                  <dd className="text-2xl">
-                    {loading || !quote ? "—" : `$${quote.price.toFixed(2)}`}
-                  </dd>
+                  <p className="bs-label">MER</p>
+                  <p className="bs-numerals text-[0.95rem] mt-0.5">
+                    ~{STATIC_DATA.mer.toFixed(2)}%
+                  </p>
                 </div>
                 <div>
-                  <dt className="bs-label mb-1">Change</dt>
-                  <dd
-                    className="text-2xl"
-                    style={{
-                      color: isPositive
-                        ? "var(--print-green)"
-                        : "var(--print-red)",
-                    }}
-                  >
-                    {loading || !quote
-                      ? "—"
-                      : `${isPositive ? "+" : ""}${quote.changePercent.toFixed(2)}%`}
-                  </dd>
+                  <p className="bs-label">AUM</p>
+                  <p className="bs-numerals text-[0.95rem] mt-0.5">
+                    {STATIC_DATA.aum}
+                  </p>
                 </div>
                 <div>
-                  <dt className="bs-label mb-1">52-wk Low</dt>
-                  <dd className="text-lg">
-                    {loading || !quote
-                      ? "—"
-                      : `$${quote.fiftyTwoWeekLow.toFixed(2)}`}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="bs-label mb-1">52-wk High</dt>
-                  <dd className="text-lg">
-                    {loading || !quote
-                      ? "—"
-                      : `$${quote.fiftyTwoWeekHigh.toFixed(2)}`}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="bs-label mb-1">MER</dt>
-                  <dd className="text-lg">~{STATIC_DATA.mer.toFixed(2)}%</dd>
-                </div>
-                <div>
-                  <dt className="bs-label mb-1">AUM</dt>
-                  <dd className="text-lg">{STATIC_DATA.aum}</dd>
-                </div>
-                <div>
-                  <dt className="bs-label mb-1">TTM Yield</dt>
-                  <dd className="text-lg">
+                  <p className="bs-label">Yield</p>
+                  <p className="bs-numerals text-[0.95rem] mt-0.5">
                     {trailingYield !== null
                       ? `${trailingYield.toFixed(2)}%`
                       : "—"}
-                  </dd>
+                  </p>
                 </div>
-                <div>
-                  <dt className="bs-label mb-1">Last Distribution</dt>
-                  <dd className="text-lg">
-                    {latestDist ? `$${latestDist.amount.toFixed(4)}` : "—"}
-                  </dd>
-                </div>
-              </dl>
+              </div>
+
+              {latestDist && (
+                <p className="bs-caption italic mt-4">
+                  Last distribution: ${latestDist.amount.toFixed(4)} &middot;{" "}
+                  <Link
+                    href="/distributions"
+                    className="bs-link text-[13px]"
+                  >
+                    all distributions
+                  </Link>
+                </p>
+              )}
             </aside>
           </div>
         </section>
@@ -169,70 +194,31 @@ export default function Home() {
           />
         </section>
 
-        <OrnateRule label="The Portfolio" />
+        <OrnateRule label="The Regions" />
 
-        {/* ─────────────────────── THE PORTFOLIO ─────────────────────── */}
-        <section className="py-8 sm:py-12 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 bs-enter">
-          <div className="lg:col-span-5">
-            <h3 className="bs-display text-4xl sm:text-5xl lg:text-6xl leading-[0.95]">
-              Four sleeves.
-              <br />
-              <em className="bs-display-italic text-[var(--stamp)]">
-                One fund.
-              </em>
-            </h3>
-            <p className="bs-body bs-lede mt-6">
+        {/* ─────────────────────── THE REGIONS ─────────────────────── */}
+        <section className="py-8 sm:py-12 bs-enter">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 mb-10">
+            <div className="lg:col-span-5">
+              <h3 className="bs-display text-4xl sm:text-5xl lg:text-6xl leading-[0.95]">
+                Four sleeves.
+                <br />
+                <em className="bs-display-italic text-[var(--stamp)]">
+                  One fund.
+                </em>
+              </h3>
+            </div>
+            <p className="lg:col-span-7 bs-body bs-lede">
               VEQT is not a stock. It is a single ticker that holds four
               Vanguard index ETFs covering every major equity market in the
               world. Rebalancing happens automatically inside the fund. Your
               only job, according to the people who coined the term, is not
-              to sell.
+              to sell. What follows is today&apos;s contribution from each
+              sleeve.
             </p>
           </div>
 
-          <div className="lg:col-span-7">
-            <table className="w-full bs-numerals">
-              <thead>
-                <tr className="border-t border-b border-[var(--ink)]">
-                  <th className="bs-label text-left py-2 w-1/2">Sleeve</th>
-                  <th className="bs-label text-left py-2">Ticker</th>
-                  <th className="bs-label text-right py-2">Weight</th>
-                </tr>
-              </thead>
-              <tbody>
-                {UNDERLYING_ETFS.map((etf) => (
-                  <tr
-                    key={etf.ticker}
-                    className="border-b border-[var(--color-border)]"
-                  >
-                    <td className="py-3">
-                      <span className="font-serif text-[1rem]">{etf.name}</span>
-                      <span className="block bs-caption text-[12px]">
-                        {etf.region}
-                      </span>
-                    </td>
-                    <td className="py-3 font-mono text-sm tracking-wider">
-                      {etf.ticker}
-                    </td>
-                    <td className="py-3 text-right text-lg tabular-nums">
-                      {etf.weight.toString().padStart(2, "0")}%
-                    </td>
-                  </tr>
-                ))}
-                <tr>
-                  <td className="py-3 bs-label">Total</td>
-                  <td />
-                  <td className="py-3 text-right text-lg tabular-nums border-t-2 border-double border-[var(--ink)]">
-                    100%
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-            <p className="bs-caption mt-4 text-right">
-              Source: Vanguard Canada, as published. Weights drift slightly
-              between quarterly rebalances.
-            </p>
-          </div>
+          <RegionCards />
         </section>
 
         <OrnateRule label="If You Invested" />
@@ -330,16 +316,14 @@ export default function Home() {
             closest thing to a free lunch in investing. Stay in the
             building.&rdquo;
           </blockquote>
-          <p className="bs-label mt-8">
-            &mdash; The Hold Line, repeated as often as needed
-          </p>
+          <p className="bs-label mt-8">&mdash; The Hold Line</p>
         </section>
 
         <OrnateRule label="The Comparison" />
 
         {/* ─────────────────────── COMPARISON TABLE ─────────────────────── */}
         <section className="py-8 sm:py-12 bs-enter">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 mb-8">
             <div className="lg:col-span-5">
               <h3 className="bs-display text-4xl sm:text-5xl lg:text-6xl leading-[0.95]">
                 VEQT <em className="bs-display-italic">vs.</em>
@@ -347,7 +331,7 @@ export default function Home() {
                 the field.
               </h3>
             </div>
-            <p className="lg:col-span-7 bs-body">
+            <p className="lg:col-span-7 bs-body bs-lede">
               Three ETFs, one job: own the world in equity weight. The
               differences are smaller than the internet would have you
               believe, but they are not zero. Vanguard leans a little more
@@ -382,15 +366,17 @@ export default function Home() {
                     {etf.ticker}
                     {etf.ticker === "VEQT" && (
                       <span
-                        className="ml-2 bs-stamp"
+                        className="ml-2 bs-stamp inline-block"
                         style={{
                           background: "var(--stamp)",
                           color: "var(--paper)",
-                          padding: "2px 6px",
+                          padding: "2px 7px",
                           fontSize: "9px",
+                          transform: "rotate(-2deg)",
+                          border: "1px solid var(--stamp)",
                         }}
                       >
-                        The Paper
+                        House Choice
                       </span>
                     )}
                   </td>
@@ -407,8 +393,6 @@ export default function Home() {
               Full head-to-head &rarr;
             </Link>
           </p>
-          {/* Veqt is always first in comparison data */}
-          {veqtComparisonRow && null}
         </section>
 
         <OrnateRule label="Dispatches from the Archive" />
@@ -447,51 +431,7 @@ export default function Home() {
 
         {/* ─────────────────────── LETTERS / COMMUNITY ─────────────────────── */}
         <section className="py-8 sm:py-12 bs-enter">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-6">
-            <div className="lg:col-span-5">
-              <h3 className="bs-display text-4xl sm:text-5xl lg:text-6xl leading-[0.95]">
-                Letters
-                <br />
-                <em className="bs-display-italic">to the Editor</em>
-              </h3>
-            </div>
-            <p className="lg:col-span-7 bs-body">
-              Two thousand Canadians argue, encourage, and talk themselves
-              out of market-timing at{" "}
-              <a
-                href="https://reddit.com/r/JustBuyVEQT"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bs-link"
-              >
-                r/JustBuyVEQT
-              </a>
-              . Not a newsletter. Not a Discord. A small, patient subreddit
-              for the one-fund portfolio.
-            </p>
-          </div>
-
-          <div className="bs-column-columns bs-body">
-            <p>
-              <em>&mdash; From a new subscriber, Ontario.</em> &ldquo;I spent
-              three weeks trying to pick between VEQT and XEQT. Then I read
-              the wiki and realised the differences compound to less than the
-              cost of a coffee per year on a $50,000 portfolio. I bought VEQT
-              on a Tuesday and got on with my life.&rdquo;
-            </p>
-            <p className="mt-6">
-              <em>&mdash; A lurker of eighteen months, Calgary.</em>{" "}
-              &ldquo;The best part of the subreddit is how aggressively
-              unexciting it is. Every &lsquo;what do I do during this
-              drawdown&rsquo; thread is answered the same way. Do nothing.
-              Buy more if you can. That&rsquo;s the whole product.&rdquo;
-            </p>
-            <p className="mt-6">
-              <em>&mdash; From the editors.</em> We keep no comment section,
-              no email list, no sponsor, and no premium tier. The community
-              lives on Reddit, where people have always argued about money.
-            </p>
-          </div>
+          <Letters />
         </section>
 
         <OrnateRule ornament="asterism" />
@@ -528,6 +468,11 @@ export default function Home() {
                 <li>
                   <Link href="/learn" className="bs-link">
                     The Archive
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/distributions" className="bs-link">
+                    Distributions
                   </Link>
                 </li>
                 <li>
