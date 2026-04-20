@@ -14,7 +14,6 @@ import {
 } from "@/data/distributions";
 import Masthead from "@/components/broadsheet/Masthead";
 import OrnateRule from "@/components/broadsheet/OrnateRule";
-import EngravingChart from "@/components/broadsheet/EngravingChart";
 import RegionCards from "@/components/broadsheet/RegionCards";
 import Letters from "@/components/broadsheet/Letters";
 import { useRegions } from "@/lib/useRegions";
@@ -28,7 +27,7 @@ function formatCAD(n: number, digits = 0): string {
 }
 
 export default function Home() {
-  const { data, loading, period, setPeriod } = useVeqtData();
+  const { data, loading } = useVeqtData();
   const quote = data?.quote ?? null;
   const isPositive = (quote?.changePercent ?? 0) >= 0;
 
@@ -212,16 +211,6 @@ export default function Home() {
               )}
             </aside>
           </div>
-        </section>
-
-        {/* ─────────────────────── THE CHART ─────────────────────── */}
-        <section className="pb-10 sm:pb-14 lg:pb-16 bs-enter">
-          <EngravingChart
-            data={historical}
-            period={period}
-            onPeriodChange={setPeriod}
-            loading={loading}
-          />
         </section>
 
         <OrnateRule label="The Regions" />
