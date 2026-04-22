@@ -97,113 +97,116 @@ export default function Home() {
         <Masthead quote={quote} loading={loading} />
 
         {/* ─────────────────────── THE LEAD ─────────────────────── */}
-        <section className="py-10 sm:py-14 lg:py-20 bs-enter">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
-            {/* Column A — dynamic editorial lead */}
-            <div className="lg:col-span-8">
-              <p className="bs-stamp mb-3 sm:mb-4">{leadCopy.deck}</p>
-              <h2 className="bs-display-italic text-[2rem] sm:text-[2.75rem] lg:text-[4rem] leading-[1.02] text-[var(--ink)] max-w-[18ch]">
-                {leadCopy.headline}
-              </h2>
+        <section className="py-8 sm:py-12 lg:py-14 bs-enter">
+          <div className="max-w-[52rem]">
+            {/* Deck — small stamp, dynamic */}
+            <p className="bs-stamp mb-3 sm:mb-4">{leadCopy.deck}</p>
 
-              <p className="bs-caption mt-5 sm:mt-6 max-w-lg">
-                &mdash; VEQT closed at{" "}
-                {loading || !quote ? "—" : `$${quote.price.toFixed(2)}`},{" "}
-                {!loading && quote && (
-                  <>
-                    {isPositive ? "up" : "down"}{" "}
-                    <span className="bs-numerals">
-                      {Math.abs(quote.changePercent).toFixed(2)}%
-                    </span>{" "}
-                    on the day. One fund, ~13,700 companies, 50+ countries.
-                  </>
-                )}
-              </p>
-            </div>
-
-            {/* Column B — focused ticker block */}
-            <aside className="lg:col-span-4 border-t-2 border-[var(--ink)] pt-5">
-              <p className="bs-label">Last Trade</p>
-              <p className="bs-display bs-numerals text-[3.75rem] sm:text-[4.25rem] leading-[0.95] mt-1 text-[var(--ink)]">
+            {/* Price — the anchor */}
+            <div className="flex items-baseline gap-x-4 gap-y-2 flex-wrap">
+              <p className="bs-display bs-numerals text-[3.5rem] sm:text-[5rem] lg:text-[6.25rem] leading-[0.88] text-[var(--ink)]">
                 {loading || !quote ? "—" : `$${quote.price.toFixed(2)}`}
               </p>
               {!loading && quote && (
                 <p
-                  className="bs-numerals text-lg mt-1"
+                  className="bs-numerals text-lg sm:text-xl lg:text-2xl"
                   style={{
                     color: isPositive
                       ? "var(--print-green)"
                       : "var(--print-red)",
                   }}
                 >
-                  {isPositive ? "▲" : "▼"} {isPositive ? "+" : ""}$
-                  {Math.abs(quote.change).toFixed(2)}{" "}
-                  <span className="opacity-70">
+                  {isPositive ? "▲" : "▼"} {isPositive ? "+" : "−"}$
+                  {Math.abs(quote.change).toFixed(2)}
+                  <span className="opacity-70 ml-1.5">
                     ({isPositive ? "+" : ""}
                     {quote.changePercent.toFixed(2)}%)
                   </span>
                 </p>
               )}
+            </div>
 
-              {/* 52-week range bar */}
+            {/* Editorial headline */}
+            <h2 className="bs-display-italic text-[1.5rem] sm:text-[1.875rem] lg:text-[2.5rem] leading-[1.08] mt-5 sm:mt-6 text-[var(--ink)] max-w-[22ch]">
+              {leadCopy.headline}
+            </h2>
+
+            {/* Brand tagline — tight, editorial */}
+            <p className="bs-caption italic mt-3 text-[13px] sm:text-[14px]">
+              One fund &middot; ~13,700 companies &middot; 50+ countries
+            </p>
+
+            {/* ── Supporting data strip ── */}
+            <div className="mt-7 sm:mt-9 pt-5 border-t border-[var(--ink)] grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-7 sm:gap-10">
+              {/* 52-week range */}
               {quote && rangePct !== null && rangeDotPct !== null && (
-                <div className="mt-6">
-                  <div className="flex items-baseline justify-between bs-caption">
-                    <span>52-wk range</span>
-                    <span className="italic text-xs opacity-70">
-                      {rangeCaption}
-                    </span>
-                  </div>
-                  <div className="relative mt-2 h-px bg-[var(--ink)]">
+                <div>
+                  <p className="bs-label mb-2">52-week range</p>
+                  <div className="relative h-px bg-[var(--ink)]">
                     <span
                       aria-hidden
                       className="absolute w-2.5 h-2.5 rounded-full bg-[var(--stamp)] -translate-y-1/2 -translate-x-1/2 top-1/2"
                       style={{ left: `${rangeDotPct}%` }}
                     />
                   </div>
-                  <div className="flex items-baseline justify-between mt-2 bs-numerals text-sm">
+                  <div className="flex justify-between mt-2 bs-numerals text-sm">
                     <span>${quote.fiftyTwoWeekLow.toFixed(2)}</span>
                     <span>${quote.fiftyTwoWeekHigh.toFixed(2)}</span>
                   </div>
+                  <p
+                    className="bs-caption italic text-[12px] mt-1"
+                    style={{ color: "var(--ink-soft)" }}
+                  >
+                    {rangeCaption}
+                  </p>
                 </div>
               )}
 
-              {/* Compact inline metrics */}
-              <div className="mt-6 pt-5 border-t border-[var(--color-border)] grid grid-cols-3 gap-4">
+              {/* Key stats — three inline facts */}
+              <div className="grid grid-cols-3 gap-4 items-start">
                 <div>
                   <p className="bs-label">MER</p>
-                  <p className="bs-numerals text-[0.95rem] mt-0.5">
+                  <p className="bs-numerals text-[1rem] mt-1">
                     ~{STATIC_DATA.mer.toFixed(2)}%
                   </p>
                 </div>
                 <div>
                   <p className="bs-label">AUM</p>
-                  <p className="bs-numerals text-[0.95rem] mt-0.5">
+                  <p className="bs-numerals text-[1rem] mt-1">
                     {STATIC_DATA.aum}
                   </p>
                 </div>
                 <div>
                   <p className="bs-label">Yield</p>
-                  <p className="bs-numerals text-[0.95rem] mt-0.5">
+                  <p className="bs-numerals text-[1rem] mt-1">
                     {trailingYield !== null
                       ? `${trailingYield.toFixed(2)}%`
                       : "—"}
                   </p>
                 </div>
               </div>
+            </div>
 
-              {latestDist && (
-                <p className="bs-caption italic mt-4">
-                  Last distribution: ${latestDist.amount.toFixed(4)} &middot;{" "}
-                  <Link
-                    href="/distributions"
-                    className="bs-link text-[13px]"
-                  >
-                    all distributions
-                  </Link>
-                </p>
-              )}
-            </aside>
+            {latestDist && (
+              <p
+                className="bs-caption italic mt-4 text-[12px]"
+                style={{ color: "var(--ink-soft)" }}
+              >
+                Last distribution ${latestDist.amount.toFixed(4)} &middot;
+                ex-div{" "}
+                {new Date(
+                  latestDist.exDate + "T00:00:00"
+                ).toLocaleDateString("en-CA", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })}{" "}
+                &middot;{" "}
+                <Link href="/distributions" className="bs-link">
+                  all distributions
+                </Link>
+              </p>
+            )}
           </div>
         </section>
 
