@@ -8,6 +8,13 @@ interface RelatedReadingProps {
   className?: string;
 }
 
+/**
+ * "Filed nearby" — 2-3 related dispatches shown as editorial rows.
+ * Selection priority:
+ *   1. Explicit relatedSlugs from frontmatter
+ *   2. Same-category articles as fallback
+ *   3. Anything else as last resort
+ */
 export default function RelatedReading({
   currentSlug,
   relatedSlugs,
@@ -24,7 +31,7 @@ export default function RelatedReading({
       .slice(0, 3);
   }
 
-  if (related.length < 2) {
+  if (related.length < 3) {
     const sameCategory = allArticles
       .filter((a) => a.slug !== currentSlug && a.category === category)
       .filter((a) => !related.some((r) => r.slug === a.slug))
@@ -43,37 +50,31 @@ export default function RelatedReading({
   if (related.length === 0) return null;
 
   return (
-    <div
-      className={`mt-10 pt-8 border-t border-[var(--color-border)] ${className ?? ""}`}
-    >
-      <h2 className="font-serif text-lg font-medium text-[var(--color-text-primary)] mb-4">
-        Continue Reading
-      </h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className={`mt-10 pt-6 border-t border-[var(--color-border)] ${className ?? ""}`}>
+      <p className="bs-stamp mb-3">Filed nearby</p>
+      <ul>
         {related.map((article) => (
-          <Link
-            key={article.slug}
-            href={`/learn/${article.slug}`}
-            className="group card-editorial p-4"
-          >
-            <h3 className="text-sm font-semibold text-[var(--color-text-primary)] group-hover:text-[var(--color-brand)] transition-colors leading-snug line-clamp-2">
-              {article.title}
-            </h3>
-            <p className="mt-1.5 text-xs text-[var(--color-text-muted)] leading-relaxed line-clamp-2">
-              {article.excerpt || article.description}
-            </p>
-            <div className="mt-2 flex items-center gap-3 text-[10px] text-[var(--color-text-muted)]">
-              <span>{article.readingTime}</span>
-              {article.difficulty && (
-                <>
-                  <span className="text-[var(--color-border)]">&middot;</span>
-                  <span className="capitalize">{article.difficulty}</span>
-                </>
-              )}
-            </div>
-          </Link>
+          <li key={article.slug}>
+            <Link
+              href={`/learn/${article.slug}`}
+              className="group block py-3 grid grid-cols-[1fr_auto] gap-4 items-baseline border-t border-[var(--color-border)] first:border-t-0"
+            >
+              <h3
+                className="bs-display-italic text-[1.0625rem] sm:text-[1.125rem] leading-[1.2] group-hover:text-[var(--stamp)] transition-colors"
+                style={{ color: "var(--ink)" }}
+              >
+                {article.title}
+              </h3>
+              <p
+                className="bs-label tabular-nums shrink-0"
+                style={{ color: "var(--ink-soft)" }}
+              >
+                {article.readingTime}
+              </p>
+            </Link>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 }

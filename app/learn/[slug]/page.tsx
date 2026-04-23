@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import PageShell from "@/components/layout/PageShell";
+import InteriorShell from "@/components/broadsheet/InteriorShell";
 import ArticleLayout from "@/components/learn/ArticleLayout";
 import { getArticleBySlug, getAllSlugs } from "@/lib/articles";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -35,7 +35,8 @@ export async function generateMetadata({
       description,
       url,
       publishedTime: article.frontmatter.lastUpdated,
-      modifiedTime: article.frontmatter.updatedDate || article.frontmatter.lastUpdated,
+      modifiedTime:
+        article.frontmatter.updatedDate || article.frontmatter.lastUpdated,
       authors: ["BuyVEQT"],
       section: "Education",
     },
@@ -55,7 +56,7 @@ export default async function LearnArticlePage({
   }
 
   return (
-    <PageShell>
+    <InteriorShell maxWidth="max-w-[1200px]">
       <JsonLd
         data={buildBreadcrumbSchema([
           { name: "Home", path: "/" },
@@ -68,13 +69,12 @@ export default async function LearnArticlePage({
           "@context": "https://schema.org",
           "@type": "Article",
           headline: article.frontmatter.title,
-          description: article.frontmatter.excerpt || article.frontmatter.description,
+          description:
+            article.frontmatter.excerpt || article.frontmatter.description,
           datePublished: article.frontmatter.lastUpdated,
-          dateModified: article.frontmatter.updatedDate || article.frontmatter.lastUpdated,
-          author: {
-            "@type": "Organization",
-            name: SITE_NAME,
-          },
+          dateModified:
+            article.frontmatter.updatedDate || article.frontmatter.lastUpdated,
+          author: { "@type": "Organization", name: SITE_NAME },
           publisher: {
             "@type": "Organization",
             name: SITE_NAME,
@@ -90,6 +90,6 @@ export default async function LearnArticlePage({
         frontmatter={article.frontmatter}
         content={article.content}
       />
-    </PageShell>
+    </InteriorShell>
   );
 }

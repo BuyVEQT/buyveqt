@@ -1,260 +1,320 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import Link from "next/link";
 import type { ArticleFrontmatter } from "@/lib/articles";
-import ArticleCard from "./ArticleCard";
 
-type FilterKey = "all" | "beginner" | "comparisons" | "strategy";
-
-interface SectionData {
-  id: string;
-  heading: string;
-  description: string;
-  articles: ArticleFrontmatter[];
-  truncateAt: number;
-  showSteps?: boolean;
-  filterKey: FilterKey;
-  accentColor: string;
-  icon: React.ReactNode;
-}
+type FilterKey =
+  | "all"
+  | "beginner"
+  | "comparison"
+  | "tax-strategy"
+  | "veqt-deep-dive"
+  | "opinion";
 
 interface LearnContentProps {
   startHere: ArticleFrontmatter | null;
-  sections: {
-    basics: ArticleFrontmatter[];
-    comparisons: ArticleFrontmatter[];
-    strategy: ArticleFrontmatter[];
-    uncategorized: ArticleFrontmatter[];
-  };
+  articles: ArticleFrontmatter[];
 }
 
 const FILTERS: { key: FilterKey; label: string }[] = [
   { key: "all", label: "All" },
-  { key: "beginner", label: "Beginner" },
-  { key: "comparisons", label: "Comparisons" },
-  { key: "strategy", label: "Strategy" },
+  { key: "beginner", label: "Basics" },
+  { key: "comparison", label: "Comparisons" },
+  { key: "tax-strategy", label: "Tax & Accounts" },
+  { key: "veqt-deep-dive", label: "Deep Dive" },
+  { key: "opinion", label: "Opinion" },
 ];
 
-/* Section icons as inline SVGs */
-const IconBook = (
-  <svg viewBox="0 0 20 20" width="16" height="16" fill="currentColor">
-    <path d="M10.75 16.82A7.462 7.462 0 0115 15.5c.71 0 1.396.098 2.046.282A.75.75 0 0018 15.06v-11a.75.75 0 00-.546-.721A9.006 9.006 0 0015 3a8.999 8.999 0 00-4.25 1.065v12.755zM9.25 4.065A8.999 8.999 0 005 3c-.85 0-1.673.118-2.454.339A.75.75 0 002 4.06v11a.75.75 0 00.954.721A7.506 7.506 0 015 15.5c1.579 0 3.042.487 4.25 1.32V4.065z" />
-  </svg>
-);
+const DIFFICULTY_LABEL: Record<string, string> = {
+  beginner: "Beginner",
+  intermediate: "Intermediate",
+  advanced: "Advanced",
+};
 
-const IconScale = (
-  <svg viewBox="0 0 20 20" width="16" height="16" fill="currentColor">
-    <path fillRule="evenodd" d="M10 2a.75.75 0 01.67.416l6.75 13.5a.75.75 0 01-.67 1.084H3.25a.75.75 0 01-.67-1.084l6.75-13.5A.75.75 0 0110 2zm0 3.223L5.884 14.5h8.232L10 5.223z" clipRule="evenodd" />
-  </svg>
-);
+const CATEGORY_HEADINGS: Partial<Record<FilterKey, string>> = {
+  beginner: "The Basics",
+  comparison: "Head-to-Head",
+  "tax-strategy": "Tax & Accounts",
+  "veqt-deep-dive": "The Deep Dive",
+  opinion: "Opinion",
+};
 
-const IconCog = (
-  <svg viewBox="0 0 20 20" width="16" height="16" fill="currentColor">
-    <path fillRule="evenodd" d="M7.84 1.804A1 1 0 018.82 1h2.36a1 1 0 01.98.804l.331 1.652a6.993 6.993 0 011.929 1.115l1.598-.54a1 1 0 011.186.447l1.18 2.044a1 1 0 01-.205 1.251l-1.267 1.113a7.047 7.047 0 010 2.228l1.267 1.113a1 1 0 01.206 1.25l-1.18 2.045a1 1 0 01-1.187.447l-1.598-.54a6.993 6.993 0 01-1.929 1.115l-.33 1.652a1 1 0 01-.98.804H8.82a1 1 0 01-.98-.804l-.331-1.652a6.993 6.993 0 01-1.929-1.115l-1.598.54a1 1 0 01-1.186-.447l-1.18-2.044a1 1 0 01.205-1.251l1.267-1.114a7.05 7.05 0 010-2.227L1.821 7.773a1 1 0 01-.206-1.25l1.18-2.045a1 1 0 011.187-.447l1.598.54A6.992 6.992 0 017.51 3.456l.33-1.652zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
-  </svg>
-);
+const CATEGORY_BLURB: Partial<Record<FilterKey, string>> = {
+  beginner: "Core concepts every VEQT investor should know.",
+  comparison: "Side-by-side breakdowns against the field.",
+  "tax-strategy": "TFSAs, RRSPs, FHSAs, withdrawals — making the account work.",
+  "veqt-deep-dive": "Mechanics: distributions, currency risk, home bias, costs.",
+  opinion: "Our takes on covered calls, forex, and other distractions.",
+};
 
-const IconDots = (
-  <svg viewBox="0 0 20 20" width="16" height="16" fill="currentColor">
-    <path d="M3 10a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zM8.5 10a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zM15.5 8.5a1.5 1.5 0 100 3 1.5 1.5 0 000-3z" />
-  </svg>
-);
-
-function ExpandableSection({ section }: { section: SectionData }) {
-  const [expanded, setExpanded] = useState(false);
-  const { articles, truncateAt, showSteps } = section;
-  const needsTruncation = articles.length > truncateAt;
-  const visible =
-    expanded || !needsTruncation ? articles : articles.slice(0, truncateAt);
-
+function ArticleRow({
+  article,
+  ordinal,
+}: {
+  article: ArticleFrontmatter;
+  ordinal: number;
+}) {
   return (
-    <section className="scroll-mt-24">
-      {/* Section header with accent identity */}
-      <div className="flex items-start gap-3 mb-5">
-        <div
-          className="shrink-0 mt-1 w-8 h-8 rounded-lg flex items-center justify-center"
-          style={{
-            backgroundColor: `color-mix(in srgb, ${section.accentColor} 10%, transparent)`,
-            color: section.accentColor,
-          }}
+    <li>
+      <Link
+        href={`/learn/${article.slug}`}
+        className="group block py-4 sm:py-5 grid grid-cols-[auto_1fr] gap-4 sm:gap-6 border-t border-[var(--color-border)] first:border-t-0"
+      >
+        <span
+          className="bs-display bs-numerals text-xl sm:text-2xl tabular-nums pt-0.5 shrink-0"
+          style={{ color: "var(--ink-soft)" }}
         >
-          {section.icon}
-        </div>
-        <div>
-          <h2 className="font-serif text-xl font-medium text-[var(--color-text-primary)]">
-            {section.heading}
-          </h2>
-          <p className="mt-0.5 text-sm text-[var(--color-text-muted)]">
-            {section.description}
+          {String(ordinal).padStart(2, "0")}
+        </span>
+        <div className="min-w-0">
+          <h3
+            className="bs-display-italic text-[1.125rem] sm:text-[1.375rem] leading-[1.2] group-hover:text-[var(--stamp)] transition-colors"
+            style={{ color: "var(--ink)" }}
+          >
+            {article.title}
+          </h3>
+          <p
+            className="bs-caption mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1"
+            style={{ color: "var(--ink-soft)" }}
+          >
+            <span>{article.readingTime}</span>
+            {article.difficulty && article.difficulty !== "beginner" && (
+              <>
+                <span className="opacity-40">·</span>
+                <span>{DIFFICULTY_LABEL[article.difficulty]}</span>
+              </>
+            )}
+            {article.isEditorial && (
+              <>
+                <span className="opacity-40">·</span>
+                <span
+                  className="bs-stamp"
+                  style={{ fontSize: "10px", color: "var(--stamp)" }}
+                >
+                  Our Take
+                </span>
+              </>
+            )}
           </p>
+          {(article.excerpt || article.description) && (
+            <p
+              className="bs-body text-[0.95rem] mt-2 leading-[1.45] max-w-[60ch]"
+              style={{ color: "var(--ink)" }}
+            >
+              {article.excerpt || article.description}
+            </p>
+          )}
         </div>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {visible.map((article, i) => (
-          <ArticleCard
-            key={article.slug}
-            article={article}
-            step={showSteps ? i + 1 : undefined}
-          />
-        ))}
-      </div>
-
-      {needsTruncation && (
-        <button
-          onClick={() => setExpanded(!expanded)}
-          className="mt-4 text-sm font-medium text-[var(--color-brand)] hover:text-[var(--color-brand-dark)] transition-colors cursor-pointer"
-        >
-          {expanded
-            ? "Show fewer"
-            : `Show all ${articles.length} articles \u2192`}
-        </button>
-      )}
-    </section>
+      </Link>
+    </li>
   );
 }
 
 export default function LearnContent({
   startHere,
-  sections,
+  articles,
 }: LearnContentProps) {
-  const [activeFilter, setActiveFilter] = useState<FilterKey>("all");
+  const [filter, setFilter] = useState<FilterKey>("all");
+  const [search, setSearch] = useState("");
 
-  const sectionList: SectionData[] = [
-    {
-      id: "basics",
-      heading: "Understand the Basics",
-      description: "Core concepts every VEQT investor should know.",
-      articles: sections.basics,
-      truncateAt: 3,
-      showSteps: true,
-      filterKey: "beginner",
-      accentColor: "var(--color-positive)",
-      icon: IconBook,
-    },
-    {
-      id: "comparisons",
-      heading: "Compare Your Options",
-      description: "Side-by-side breakdowns to help you decide.",
-      articles: sections.comparisons,
-      truncateAt: 3,
-      filterKey: "comparisons",
-      accentColor: "var(--color-chart-line)",
-      icon: IconScale,
-    },
-    {
-      id: "strategy",
-      heading: "Optimize Your Strategy",
-      description: "Accounts, taxes, fees, and making VEQT work harder.",
-      articles: sections.strategy,
-      truncateAt: 3,
-      filterKey: "strategy",
-      accentColor: "var(--color-accent)",
-      icon: IconCog,
-    },
-  ];
-
-  if (sections.uncategorized.length > 0) {
-    sectionList.push({
-      id: "more",
-      heading: "More Reading",
-      description: "Additional articles and resources.",
-      articles: sections.uncategorized,
-      truncateAt: 3,
-      filterKey: "all",
-      accentColor: "var(--color-text-muted)",
-      icon: IconDots,
-    });
-  }
-
-  const getFilteredArticles = (): ArticleFrontmatter[] => {
-    const section = sectionList.find((s) => s.filterKey === activeFilter);
-    if (!section) return [];
-
-    const articles = [...section.articles];
-    if (startHere) {
-      const matchesFilter =
-        (activeFilter === "beginner" && startHere.category === "beginner") ||
-        (activeFilter === "comparisons" &&
-          startHere.category === "comparison") ||
-        (activeFilter === "strategy" &&
-          (startHere.category === "tax-strategy" ||
-            startHere.category === "veqt-deep-dive"));
-      if (matchesFilter) {
-        articles.unshift(startHere);
-      }
+  const filtered = useMemo(() => {
+    let pool = articles;
+    if (filter !== "all") {
+      pool = pool.filter((a) => a.category === filter);
     }
-    return articles;
-  };
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      pool = pool.filter((a) => {
+        const haystack = [
+          a.title,
+          a.description,
+          a.excerpt ?? "",
+          (a.tags ?? []).join(" "),
+        ]
+          .join(" ")
+          .toLowerCase();
+        return haystack.includes(q);
+      });
+    }
+    return pool;
+  }, [articles, filter, search]);
 
-  const isAll = activeFilter === "all";
-  const filteredArticles = !isAll ? getFilteredArticles() : [];
+  // Group into department buckets in curated order for the "All" view.
+  const grouped = useMemo(() => {
+    const buckets: Record<string, ArticleFrontmatter[]> = {};
+    for (const a of filtered) {
+      const key = a.category ?? "beginner";
+      if (!buckets[key]) buckets[key] = [];
+      buckets[key].push(a);
+    }
+    return buckets;
+  }, [filtered]);
+
+  const showGrouped = filter === "all" && !search.trim();
+
+  const ordinalMap = useMemo(() => {
+    const m = new Map<string, number>();
+    articles.forEach((a, i) => m.set(a.slug, i + 1));
+    return m;
+  }, [articles]);
 
   return (
     <>
-      {/* Filter pills — sticky with backdrop */}
-      <nav className="sticky top-14 z-30 -mx-4 px-4 py-3 bg-[var(--color-base)]/90 backdrop-blur-md border-b border-[var(--color-border)]/50 mb-8 overflow-x-auto hide-scrollbar">
-        <div className="flex gap-2 flex-nowrap">
-          {FILTERS.map((filter) => (
-            <button
-              key={filter.key}
-              onClick={() => setActiveFilter(filter.key)}
-              className={`shrink-0 px-4 py-2 text-sm font-medium rounded-full border transition-all duration-150 cursor-pointer ${
-                activeFilter === filter.key
-                  ? "bg-[var(--color-brand)] border-[var(--color-brand)] text-white shadow-sm"
-                  : "border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-border-light)]"
-              }`}
-            >
-              {filter.label}
-            </button>
-          ))}
+      {/* ── Filter + search rail ────────────────────────────────── */}
+      <div className="sticky top-0 z-20 -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 py-3 bg-[var(--paper)]/95 backdrop-blur-[6px] border-b border-[var(--color-border)]">
+        <div className="flex items-center gap-3 sm:gap-5">
+          <nav
+            className="flex-1 flex items-center gap-4 sm:gap-6 overflow-x-auto hide-scrollbar bs-label"
+            aria-label="Filter by category"
+          >
+            {FILTERS.map((f) => {
+              const active = filter === f.key;
+              return (
+                <button
+                  key={f.key}
+                  type="button"
+                  onClick={() => setFilter(f.key)}
+                  className="shrink-0 whitespace-nowrap transition-colors"
+                  style={{
+                    color: active ? "var(--stamp)" : "var(--ink-soft)",
+                    textDecoration: active ? "underline" : "none",
+                    textUnderlineOffset: "4px",
+                  }}
+                >
+                  {f.label}
+                </button>
+              );
+            })}
+          </nav>
+          <label className="shrink-0 w-32 sm:w-48">
+            <span className="sr-only">Search</span>
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search…"
+              className="w-full bg-transparent border-b border-[var(--ink)]/40 focus:border-[var(--stamp)] outline-none text-sm py-1"
+              style={{ color: "var(--ink)", fontFamily: "var(--font-serif)" }}
+            />
+          </label>
         </div>
-      </nav>
-
-      {/* Content area */}
-      <div className="transition-opacity duration-200">
-        {isAll ? (
-          <div className="space-y-14">
-            {/* Featured Start Here card */}
-            {startHere && (
-              <div>
-                <p className="section-label mb-3">
-                  New to VEQT? Start here
-                </p>
-                <ArticleCard article={startHere} featured />
-              </div>
-            )}
-
-            {/* Editorial divider after hero */}
-            <div className="editorial-rule" />
-
-            {sectionList
-              .filter((s) => s.articles.length > 0)
-              .map((section) => (
-                <ExpandableSection key={section.id} section={section} />
-              ))}
-          </div>
-        ) : (
-          <div>
-            {filteredArticles.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredArticles.map((article) => (
-                  <ArticleCard key={article.slug} article={article} />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-16">
-                <p className="text-[var(--color-text-muted)] font-serif text-lg">
-                  No articles in this category yet.
-                </p>
-                <p className="text-sm text-[var(--color-text-muted)] mt-1">
-                  Check back soon!
-                </p>
-              </div>
-            )}
-          </div>
-        )}
       </div>
+
+      {/* ── Featured "Start Here" — only on "all" view with no search ── */}
+      {showGrouped && startHere && (
+        <Link
+          href={`/learn/${startHere.slug}`}
+          className="group block mt-8 sm:mt-10 p-5 sm:p-6 border-t-2 border-b-2 border-[var(--ink)]"
+        >
+          <p className="bs-stamp mb-3">New to VEQT · Start here</p>
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4 md:gap-8 items-end">
+            <div>
+              <h2
+                className="bs-display-italic text-[1.875rem] sm:text-[2.5rem] lg:text-[3rem] leading-[1.02] group-hover:text-[var(--stamp)] transition-colors"
+                style={{ color: "var(--ink)" }}
+              >
+                {startHere.title}
+              </h2>
+              <p
+                className="bs-body text-[1rem] sm:text-[1.0625rem] mt-3 leading-[1.5] max-w-[60ch]"
+                style={{ color: "var(--ink)" }}
+              >
+                {startHere.excerpt || startHere.description}
+              </p>
+            </div>
+            <p
+              className="bs-label shrink-0"
+              style={{ color: "var(--ink-soft)" }}
+            >
+              {startHere.readingTime} &nbsp;&rarr;
+            </p>
+          </div>
+        </Link>
+      )}
+
+      {/* ── Main content: grouped by department OR flat filtered list ── */}
+      {showGrouped ? (
+        <div className="mt-10 sm:mt-14 space-y-12 sm:space-y-16">
+          {(
+            [
+              "beginner",
+              "comparison",
+              "tax-strategy",
+              "veqt-deep-dive",
+              "opinion",
+            ] as FilterKey[]
+          ).map((cat) => {
+            const entries =
+              (grouped[cat] ?? []).filter((a) => a.slug !== startHere?.slug);
+            if (entries.length === 0) return null;
+            return (
+              <section key={cat}>
+                <div className="flex items-baseline justify-between gap-4 mb-2">
+                  <h2
+                    className="bs-display text-[1.75rem] sm:text-[2rem]"
+                    style={{ color: "var(--ink)" }}
+                  >
+                    {CATEGORY_HEADINGS[cat]}
+                  </h2>
+                  <p
+                    className="bs-label tabular-nums"
+                    style={{ color: "var(--ink-soft)" }}
+                  >
+                    {entries.length} dispatches
+                  </p>
+                </div>
+                <p
+                  className="bs-caption italic mb-2"
+                  style={{ color: "var(--ink-soft)" }}
+                >
+                  {CATEGORY_BLURB[cat]}
+                </p>
+                <ul>
+                  {entries.map((article) => (
+                    <ArticleRow
+                      key={article.slug}
+                      article={article}
+                      ordinal={ordinalMap.get(article.slug) ?? 0}
+                    />
+                  ))}
+                </ul>
+              </section>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="mt-8 sm:mt-10">
+          {filtered.length === 0 ? (
+            <p
+              className="bs-body italic py-12 text-center"
+              style={{ color: "var(--ink-soft)" }}
+            >
+              No dispatches match that.{" "}
+              <button
+                type="button"
+                className="bs-link underline"
+                onClick={() => {
+                  setFilter("all");
+                  setSearch("");
+                }}
+              >
+                Clear filters.
+              </button>
+            </p>
+          ) : (
+            <ul>
+              {filtered.map((article) => (
+                <ArticleRow
+                  key={article.slug}
+                  article={article}
+                  ordinal={ordinalMap.get(article.slug) ?? 0}
+                />
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
     </>
   );
 }

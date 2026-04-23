@@ -8,6 +8,12 @@ import { isMarketOpen } from "@/lib/data/market-hours";
 interface MastheadProps {
   quote: VeqtQuote | null;
   loading: boolean;
+  /**
+   * "home" renders the full hero nameplate. "interior" renders a compact
+   * version for every other page — smaller type, no italic subtitle —
+   * so the nav is present but doesn't eat the viewport before the content.
+   */
+  variant?: "home" | "interior";
 }
 
 function formatPrice(n: number): string {
@@ -50,7 +56,12 @@ const DRAWER_SECONDARY = [
   { href: "/methodology", label: "Methodology" },
 ];
 
-export default function Masthead({ quote, loading }: MastheadProps) {
+export default function Masthead({
+  quote,
+  loading,
+  variant = "home",
+}: MastheadProps) {
+  const compact = variant === "interior";
   const [date, setDate] = useState(() => ({
     full: "",
     weekday: "",
@@ -138,21 +149,37 @@ export default function Masthead({ quote, loading }: MastheadProps) {
 
       <div className="bs-rule-thick" />
 
-      {/* ── Nameplate — scales down sharply on mobile ── */}
-      <div className="py-3 sm:py-5 flex items-end justify-between gap-4">
+      {/* ── Nameplate — home variant is the big feature; interior is compact. ── */}
+      <div
+        className={`flex items-end justify-between gap-4 ${
+          compact ? "py-2 sm:py-3" : "py-3 sm:py-5"
+        }`}
+      >
         <Link href="/" className="block min-w-0 flex-1">
-          <h1 className="bs-display text-[2rem] sm:text-6xl lg:text-[7rem] leading-[0.9] sm:leading-[0.82] tracking-[-0.02em] sm:tracking-[-0.03em] text-[var(--ink)]">
+          <h1
+            className={`bs-display text-[var(--ink)] ${
+              compact
+                ? "text-[1.5rem] sm:text-[1.875rem] lg:text-[2.5rem] leading-[1] tracking-[-0.018em]"
+                : "text-[2rem] sm:text-6xl lg:text-[7rem] leading-[0.9] sm:leading-[0.82] tracking-[-0.02em] sm:tracking-[-0.03em]"
+            }`}
+          >
             The VEQT Daily
           </h1>
-          <p className="bs-caption mt-1 sm:mt-2 hidden sm:block">
-            A Canadian broadsheet for the lazy investor &mdash; priced, read, held.
-          </p>
+          {!compact && (
+            <p className="bs-caption mt-1 sm:mt-2 hidden sm:block">
+              A Canadian broadsheet for the lazy investor &mdash; priced, read, held.
+            </p>
+          )}
         </Link>
 
-        {/* Desktop ticker block — large price at right edge */}
+        {/* Desktop ticker block — larger on home, compact on interior pages */}
         <div className="hidden md:block text-right shrink-0">
           <p className="bs-label">VEQT.TO &middot; Last close</p>
-          <p className="bs-numerals text-3xl lg:text-4xl font-medium mt-1">
+          <p
+            className={`bs-numerals font-medium mt-1 ${
+              compact ? "text-xl lg:text-2xl" : "text-3xl lg:text-4xl"
+            }`}
+          >
             {loading || !quote ? "—" : `$${formatPrice(quote.price)}`}
           </p>
           {!loading && quote && (

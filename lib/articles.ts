@@ -108,3 +108,31 @@ export function getAllSlugs(): string[] {
     .filter((f) => f.endsWith(".mdx"))
     .map((f) => f.replace(".mdx", ""));
 }
+
+/**
+ * Return the article that follows `slug` in the global curated order,
+ * plus the one that preceded it. Used by the end-of-article
+ * "Continue to the next dispatch" CTA. Wraps from the last → first.
+ */
+export function getAdjacentArticles(slug: string): {
+  previous: ArticleFrontmatter | null;
+  next: ArticleFrontmatter | null;
+} {
+  const all = getAllArticles();
+  const idx = all.findIndex((a) => a.slug === slug);
+  if (idx === -1) return { previous: null, next: null };
+  const previous = idx > 0 ? all[idx - 1] : null;
+  const next = idx < all.length - 1 ? all[idx + 1] : null;
+  return { previous, next };
+}
+
+/**
+ * Get the ordinal position (1-indexed) of an article in the curated
+ * global sequence. Useful for "Dispatch No. 07" labelling on article heads.
+ * Returns null if the article isn't in the ordered list.
+ */
+export function getArticleOrdinal(slug: string): number | null {
+  const all = getAllArticles();
+  const idx = all.findIndex((a) => a.slug === slug);
+  return idx === -1 ? null : idx + 1;
+}
