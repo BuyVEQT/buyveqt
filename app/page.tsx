@@ -16,7 +16,9 @@ import Masthead from "@/components/broadsheet/Masthead";
 import OrnateRule from "@/components/broadsheet/OrnateRule";
 import RegionCards from "@/components/broadsheet/RegionCards";
 import Letters from "@/components/broadsheet/Letters";
+import OnTheWire from "@/components/broadsheet/OnTheWire";
 import { useRegions } from "@/lib/useRegions";
+import { useNews } from "@/lib/useNews";
 import { computeLeadHeadline } from "@/lib/lead-headline";
 
 function formatCAD(n: number, digits = 0): string {
@@ -56,10 +58,27 @@ export default function Home() {
   const { payload: regionsPayload, loading: regionsLoading } = useRegions();
   const regions = regionsPayload?.regions ?? [];
 
-  // Dynamic editorial deck + headline — composes magnitude × driving sleeve.
+  // Live financial news wire — drives the Lead quote line + the OnTheWire strip.
+  const { payload: newsPayload, loading: newsLoading } = useNews();
+  const newsItems = newsPayload?.items ?? [];
+  const leadWireItem = newsItems[0] ?? null;
+
+  // Package news payload into the NewsContext shape the headline function expects.
+  const newsContext = useMemo(
+    () =>
+      newsPayload
+        ? {
+            sentiment: newsPayload.overall.sentiment,
+            itemCount: newsPayload.items.length,
+          }
+        : undefined,
+    [newsPayload]
+  );
+
+  // Dynamic editorial deck + headline + coda — magnitude × driving sleeve × wire alignment.
   const leadCopy = useMemo(
-    () => computeLeadHeadline(quote?.changePercent, regions),
-    [quote?.changePercent, regions]
+    () => computeLeadHeadline(quote?.changePercent, regions, newsContext),
+    [quote?.changePercent, regions, newsContext]
   );
 
   // 52-week range position, clamped so the dot is always fully visible.
@@ -126,15 +145,50 @@ export default function Home() {
               )}
             </div>
 
-            {/* Editorial headline */}
-            <h2 className="bs-display-italic text-[1.5rem] sm:text-[1.875rem] lg:text-[2.5rem] leading-[1.08] mt-5 sm:mt-6 text-[var(--ink)] max-w-[22ch]">
+            {/* Editorial headline — with optional news-sentiment coda */}
+            <h2 className="bs-display-italic text-[1.5rem] sm:text-[1.875rem] lg:text-[2.5rem] leading-[1.08] mt-5 sm:mt-6 text-[var(--ink)] max-w-[28ch]">
               {leadCopy.headline}
+              {leadCopy.coda && (
+                <span
+                  className="text-[var(--ink-soft)]"
+                  style={{ fontStyle: "italic" }}
+                >
+                  {" "}
+                  {leadCopy.coda}
+                </span>
+              )}
             </h2>
 
-            {/* Brand tagline — tight, editorial */}
-            <p className="bs-caption italic mt-3 text-[13px] sm:text-[14px]">
-              One fund &middot; ~13,700 companies &middot; 50+ countries
-            </p>
+            {/* Wire quote — real news headline from AV NEWS_SENTIMENT,
+                falls back to brand tagline when news is unavailable. */}
+            {leadWireItem ? (
+              <p
+                className="bs-caption mt-4 text-[13px] sm:text-[14px] leading-[1.5]"
+                style={{ color: "var(--ink-soft)" }}
+              >
+                <span
+                  className="bs-stamp mr-1.5 align-middle"
+                  style={{ fontSize: "10px" }}
+                >
+                  On the wire
+                </span>
+                <a
+                  href={leadWireItem.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bs-link italic"
+                >
+                  &ldquo;{leadWireItem.title}&rdquo;
+                </a>{" "}
+                <span className="opacity-70 whitespace-nowrap">
+                  &mdash; {leadWireItem.source}
+                </span>
+              </p>
+            ) : (
+              <p className="bs-caption italic mt-3 text-[13px] sm:text-[14px]">
+                One fund &middot; ~13,700 companies &middot; 50+ countries
+              </p>
+            )}
 
             {/* ── Supporting data strip ── */}
             <div className="mt-7 sm:mt-9 pt-5 border-t border-[var(--ink)] grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-7 sm:gap-10">
@@ -209,6 +263,32 @@ export default function Home() {
             )}
           </div>
         </section>
+
+        {/* ─────────────────── ON THE WIRE ─────────────────── */}
+        {(newsLoading || newsItems.length > 1) && (
+          <>
+            <OrnateRule label="On the Wire" />
+            <section className="py-6 sm:py-8 bs-enter">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 mb-2">
+                <div className="lg:col-span-5">
+                  <h3 className="bs-display text-3xl sm:text-4xl lg:text-5xl leading-[0.98]">
+                    Today, filed.
+                  </h3>
+                </div>
+                <p className="lg:col-span-7 bs-caption italic max-w-lg">
+                  Market news touching the four sleeves of VEQT, pulled
+                  from the Alpha Vantage wire. Refreshed every six hours.
+                  Publishers named; nothing rewritten.
+                </p>
+              </div>
+              <OnTheWire
+                items={newsItems}
+                loading={newsLoading}
+                leadItemIndex={0}
+              />
+            </section>
+          </>
+        )}
 
         <OrnateRule label="The Regions" />
 

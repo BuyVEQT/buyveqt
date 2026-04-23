@@ -1,27 +1,100 @@
 import type { Region } from "@/lib/useRegions";
 
+export interface NewsContext {
+  sentiment: "bearish" | "neutral" | "bullish";
+  /** How many news items were averaged. We only lean into sentiment when this is confident. */
+  itemCount: number;
+}
+
 export interface LeadCopy {
   /** Small-caps kicker above the headline. Short, categorical. */
   deck: string;
   /** The main editorial statement. Single line or two — whatever flows. */
   headline: string;
+  /**
+   * Optional one-line coda that ties the tape to the wire: "The wire agrees.",
+   * "Against the wire.", "The wire is silent." etc. Omitted on quiet days.
+   */
+  coda?: string;
 }
 
+type BaseCopy = Pick<LeadCopy, "deck" | "headline">;
+
 /**
- * Compose the Lead deck + headline from live data.
+ * Compose the Lead deck + headline + optional coda from live data.
  *
- * The goal: replace the old static template ("Another green/red day for the
- * lazy investor") with a genuinely varying two-part editorial unit that
- * changes meaningfully with the day. The deck categorizes (A RALLY, A SELL-OFF,
- * A QUIET TAPE, etc.); the headline names the driving sleeve or the consensus.
+ * Two signals:
+ *   1. Magnitude × regional attribution (primary) — drives deck + headline.
+ *   2. News sentiment (secondary) — appends a short coda when the wire
+ *      clearly agrees with or contradicts the tape. Never fabricated;
+ *      the coda pool is a handful of hand-written one-liners, selected
+ *      deterministically from the alignment × magnitude grid.
  *
- * Pure function. No news API — the regional attribution IS the driver narrative.
+ * Neutral sentiment, thin coverage (<3 items), or flat sessions produce
+ * no coda — the headline stands on its own.
  */
 export function computeLeadHeadline(
   veqtChangePercent: number | null | undefined,
-  regions: readonly Region[] = []
+  regions: readonly Region[] = [],
+  news?: NewsContext
 ): LeadCopy {
-  // Before live data arrives.
+  const base = computeBase(veqtChangePercent, regions);
+
+  if (
+    veqtChangePercent === null ||
+    veqtChangePercent === undefined ||
+    !news ||
+    news.sentiment === "neutral" ||
+    news.itemCount < 3
+  ) {
+    return base;
+  }
+
+  const mag = Math.abs(veqtChangePercent);
+  // Don't tie a coda to a flat session — it reads as forced.
+  if (mag < 0.2) return base;
+
+  const up = veqtChangePercent >= 0;
+  const coda = pickCoda(up, mag, news.sentiment);
+  return coda ? { ...base, coda } : base;
+}
+
+/**
+ * Pick a coda from the alignment × magnitude grid.
+ * Returns null for ambiguous cases (we'd rather say nothing than stretch).
+ */
+function pickCoda(
+  up: boolean,
+  mag: number,
+  sentiment: "bearish" | "bullish"
+): string | null {
+  const sharp = mag >= 1.5;
+  const aligned = (up && sentiment === "bullish") || (!up && sentiment === "bearish");
+
+  if (aligned) {
+    // Tape and wire agree.
+    if (up && sharp) return "Bullish headlines, confirmed.";
+    if (up) return "The wire agrees.";
+    if (!up && sharp) return "The wire confirms the slide.";
+    return "Bearish on the page, bearish on the wire.";
+  }
+
+  // Tape and wire disagree — contrarian note.
+  if (up && sharp) return "A rally against a bearish wire.";
+  if (up) return "Up, despite a cautious wire.";
+  if (!up && sharp) return "The tape bleeds through bullish headlines.";
+  return "Down, despite an optimistic wire.";
+}
+
+// ──────────────────────────────────────────────────────────────
+// Base copy — magnitude × regional attribution. Unchanged from the
+// prior iteration. Split out so the public function can layer coda on top.
+// ──────────────────────────────────────────────────────────────
+
+function computeBase(
+  veqtChangePercent: number | null | undefined,
+  regions: readonly Region[]
+): BaseCopy {
   if (veqtChangePercent === null || veqtChangePercent === undefined) {
     return { deck: "The Lead · Today", headline: "The tape awaits." };
   }
@@ -29,7 +102,6 @@ export function computeLeadHeadline(
   const mag = Math.abs(veqtChangePercent);
   const up = veqtChangePercent >= 0;
 
-  // Rank regions by absolute contribution — which sleeve drove VEQT's move?
   const ranked = regions
     .filter((r) => !r.error && typeof r.contribution === "number")
     .slice()
@@ -39,13 +111,11 @@ export function computeLeadHeadline(
     );
   const leader = ranked[0];
 
-  // Is the leader moving in the same direction as VEQT, or against?
   const leaderAligned =
     leader !== undefined &&
     typeof leader.contribution === "number" &&
     ((leader.contribution >= 0 && up) || (leader.contribution < 0 && !up));
 
-  // Do all four sleeves agree on direction?
   const consensus =
     regions.length >= 4 &&
     regions.every(
@@ -71,15 +141,10 @@ export function computeLeadHeadline(
   };
   const capFirst = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-  // ── Flat session (<0.2%) ─────────────────────────────────
   if (mag < 0.2) {
-    return {
-      deck: "A quiet tape",
-      headline: "Little movement on the day.",
-    };
+    return { deck: "A quiet tape", headline: "Little movement on the day." };
   }
 
-  // ── Modest (0.2% – 0.7%) ─────────────────────────────────
   if (mag < 0.7) {
     if (!leader) {
       return up
@@ -108,19 +173,12 @@ export function computeLeadHeadline(
         };
   }
 
-  // ── Notable (0.7% – 1.5%) ────────────────────────────────
   if (mag < 1.5) {
     if (consensus && up) {
-      return {
-        deck: "A broad rally",
-        headline: "Every region in the green.",
-      };
+      return { deck: "A broad rally", headline: "Every region in the green." };
     }
     if (consensus && !up) {
-      return {
-        deck: "A broad decline",
-        headline: "Every region in the red.",
-      };
+      return { deck: "A broad decline", headline: "Every region in the red." };
     }
     if (!leader) {
       return up
@@ -138,7 +196,6 @@ export function computeLeadHeadline(
         };
   }
 
-  // ── Sharp (1.5% – 2.5%) ──────────────────────────────────
   if (mag < 2.5) {
     if (!leader) {
       return up
@@ -156,7 +213,6 @@ export function computeLeadHeadline(
         };
   }
 
-  // ── Extreme (>=2.5%) ─────────────────────────────────────
   if (!leader) {
     return up
       ? { deck: "A surge", headline: "The world rips higher." }
