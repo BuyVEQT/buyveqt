@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import PageShell from "@/components/layout/PageShell";
-import SectorChart from "@/components/inside/SectorChart";
+import InteriorShell from "@/components/broadsheet/InteriorShell";
+import SectorBars from "@/components/inside-veqt/SectorBars";
 import { FUNDS, FUND_DATA_LAST_UPDATED } from "@/data/funds";
 import { VEQT_TOP_HOLDINGS, TOP_HOLDINGS_TOTAL_WEIGHT } from "@/data/holdings";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -22,227 +22,411 @@ export const metadata: Metadata = {
 const veqt = FUNDS["VEQT.TO"];
 
 const REGION_NOTES: Record<string, string> = {
-  "United States": "~4,000 stocks across all US market caps",
-  Canada: "~200 stocks covering the Canadian market",
-  "International Developed": "~6,000 stocks across Europe, Asia-Pacific, and more",
-  "Emerging Markets": "~5,000 stocks across China, India, Brazil, and more",
+  "United States": "≈ 4,000 stocks · all US market caps",
+  Canada: "≈ 200 stocks · the Canadian market",
+  "International Developed": "≈ 6,000 stocks · Europe, Asia-Pacific, ex-NA",
+  "Emerging Markets": "≈ 5,000 stocks · China, India, Brazil, et al.",
 };
+
+const updatedDisplay = new Date(FUND_DATA_LAST_UPDATED + "T00:00:00").toLocaleDateString(
+  "en-CA",
+  { year: "numeric", month: "long", day: "numeric" }
+);
 
 export default function InsideVeqtPage() {
   return (
-    <PageShell>
+    <InteriorShell>
       <JsonLd
         data={buildBreadcrumbSchema([
           { name: "Home", path: "/" },
           { name: "Inside VEQT", path: "/inside-veqt" },
         ])}
       />
-      <main className="flex-1 mx-auto w-full max-w-6xl px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl sm:text-3xl font-serif font-normal text-[var(--color-text-primary)]">
-            What&apos;s Inside VEQT?
-          </h1>
-          <p className="mt-2 text-[var(--color-text-muted)] max-w-prose leading-relaxed">
-            VEQT is a fund of funds — one ETF that holds four underlying
-            Vanguard ETFs, giving you instant exposure to thousands of stocks
-            worldwide.
+
+      {/* ── Page head ──────────────────────────────────────────── */}
+      <section className="pt-8 sm:pt-10 pb-6">
+        <p className="bs-stamp mb-3">The Portfolio · Centerfold</p>
+        <h1
+          className="bs-display-italic text-[2.25rem] sm:text-[3.25rem] lg:text-[4.25rem] leading-[0.98]"
+          style={{ color: "var(--ink)" }}
+        >
+          What you actually own.
+        </h1>
+        <p
+          className="bs-body italic mt-4 max-w-[58ch]"
+          style={{ color: "var(--ink-soft)" }}
+        >
+          One ticker. Four underlying ETFs. Roughly thirteen-thousand-seven-hundred
+          companies in fifty-odd countries. A small map of capitalism, rebalanced
+          for you while you sleep.
+        </p>
+        <p
+          className="bs-label mt-5"
+          style={{ color: "var(--ink-soft)" }}
+        >
+          Portfolio data verified {updatedDisplay} · Source: Vanguard Canada
+        </p>
+      </section>
+
+      <div className="bs-rule-thick mb-10" />
+
+      {/* ── Section 1: The Architecture ────────────────────────── */}
+      <section className="mb-14 sm:mb-16">
+        <div className="flex items-baseline justify-between gap-4 mb-3">
+          <h2
+            className="bs-display text-[1.75rem] sm:text-[2rem]"
+            style={{ color: "var(--ink)" }}
+          >
+            The Architecture
+          </h2>
+          <p className="bs-label tabular-nums" style={{ color: "var(--ink-soft)" }}>
+            Four underlying funds
           </p>
         </div>
+        <p
+          className="bs-caption italic mb-6 max-w-[60ch]"
+          style={{ color: "var(--ink-soft)" }}
+        >
+          VEQT is a fund of funds. It holds no individual stocks directly — it
+          holds these four Vanguard index ETFs, each a region of the world, and
+          rebalances back to its target weights periodically. You buy one ticker;
+          the plumbing happens behind the curtain.
+        </p>
 
-        {/* Section 1: Fund-of-Funds Structure */}
-        <section className="mb-10">
-          <h2 className="text-lg font-serif font-normal text-[var(--color-text-primary)] mb-3">
-            The Fund-of-Funds Structure
-          </h2>
-          <div className="text-sm text-[var(--color-text-muted)] leading-relaxed max-w-prose space-y-3 mb-6">
-            <p>
-              VEQT doesn&apos;t hold individual stocks directly. Instead, it
-              invests in four underlying Vanguard index ETFs, each covering a
-              different region of the global stock market. This structure lets
-              Vanguard manage rebalancing automatically — you buy one ticker and
-              get diversified global equity exposure.
-            </p>
-            <p>
-              When markets shift and one region outperforms others, Vanguard
-              periodically rebalances VEQT back to its target weights. You
-              don&apos;t need to do anything — the fund handles it for you.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {veqt.underlyingETFs.map((etf) => (
-              <div
-                key={etf.ticker}
-                className="card-editorial p-4"
-              >
-                <p className="text-base font-semibold text-[var(--color-text-primary)]">
-                  {etf.ticker}
-                </p>
-                <p className="text-xs mt-0.5 leading-snug text-[var(--color-text-muted)]">
-                  {etf.name}
-                </p>
-                <div className="flex items-center justify-between mt-3 pt-2 border-t border-[var(--color-border)]">
-                  <span className="text-xs text-[var(--color-text-muted)]">
-                    {etf.region}
-                  </span>
-                  <span className="text-sm font-semibold tabular-nums text-[var(--color-text-primary)]">
-                    {etf.weight}%
-                  </span>
-                </div>
+        <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 border-t border-[var(--ink)]">
+          {veqt.underlyingETFs.map((etf, i) => (
+            <li
+              key={etf.ticker}
+              className="px-4 py-5 border-b border-[var(--ink)] sm:border-r sm:[&:nth-child(2n)]:border-r-0 lg:[&:nth-child(2n)]:border-r lg:[&:nth-child(4n)]:border-r-0"
+            >
+              <div className="flex items-baseline justify-between mb-2">
+                <span
+                  className="bs-numerals text-[0.75rem]"
+                  style={{ color: "var(--ink-soft)" }}
+                >
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <span
+                  className="bs-numerals text-[1.25rem] sm:text-[1.5rem] font-medium"
+                  style={{ color: "var(--ink)" }}
+                >
+                  {etf.weight}%
+                </span>
               </div>
-            ))}
-          </div>
-        </section>
+              <p
+                className="bs-display text-[1.125rem] sm:text-[1.25rem]"
+                style={{ color: "var(--ink)" }}
+              >
+                {etf.ticker}
+              </p>
+              <p
+                className="bs-caption text-[0.75rem] mt-1.5 leading-snug"
+                style={{ color: "var(--ink-soft)" }}
+              >
+                {etf.name}
+              </p>
+              <p
+                className="bs-label mt-3"
+                style={{ color: "var(--ink-soft)" }}
+              >
+                {etf.region}
+              </p>
+            </li>
+          ))}
+        </ul>
+      </section>
 
-        {/* Section 2: Geography Breakdown */}
-        <section className="mb-10">
-          <h2 className="text-lg font-serif font-normal text-[var(--color-text-primary)] mb-3">
-            Geography Breakdown
+      {/* ── Section 2: By Region ───────────────────────────────── */}
+      <section className="mb-14 sm:mb-16">
+        <div className="flex items-baseline justify-between gap-4 mb-3">
+          <h2
+            className="bs-display text-[1.75rem] sm:text-[2rem]"
+            style={{ color: "var(--ink)" }}
+          >
+            By Region
           </h2>
+          <p className="bs-label tabular-nums" style={{ color: "var(--ink-soft)" }}>
+            Geographic share
+          </p>
+        </div>
+        <p
+          className="bs-caption italic mb-6 max-w-[60ch]"
+          style={{ color: "var(--ink-soft)" }}
+        >
+          A market-cap-weighted slice of the world. The US dominates because the
+          world's stock market does. Canada gets the home-bias bump.
+        </p>
 
-          <div className="card-editorial p-5">
-            <div className="flex rounded-full overflow-hidden h-6 mb-5">
-              {veqt.geographyAllocation.map((g) => (
+        {/* Stacked bar — single ink rule with hatching to differentiate regions */}
+        <div className="border border-[var(--ink)] p-4 sm:p-5">
+          <div className="flex h-7 sm:h-8 mb-5 overflow-hidden border border-[var(--ink)]">
+            {veqt.geographyAllocation.map((g, i) => {
+              const fills = [
+                "var(--ink)",
+                "color-mix(in oklab, var(--ink) 70%, var(--paper))",
+                "color-mix(in oklab, var(--ink) 45%, var(--paper))",
+                "color-mix(in oklab, var(--ink) 22%, var(--paper))",
+              ];
+              const textColors = i < 2 ? "var(--paper)" : "var(--ink)";
+              return (
                 <div
                   key={g.region}
-                  style={{ width: `${g.weight}%`, backgroundColor: g.color }}
-                  className="flex items-center justify-center first:rounded-l-full last:rounded-r-full"
+                  style={{
+                    width: `${g.weight}%`,
+                    backgroundColor: fills[i] ?? fills[fills.length - 1],
+                    color: textColors,
+                  }}
+                  className="flex items-center justify-center"
                 >
-                  {g.weight >= 10 && (
-                    <span className="text-[10px] font-semibold text-white">
+                  {g.weight >= 8 && (
+                    <span
+                      className="bs-numerals text-[0.75rem] sm:text-[0.8125rem] font-medium"
+                    >
                       {g.weight}%
                     </span>
                   )}
                 </div>
-              ))}
-            </div>
+              );
+            })}
+          </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              {veqt.geographyAllocation.map((g) => (
-                <div key={g.region} className="flex items-start gap-2.5">
+          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
+            {veqt.geographyAllocation.map((g, i) => {
+              const fills = [
+                "var(--ink)",
+                "color-mix(in oklab, var(--ink) 70%, var(--paper))",
+                "color-mix(in oklab, var(--ink) 45%, var(--paper))",
+                "color-mix(in oklab, var(--ink) 22%, var(--paper))",
+              ];
+              return (
+                <li key={g.region} className="flex items-start gap-3">
                   <span
-                    className="w-3 h-3 rounded-full mt-0.5 shrink-0"
-                    style={{ backgroundColor: g.color }}
+                    className="w-3 h-3 mt-1.5 shrink-0 border border-[var(--ink)]"
+                    style={{ backgroundColor: fills[i] ?? fills[fills.length - 1] }}
+                    aria-hidden
                   />
-                  <div>
-                    <p className="text-sm font-medium text-[var(--color-text-primary)]">
-                      {g.region} — {g.weight}%
+                  <div className="min-w-0 flex-1">
+                    <p
+                      className="flex items-baseline justify-between gap-3"
+                      style={{ color: "var(--ink)" }}
+                    >
+                      <span
+                        className="bs-display-italic text-[1rem] sm:text-[1.0625rem]"
+                      >
+                        {g.region}
+                      </span>
+                      <span className="bs-numerals text-[0.9375rem] tabular-nums">
+                        {g.weight}%
+                      </span>
                     </p>
-                    <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
+                    <p
+                      className="bs-caption text-[0.75rem] mt-0.5"
+                      style={{ color: "var(--ink-soft)" }}
+                    >
                       {REGION_NOTES[g.region] || ""}
                     </p>
                   </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </section>
 
-        {/* Section 3: Sector Allocation */}
-        <section className="mb-10">
-          <h2 className="text-lg font-serif font-normal text-[var(--color-text-primary)] mb-3">
-            Sector Allocation
+      {/* ── Section 3: By Sector ───────────────────────────────── */}
+      <section className="mb-14 sm:mb-16">
+        <div className="flex items-baseline justify-between gap-4 mb-3">
+          <h2
+            className="bs-display text-[1.75rem] sm:text-[2rem]"
+            style={{ color: "var(--ink)" }}
+          >
+            By Sector
           </h2>
-          <div className="card-editorial p-5">
-            <SectorChart />
-            <p className="text-[11px] text-[var(--color-text-muted)] mt-2">
-              Approximate sector weights. Portfolio data as of{" "}
-              {new Date(FUND_DATA_LAST_UPDATED + "T00:00:00").toLocaleDateString("en-CA", { year: "numeric", month: "short", day: "numeric" })}
-              . Source: Vanguard Canada.
-            </p>
-          </div>
-        </section>
+          <p className="bs-label tabular-nums" style={{ color: "var(--ink-soft)" }}>
+            Eleven GICS sectors
+          </p>
+        </div>
+        <p
+          className="bs-caption italic mb-6 max-w-[60ch]"
+          style={{ color: "var(--ink-soft)" }}
+        >
+          Technology and Financials carry the most weight. Energy, Materials,
+          Utilities, Real Estate fill the long tail. No sector exceeds a quarter
+          of the fund.
+        </p>
 
-        {/* Section 4: Top Holdings */}
-        <section className="mb-10">
-          <h2 className="text-lg font-serif font-normal text-[var(--color-text-primary)] mb-3">
-            Top 15 Holdings
+        <div className="border border-[var(--ink)] p-4 sm:p-6">
+          <SectorBars />
+          <p
+            className="bs-caption italic mt-5 pt-3 border-t border-[var(--color-border)]"
+            style={{ color: "var(--ink-soft)" }}
+          >
+            Approximate sector weights, market-cap-weighted across the four
+            underlying funds. Sorted by share. Last verified {updatedDisplay}.
+          </p>
+        </div>
+      </section>
+
+      {/* ── Section 4: By Holding ──────────────────────────────── */}
+      <section className="mb-14 sm:mb-16">
+        <div className="flex items-baseline justify-between gap-4 mb-3">
+          <h2
+            className="bs-display text-[1.75rem] sm:text-[2rem]"
+            style={{ color: "var(--ink)" }}
+          >
+            By Holding
           </h2>
-          <div className="card-editorial overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-[var(--color-border)]">
-                  <th className="text-left py-3 px-4 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider w-12">
-                    #
-                  </th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
-                    Company
-                  </th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
-                    Ticker
-                  </th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
-                    Country
-                  </th>
-                  <th className="text-right py-3 px-4 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
-                    Weight
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {VEQT_TOP_HOLDINGS.map((h, i) => (
-                  <tr
-                    key={h.ticker}
-                    className={`border-b last:border-b-0 border-[var(--color-border)] ${
-                      i % 2 === 0 ? "" : "bg-[var(--color-base)]"
-                    }`}
+          <p className="bs-label tabular-nums" style={{ color: "var(--ink-soft)" }}>
+            Top fifteen names
+          </p>
+        </div>
+        <p
+          className="bs-caption italic mb-6 max-w-[60ch]"
+          style={{ color: "var(--ink-soft)" }}
+        >
+          You own ≈ 13,700 companies. These fifteen account for roughly{" "}
+          {TOP_HOLDINGS_TOTAL_WEIGHT.toFixed(1)}% of the fund — visible at the
+          top of the iceberg, the rest holding it up.
+        </p>
+
+        <div className="border-t-2 border-b border-[var(--ink)]">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-[var(--ink)]">
+                <th
+                  className="bs-label text-left py-2.5 px-2 sm:px-3 w-9"
+                  style={{ color: "var(--ink-soft)" }}
+                >
+                  №
+                </th>
+                <th
+                  className="bs-label text-left py-2.5 px-2 sm:px-3"
+                  style={{ color: "var(--ink-soft)" }}
+                >
+                  Company
+                </th>
+                <th
+                  className="bs-label text-left py-2.5 px-2 sm:px-3 hidden sm:table-cell"
+                  style={{ color: "var(--ink-soft)" }}
+                >
+                  Ticker
+                </th>
+                <th
+                  className="bs-label text-left py-2.5 px-2 sm:px-3 hidden md:table-cell"
+                  style={{ color: "var(--ink-soft)" }}
+                >
+                  Country
+                </th>
+                <th
+                  className="bs-label text-right py-2.5 px-2 sm:px-3"
+                  style={{ color: "var(--ink-soft)" }}
+                >
+                  Weight
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {VEQT_TOP_HOLDINGS.map((h, i) => (
+                <tr
+                  key={h.ticker}
+                  className="border-b last:border-b-0 border-[var(--color-border)]"
+                >
+                  <td
+                    className="bs-numerals py-2.5 px-2 sm:px-3 text-[0.8125rem]"
+                    style={{ color: "var(--ink-soft)" }}
                   >
-                    <td className="py-2.5 px-4 text-[var(--color-text-muted)]">
-                      {i + 1}
-                    </td>
-                    <td className="py-2.5 px-4 font-medium text-[var(--color-text-primary)]">
+                    {String(i + 1).padStart(2, "0")}
+                  </td>
+                  <td
+                    className="py-2.5 px-2 sm:px-3"
+                    style={{ color: "var(--ink)" }}
+                  >
+                    <span className="bs-display-italic text-[0.9375rem] sm:text-[1rem] leading-tight">
                       {h.name}
-                    </td>
-                    <td className="py-2.5 px-4 text-[var(--color-text-muted)]">
-                      {h.ticker}
-                    </td>
-                    <td className="py-2.5 px-4 text-[var(--color-text-muted)]">
-                      {h.country}
-                    </td>
-                    <td className="py-2.5 px-4 text-right tabular-nums font-medium">
-                      {h.weight}%
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <p className="text-[11px] text-[var(--color-text-muted)] px-4 py-3 border-t border-[var(--color-border)]">
-              VEQT holds approximately 13,700 stocks. These top 15 represent
-              roughly {TOP_HOLDINGS_TOTAL_WEIGHT.toFixed(1)}% of the total fund.
-            </p>
-          </div>
-        </section>
+                    </span>
+                    {/* Mobile: show ticker + country inline since columns are hidden */}
+                    <span
+                      className="bs-caption text-[0.6875rem] block sm:hidden mt-0.5"
+                      style={{ color: "var(--ink-soft)" }}
+                    >
+                      {h.ticker} · {h.country}
+                    </span>
+                  </td>
+                  <td
+                    className="bs-numerals py-2.5 px-2 sm:px-3 text-[0.875rem] hidden sm:table-cell"
+                    style={{ color: "var(--ink-soft)" }}
+                  >
+                    {h.ticker}
+                  </td>
+                  <td
+                    className="bs-caption not-italic py-2.5 px-2 sm:px-3 text-[0.8125rem] hidden md:table-cell"
+                    style={{ color: "var(--ink-soft)" }}
+                  >
+                    {h.country}
+                  </td>
+                  <td
+                    className="bs-numerals py-2.5 px-2 sm:px-3 text-right text-[0.9375rem]"
+                    style={{ color: "var(--ink)" }}
+                  >
+                    {h.weight}%
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p
+          className="bs-caption italic mt-3"
+          style={{ color: "var(--ink-soft)" }}
+        >
+          Top 15 weights aggregate ≈ {TOP_HOLDINGS_TOTAL_WEIGHT.toFixed(1)}% of
+          the fund. The remaining {(100 - TOP_HOLDINGS_TOTAL_WEIGHT).toFixed(1)}%
+          is spread across thousands of smaller positions.
+        </p>
+      </section>
 
-        {/* Section 5: How Often This Changes */}
-        <section className="mb-6">
-          <h2 className="text-lg font-serif font-normal text-[var(--color-text-primary)] mb-3">
-            How Often This Changes
-          </h2>
-          <div className="card-editorial p-5">
-            <p className="text-sm text-[var(--color-text-muted)] leading-relaxed max-w-prose">
-              Vanguard periodically rebalances VEQT&apos;s target allocation
-              across its four underlying ETFs. The underlying holdings themselves
-              change as the constituent indices are reconstituted — typically
-              quarterly. The data on this page is approximate and based on the
-              most recent publicly available information. For the most current
-              data, see{" "}
-              <a
-                href="https://www.vanguard.ca/en/advisor/products/products-group/etfs/VEQT"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[var(--color-brand)] hover:underline"
-              >
-                Vanguard&apos;s official VEQT page
-              </a>
-              .
-            </p>
-            <p className="text-[11px] text-[var(--color-text-muted)] mt-3">
-              Last reviewed: March 2025
-            </p>
-          </div>
-        </section>
-      </main>
-    </PageShell>
+      {/* ── Editor's Note ──────────────────────────────────────── */}
+      <section className="mb-12">
+        <div className="bs-rule-double mb-6" />
+        <p className="bs-stamp mb-3">Editor&apos;s Note</p>
+        <h2
+          className="bs-display text-[1.5rem] sm:text-[1.75rem] mb-3"
+          style={{ color: "var(--ink)" }}
+        >
+          On how often this changes.
+        </h2>
+        <p
+          className="bs-body max-w-[60ch]"
+          style={{ color: "var(--ink)" }}
+        >
+          Vanguard rebalances VEQT&apos;s target allocation across its four
+          underlying ETFs on a periodic basis. The underlying holdings themselves
+          turn over as the constituent indices are reconstituted &mdash; typically
+          quarterly. The numbers on this page are approximate and based on the
+          most recent publicly available filings.
+        </p>
+        <p
+          className="bs-body mt-3 max-w-[60ch]"
+          style={{ color: "var(--ink)" }}
+        >
+          For the live version of record, see{" "}
+          <a
+            href="https://www.vanguard.ca/en/advisor/products/products-group/etfs/VEQT"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bs-link"
+          >
+            Vanguard&apos;s official VEQT page
+          </a>
+          .
+        </p>
+        <p
+          className="bs-label mt-4"
+          style={{ color: "var(--ink-soft)" }}
+        >
+          Last reviewed {updatedDisplay}
+        </p>
+      </section>
+    </InteriorShell>
   );
 }
