@@ -5,21 +5,28 @@ import type { RedditPost, SubredditStats } from "@/lib/data/reddit";
 
 type TabId = "trending" | "top";
 
-const TABS: { id: TabId; label: string }[] = [
-  { id: "trending", label: "Trending" },
-  { id: "top", label: "Top" },
+const TABS: { id: TabId; label: string; sublabel: string }[] = [
+  { id: "trending", label: "This Week", sublabel: "What's hot" },
+  { id: "top", label: "All Time", sublabel: "The greatest hits" },
 ];
 
-function timeAgo(isoString: string): string {
-  const diff = Date.now() - new Date(isoString).getTime();
-  const mins = Math.floor(diff / 60_000);
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  if (days < 30) return `${days}d ago`;
-  const months = Math.floor(days / 30);
-  return `${months}mo ago`;
+function formatAgo(iso: string): string {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const days = Math.floor(diffMs / 86_400_000);
+  if (days >= 365) return `${Math.floor(days / 365)}y ago`;
+  if (days >= 30) return `${Math.floor(days / 30)}mo ago`;
+  if (days >= 7) return `${Math.floor(days / 7)}w ago`;
+  if (days >= 1) return `${days}d ago`;
+  const hours = Math.floor(diffMs / 3_600_000);
+  if (hours >= 1) return `${hours}h ago`;
+  const mins = Math.floor(diffMs / 60_000);
+  if (mins >= 1) return `${mins}m ago`;
+  return "just now";
+}
+
+function formatScore(n: number): string {
+  if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
+  return n.toLocaleString();
 }
 
 interface CommunityContentProps {
@@ -28,6 +35,15 @@ interface CommunityContentProps {
   stats: SubredditStats | null;
 }
 
+/**
+ * The forum's post list — a broadsheet take on Reddit's feed.
+ *
+ * Tabs read as section dispatches ("This Week" / "All Time") rather than
+ * pill buttons. Each post is a numbered entry with a display-italic title
+ * and a caption strip carrying the meta — author, time, score, replies,
+ * flair — using the same typographic vocabulary as the home page's
+ * "Letters" section so the two surfaces feel like one publication.
+ */
 export default function CommunityContent({
   hotPosts: serverHot,
   topPosts: serverTop,
@@ -44,7 +60,7 @@ export default function CommunityContent({
   const [loading, setLoading] = useState(false);
 
   // Client-side refresh when server data is empty OR missing scores
-  // (ISR cache may have stale RSS data without scores/comments)
+  // (ISR cache may have stale RSS data without scores/comments).
   const serverEmpty = serverHot.length === 0 && serverTop.length === 0;
   const serverMissingScores =
     !serverEmpty && [...serverHot, ...serverTop].every((p) => p.score === 0);
@@ -54,7 +70,6 @@ export default function CommunityContent({
     if (!needsClientFetch) return;
 
     let cancelled = false;
-    // Only show loading skeleton when we have zero posts
     if (serverEmpty) setLoading(true);
 
     fetch("/api/reddit")
@@ -83,173 +98,246 @@ export default function CommunityContent({
   }, [needsClientFetch, serverEmpty]);
 
   const posts = clientFeeds[activeTab];
-
-  // Check if scores are available (RSS fallback returns score=0 for all posts)
   const hasScores = posts.some((p) => p.score > 0);
 
   return (
-    <>
-      {/* Tab bar */}
-      <div className="border-b border-[var(--color-border)] mb-6">
-        <div className="flex gap-0">
-          {TABS.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
-                activeTab === tab.id
-                  ? "border-[var(--color-brand)] text-[var(--color-brand)]"
-                  : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+    <section className="bs-enter pb-12">
+      {/* ── Tab dispatch + live activity strip ─────────────────── */}
+      <div className="border-t-2 border-[var(--ink)] pt-4 sm:pt-5 flex flex-wrap items-end justify-between gap-x-8 gap-y-3 mb-6 sm:mb-8">
+        <div className="flex items-end gap-x-7 sm:gap-x-9">
+          {TABS.map((tab) => {
+            const active = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className="group text-left"
+                aria-pressed={active}
+              >
+                <span
+                  className="bs-stamp block"
+                  style={{
+                    color: active ? "var(--stamp)" : "var(--ink-soft)",
+                    borderBottom: active
+                      ? "2px solid var(--stamp)"
+                      : "2px solid transparent",
+                    paddingBottom: "3px",
+                    transition: "color 120ms",
+                  }}
+                >
+                  {tab.label}
+                </span>
+                <span
+                  className="bs-caption italic block mt-0.5 text-[11.5px]"
+                  style={{
+                    color: active ? "var(--ink)" : "var(--ink-soft)",
+                    opacity: active ? 1 : 0.7,
+                  }}
+                >
+                  {tab.sublabel}
+                </span>
+              </button>
+            );
+          })}
         </div>
+
+        {clientStats && (
+          <p
+            className="bs-caption italic text-[12px] flex flex-wrap items-center gap-x-2.5 gap-y-1"
+            style={{ color: "var(--ink-soft)" }}
+          >
+            <span>
+              <span className="bs-numerals not-italic text-[var(--ink)]">
+                {clientStats.subscribers.toLocaleString("en-CA")}
+              </span>{" "}
+              members
+            </span>
+            {clientStats.activeUsers !== null && clientStats.activeUsers > 0 && (
+              <>
+                <span className="opacity-50">·</span>
+                <span>
+                  <span className="bs-numerals not-italic text-[var(--ink)]">
+                    {clientStats.activeUsers.toLocaleString("en-CA")}
+                  </span>{" "}
+                  online now
+                </span>
+              </>
+            )}
+            <span className="opacity-50">·</span>
+            <span className="text-[10.5px]" style={{ letterSpacing: "0.06em" }}>
+              dispatch every 30m
+            </span>
+          </p>
+        )}
       </div>
 
-      {/* Post list */}
+      {/* ── Post list ──────────────────────────────────────────── */}
       {loading ? (
-        <div className="space-y-4 py-4">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="flex items-start gap-4">
-              <div className="flex-1 space-y-2">
-                <div className="skeleton h-4 w-full" />
-                <div className="skeleton h-3 w-48" />
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : posts.length > 0 ? (
-        <div className="divide-y divide-[var(--color-border)]">
-          {posts.map((post) => (
-            <a
-              key={post.id}
-              href={post.permalink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex items-start gap-4 py-4 first:pt-0"
+        <ol className="space-y-0">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <li
+              key={i}
+              className={`py-5 grid grid-cols-[auto_1fr] gap-5 sm:gap-7 ${
+                i === 0 ? "border-t-2" : "border-t"
+              } border-[var(--ink)]`}
             >
-              {/* Score — only show when we have real score data */}
+              <div className="skeleton h-7 w-8" />
+              <div className="space-y-2">
+                <div className="skeleton h-5 w-3/4" />
+                <div className="skeleton h-3 w-1/2" />
+              </div>
+            </li>
+          ))}
+        </ol>
+      ) : posts.length > 0 ? (
+        <ol className="space-y-0">
+          {posts.map((post, idx) => (
+            <li
+              key={post.id}
+              className={`py-5 grid grid-cols-[auto_1fr_auto] gap-x-5 sm:gap-x-7 gap-y-2 items-start ${
+                idx === 0 ? "border-t-2" : "border-t"
+              } border-[var(--ink)]`}
+            >
+              <span className="bs-display bs-numerals text-2xl sm:text-3xl text-[var(--ink-soft)] leading-none pt-1">
+                {String(idx + 1).padStart(2, "0")}
+              </span>
+
+              <a
+                href={post.permalink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group block min-w-0"
+              >
+                <h3 className="bs-display-italic text-xl sm:text-[1.625rem] leading-[1.18] text-[var(--ink)] group-hover:text-[var(--stamp)] transition-colors">
+                  &ldquo;{post.title}&rdquo;
+                </h3>
+                <p className="bs-caption mt-2 flex items-center gap-x-2 gap-y-1 flex-wrap">
+                  <span>&mdash; u/{post.author}</span>
+                  <span className="opacity-40">·</span>
+                  <span>{formatAgo(post.createdAt)}</span>
+                  {post.commentCount > 0 && (
+                    <>
+                      <span className="opacity-40">·</span>
+                      <span className="bs-numerals">
+                        {post.commentCount} {post.commentCount === 1 ? "reply" : "replies"}
+                      </span>
+                    </>
+                  )}
+                  {post.flair && (
+                    <>
+                      <span className="opacity-40">·</span>
+                      <span
+                        className="italic"
+                        style={{ color: "var(--stamp)" }}
+                      >
+                        {post.flair}
+                      </span>
+                    </>
+                  )}
+                </p>
+              </a>
+
+              {/* Score column — only when we have real upvote data.
+                  Sits on the right like a vote tally on a printed ballot. */}
               {hasScores && (
-                <div className="shrink-0 w-12 text-center pt-0.5">
-                  <div
-                    className={`text-sm font-bold tabular-nums ${
-                      post.score >= 10
-                        ? "text-[var(--color-positive)]"
-                        : "text-[var(--color-text-muted)]"
-                    }`}
+                <div
+                  className="text-right shrink-0 pt-1"
+                  style={{ minWidth: "3.25rem" }}
+                >
+                  <p
+                    className="bs-display bs-numerals text-[1.5rem] sm:text-[1.75rem] leading-none tabular-nums"
+                    style={{
+                      color:
+                        post.score >= 100
+                          ? "var(--stamp)"
+                          : "var(--ink)",
+                    }}
                   >
-                    {post.score >= 1000
-                      ? `${(post.score / 1000).toFixed(1)}k`
-                      : post.score}
-                  </div>
-                  <svg
-                    viewBox="0 0 16 16"
-                    width="10"
-                    height="10"
-                    fill="currentColor"
-                    className="mx-auto text-[var(--color-text-muted)]"
+                    {formatScore(post.score)}
+                  </p>
+                  <p
+                    className="bs-caption italic text-[10.5px] mt-1"
+                    style={{
+                      color: "var(--ink-soft)",
+                      letterSpacing: "0.06em",
+                    }}
                   >
-                    <path d="M8 2l5 6H9v6H7V8H3l5-6z" />
-                  </svg>
+                    upvotes
+                  </p>
                 </div>
               )}
-
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start gap-2">
-                  <p className="text-sm font-medium text-[var(--color-text-primary)] group-hover:text-[var(--color-brand)] transition-colors leading-snug line-clamp-2 flex-1">
-                    {post.title}
-                  </p>
-                  {post.flair && (
-                    <span className="shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-[var(--color-base)] text-[var(--color-text-muted)] border border-[var(--color-border)]">
-                      {post.flair}
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-3 mt-1.5 text-xs text-[var(--color-text-muted)]">
-                  <span>u/{post.author}</span>
-                  {post.commentCount > 0 && (
-                    <span className="flex items-center gap-0.5">
-                      <svg
-                        viewBox="0 0 16 16"
-                        width="12"
-                        height="12"
-                        fill="currentColor"
-                      >
-                        <path d="M2 2h12a1 1 0 011 1v8a1 1 0 01-1 1H5l-3 3V3a1 1 0 011-1z" />
-                      </svg>
-                      {post.commentCount} comments
-                    </span>
-                  )}
-                  <span>{timeAgo(post.createdAt)}</span>
-                </div>
-              </div>
-            </a>
+            </li>
           ))}
-        </div>
+        </ol>
       ) : (
-        /* Empty state */
-        <div className="text-center py-16">
-          <p className="text-[var(--color-text-muted)] mb-3">
-            {"Couldn\u2019t load posts right now."}
+        /* Empty state — quietly redirect to the source */
+        <div className="border-t-2 border-[var(--ink)] py-12 text-center">
+          <p className="bs-body italic" style={{ color: "var(--ink-soft)" }}>
+            Couldn&apos;t pull the wire from Reddit just now.
           </p>
+          <p className="bs-caption mt-4">
+            <a
+              href="https://www.reddit.com/r/JustBuyVEQT/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bs-link"
+            >
+              Visit r/JustBuyVEQT directly &rarr;
+            </a>
+          </p>
+        </div>
+      )}
+
+      {/* ── Footer CTA strip ───────────────────────────────────── */}
+      <div className="mt-10 sm:mt-12 pt-6 border-t-2 border-[var(--ink)] grid grid-cols-1 sm:grid-cols-12 gap-6 sm:gap-10">
+        <div className="sm:col-span-7">
+          <p className="bs-stamp mb-2">Take part</p>
+          <h3 className="bs-display text-2xl sm:text-3xl leading-[1.05]">
+            Got a question, a milestone,
+            <br />
+            <em className="bs-display-italic">or a panic to share?</em>
+          </h3>
+          <p
+            className="bs-body mt-3 max-w-[44ch] text-[15px]"
+            style={{ color: "var(--ink-soft)" }}
+          >
+            The subreddit is where holders talk to each other unsupervised.
+            Bring your real numbers; bring your bad takes; you&apos;ll get
+            honesty back.
+          </p>
+        </div>
+
+        <div className="sm:col-span-5 flex flex-col gap-3 items-start sm:items-end justify-end">
           <a
             href="https://www.reddit.com/r/JustBuyVEQT/"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm font-medium text-[var(--color-brand)] hover:text-[var(--color-brand-dark)] transition-colors"
+            className="bs-stamp inline-flex items-center group"
+            style={{
+              color: "var(--paper)",
+              backgroundColor: "var(--stamp)",
+              padding: "10px 16px 9px",
+              letterSpacing: "0.16em",
+            }}
           >
-            {"Visit r/JustBuyVEQT directly \u2192"}
+            <span>Open r/JustBuyVEQT</span>
+            <span
+              aria-hidden
+              className="ml-2 transition-transform group-hover:translate-x-0.5"
+            >
+              &rarr;
+            </span>
+          </a>
+          <a
+            href="https://www.reddit.com/r/JustBuyVEQT/submit"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bs-link bs-label"
+          >
+            Start a new thread &rarr;
           </a>
         </div>
-      )}
-
-      {/* Stats bar */}
-      {clientStats && (
-        <div className="mt-8 pt-6 border-t border-[var(--color-border)]">
-          <div className="flex items-center gap-6 text-sm text-[var(--color-text-muted)]">
-            <div>
-              <span className="font-semibold text-[var(--color-text-primary)] tabular-nums">
-                {clientStats.subscribers.toLocaleString()}
-              </span>{" "}
-              members
-            </div>
-            {clientStats.activeUsers !== null && clientStats.activeUsers > 0 && (
-              <div>
-                <span className="font-semibold text-[var(--color-text-primary)] tabular-nums">
-                  {clientStats.activeUsers.toLocaleString()}
-                </span>{" "}
-                online now
-              </div>
-            )}
-            <span className="text-xs text-[var(--color-text-muted)]">
-              Updated every 30 minutes
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* CTA buttons */}
-      <div className="mt-8 flex flex-wrap gap-3">
-        <a
-          href="https://www.reddit.com/r/JustBuyVEQT/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center px-5 py-2.5 rounded-lg bg-[var(--color-brand)] text-white text-sm font-semibold hover:bg-[var(--color-brand-dark)] transition-colors"
-        >
-          Join the discussion on Reddit
-        </a>
-        <a
-          href="https://www.reddit.com/r/JustBuyVEQT/submit"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center px-5 py-2.5 rounded-lg border border-[var(--color-border)] text-sm font-semibold text-[var(--color-text-secondary)] hover:bg-[var(--color-base)] transition-colors"
-        >
-          Start a discussion
-        </a>
       </div>
-    </>
+    </section>
   );
 }
