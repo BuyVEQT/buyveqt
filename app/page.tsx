@@ -13,13 +13,10 @@ import {
   getTrailing12MonthDistributions,
 } from "@/data/distributions";
 import Masthead from "@/components/broadsheet/Masthead";
-import OrnateRule from "@/components/broadsheet/OrnateRule";
 import RegionCards from "@/components/broadsheet/RegionCards";
 import Letters from "@/components/broadsheet/Letters";
-import OnTheWire from "@/components/broadsheet/OnTheWire";
 import Colophon from "@/components/broadsheet/Colophon";
 import { useRegions } from "@/lib/useRegions";
-import { useNews } from "@/lib/useNews";
 import { computeLeadHeadline } from "@/lib/lead-headline";
 
 function formatCAD(n: number, digits = 0): string {
@@ -55,31 +52,14 @@ export default function Home() {
 
   const latestDist = VEQT_DISTRIBUTIONS.distributions.find((d) => !d.estimated);
 
-  // Live sleeve data — shared between the dynamic lead eyebrow and RegionCards.
+  // Live sleeve data — shared between the lead headline and RegionCards.
   const { payload: regionsPayload, loading: regionsLoading } = useRegions();
   const regions = regionsPayload?.regions ?? [];
 
-  // Live financial news wire — drives the Lead quote line + the OnTheWire strip.
-  const { payload: newsPayload, loading: newsLoading } = useNews();
-  const newsItems = newsPayload?.items ?? [];
-  const leadWireItem = newsItems[0] ?? null;
-
-  // Package news payload into the NewsContext shape the headline function expects.
-  const newsContext = useMemo(
-    () =>
-      newsPayload
-        ? {
-            sentiment: newsPayload.overall.sentiment,
-            itemCount: newsPayload.items.length,
-          }
-        : undefined,
-    [newsPayload]
-  );
-
-  // Dynamic editorial deck + headline + coda — magnitude × driving sleeve × wire alignment.
+  // One-sentence editorial headline driven by the VEQT move + leading region.
   const leadCopy = useMemo(
-    () => computeLeadHeadline(quote?.changePercent, regions, newsContext),
-    [quote?.changePercent, regions, newsContext]
+    () => computeLeadHeadline(quote?.changePercent, regions),
+    [quote?.changePercent, regions]
   );
 
   // 52-week range position, clamped so the dot is always fully visible.
@@ -117,14 +97,11 @@ export default function Home() {
         <Masthead quote={quote} loading={loading} />
 
         {/* ─────────────────────── THE LEAD ─────────────────────── */}
-        <section className="py-8 sm:py-12 lg:py-14 bs-enter">
+        <section className="py-7 sm:py-10 lg:py-12 bs-enter">
           <div className="max-w-[52rem]">
-            {/* Deck — small stamp, dynamic */}
-            <p className="bs-stamp mb-3 sm:mb-4">{leadCopy.deck}</p>
-
             {/* Price — the anchor */}
             <div className="flex items-baseline gap-x-4 gap-y-2 flex-wrap">
-              <p className="bs-display bs-numerals text-[3.5rem] sm:text-[5rem] lg:text-[6.25rem] leading-[0.88] text-[var(--ink)]">
+              <p className="bs-display bs-numerals text-[3.25rem] sm:text-[4.5rem] lg:text-[5.5rem] leading-[0.88] text-[var(--ink)]">
                 {loading || !quote ? "—" : `$${quote.price.toFixed(2)}`}
               </p>
               {!loading && quote && (
@@ -146,50 +123,12 @@ export default function Home() {
               )}
             </div>
 
-            {/* Editorial headline — with optional news-sentiment coda */}
-            <h2 className="bs-display-italic text-[1.5rem] sm:text-[1.875rem] lg:text-[2.5rem] leading-[1.08] mt-5 sm:mt-6 text-[var(--ink)] max-w-[28ch]">
+            {/* Single-sentence headline derived from real data */}
+            <h2
+              className="bs-display-italic text-[1.375rem] sm:text-[1.625rem] lg:text-[2rem] leading-[1.1] mt-5 text-[var(--ink)] max-w-[30ch]"
+            >
               {leadCopy.headline}
-              {leadCopy.coda && (
-                <span
-                  className="text-[var(--ink-soft)]"
-                  style={{ fontStyle: "italic" }}
-                >
-                  {" "}
-                  {leadCopy.coda}
-                </span>
-              )}
             </h2>
-
-            {/* Wire quote — real news headline from AV NEWS_SENTIMENT,
-                falls back to brand tagline when news is unavailable. */}
-            {leadWireItem ? (
-              <p
-                className="bs-caption mt-4 text-[13px] sm:text-[14px] leading-[1.5]"
-                style={{ color: "var(--ink-soft)" }}
-              >
-                <span
-                  className="bs-stamp mr-1.5 align-middle"
-                  style={{ fontSize: "10px" }}
-                >
-                  On the wire
-                </span>
-                <a
-                  href={leadWireItem.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bs-link italic"
-                >
-                  &ldquo;{leadWireItem.title}&rdquo;
-                </a>{" "}
-                <span className="opacity-70 whitespace-nowrap">
-                  &mdash; {leadWireItem.source}
-                </span>
-              </p>
-            ) : (
-              <p className="bs-caption italic mt-3 text-[13px] sm:text-[14px]">
-                One fund &middot; ~13,700 companies &middot; 50+ countries
-              </p>
-            )}
 
             {/* ── Supporting data strip ── */}
             <div className="mt-7 sm:mt-9 pt-5 border-t border-[var(--ink)] grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-7 sm:gap-10">
@@ -265,60 +204,32 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ─────────────────── ON THE WIRE ─────────────────── */}
-        {(newsLoading || newsItems.length > 1) && (
-          <>
-            <OrnateRule label="On the Wire" />
-            <section className="py-6 sm:py-8 bs-enter">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 mb-2">
-                <div className="lg:col-span-5">
-                  <h3 className="bs-display text-3xl sm:text-4xl lg:text-5xl leading-[0.98]">
-                    Today, filed.
-                  </h3>
-                </div>
-                <p className="lg:col-span-7 bs-caption italic max-w-lg">
-                  Market news touching the four sleeves of VEQT, pulled
-                  from the Alpha Vantage wire. Refreshed every six hours.
-                  Publishers named; nothing rewritten.
-                </p>
-              </div>
-              <OnTheWire
-                items={newsItems}
-                loading={newsLoading}
-                leadItemIndex={0}
-              />
-            </section>
-          </>
-        )}
-
-        <OrnateRule label="The Regions" />
-
         {/* ─────────────────────── THE REGIONS ─────────────────────── */}
         <section className="py-8 sm:py-12 bs-enter">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 mb-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 mb-8">
             <div className="lg:col-span-5">
-              <h3 className="bs-display text-4xl sm:text-5xl lg:text-6xl leading-[0.95]">
-                Four sleeves.
+              <p className="bs-stamp mb-2">Regional contribution</p>
+              <h3 className="bs-display text-3xl sm:text-4xl lg:text-[2.75rem] leading-[1]">
+                Where today&apos;s move
                 <br />
-                <em className="bs-display-italic text-[var(--stamp)]">
-                  One fund.
-                </em>
+                <em className="bs-display-italic">came from.</em>
               </h3>
             </div>
-            <p className="lg:col-span-7 bs-body bs-lede">
-              VEQT is not a stock. It is a single ticker that holds four
-              Vanguard index ETFs covering every major equity market in the
-              world. Rebalancing happens automatically inside the fund. Your
-              only job, according to the people who coined the term, is not
-              to sell. What follows is today&apos;s contribution from each
-              sleeve.
+            <p className="lg:col-span-7 bs-body">
+              VEQT holds four Vanguard index ETFs — one per major equity
+              region. Each card shows how that sleeve moved today and what it
+              contributed to the fund. Rebalancing happens automatically
+              inside the fund; your job is not to sell.
             </p>
           </div>
 
           <RegionCards regions={regions} loading={regionsLoading} />
         </section>
 
-        <OrnateRule label="If You Invested" />
+        {/* ─────────────────────── FROM THE SUBREDDIT ─────────────────────── */}
+        <section className="py-8 sm:py-12 bs-enter">
+          <Letters />
+        </section>
 
         {/* ─────────────────── INCEPTION CALCULATOR ─────────────────── */}
         <section className="py-8 sm:py-12 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 bs-enter">
@@ -362,19 +273,18 @@ export default function Home() {
               </tbody>
             </table>
             <p className="bs-caption mt-4">
-              Price return only. Excludes reinvested distributions (which
-              would add several percentage points). Past performance is a
+              Price return only. Excludes reinvested distributions, which
+              would add several percentage points. Past performance is a
               terrible predictor of future performance.
             </p>
           </div>
 
           <div className="lg:col-span-7 order-1 lg:order-2">
-            <h3 className="bs-display text-4xl sm:text-5xl lg:text-6xl leading-[0.95]">
-              <em className="bs-display-italic">Dear reader,</em>
-              <br />
-              imagine you bought{" "}
+            <p className="bs-stamp mb-2">Inception calculator</p>
+            <h3 className="bs-display text-3xl sm:text-4xl lg:text-[2.75rem] leading-[1]">
+              If you&apos;d bought{" "}
               <span className="inline-flex items-baseline gap-1 text-[var(--stamp)]">
-                <span className="text-2xl">$</span>
+                <span className="text-xl sm:text-2xl">$</span>
                 <input
                   type="number"
                   min={100}
@@ -388,11 +298,11 @@ export default function Home() {
                   aria-label="Investment amount"
                 />
               </span>{" "}
-              the day VEQT launched.
+              of VEQT at launch.
             </h3>
-            <p className="bs-body mt-6 max-w-lg">
-              Change the number &mdash; the arithmetic updates at the same
-              speed as your editing. The sidebar keeps score.
+            <p className="bs-body mt-5 max-w-lg">
+              Edit the number — the math updates as you type. The sidebar
+              keeps score.
             </p>
             <Link
               href="/invest"
@@ -403,35 +313,33 @@ export default function Home() {
           </div>
         </section>
 
-        <OrnateRule label="The Comparison" />
-
         {/* ─────────────────────── COMPARISON TABLE ─────────────────────── */}
         <section className="py-8 sm:py-12 bs-enter">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 mb-6">
             <div className="lg:col-span-5">
-              <h3 className="bs-display text-4xl sm:text-5xl lg:text-6xl leading-[0.95]">
+              <p className="bs-stamp mb-2">Head to head</p>
+              <h3 className="bs-display text-3xl sm:text-4xl lg:text-[2.75rem] leading-[1]">
                 VEQT <em className="bs-display-italic">vs.</em>
                 <br />
                 the field.
               </h3>
             </div>
-            <p className="lg:col-span-7 bs-body bs-lede">
-              Three ETFs, one job: own the world in equity weight. The
-              differences are smaller than the internet would have you
-              believe, but they are not zero. Vanguard leans a little more
-              Canadian; iShares leans a little more American; BMO is the
-              youngest of the three.
+            <p className="lg:col-span-7 bs-body">
+              Three ETFs, one job: own the world. The differences between
+              them are smaller than Reddit will have you believe, but they
+              are not zero. Vanguard leans Canadian; iShares leans American;
+              BMO is the youngest of the three.
             </p>
           </div>
 
           <table className="w-full bs-numerals border-t border-b border-[var(--ink)]">
             <thead>
               <tr>
-                <th className="bs-label text-left py-3"></th>
+                <th className="bs-label text-left py-3 hidden sm:table-cell"></th>
                 <th className="bs-label text-left py-3">Ticker</th>
                 <th className="bs-label text-left py-3">MER</th>
                 <th className="bs-label text-left py-3">AUM</th>
-                <th className="bs-label text-left py-3">Holdings</th>
+                <th className="bs-label text-left py-3 hidden sm:table-cell">Holdings</th>
                 <th className="bs-label text-left py-3">Inception</th>
               </tr>
             </thead>
@@ -445,8 +353,9 @@ export default function Home() {
                       : "border-t border-[var(--color-border)]"
                   }
                 >
-                  <td className="py-4 font-serif italic">{etf.name}</td>
+                  <td className="py-4 font-serif italic hidden sm:table-cell">{etf.name}</td>
                   <td className="py-4 font-mono text-sm tracking-wider">
+                    <span className="sm:hidden bs-display-italic not-italic font-serif italic text-[var(--ink-soft)] text-xs block mb-1 tracking-normal">{etf.name}</span>
                     {etf.ticker}
                     {etf.ticker === "VEQT" && (
                       <span
@@ -470,7 +379,7 @@ export default function Home() {
                   </td>
                   <td className="py-4 tabular-nums">{etf.mer}</td>
                   <td className="py-4 tabular-nums">{etf.aum}</td>
-                  <td className="py-4 tabular-nums">{etf.holdings}</td>
+                  <td className="py-4 tabular-nums hidden sm:table-cell">{etf.holdings}</td>
                   <td className="py-4 tabular-nums">{etf.inception}</td>
                 </tr>
               ))}
@@ -483,46 +392,43 @@ export default function Home() {
           </p>
         </section>
 
-        <OrnateRule label="Dispatches from the Archive" />
-
         {/* ─────────────────── LEARN DISPATCHES ─────────────────── */}
         <section className="py-8 sm:py-12 bs-enter">
+          <div className="mb-8">
+            <p className="bs-stamp mb-2">From the archive</p>
+            <h3 className="bs-display text-3xl sm:text-4xl lg:text-[2.75rem] leading-[1]">
+              Three to start with.
+            </h3>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12">
             {LEARN_ARTICLES.map((article, i) => (
               <article key={article.slug} className="flex flex-col">
-                <p className="bs-stamp mb-2">
-                  Dispatch No. {String(i + 1).padStart(2, "0")}
+                <p className="bs-label mb-2">
+                  {String(i + 1).padStart(2, "0")}
                 </p>
                 <Link href={`/learn/${article.slug}`} className="group block">
-                  <h4 className="bs-display-italic text-[1.75rem] sm:text-[2rem] leading-[1.02] group-hover:text-[var(--stamp)] transition-colors">
+                  <h4 className="bs-display-italic text-[1.5rem] sm:text-[1.75rem] leading-[1.08] group-hover:text-[var(--stamp)] transition-colors">
                     {article.title}
                   </h4>
                 </Link>
-                <p className="bs-body mt-3 flex-1">{article.teaser}</p>
+                <p className="bs-body mt-3 flex-1 text-[0.9375rem] leading-[1.5]">
+                  {article.teaser}
+                </p>
                 <Link
                   href={`/learn/${article.slug}`}
                   className="bs-label mt-4 inline-flex items-center hover:text-[var(--stamp)] transition-colors"
                 >
-                  Read the dispatch &rarr;
+                  Read it &rarr;
                 </Link>
               </article>
             ))}
           </div>
-          <p className="bs-caption mt-8 text-center">
+          <p className="bs-caption mt-8 text-right">
             <Link href="/learn" className="bs-link">
-              Twenty more from the archive
+              Twenty more articles in the archive &rarr;
             </Link>
           </p>
         </section>
-
-        <OrnateRule label="Letters" />
-
-        {/* ─────────────────────── LETTERS / COMMUNITY ─────────────────────── */}
-        <section className="py-8 sm:py-12 bs-enter">
-          <Letters />
-        </section>
-
-        <OrnateRule ornament="asterism" />
 
         <Colophon />
       </div>

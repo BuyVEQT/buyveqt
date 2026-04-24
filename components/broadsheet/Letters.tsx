@@ -63,15 +63,24 @@ export default function Letters() {
     <>
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
         <div className="lg:col-span-5">
-          <h3 className="bs-display text-4xl sm:text-5xl lg:text-6xl leading-[0.95]">
-            Letters
+          <p className="bs-stamp mb-2">r/JustBuyVEQT</p>
+          <h3 className="bs-display text-3xl sm:text-4xl lg:text-[2.75rem] leading-[1]">
+            What the subreddit
             <br />
-            <em className="bs-display-italic">to the Editor</em>
+            <em className="bs-display-italic">is talking about.</em>
           </h3>
         </div>
-        <p className="lg:col-span-7 bs-body bs-lede">
-          Canadians by the thousand argue, encourage, and talk themselves
-          out of market-timing at{" "}
+        <p className="lg:col-span-7 bs-body">
+          {subs ? (
+            <>
+              <span className="bs-numerals">
+                {subs.toLocaleString("en-CA")}
+              </span>{" "}
+              Canadians hold each other accountable at{" "}
+            </>
+          ) : (
+            "Canadians hold each other accountable at "
+          )}
           <a
             href="https://reddit.com/r/JustBuyVEQT"
             target="_blank"
@@ -80,19 +89,7 @@ export default function Letters() {
           >
             r/JustBuyVEQT
           </a>
-          {subs ? (
-            <>
-              {" "}&mdash;{" "}
-              <span className="bs-numerals">
-                {subs.toLocaleString("en-CA")}
-              </span>{" "}
-              of them, at last count.
-            </>
-          ) : (
-            "."
-          )}{" "}
-          What follows is this week&apos;s correspondence, plucked from the
-          top of the feed.
+          . Here&apos;s what&apos;s on the top of the feed this week.
         </p>
       </div>
 
@@ -107,7 +104,7 @@ export default function Letters() {
         </div>
       ) : letters.length === 0 ? (
         <p className="bs-body italic text-[var(--ink-soft)]">
-          The post office is quiet today.{" "}
+          Nothing fresh on the feed.{" "}
           <a
             href="https://reddit.com/r/JustBuyVEQT"
             target="_blank"
@@ -180,7 +177,7 @@ export default function Letters() {
           rel="noopener noreferrer"
           className="bs-link"
         >
-          The full post office at r/JustBuyVEQT &rarr;
+          Open r/JustBuyVEQT &rarr;
         </a>
       </p>
     </>

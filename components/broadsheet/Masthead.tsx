@@ -160,16 +160,11 @@ export default function Masthead({
             className={`bs-display text-[var(--ink)] ${
               compact
                 ? "text-[1.5rem] sm:text-[1.875rem] lg:text-[2.5rem] leading-[1] tracking-[-0.018em]"
-                : "text-[2rem] sm:text-6xl lg:text-[7rem] leading-[0.9] sm:leading-[0.82] tracking-[-0.02em] sm:tracking-[-0.03em]"
+                : "text-[1.875rem] sm:text-[3rem] lg:text-[4.25rem] leading-[1] sm:leading-[0.95] tracking-[-0.018em] sm:tracking-[-0.025em]"
             }`}
           >
             The VEQT Daily
           </h1>
-          {!compact && (
-            <p className="bs-caption mt-1 sm:mt-2 hidden sm:block">
-              A Canadian broadsheet for the lazy investor &mdash; priced, read, held.
-            </p>
-          )}
         </Link>
 
         {/* Desktop ticker block — larger on home, compact on interior pages */}
@@ -177,7 +172,7 @@ export default function Masthead({
           <p className="bs-label">VEQT.TO &middot; Last close</p>
           <p
             className={`bs-numerals font-medium mt-1 ${
-              compact ? "text-xl lg:text-2xl" : "text-3xl lg:text-4xl"
+              compact ? "text-xl lg:text-2xl" : "text-2xl lg:text-3xl"
             }`}
           >
             {loading || !quote ? "—" : `$${formatPrice(quote.price)}`}
