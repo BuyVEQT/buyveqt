@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { VeqtQuote } from "@/lib/types";
 import { isMarketOpen } from "@/lib/data/market-hours";
+import { useTheme } from "@/components/ThemeProvider";
 
 interface MastheadProps {
   quote: VeqtQuote | null;
@@ -69,6 +70,7 @@ export default function Masthead({
   }));
   const [marketOpen, setMarketOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     const tick = () => {
@@ -144,7 +146,50 @@ export default function Masthead({
           </svg>
           <span className="hidden xs:inline">Menu</span>
         </button>
-        <span className="hidden sm:inline w-[72px]" aria-hidden />
+        {/* Desktop theme toggle — right side of top strip */}
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className="hidden sm:inline-flex items-center gap-1.5 bs-label hover:text-[var(--stamp)] transition-colors"
+          aria-label={
+            theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
+          }
+        >
+          {theme === "dark" ? (
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.75"
+              aria-hidden
+            >
+              <circle cx="12" cy="12" r="4.5" />
+              <path
+                strokeLinecap="round"
+                d="M12 2v2M12 20v2M4.5 4.5l1.4 1.4M18.1 18.1l1.4 1.4M2 12h2M20 12h2M4.5 19.5l1.4-1.4M18.1 5.9l1.4-1.4"
+              />
+            </svg>
+          ) : (
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.75"
+              aria-hidden
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 12.8A9 9 0 1111.2 3 7 7 0 0021 12.8z"
+              />
+            </svg>
+          )}
+          <span>{theme === "dark" ? "Light" : "Dark"}</span>
+        </button>
       </div>
 
       <div className="bs-rule-thick" />
@@ -266,6 +311,56 @@ export default function Masthead({
                   </Link>
                 ))}
               </div>
+            </div>
+
+            <div className="mt-8 pt-4 border-t border-[var(--color-border)]">
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="flex items-center gap-2 bs-label hover:text-[var(--stamp)] transition-colors"
+                aria-label={
+                  theme === "dark"
+                    ? "Switch to light mode"
+                    : "Switch to dark mode"
+                }
+              >
+                {theme === "dark" ? (
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.75"
+                    aria-hidden
+                  >
+                    <circle cx="12" cy="12" r="4.5" />
+                    <path
+                      strokeLinecap="round"
+                      d="M12 2v2M12 20v2M4.5 4.5l1.4 1.4M18.1 18.1l1.4 1.4M2 12h2M20 12h2M4.5 19.5l1.4-1.4M18.1 5.9l1.4-1.4"
+                    />
+                  </svg>
+                ) : (
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.75"
+                    aria-hidden
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M21 12.8A9 9 0 1111.2 3 7 7 0 0021 12.8z"
+                    />
+                  </svg>
+                )}
+                <span>
+                  {theme === "dark" ? "Switch to light" : "Switch to dark"}
+                </span>
+              </button>
             </div>
 
             <div className="mt-auto pt-6 border-t border-[var(--color-border)]">
