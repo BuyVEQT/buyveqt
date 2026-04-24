@@ -72,7 +72,8 @@ export default function StatsTable({ selectedFunds }: StatsTableProps) {
   const rows: Row[] = [
     {
       label: "Price",
-      getValue: (t, q) => q?.price != null ? `$${q.price.toFixed(2)}` : "\u2014",
+      getValue: (_t, q) =>
+        q?.price != null ? `$${q.price.toFixed(2)}` : "\u2014",
       highlight: "none",
     },
     {
@@ -109,20 +110,23 @@ export default function StatsTable({ selectedFunds }: StatsTableProps) {
       getNumericValue: (_, q) => q?.oneYearReturn ?? null,
     },
     {
-      label: "Inception Date",
+      label: "Inception",
       getValue: (t) => {
         const d = FUNDS[t]?.inceptionDate;
         if (!d) return "\u2014";
-        return new Date(d).toLocaleDateString("en-CA", { year: "numeric", month: "short" });
+        return new Date(d).toLocaleDateString("en-CA", {
+          year: "numeric",
+          month: "short",
+        });
       },
       highlight: "none",
     },
     {
-      label: "Equity / Fixed Income",
+      label: "Equity / FI",
       getValue: (t) => {
         const f = FUNDS[t];
         if (!f) return "\u2014";
-        return `${f.equityAllocation}% / ${f.fixedIncomeAllocation}%`;
+        return `${f.equityAllocation}/${f.fixedIncomeAllocation}`;
       },
       highlight: "none",
     },
@@ -146,12 +150,35 @@ export default function StatsTable({ selectedFunds }: StatsTableProps) {
   }
 
   return (
-    <div className="space-y-3">
-      <div className="card-editorial overflow-x-auto">
-        <table className="w-full text-sm">
+    <section
+      className="border-t-2 border-[var(--ink)] pt-5"
+      aria-labelledby="stats-heading"
+    >
+      <header className="mb-4">
+        <p id="stats-heading" className="bs-stamp mb-1">
+          The Ledger
+        </p>
+        <h2
+          className="bs-display text-[1.25rem] sm:text-[1.5rem] leading-tight"
+          style={{ color: "var(--ink)" }}
+        >
+          <em className="bs-display-italic">Side-by-side</em> on the metrics
+          that decide it
+        </h2>
+      </header>
+
+      <div className="overflow-x-auto -mx-2 sm:mx-0">
+        <table className="w-full text-sm border-collapse min-w-[420px]">
           <thead>
-            <tr className="border-b border-[var(--color-border)]">
-              <th className="text-left py-3 px-4 text-[10px] font-semibold text-[var(--color-text-muted)] uppercase tracking-widest w-40">
+            <tr>
+              <th
+                className="bs-label text-left py-3 px-3 sm:px-4 text-[10.5px]"
+                style={{
+                  color: "var(--ink-soft)",
+                  borderBottom: "2px solid var(--ink)",
+                  letterSpacing: "0.14em",
+                }}
+              >
                 Metric
               </th>
               {selectedFunds.map((t) => {
@@ -159,13 +186,23 @@ export default function StatsTable({ selectedFunds }: StatsTableProps) {
                 return (
                   <th
                     key={t}
-                    className={`text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider ${
-                      isVeqt
-                        ? "text-[var(--color-brand)]"
-                        : "text-[var(--color-text-primary)]"
-                    }`}
+                    className="text-left py-3 px-3 sm:px-4 align-bottom"
+                    style={{ borderBottom: "2px solid var(--ink)" }}
                   >
-                    {FUNDS[t]?.shortName ?? t}
+                    <span
+                      className="bs-display block text-[15px] sm:text-base leading-none"
+                      style={{
+                        color: isVeqt ? "var(--stamp)" : "var(--ink)",
+                      }}
+                    >
+                      {FUNDS[t]?.shortName ?? t}
+                    </span>
+                    <span
+                      className="bs-caption italic block mt-1 text-[10.5px]"
+                      style={{ color: "var(--ink-soft)" }}
+                    >
+                      {isVeqt ? "house" : FUNDS[t]?.provider ?? ""}
+                    </span>
                   </th>
                 );
               })}
@@ -177,32 +214,51 @@ export default function StatsTable({ selectedFunds }: StatsTableProps) {
               return (
                 <tr
                   key={row.label}
-                  className="border-b last:border-b-0 border-[var(--color-border)] hover:bg-[var(--color-card-hover)] transition-colors"
+                  style={{
+                    borderBottom: "1px solid var(--color-border)",
+                  }}
                 >
-                  <td className="py-3 px-4 text-[var(--color-text-muted)]">
+                  <td
+                    className="bs-caption italic py-3 px-3 sm:px-4 text-[12.5px]"
+                    style={{ color: "var(--ink-soft)" }}
+                  >
                     {row.label}
                   </td>
                   {selectedFunds.map((t) => {
                     const isBest = bestTicker === t;
                     const isVeqt = t === "VEQT.TO";
                     const value = row.getValue(t, quotes[t] ?? null);
+                    const skeletalRow =
+                      loading &&
+                      row.label !== "MER" &&
+                      row.label !== "AUM" &&
+                      row.label !== "Inception" &&
+                      row.label !== "Equity / FI";
+
                     return (
                       <td
                         key={t}
-                        className={`py-3 px-4 tabular-nums font-medium ${
-                          loading
-                            ? ""
-                            : isBest
-                            ? "text-[var(--color-positive)] bg-[var(--color-positive-bg)]"
-                            : isVeqt
-                            ? "text-[var(--color-text-primary)] bg-[var(--color-brand)]/[0.02]"
-                            : "text-[var(--color-text-primary)]"
-                        }`}
+                        className="bs-numerals py-3 px-3 sm:px-4 tabular-nums text-[13.5px] sm:text-[14px]"
+                        style={{
+                          color: isBest ? "var(--stamp)" : "var(--ink)",
+                          backgroundColor: isVeqt
+                            ? "color-mix(in oklab, var(--stamp) 4%, transparent)"
+                            : undefined,
+                        }}
                       >
-                        {loading && row.label !== "MER" && row.label !== "AUM" && row.label !== "Inception Date" && row.label !== "Equity / Fixed Income" ? (
-                          <div className="skeleton h-4 w-16" />
+                        {skeletalRow ? (
+                          <div className="skeleton h-4 w-14" />
                         ) : (
-                          value
+                          <span
+                            style={{
+                              borderBottom: isBest
+                                ? "2px solid var(--stamp)"
+                                : undefined,
+                              paddingBottom: isBest ? "1px" : undefined,
+                            }}
+                          >
+                            {value}
+                          </span>
                         )}
                       </td>
                     );
@@ -212,26 +268,43 @@ export default function StatsTable({ selectedFunds }: StatsTableProps) {
             })}
           </tbody>
         </table>
+      </div>
 
-        <div className="px-4 py-3 border-t border-[var(--color-border)] space-y-0.5">
-          {!loading && lastUpdated ? (
-            <DataFreshness source={displaySource} fetchedAt={oldestFetchedAt} />
-          ) : (
-            <p className="text-[11px] text-[var(--color-text-muted)]">
-              Live data from Alpha Vantage / Yahoo Finance
-            </p>
-          )}
-          <p className="text-[11px] text-[var(--color-text-muted)]">
-            Fund data as of{" "}
-            {new Date(FUND_DATA_LAST_UPDATED + "T00:00:00").toLocaleDateString("en-CA", { year: "numeric", month: "short", day: "numeric" })}
-            . Sources: Vanguard Canada, BlackRock Canada.
+      <div className="mt-4 space-y-1">
+        {!loading && lastUpdated ? (
+          <DataFreshness source={displaySource} fetchedAt={oldestFetchedAt} />
+        ) : (
+          <p
+            className="bs-caption italic text-[11px]"
+            style={{ color: "var(--ink-soft)" }}
+          >
+            Live data from Alpha Vantage / Yahoo Finance
           </p>
-        </div>
+        )}
+        <p
+          className="bs-caption italic text-[11px]"
+          style={{ color: "var(--ink-soft)" }}
+        >
+          Fund data verified{" "}
+          {new Date(FUND_DATA_LAST_UPDATED + "T00:00:00").toLocaleDateString(
+            "en-CA",
+            { year: "numeric", month: "short", day: "numeric" }
+          )}
+          . Sources: Vanguard Canada, BlackRock Canada, BMO ETF Centre.
+        </p>
+        <p
+          className="bs-caption italic text-[11px]"
+          style={{ color: "var(--ink-soft)" }}
+        >
+          Vermilion underscore marks the leader on each row.
+        </p>
       </div>
 
       {hasCachedFund && oldestFetchedAt && (
-        <StaleBanner fetchedAt={oldestFetchedAt} />
+        <div className="mt-3">
+          <StaleBanner fetchedAt={oldestFetchedAt} />
+        </div>
       )}
-    </div>
+    </section>
   );
 }

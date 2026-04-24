@@ -7,11 +7,31 @@ interface BottomLineProps {
   className?: string;
 }
 
-function WinnerBadge({ winner, fundA, fundB }: { winner: string; fundA: string; fundB: string }) {
+/**
+ * Per-pair "scorecard" — only renders when there's a curated verdict in
+ * data/verdicts.ts for the slug. Re-skinned in the broadsheet voice:
+ * stamped eyebrow, display headline, ledger-style point grid with vermilion
+ * winner badge, and a final italic recommendation block.
+ */
+function WinnerBadge({
+  winner,
+  fundA,
+  fundB,
+}: {
+  winner: string;
+  fundA: string;
+  fundB: string;
+}) {
   if (winner === "Tie") {
     return (
-      <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-[var(--color-text-muted)]">
-        Tie
+      <span
+        className="bs-label text-[10px] tabular-nums"
+        style={{
+          color: "var(--ink-soft)",
+          letterSpacing: "0.14em",
+        }}
+      >
+        TIE
       </span>
     );
   }
@@ -19,66 +39,104 @@ function WinnerBadge({ winner, fundA, fundB }: { winner: string; fundA: string; 
   const isA = winner.toUpperCase() === fundA.replace(".TO", "").toUpperCase();
   return (
     <span
-      className={`inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full ${
-        isA
-          ? "bg-[var(--color-brand)]/10 text-[var(--color-brand)]"
-          : "bg-[var(--color-chart-line)]/10 text-[var(--color-chart-line)]"
-      }`}
+      className="bs-label text-[10px] tabular-nums"
+      style={{
+        color: "var(--paper)",
+        backgroundColor: isA ? "var(--stamp)" : "var(--ink)",
+        padding: "3px 7px 2px",
+        letterSpacing: "0.14em",
+      }}
     >
       {winner}
     </span>
   );
 }
 
-export default function BottomLine({ slug, fundA, fundB, className }: BottomLineProps) {
+export default function BottomLine({
+  slug,
+  fundA,
+  fundB,
+  className,
+}: BottomLineProps) {
   const verdict = getVerdict(slug);
   if (!verdict) return null;
 
   return (
-    <section className={`mt-8 pt-8 border-t border-[var(--color-border)] ${className ?? ""}`}>
-      <h2 className="text-xl font-serif font-medium text-[var(--color-text-primary)] mb-4">
-        The Bottom Line
-      </h2>
+    <section
+      className={`border-t-2 border-[var(--ink)] pt-6 ${className ?? ""}`}
+      aria-labelledby="bottomline-heading"
+    >
+      <header className="mb-4">
+        <p id="bottomline-heading" className="bs-stamp mb-1">
+          The Scorecard
+        </p>
+        <h2
+          className="bs-display text-[1.5rem] sm:text-[1.875rem] leading-tight"
+          style={{ color: "var(--ink)" }}
+        >
+          <em className="bs-display-italic">Round-by-round,</em> who took it
+        </h2>
+      </header>
 
-      {/* Summary */}
-      <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed max-w-prose mb-6">
+      <p
+        className="bs-body text-[15px] leading-[1.55] max-w-[68ch] mb-6"
+        style={{ color: "var(--ink)" }}
+      >
         {verdict.summary}
       </p>
 
-      {/* Verdict Points */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-        {verdict.points.map((point) => (
-          <div
+      <ol className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-0">
+        {verdict.points.map((point, idx) => (
+          <li
             key={point.label}
-            className="card-editorial p-4"
+            className={`py-4 ${
+              idx < 2
+                ? "border-t border-[var(--color-border)]"
+                : "border-t border-[var(--color-border)]"
+            }`}
           >
-            <div className="flex items-center justify-between gap-2 mb-2">
-              <span className="text-sm font-semibold text-[var(--color-text-primary)]">
+            <div className="flex items-center justify-between gap-3 mb-2">
+              <h3
+                className="bs-display-italic text-[1rem] sm:text-[1.125rem]"
+                style={{ color: "var(--ink)" }}
+              >
                 {point.label}
-              </span>
-              <WinnerBadge winner={point.winner} fundA={fundA} fundB={fundB} />
+              </h3>
+              <WinnerBadge
+                winner={point.winner}
+                fundA={fundA}
+                fundB={fundB}
+              />
             </div>
-            <p className="text-xs text-[var(--color-text-muted)] leading-relaxed">
+            <p
+              className="bs-caption text-[12.5px] leading-[1.55] max-w-[44ch]"
+              style={{ color: "var(--ink-soft)" }}
+            >
               {point.explanation}
             </p>
-          </div>
+          </li>
         ))}
-      </div>
+      </ol>
 
-      {/* Recommendation */}
-      <div className="rounded-lg bg-[var(--color-base)] border border-[var(--color-border)] p-4 mb-4">
-        <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">
-          Our recommendation
-        </p>
-        <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed">
+      <div
+        className="mt-6 pt-5 border-t border-[var(--color-border)]"
+        style={{ borderColor: "var(--ink)", borderTopWidth: "1px" }}
+      >
+        <p className="bs-stamp mb-2">Our recommendation</p>
+        <p
+          className="bs-display-italic text-[1.125rem] sm:text-[1.25rem] leading-[1.4] max-w-[68ch]"
+          style={{ color: "var(--ink)" }}
+        >
           {verdict.recommendation}
         </p>
       </div>
 
-      {/* Disclaimer */}
-      <p className="text-[11px] text-[var(--color-text-muted)] leading-relaxed">
-        This comparison reflects our editorial analysis based on publicly available fund data.
-        It is not financial advice. Your situation may differ.
+      <p
+        className="bs-caption italic text-[11px] mt-4"
+        style={{ color: "var(--ink-soft)" }}
+      >
+        Editorial analysis based on publicly available fund data. Not
+        financial advice. Your situation may differ.
       </p>
     </section>
   );

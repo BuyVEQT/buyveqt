@@ -9,7 +9,6 @@ import {
   YAxis,
   Tooltip,
   CartesianGrid,
-  Legend,
 } from "recharts";
 import { FUNDS } from "@/data/funds";
 import type { ChartPeriod, DataSourceType } from "@/lib/types";
@@ -21,6 +20,9 @@ import { getCached, setCache } from "@/lib/cache";
 
 interface PerformanceChartProps {
   selectedFunds: string[];
+  /** Bubble period changes up so The Gap can match. */
+  onPeriodChange?: (period: ChartPeriod) => void;
+  initialPeriod?: ChartPeriod;
 }
 
 interface ChartDataPoint {
@@ -50,15 +52,37 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   if (!active || !payload?.length || !label) return null;
   const date = new Date(label + "T00:00:00");
   return (
-    <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] px-3 py-2 shadow-md">
-      <p className="text-[11px] text-[var(--color-text-muted)] mb-1">
-        {date.toLocaleDateString("en-CA", { year: "numeric", month: "short", day: "numeric" })}
+    <div
+      className="px-3 py-2"
+      style={{
+        backgroundColor: "var(--paper)",
+        border: "1px solid var(--ink)",
+        boxShadow: "2px 2px 0 var(--ink)",
+      }}
+    >
+      <p
+        className="bs-caption italic text-[11px] mb-1.5"
+        style={{ color: "var(--ink-soft)" }}
+      >
+        {date.toLocaleDateString("en-CA", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        })}
       </p>
       {payload.map((p) => (
-        <p key={p.dataKey} className="flex items-center gap-2 text-sm">
-          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color }} />
-          <span className="font-medium">{p.dataKey.replace(".TO", "")}</span>
-          <span className="ml-auto tabular-nums">
+        <p
+          key={p.dataKey}
+          className="flex items-center gap-2 text-sm tabular-nums bs-numerals"
+        >
+          <span
+            className="w-3 h-[3px]"
+            style={{ backgroundColor: p.color }}
+          />
+          <span style={{ color: "var(--ink)" }}>
+            {p.dataKey.replace(".TO", "")}
+          </span>
+          <span className="ml-auto" style={{ color: "var(--ink)" }}>
             {p.value >= 0 ? "+" : ""}
             {p.value.toFixed(2)}%
           </span>
@@ -68,13 +92,22 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   );
 }
 
-export default function PerformanceChart({ selectedFunds }: PerformanceChartProps) {
-  const [period, setPeriod] = useState<ChartPeriod>("1Y");
+export default function PerformanceChart({
+  selectedFunds,
+  onPeriodChange,
+  initialPeriod = "1Y",
+}: PerformanceChartProps) {
+  const [period, setPeriod] = useState<ChartPeriod>(initialPeriod);
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [sources, setSources] = useState<DataSourceType[]>([]);
   const [fetchedAt, setFetchedAt] = useState<string | null>(null);
   const [missingFunds, setMissingFunds] = useState<string[]>([]);
+
+  const handlePeriodChange = (next: ChartPeriod) => {
+    setPeriod(next);
+    onPeriodChange?.(next);
+  };
 
   const fetchChartData = useCallback(async () => {
     setLoading(true);
@@ -100,7 +133,6 @@ export default function PerformanceChart({ selectedFunds }: PerformanceChartProp
         })
       );
 
-      // Track sources and missing funds
       const allSources = responses
         .map((r) => r.source)
         .filter((s): s is DataSourceType => !!s);
@@ -110,7 +142,6 @@ export default function PerformanceChart({ selectedFunds }: PerformanceChartProp
         responses.filter((r) => r.data.length === 0).map((r) => r.ticker.replace(".TO", ""))
       );
 
-      // Normalize to % change from first available data point per fund
       const normalized: Record<string, Record<string, number>> = {};
       const allDates = new Set<string>();
 
@@ -150,103 +181,171 @@ export default function PerformanceChart({ selectedFunds }: PerformanceChartProp
   const allUnavailable = !loading && chartData.length === 0;
 
   return (
-    <div className="card-editorial p-0 overflow-hidden">
-      <div className="flex items-center justify-between gap-3 px-5 pt-5 pb-3">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
-          Normalized Performance (% change)
-        </h2>
-        <div className="flex gap-0.5 rounded-lg bg-[var(--color-base)] p-0.5">
-          {CHART_PERIODS.map((p) => (
-            <button
-              key={p.key}
-              onClick={() => setPeriod(p.key as ChartPeriod)}
-              className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all ${
-                period === p.key
-                  ? "bg-[var(--color-card)] text-[var(--color-text-primary)] shadow-sm"
-                  : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
-              }`}
-            >
-              {p.label}
-            </button>
-          ))}
+    <section
+      className="border-t-2 border-[var(--ink)] pt-5"
+      aria-labelledby="perf-heading"
+    >
+      <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-3 mb-4">
+        <div>
+          <p id="perf-heading" className="bs-stamp mb-1">
+            Performance Engraving
+          </p>
+          <h2
+            className="bs-display text-[1.25rem] sm:text-[1.5rem] leading-tight"
+            style={{ color: "var(--ink)" }}
+          >
+            <em className="bs-display-italic">Normalized return</em> from day one
+            of the window
+          </h2>
         </div>
-      </div>
+
+        {/* Period dispatch — borrowed from the home chart's vocabulary */}
+        <div className="flex flex-wrap gap-x-3 gap-y-1">
+          {CHART_PERIODS.map((p) => {
+            const active = period === p.key;
+            return (
+              <button
+                key={p.key}
+                onClick={() => handlePeriodChange(p.key as ChartPeriod)}
+                className="bs-label transition-colors"
+                style={{
+                  color: active ? "var(--stamp)" : "var(--ink-soft)",
+                  borderBottom: active
+                    ? "2px solid var(--stamp)"
+                    : "2px solid transparent",
+                  paddingBottom: "2px",
+                  fontSize: "11px",
+                  letterSpacing: "0.14em",
+                }}
+                aria-pressed={active}
+              >
+                {p.label}
+              </button>
+            );
+          })}
+        </div>
+      </header>
 
       {hasCached && fetchedAt && (
-        <div className="px-5">
-          <StaleBanner fetchedAt={fetchedAt} className="mb-3" />
-        </div>
+        <StaleBanner fetchedAt={fetchedAt} className="mb-3" />
       )}
 
-      <div className="chart-atmosphere">
-        {loading ? (
-          <div className="skeleton h-[320px] w-full rounded-lg" />
-        ) : allUnavailable ? (
-          <DataUnavailable type="chart" className="min-h-[320px]" />
-        ) : (
-          <>
-            <ResponsiveContainer width="100%" height={360}>
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
-                <XAxis
-                  dataKey="date"
-                  tickFormatter={(d) => {
-                    const date = new Date(d + "T00:00:00");
-                    return date.toLocaleDateString("en-CA", { month: "short", year: "2-digit" });
-                  }}
-                  tick={{ fontSize: 11, fill: "var(--color-text-muted)" }}
-                  tickLine={false}
-                  axisLine={false}
-                  interval="preserveStartEnd"
-                  minTickGap={50}
+      {loading ? (
+        <div className="skeleton h-[300px] w-full" />
+      ) : allUnavailable ? (
+        <DataUnavailable type="chart" className="min-h-[300px]" />
+      ) : (
+        <>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart
+              data={chartData}
+              margin={{ top: 10, right: 8, left: 0, bottom: 0 }}
+            >
+              <CartesianGrid
+                strokeDasharray="2 4"
+                stroke="var(--ink)"
+                opacity={0.12}
+                vertical={false}
+              />
+              <XAxis
+                dataKey="date"
+                tickFormatter={(d) => {
+                  const date = new Date(d + "T00:00:00");
+                  return date.toLocaleDateString("en-CA", {
+                    month: "short",
+                    year: "2-digit",
+                  });
+                }}
+                tick={{ fontSize: 10.5, fill: "var(--ink-soft)" }}
+                tickLine={false}
+                axisLine={{ stroke: "var(--ink)", strokeOpacity: 0.4 }}
+                interval="preserveStartEnd"
+                minTickGap={50}
+              />
+              <YAxis
+                tickFormatter={(v: number) =>
+                  `${v >= 0 ? "+" : ""}${v.toFixed(0)}%`
+                }
+                tick={{ fontSize: 10.5, fill: "var(--ink-soft)" }}
+                tickLine={false}
+                axisLine={false}
+                width={44}
+              />
+              <Tooltip
+                content={<CustomTooltip />}
+                cursor={{
+                  stroke: "var(--ink)",
+                  strokeWidth: 1,
+                  strokeDasharray: "3 3",
+                  opacity: 0.4,
+                }}
+              />
+              {selectedFunds.map((ticker) => (
+                <Line
+                  key={ticker}
+                  type="monotone"
+                  dataKey={ticker}
+                  stroke={FUNDS[ticker]?.chartColor || "var(--ink)"}
+                  strokeWidth={ticker === "VEQT.TO" ? 2.2 : 1.6}
+                  dot={false}
+                  connectNulls
                 />
-                <YAxis
-                  tickFormatter={(v: number) => `${v >= 0 ? "+" : ""}${v.toFixed(0)}%`}
-                  tick={{ fontSize: 11, fill: "var(--color-text-muted)" }}
-                  tickLine={false}
-                  axisLine={false}
-                  width={50}
-                />
-                <Tooltip content={<CustomTooltip />} />
-                <Legend
-                  formatter={(value: string) => (
-                    <span className="text-xs font-medium">{value.replace(".TO", "")}</span>
-                  )}
-                />
-                {selectedFunds.map((ticker) => (
-                  <Line
-                    key={ticker}
-                    type="monotone"
-                    dataKey={ticker}
-                    stroke={FUNDS[ticker]?.chartColor || "#6b7280"}
-                    strokeWidth={2}
-                    dot={false}
-                    connectNulls
-                  />
-                ))}
-              </LineChart>
-            </ResponsiveContainer>
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
 
-            {/* Note about missing fund data */}
-            {missingFunds.length > 0 && (
-              <p className="text-xs text-[var(--color-text-muted)] mt-1">
-                {missingFunds.join(", ")} data temporarily unavailable
-              </p>
-            )}
-          </>
-        )}
-      </div>
+          {/* Legend strip, broadsheet style */}
+          <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-3">
+            {selectedFunds.map((ticker) => {
+              const fund = FUNDS[ticker];
+              if (!fund) return null;
+              return (
+                <span
+                  key={ticker}
+                  className="flex items-center gap-2 bs-caption text-[11.5px]"
+                  style={{ color: "var(--ink)" }}
+                >
+                  <span
+                    className="inline-block w-4 h-[3px]"
+                    style={{ backgroundColor: fund.chartColor }}
+                    aria-hidden
+                  />
+                  <span className="bs-numerals">{fund.shortName}</span>
+                  <span
+                    className="italic text-[10.5px]"
+                    style={{ color: "var(--ink-soft)" }}
+                  >
+                    {fund.provider}
+                  </span>
+                </span>
+              );
+            })}
+          </div>
+
+          {missingFunds.length > 0 && (
+            <p
+              className="bs-caption italic text-[11.5px] mt-2"
+              style={{ color: "var(--ink-soft)" }}
+            >
+              {missingFunds.join(", ")} data temporarily unavailable.
+            </p>
+          )}
+        </>
+      )}
 
       {/* Data freshness footer */}
-      <div className="px-5 py-3 border-t border-[var(--color-border)]">
+      <div className="mt-4 pt-3 border-t border-[var(--color-border)]">
         {!loading && fetchedAt ? (
           <DataFreshness source={displaySource} fetchedAt={fetchedAt} />
         ) : (
-          <p className="text-[11px] text-[var(--color-text-muted)]">
+          <p
+            className="bs-caption italic text-[11px]"
+            style={{ color: "var(--ink-soft)" }}
+          >
             Source: Alpha Vantage / Yahoo Finance
           </p>
         )}
       </div>
-    </div>
+    </section>
   );
 }
