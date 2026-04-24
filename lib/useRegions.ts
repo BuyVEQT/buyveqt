@@ -2,6 +2,11 @@
 
 import { useEffect, useState } from "react";
 
+export interface RegionSparkPoint {
+  date: string;
+  close: number;
+}
+
 export interface Region {
   ticker: string;
   region: string;
@@ -12,6 +17,8 @@ export interface Region {
   change: number | null;
   changePercent: number | null;
   contribution: number | null;
+  /** Up to ~30 trailing sessions of closes, oldest first. Empty if unavailable. */
+  history: RegionSparkPoint[];
   error: boolean;
 }
 
