@@ -1,6 +1,10 @@
 import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
+import { canonicalizeTags } from "./learn-taxonomy";
+// INTERACTIVE_SLUGS and isInteractive live in lib/interactive-slugs (client-safe).
+// Re-exported here for server-side callers that already import from articles.
+export { INTERACTIVE_SLUGS, isInteractive } from "./interactive-slugs";
 
 export interface ArticleFrontmatter {
   title: string;
@@ -63,7 +67,7 @@ function applyDefaults(data: Record<string, unknown>): ArticleFrontmatter {
     excerpt: fm.excerpt ?? fm.description,
     category: fm.category ?? "beginner",
     difficulty: fm.difficulty ?? "beginner",
-    tags: fm.tags ?? [],
+    tags: canonicalizeTags(fm.tags ?? []),
     relatedSlugs: fm.relatedSlugs ?? [],
     isEditorial: fm.isEditorial ?? false,
     order: fm.order ?? 99,
