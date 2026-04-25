@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import InteriorShell from "@/components/broadsheet/InteriorShell";
 import { getAllArticles } from "@/lib/articles";
@@ -47,13 +48,14 @@ export default function LearnPage() {
           className="bs-body italic mt-3 max-w-[54ch] text-[1rem] sm:text-[1.0625rem]"
           style={{ color: "var(--ink-soft)" }}
         >
-          Twenty-five dispatches on VEQT, Canadian ETFs, tax-advantaged
-          accounts, and building a passive portfolio. Sorted by where most
-          investors want to start.
+          Twenty-five dispatches on VEQT and Canadian passive investing. Pick a
+          path, or browse the archive.
         </p>
       </section>
 
-      <LearnContent startHere={startHere} articles={all} />
+      <Suspense fallback={null}>
+        <LearnContent startHere={startHere} articles={all} />
+      </Suspense>
     </InteriorShell>
   );
 }
