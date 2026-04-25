@@ -59,3 +59,32 @@ export function getLatestWeeklyRecap(): WeeklyRecap | null {
   const recaps = getAllWeeklyRecaps();
   return recaps[0] || null;
 }
+
+/**
+ * Adjacent recaps for the per-recap dispatch chrome.
+ *
+ * "Previous" is the recap one week earlier (older), "next" is one
+ * week later (newer). Lists are sorted newest-first by getAllWeeklyRecaps,
+ * so previous = idx + 1 and next = idx - 1 in that ordering. Returns
+ * null when there isn't one — we never surface arbitrary fallbacks.
+ */
+export function getAdjacentRecaps(slug: string): {
+  previous: WeeklyRecap | null;
+  next: WeeklyRecap | null;
+} {
+  const recaps = getAllWeeklyRecaps();
+  const idx = recaps.findIndex((r) => r.slug === slug);
+  if (idx === -1) return { previous: null, next: null };
+  return {
+    previous: recaps[idx + 1] ?? null,
+    next: recaps[idx - 1] ?? null,
+  };
+}
+
+/** 1-based dispatch number — oldest recap is No. 01. */
+export function getRecapOrdinal(slug: string): number | null {
+  const recaps = getAllWeeklyRecaps();
+  const idx = recaps.findIndex((r) => r.slug === slug);
+  if (idx === -1) return null;
+  return recaps.length - idx;
+}
