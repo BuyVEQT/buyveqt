@@ -56,3 +56,60 @@ export function getDistributionsByYear(): Record<number, Distribution[]> {
   }
   return grouped;
 }
+
+/**
+ * Total per-unit distributions paid since inception, summing only
+ * confirmed (non-estimated) entries. Useful as the "ledger to date"
+ * headline number.
+ */
+export function getCumulativeSinceInception(): number {
+  return VEQT_DISTRIBUTIONS.distributions
+    .filter((d) => !d.estimated)
+    .reduce((sum, d) => sum + d.amount, 0);
+}
+
+/**
+ * Compound annual growth rate of the per-unit distribution from the
+ * earliest confirmed year to the most recent. Returns null if there
+ * are fewer than two confirmed years (CAGR is undefined).
+ *
+ * Matches what someone would describe as "growing X% a year" in plain
+ * English. Uses (latest/earliest)^(1/yearsBetween) - 1.
+ */
+export function getDistributionCAGR(): number | null {
+  const confirmed = VEQT_DISTRIBUTIONS.distributions
+    .filter((d) => !d.estimated)
+    .sort((a, b) => a.exDate.localeCompare(b.exDate));
+  if (confirmed.length < 2) return null;
+  const earliest = confirmed[0];
+  const latest = confirmed[confirmed.length - 1];
+  if (earliest.amount <= 0) return null;
+  const years =
+    new Date(latest.exDate).getFullYear() -
+    new Date(earliest.exDate).getFullYear();
+  if (years <= 0) return null;
+  return Math.pow(latest.amount / earliest.amount, 1 / years) - 1;
+}
+
+/**
+ * Total percent growth from earliest to latest confirmed distribution.
+ * Companion to CAGR for readers who think in "up X% since 2019" terms.
+ */
+export function getTotalDistributionGrowthPct(): number | null {
+  const confirmed = VEQT_DISTRIBUTIONS.distributions
+    .filter((d) => !d.estimated)
+    .sort((a, b) => a.exDate.localeCompare(b.exDate));
+  if (confirmed.length < 2) return null;
+  const earliest = confirmed[0];
+  const latest = confirmed[confirmed.length - 1];
+  if (earliest.amount <= 0) return null;
+  return ((latest.amount - earliest.amount) / earliest.amount) * 100;
+}
+
+/** Earliest confirmed distribution year. */
+export function getInceptionDistributionYear(): number {
+  const confirmed = VEQT_DISTRIBUTIONS.distributions
+    .filter((d) => !d.estimated)
+    .sort((a, b) => a.exDate.localeCompare(b.exDate));
+  return new Date(confirmed[0].exDate).getFullYear();
+}

@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
-import PageShell from "@/components/layout/PageShell";
+import InteriorShell from "@/components/broadsheet/InteriorShell";
 import DistributionChart from "@/components/distributions/DistributionChart";
 import IncomeEstimator from "@/components/distributions/IncomeEstimator";
-import DataFreshness from "@/components/ui/DataFreshness";
+import DistributionStats from "@/components/distributions/DistributionStats";
+import StakeDefault from "@/components/distributions/StakeDefault";
 import {
   VEQT_DISTRIBUTIONS,
-  getTrailing12MonthDistributions,
-  getDistributionYears,
+  getCumulativeSinceInception,
+  getDistributionCAGR,
+  getTotalDistributionGrowthPct,
+  getInceptionDistributionYear,
 } from "@/data/distributions";
 import { getNextDistributionEstimate } from "@/lib/distributions-calendar";
 import { getQuote } from "@/lib/data";
@@ -16,14 +19,14 @@ import { buildBreadcrumbSchema, canonicalUrl } from "@/lib/seo-config";
 export const revalidate = 900;
 
 export const metadata: Metadata = {
-  title: "VEQT Distributions — Schedule, History & Income Estimator",
+  title: "The Annual — VEQT Distribution History & Income",
   description:
-    "VEQT distribution schedule, next payout estimate, historical distribution data, and income calculator. Track annual dividends for Vanguard All-Equity ETF.",
+    "VEQT pays one distribution a year, every late December — and it's grown every year since 2019. The full ledger, the next payout window, and what your stake pays.",
   alternates: { canonical: canonicalUrl("/distributions") },
   openGraph: {
-    title: "VEQT Distributions — Schedule & History",
+    title: "The Annual — VEQT Distribution History",
     description:
-      "Every VEQT distribution since 2019. Annual payouts, yield trends, and income estimator.",
+      "Every VEQT distribution since 2019 — what it paid, how it's grown, and what your stake earns.",
     url: canonicalUrl("/distributions"),
   },
 };
@@ -37,226 +40,389 @@ function formatDate(dateStr: string): string {
 }
 
 export default async function DistributionsPage() {
-  const latestConfirmed = VEQT_DISTRIBUTIONS.distributions.find(
-    (d) => !d.estimated
-  )!;
-  const trailing12 = getTrailing12MonthDistributions();
-  const years = getDistributionYears();
   const allDistributions = VEQT_DISTRIBUTIONS.distributions;
+  const confirmed = allDistributions.filter((d) => !d.estimated);
+  const latestConfirmed = confirmed[0];
+  const cumulativePaid = getCumulativeSinceInception();
+  const cagr = getDistributionCAGR();
+  const totalGrowthPct = getTotalDistributionGrowthPct();
+  const inceptionYear = getInceptionDistributionYear();
+  const yearsPaid = confirmed.length;
 
-  // Fetch live price for yield calculation
+  // Live price — needed for yield, default-stake card, estimator
   let quote = null;
   try {
     quote = await getQuote("VEQT");
   } catch {
-    // Price unavailable — yield calc will use fallback
+    /* yield + stake card will fall back gracefully */
   }
-
   const currentPrice = quote?.price ?? 0;
+
   const estimate = getNextDistributionEstimate(
     currentPrice > 0 ? currentPrice : undefined
   );
 
   return (
-    <PageShell>
+    <InteriorShell>
       <JsonLd
         data={buildBreadcrumbSchema([
           { name: "Home", path: "/" },
           { name: "Distributions", path: "/distributions" },
         ])}
       />
-      <main className="flex-1 mx-auto w-full max-w-6xl px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl sm:text-3xl font-serif font-normal text-[var(--color-text-primary)]">
-            VEQT Distributions
-          </h1>
-          <p className="mt-2 text-[var(--color-text-muted)] max-w-prose">
-            VEQT pays one distribution per year, typically in late December.
-            Track history, estimate income, and plan ahead.
-          </p>
-        </div>
 
-        {/* Section 1: Next Distribution Estimate */}
-        <section className="mb-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Next payout card */}
-            <div className="card-editorial border-2 !border-[var(--color-brand)] p-5">
-              <p className="text-xs font-medium text-[var(--color-brand)] uppercase tracking-wider mb-2">
-                Next Expected Distribution
-              </p>
-              <p className="text-xl font-bold text-[var(--color-text-primary)]">
-                {estimate.estimatedWindow}
-              </p>
-              <p className="text-sm text-[var(--color-text-muted)] mt-2">
-                Avg. recent payout: ${estimate.averageAmount.toFixed(4)} per unit
-              </p>
+      {/* SECTION: Page head ─────────────────────────────────────── */}
+      <section className="pt-8 sm:pt-10 pb-2 bs-enter">
+        <p className="bs-stamp mb-3">The Annual</p>
+        <h1
+          className="bs-display text-[2.25rem] sm:text-[3.25rem] lg:text-[4.25rem] leading-[0.98]"
+          style={{ color: "var(--ink)" }}
+        >
+          One envelope,
+          <br />
+          <em className="bs-display-italic">every December.</em>
+        </h1>
+        <p
+          className="bs-body italic mt-5 max-w-[58ch] text-[1.0625rem]"
+          style={{ color: "var(--ink-soft)" }}
+        >
+          VEQT pays once a year, in late December. It&apos;s grown every
+          year since inception. Here&apos;s the rhythm — and what your
+          stake pays.
+        </p>
+      </section>
+
+      {/* SECTION: Hero ledger stats ─────────────────────────────── */}
+      <DistributionStats
+        cumulativePaid={cumulativePaid}
+        cagr={cagr}
+        totalGrowthPct={totalGrowthPct}
+        inceptionYear={inceptionYear}
+        yearsPaid={yearsPaid}
+      />
+
+      {/* SECTION: Window — next + latest ────────────────────────── */}
+      <section
+        className="mt-10 sm:mt-14 pt-6 border-t-2 border-[var(--ink)]"
+        aria-labelledby="window-heading"
+      >
+        <p id="window-heading" className="bs-stamp mb-3">
+          The Window
+        </p>
+        <h2
+          className="bs-display text-[1.5rem] sm:text-[2rem] mb-5"
+          style={{ color: "var(--ink)" }}
+        >
+          <em className="bs-display-italic">What&apos;s next</em> and what just
+          landed
+        </h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
+          {/* Next expected */}
+          <div className="border-l-2 border-[var(--stamp)] pl-5">
+            <p className="bs-label mb-2" style={{ color: "var(--stamp)" }}>
+              Next expected
+            </p>
+            <p
+              className="bs-display-italic text-[1.625rem] sm:text-[1.875rem] leading-[1.1]"
+              style={{ color: "var(--ink)" }}
+            >
+              {estimate.estimatedWindow}
+            </p>
+            <p
+              className="bs-caption italic mt-3"
+              style={{ color: "var(--ink-soft)" }}
+            >
+              Avg. of last three: ${estimate.averageAmount.toFixed(4)} per
+              unit
               {estimate.growthTrend !== null && (
-                <p className="text-sm text-[var(--color-text-muted)]">
-                  YoY growth: {estimate.growthTrend >= 0 ? "+" : ""}
+                <>
+                  {" · "}
+                  YoY {estimate.growthTrend >= 0 ? "+" : ""}
                   {estimate.growthTrend.toFixed(1)}%
-                </p>
+                </>
               )}
-              <p className="text-[10px] text-[var(--color-text-muted)] mt-3">
-                Estimated based on historical annual pattern. Actual dates
-                announced by Vanguard.
-              </p>
-            </div>
-
-            {/* Latest confirmed + yield */}
-            <div className="card-editorial p-5">
-              <p className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider mb-2">
-                Latest Confirmed
-              </p>
-              <p className="text-2xl font-bold tabular-nums text-[var(--color-text-primary)]">
-                ${latestConfirmed.amount.toFixed(4)}
-                <span className="text-sm font-normal text-[var(--color-text-muted)] ml-1.5">
-                  per unit
-                </span>
-              </p>
-              <div className="mt-2 text-sm text-[var(--color-text-muted)]">
-                <p>Ex-dividend: {formatDate(latestConfirmed.exDate)}</p>
-                <p>Payment: {formatDate(latestConfirmed.payDate)}</p>
-              </div>
-              {estimate.trailingAnnualYield !== null && (
-                <p className="text-sm font-medium text-[var(--color-text-primary)] mt-2">
-                  Trailing yield: ~{estimate.trailingAnnualYield.toFixed(2)}%
-                </p>
-              )}
-              {quote && (
-                <div className="mt-2">
-                  <DataFreshness
-                    source={quote.source}
-                    fetchedAt={quote.fetchedAt}
-                  />
-                </div>
-              )}
-            </div>
+            </p>
+            <p
+              className="bs-caption italic mt-2 text-[11px]"
+              style={{ color: "var(--ink-soft)" }}
+            >
+              Estimated from the historical pattern. Vanguard announces
+              actual dates in early November.
+            </p>
           </div>
-        </section>
 
-        {/* Section 2: Distribution History Table */}
-        <section className="mb-8">
-          <h2 className="text-lg font-serif font-normal text-[var(--color-text-primary)] mb-3">
-            Annual Distribution History
-          </h2>
-          <div className="card-editorial overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-[var(--color-border)]">
-                  <th className="text-left py-3 px-4 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
-                    Year
-                  </th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
-                    Ex-Dividend Date
-                  </th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
-                    Payment Date
-                  </th>
-                  <th className="text-right py-3 px-4 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
-                    Amount Per Unit
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {allDistributions.map((d, i) => (
+          {/* Latest confirmed */}
+          <div className="border-l-2 border-[var(--ink)] pl-5">
+            <p
+              className="bs-label mb-2"
+              style={{ color: "var(--ink-soft)" }}
+            >
+              Latest confirmed
+            </p>
+            <p
+              className="bs-numerals tabular-nums text-[1.875rem] sm:text-[2.25rem] leading-none"
+              style={{ color: "var(--ink)" }}
+            >
+              ${latestConfirmed.amount.toFixed(4)}
+              <span
+                className="bs-caption italic ml-2 text-[14px]"
+                style={{ color: "var(--ink-soft)" }}
+              >
+                per unit
+              </span>
+            </p>
+            <p
+              className="bs-caption mt-3"
+              style={{ color: "var(--ink-soft)" }}
+            >
+              Ex-dividend {formatDate(latestConfirmed.exDate)} · Paid{" "}
+              {formatDate(latestConfirmed.payDate)}
+            </p>
+            {estimate.trailingAnnualYield !== null && (
+              <p
+                className="bs-caption italic mt-2"
+                style={{ color: "var(--ink)" }}
+              >
+                Trailing yield ~{estimate.trailingAnnualYield.toFixed(2)}%
+                at today&apos;s price
+              </p>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION: Chronicle — the chart ──────────────────────────── */}
+      <section
+        className="mt-10 sm:mt-14 pt-6 border-t-2 border-[var(--ink)]"
+        aria-labelledby="chronicle-heading"
+      >
+        <p id="chronicle-heading" className="bs-stamp mb-3">
+          The Chronicle
+        </p>
+        <h2
+          className="bs-display text-[1.5rem] sm:text-[2rem] mb-2"
+          style={{ color: "var(--ink)" }}
+        >
+          <em className="bs-display-italic">The check,</em> year by year
+        </h2>
+        <p
+          className="bs-caption italic mb-5"
+          style={{ color: "var(--ink-soft)" }}
+        >
+          Each bar is one annual payment. Light blue is next December&apos;s
+          estimate.
+        </p>
+        <div
+          className="border border-[var(--color-border)] rounded-md p-4 sm:p-5"
+          style={{ backgroundColor: "var(--paper)" }}
+        >
+          <DistributionChart />
+        </div>
+      </section>
+
+      {/* SECTION: Books — the history table ─────────────────────── */}
+      <section
+        className="mt-10 sm:mt-14 pt-6 border-t-2 border-[var(--ink)]"
+        aria-labelledby="books-heading"
+      >
+        <p id="books-heading" className="bs-stamp mb-3">
+          The Books
+        </p>
+        <h2
+          className="bs-display text-[1.5rem] sm:text-[2rem] mb-5"
+          style={{ color: "var(--ink)" }}
+        >
+          <em className="bs-display-italic">Every payment</em> on record
+        </h2>
+        <div className="overflow-x-auto -mx-2 sm:mx-0">
+          <table className="w-full text-sm border-collapse min-w-[460px]">
+            <thead>
+              <tr>
+                <th
+                  className="bs-label text-left py-3 px-3 sm:px-4 text-[10.5px]"
+                  style={{
+                    color: "var(--ink-soft)",
+                    borderBottom: "2px solid var(--ink)",
+                    letterSpacing: "0.14em",
+                  }}
+                >
+                  Year
+                </th>
+                <th
+                  className="bs-label text-left py-3 px-3 sm:px-4 text-[10.5px]"
+                  style={{
+                    color: "var(--ink-soft)",
+                    borderBottom: "2px solid var(--ink)",
+                    letterSpacing: "0.14em",
+                  }}
+                >
+                  Ex-dividend
+                </th>
+                <th
+                  className="bs-label text-left py-3 px-3 sm:px-4 text-[10.5px]"
+                  style={{
+                    color: "var(--ink-soft)",
+                    borderBottom: "2px solid var(--ink)",
+                    letterSpacing: "0.14em",
+                  }}
+                >
+                  Payment
+                </th>
+                <th
+                  className="bs-label text-right py-3 px-3 sm:px-4 text-[10.5px]"
+                  style={{
+                    color: "var(--ink-soft)",
+                    borderBottom: "2px solid var(--ink)",
+                    letterSpacing: "0.14em",
+                  }}
+                >
+                  Per unit
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {allDistributions.map((d) => {
+                const year = new Date(d.exDate).getFullYear();
+                return (
                   <tr
                     key={d.exDate}
-                    className={`border-b border-[var(--color-border)] ${
-                      i % 2 === 1 ? "bg-[var(--color-base)]" : ""
-                    }`}
+                    style={{
+                      borderBottom: "1px solid var(--color-border)",
+                    }}
                   >
-                    <td className="py-2.5 px-4 font-medium">
-                      {new Date(d.exDate).getFullYear()}
+                    <td
+                      className="bs-numerals py-3 px-3 sm:px-4 tabular-nums text-[14px]"
+                      style={{ color: "var(--ink)" }}
+                    >
+                      {year}
                       {d.estimated && (
-                        <span className="ml-2 inline-block text-[10px] font-medium bg-amber-100 text-amber-700 rounded px-1.5 py-0.5 align-middle">
+                        <span
+                          className="bs-stamp ml-2 align-middle"
+                          style={{
+                            fontSize: "9.5px",
+                            color: "var(--stamp)",
+                          }}
+                        >
                           Est.
                         </span>
                       )}
                     </td>
-                    <td className="py-2.5 px-4 text-[var(--color-text-muted)]">
+                    <td
+                      className="bs-caption italic py-3 px-3 sm:px-4 text-[12.5px]"
+                      style={{ color: "var(--ink-soft)" }}
+                    >
                       {formatDate(d.exDate)}
                     </td>
-                    <td className="py-2.5 px-4 text-[var(--color-text-muted)]">
+                    <td
+                      className="bs-caption italic py-3 px-3 sm:px-4 text-[12.5px]"
+                      style={{ color: "var(--ink-soft)" }}
+                    >
                       {formatDate(d.payDate)}
                     </td>
                     <td
-                      className={`py-2.5 px-4 text-right tabular-nums font-medium ${
-                        d.estimated ? "text-[var(--color-text-muted)]" : ""
-                      }`}
+                      className="bs-numerals py-3 px-3 sm:px-4 text-right tabular-nums text-[14px]"
+                      style={{
+                        color: d.estimated
+                          ? "var(--ink-soft)"
+                          : "var(--ink)",
+                      }}
                     >
                       ${d.amount.toFixed(4)}
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </section>
 
-        {/* Section 3: Distribution Chart */}
-        <section className="mb-8">
-          <h2 className="text-lg font-serif font-normal text-[var(--color-text-primary)] mb-3">
-            Distribution Amounts Over Time
+      {/* SECTION: Stake — default scenario + estimator ──────────── */}
+      {currentPrice > 0 && (
+        <section
+          className="mt-10 sm:mt-14 pt-6 border-t-2 border-[var(--ink)]"
+          aria-labelledby="stake-heading"
+        >
+          <p id="stake-heading" className="bs-stamp mb-3">
+            The Stake
+          </p>
+          <h2
+            className="bs-display text-[1.5rem] sm:text-[2rem] mb-2"
+            style={{ color: "var(--ink)" }}
+          >
+            <em className="bs-display-italic">What your stake</em> pays
           </h2>
-          <div className="card-editorial p-5">
-            <DistributionChart />
-            <p className="text-[11px] text-[var(--color-text-muted)] mt-2">
-              Each bar represents one annual distribution
-            </p>
-          </div>
-        </section>
+          <p
+            className="bs-caption italic mb-5"
+            style={{ color: "var(--ink-soft)" }}
+          >
+            Based on trailing twelve months. Future distributions are not
+            guaranteed.
+          </p>
 
-        {/* Section 4: Income Estimator */}
-        {currentPrice > 0 && (
-          <section className="mb-8">
-            <h2 className="text-lg font-serif font-normal text-[var(--color-text-primary)] mb-3">
-              Estimate Your Income
-            </h2>
+          <StakeDefault
+            currentPrice={currentPrice}
+            annualDistPerUnit={estimate.trailingAnnualAmount}
+          />
+
+          <div className="mt-6">
             <IncomeEstimator
               annualDistPerUnit={estimate.trailingAnnualAmount}
               currentPrice={currentPrice}
             />
-          </section>
-        )}
-
-        {/* Section 5: Understanding Distributions */}
-        <section className="mb-6">
-          <h2 className="text-lg font-serif font-normal text-[var(--color-text-primary)] mb-3">
-            Understanding Distributions
-          </h2>
-          <div className="card-editorial p-5">
-            <div className="text-sm text-[var(--color-text-muted)] leading-relaxed max-w-prose space-y-3">
-              <p>
-                A distribution is a payment from the fund to its unitholders,
-                primarily made up of dividends earned by the approximately
-                13,700 stocks VEQT holds through its underlying ETFs. When
-                companies like Apple, Royal Bank, or Nestl&eacute; pay
-                dividends, that income flows through to VEQT holders.
-              </p>
-              <p>
-                It&apos;s important to understand that{" "}
-                <strong className="text-[var(--color-text-secondary)]">
-                  distribution yield is not the same as total return
-                </strong>
-                . Total return includes both price appreciation and
-                distributions. A fund with a lower yield but higher price growth
-                may deliver better overall returns.
-              </p>
-              <p>
-                Many long-term VEQT holders reinvest their distributions through
-                a DRIP (Dividend Reinvestment Plan) offered by their brokerage.
-                This automatically uses distribution payments to buy more units,
-                compounding returns over time without additional trading fees.
-              </p>
-            </div>
-            <p className="text-[11px] text-[var(--color-text-muted)] mt-4 pt-3 border-t border-[var(--color-border)]">
-              Source: Vanguard Canada &middot; Distribution data updated
-              periodically
-            </p>
           </div>
         </section>
-      </main>
-    </PageShell>
+      )}
+
+      {/* SECTION: Fine print — understanding distributions ──────── */}
+      <section
+        className="mt-10 sm:mt-14 pt-6 border-t-2 border-[var(--ink)]"
+        aria-labelledby="fineprint-heading"
+      >
+        <p id="fineprint-heading" className="bs-stamp mb-3">
+          The Fine Print
+        </p>
+        <h2
+          className="bs-display text-[1.5rem] sm:text-[2rem] mb-5"
+          style={{ color: "var(--ink)" }}
+        >
+          <em className="bs-display-italic">What a distribution</em>{" "}
+          actually is
+        </h2>
+
+        <div
+          className="bs-body text-[15px] leading-[1.65] space-y-4 max-w-[62ch]"
+          style={{ color: "var(--ink)" }}
+        >
+          <p>
+            A distribution is a payment from the fund to its holders.
+            VEQT&apos;s payment is mostly dividends — earned by the
+            ~13,700 stocks the fund holds through its underlying ETFs.
+            When Apple, Royal Bank, and Nestl&eacute; pay their
+            shareholders, that income flows through to you.
+          </p>
+          <p>
+            <em>Yield is not return.</em> A fund with a 2% distribution
+            yield and 8% price appreciation beats a fund with a 4% yield
+            and 4% appreciation. Distribution size, on its own, says
+            nothing about whether the fund is winning.
+          </p>
+          <p>
+            Most long-term holders DRIP — Dividend Reinvestment Plan —
+            through their brokerage. The December payment buys more units
+            automatically, no fees, no decisions, the compounding does
+            its quiet work.
+          </p>
+        </div>
+
+        <p
+          className="bs-caption italic mt-6 pt-4 border-t border-[var(--color-border)] text-[11px]"
+          style={{ color: "var(--ink-soft)" }}
+        >
+          Source: Vanguard Canada · Distribution data updated periodically
+        </p>
+      </section>
+    </InteriorShell>
   );
 }
