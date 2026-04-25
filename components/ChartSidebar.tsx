@@ -12,7 +12,7 @@ interface ChartSidebarProps {
   quoteFetchedAt?: string;
 }
 
-/* ── Return helpers (matches /today page logic exactly) ── */
+/* ── Return helpers ── */
 
 /** Calculate return by looking back a number of calendar days from the latest point. */
 function calcReturn(data: HistoricalDataPoint[], calendarDaysBack: number): number | null {
@@ -107,12 +107,6 @@ export default function ChartSidebar({
           <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
             Returns
           </h3>
-          <Link
-            href="/today"
-            className="text-xs font-medium text-[var(--color-brand)] hover:text-[var(--color-brand-dark)] transition-colors"
-          >
-            Full dashboard &rarr;
-          </Link>
         </div>
 
         {loading ? (
