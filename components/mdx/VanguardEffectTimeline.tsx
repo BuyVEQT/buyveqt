@@ -1,155 +1,284 @@
 "use client";
 
-import {
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-} from "recharts";
-import { ChartTooltipWrapper, AXIS_PROPS, GRID_PROPS } from "@/lib/chart-utils";
+type Event = {
+  date: string;
+  title: string;
+  vanguardLed: boolean;
+  delayFromPrev?: string;
+};
 
-const FEE_DATA = [
-  { date: "2019-01", veqt: 0.24, xeqt: null },
-  { date: "2019-08", veqt: 0.24, xeqt: 0.20 },
-  // VEQT interim cut to 0.22% — exact date unverified; shown at mid-2020 (approximation)
-  { date: "2020-06", veqt: 0.22, xeqt: 0.20 },
-  // XEQT interim cut to 0.18% — exact date unverified; shown at mid-2021 (approximation)
-  { date: "2021-06", veqt: 0.22, xeqt: 0.18 },
-  { date: "2025-11", veqt: 0.17, xeqt: 0.18 }, // Vanguard cuts first (verified)
-  { date: "2025-12", veqt: 0.17, xeqt: 0.17 }, // BlackRock matches (verified)
-  { date: "2026-04", veqt: 0.17, xeqt: 0.17 }, // current
+const EVENTS: Event[] = [
+  { date: "1976",     title: "First index fund",              vanguardLed: true  },
+  { date: "2018",     title: "Asset-allocation ETFs (CA)",    vanguardLed: true  },
+  { date: "Jan 2019", title: "VEQT launches",                 vanguardLed: true  },
+  { date: "Aug 2019", title: "XEQT launches",                 vanguardLed: false, delayFromPrev: "↓ 7 months" },
+  { date: "Nov 2025", title: "VEQT cuts to 0.17%",            vanguardLed: true  },
+  { date: "Dec 2025", title: "XEQT matches at 0.17%",         vanguardLed: false, delayFromPrev: "↓ 30 days"  },
 ];
 
-const KEY_MOMENTS = [
-  { date: "Jan 2019", event: "Vanguard launches VEQT at 0.24% management fee" },
-  { date: "Aug 2019", event: "BlackRock launches XEQT at 0.20%, undercutting" },
-  { date: "Nov 2025", event: "Vanguard cuts VEQT management fee to 0.17%" },
-  { date: "Dec 2025", event: "BlackRock cuts XEQT to match — within 30 days" },
-];
+// Manual position percentages (0 to 1), tuned for visual balance
+const POSITIONS: Record<string, number> = {
+  "1976":     0.00,
+  "2018":     0.50,
+  "Jan 2019": 0.62,
+  "Aug 2019": 0.68,
+  "Nov 2025": 0.92,
+  "Dec 2025": 0.97,
+};
 
-interface TooltipProps {
-  active?: boolean;
-  payload?: { value: number | null; name: string; color: string }[];
-  label?: string;
-}
+const VANGUARD_EVENTS = EVENTS.filter((e) => e.vanguardLed);
+const INDUSTRY_EVENTS = EVENTS.filter((e) => !e.vanguardLed);
 
-function FeeTooltip({ active, payload, label }: TooltipProps) {
-  if (!active || !payload?.length) return null;
-  return (
-    <ChartTooltipWrapper>
-      <p className="text-[11px] text-[var(--color-text-muted)] mb-1">{label}</p>
-      {payload
-        .filter((p) => p.value !== null)
-        .map((p) => (
-          <p
-            key={p.name}
-            className="text-[11px] font-semibold"
-            style={{ color: p.color }}
-          >
-            {p.name}: {(p.value as number).toFixed(2)}%
-          </p>
-        ))}
-    </ChartTooltipWrapper>
-  );
+// Explicit pairings for mobile list: which industry event follows each Vanguard event?
+// Key = Vanguard event date, value = Industry event date (or null = no response)
+const MOBILE_PAIRS: Record<string, string | null> = {
+  "1976":     null,
+  "2018":     null,
+  "Jan 2019": "Aug 2019",
+  "Nov 2025": "Dec 2025",
+};
+
+// Convert 0–1 position to a left% value with a left-margin offset for the rail label
+// The rail occupies roughly from 10% to 98% of the container width
+function railLeft(pos: number): string {
+  const pct = 10 + pos * 88;
+  return `${pct}%`;
 }
 
 export function VanguardEffectTimeline() {
   return (
-    <div className="my-8 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-6 sm:p-8">
+    <div className="my-8 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-6 sm:p-10">
       {/* Header band */}
-      <div className="mb-6">
+      <div className="mb-8">
         <p className="text-[11px] uppercase tracking-[0.18em] font-semibold mb-2" style={{ color: "#c4122f" }}>
           The Vanguard Effect
         </p>
         <h3 className="text-2xl sm:text-3xl font-serif text-[var(--color-text-primary)]">
-          Lead first. Everyone follows.
+          Vanguard moves first. Every time.
         </h3>
-        <p className="text-sm italic text-[var(--color-text-secondary)] mt-2">
-          Vanguard moved on fees. Within a month, BlackRock matched.
+        <p className="text-sm text-[var(--color-text-secondary)] mt-2 max-w-[60ch]">
+          Each major shift in this product category was led by Vanguard. The industry has spent five decades responding.
         </p>
       </div>
 
-      {/* Chart area */}
-      <div className="mt-2 mb-2">
-        <p className="text-[11px] uppercase tracking-wider font-medium text-[var(--color-text-muted)] mb-2">
-          Management fee, %
-        </p>
-        <ResponsiveContainer width="100%" height={280}>
-          <LineChart data={FEE_DATA} margin={{ top: 10, right: 24, left: 0, bottom: 6 }}>
-            <CartesianGrid {...GRID_PROPS} />
-            <XAxis
-              dataKey="date"
-              {...AXIS_PROPS}
-              tickFormatter={(d: string) => d.split("-")[0]}
-              interval="preserveStartEnd"
-            />
-            <YAxis
-              domain={[0.10, 0.30]}
-              tickFormatter={(v: number) => `${v.toFixed(2)}%`}
-              {...AXIS_PROPS}
-              width={50}
-            />
-            <Tooltip content={<FeeTooltip />} />
-            <Line
-              type="stepAfter"
-              dataKey="veqt"
-              stroke="#c4122f"
-              strokeWidth={2.5}
-              name="VEQT"
-              dot={{ r: 4, fill: "#c4122f" }}
-              activeDot={{ r: 6 }}
-              connectNulls={false}
-            />
-            <Line
-              type="stepAfter"
-              dataKey="xeqt"
-              stroke="#1a6dca"
-              strokeWidth={2.5}
-              name="XEQT"
-              dot={{ r: 4, fill: "#1a6dca" }}
-              activeDot={{ r: 6 }}
-              connectNulls={false}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-
-        {/* Custom legend */}
-        <div className="flex items-center gap-6 mt-3 text-xs">
-          <span className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-full" style={{ background: "#c4122f" }} />
-            <span className="text-[var(--color-text-secondary)]">VEQT (Vanguard)</span>
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-full" style={{ background: "#1a6dca" }} />
-            <span className="text-[var(--color-text-secondary)]">XEQT (BlackRock)</span>
-          </span>
-        </div>
+      {/* Mobile-only: structured comparison list */}
+      <div className="block sm:hidden space-y-5 mb-6">
+        {VANGUARD_EVENTS.map((vEvent) => {
+          const pairedDate = MOBILE_PAIRS[vEvent.date];
+          const responseEvent = pairedDate
+            ? INDUSTRY_EVENTS.find((ie) => ie.date === pairedDate)
+            : undefined;
+          return (
+            <div key={vEvent.date} className="flex flex-col">
+              <div className="flex items-start gap-3">
+                <span
+                  className="w-3 h-3 rounded-full mt-1 shrink-0"
+                  style={{ background: "#c4122f" }}
+                />
+                <div>
+                  <p
+                    className="text-[11px] uppercase font-bold tracking-wider"
+                    style={{ color: "#c4122f" }}
+                  >
+                    Vanguard · {vEvent.date}
+                  </p>
+                  <p className="text-sm font-semibold text-[var(--color-text-primary)]">
+                    {vEvent.title}
+                  </p>
+                </div>
+              </div>
+              {responseEvent && (
+                <div
+                  className="flex items-start gap-3 ml-6 mt-2 pt-2 border-l-2 pl-3"
+                  style={{ borderColor: "#1a6dca" }}
+                >
+                  <span
+                    className="w-3 h-3 rounded-full mt-1 shrink-0"
+                    style={{ background: "#1a6dca" }}
+                  />
+                  <div>
+                    <p
+                      className="text-[11px] uppercase font-bold tracking-wider"
+                      style={{ color: "#1a6dca" }}
+                    >
+                      Industry · {responseEvent.date}
+                      {responseEvent.delayFromPrev
+                        ? ` (${responseEvent.delayFromPrev})`
+                        : ""}
+                    </p>
+                    <p className="text-sm text-[var(--color-text-secondary)]">
+                      {responseEvent.title}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
-      {/* Key moments */}
-      <div className="mt-6">
-        <p className="text-[11px] uppercase tracking-[0.18em] font-semibold text-[var(--color-text-muted)] mb-3">
-          Key Moments
-        </p>
-        <ul className="space-y-2">
-          {KEY_MOMENTS.map((m) => (
-            <li key={m.date} className="flex gap-3 text-sm leading-relaxed">
-              <span className="font-bold tabular-nums text-[var(--color-text-primary)] shrink-0 w-20">
-                {m.date}
+      {/* Desktop-only: dual-rail visual */}
+      <div className="hidden sm:block">
+        {/* Time axis labels */}
+        <div className="relative mb-1" style={{ paddingLeft: "10%" }}>
+          {["1976", "2000", "2018", "2019", "2025"].map((y) => {
+            const pos = POSITIONS[y] ?? (y === "2000" ? 0.27 : 0);
+            return (
+              <span
+                key={y}
+                className="absolute text-[10px] tabular-nums text-[var(--color-text-muted)]"
+                style={{ left: `${10 + pos * 88}%`, transform: "translateX(-50%)" }}
+              >
+                {y}
               </span>
-              <span className="text-[var(--color-text-secondary)]">{m.event}</span>
-            </li>
+            );
+          })}
+          {/* Spacer so labels have room */}
+          <div style={{ height: 16 }} />
+        </div>
+
+        {/* Rails container */}
+        <div className="relative" style={{ height: 220 }}>
+          {/* ── Vanguard rail ── */}
+          <div className="absolute" style={{ top: 60, left: 0, right: 0 }}>
+            {/* Rail label */}
+            <div
+              className="absolute text-[11px] font-bold uppercase tracking-[0.1em]"
+              style={{ left: 0, top: -4, color: "#c4122f" }}
+            >
+              Vanguard
+            </div>
+            {/* Rail line */}
+            <div
+              className="absolute h-[2px]"
+              style={{
+                left: "10%",
+                right: "2%",
+                top: 5,
+                background: "var(--color-border)",
+              }}
+            />
+            {/* Vanguard event dots + labels */}
+            {VANGUARD_EVENTS.map((e) => (
+              <div
+                key={e.date}
+                className="absolute"
+                style={{ left: railLeft(POSITIONS[e.date]), transform: "translateX(-50%)", top: 0 }}
+              >
+                {/* Dot */}
+                <div
+                  className="w-3 h-3 rounded-full mx-auto"
+                  style={{ background: "#c4122f" }}
+                />
+                {/* Label above */}
+                <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 whitespace-nowrap text-center">
+                  <p className="text-[11px] font-semibold text-[var(--color-text-primary)]">
+                    {e.title}
+                  </p>
+                  <p className="text-[10px] tabular-nums text-[var(--color-text-muted)]">
+                    {e.date}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* ── Industry rail ── */}
+          <div className="absolute" style={{ top: 150, left: 0, right: 0 }}>
+            {/* Rail label */}
+            <div
+              className="absolute text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--color-text-muted)]"
+              style={{ left: 0, top: -4 }}
+            >
+              Industry
+            </div>
+            {/* Rail line */}
+            <div
+              className="absolute h-[2px]"
+              style={{
+                left: "10%",
+                right: "2%",
+                top: 5,
+                background: "var(--color-border)",
+              }}
+            />
+            {/* Industry event dots + labels */}
+            {INDUSTRY_EVENTS.map((e) => (
+              <div
+                key={e.date}
+                className="absolute"
+                style={{ left: railLeft(POSITIONS[e.date]), transform: "translateX(-50%)", top: 0 }}
+              >
+                {/* Dot */}
+                <div
+                  className="w-3 h-3 rounded-full mx-auto"
+                  style={{ background: "#1a6dca" }}
+                />
+                {/* Label below */}
+                <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 whitespace-nowrap text-center">
+                  <p className="text-[11px] font-semibold text-[var(--color-text-primary)]">
+                    {e.title}
+                  </p>
+                  <p className="text-[10px] tabular-nums text-[var(--color-text-muted)]">
+                    {e.date}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* ── Delay connectors ── */}
+          {INDUSTRY_EVENTS.filter((e) => e.delayFromPrev).map((e) => (
+            <div
+              key={`delay-${e.date}`}
+              className="absolute"
+              style={{
+                left: railLeft(POSITIONS[e.date]),
+                transform: "translateX(-50%)",
+                top: 65,
+                height: 80,
+                width: 1,
+              }}
+            >
+              {/* Dashed vertical line */}
+              <div
+                className="h-full mx-auto"
+                style={{
+                  width: 1,
+                  borderLeft: "1px dashed #1a6dca",
+                }}
+              />
+              {/* Delay label */}
+              <div
+                className="absolute left-2 text-[10px] font-semibold whitespace-nowrap"
+                style={{ top: "30%", color: "#1a6dca" }}
+              >
+                {e.delayFromPrev}
+              </div>
+            </div>
           ))}
-        </ul>
+        </div>
+
+        <p className="text-[10px] text-[var(--color-text-muted)] mt-1 italic">
+          Time axis is illustrative, not strictly to scale.
+        </p>
       </div>
 
-      {/* Footer band */}
-      <div className="mt-6 pt-5 border-t border-[var(--color-border)]">
-        <p className="text-sm leading-relaxed text-[var(--color-text-secondary)]">
-          Vanguard has reduced fees over <strong className="font-bold text-[var(--color-text-primary)]">2,100 times</strong> since 1975. The pattern that drives industry-wide fee compression is named after them for a reason.
+      {/* Stat band footer */}
+      <div className="mt-8 pt-6 border-t border-[var(--color-border)]">
+        <div className="flex items-baseline justify-between gap-4 flex-wrap">
+          <p className="text-[11px] uppercase tracking-[0.18em] font-semibold text-[var(--color-text-muted)]">
+            Vanguard fee cuts since 1975
+          </p>
+          <p
+            className="text-3xl sm:text-4xl font-bold tabular-nums"
+            style={{ color: "#c4122f" }}
+          >
+            2,100<span className="text-2xl">+</span>
+          </p>
+        </div>
+        <p className="text-sm text-[var(--color-text-secondary)] mt-2 italic">
+          The pattern is named for them.
         </p>
       </div>
     </div>
