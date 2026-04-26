@@ -2,6 +2,8 @@ import Link from "next/link";
 import type { LearnPath } from "@/lib/learn-paths-data";
 import type { ArticleFrontmatter } from "@/lib/articles";
 
+const PREVIEW_COUNT = 3;
+
 interface PathCardProps {
   path: LearnPath;
   articles: ArticleFrontmatter[];
@@ -11,6 +13,10 @@ export default function PathCard({ path, articles }: PathCardProps) {
   const pathArticles = path.slugs
     .map((slug) => articles.find((a) => a.slug === slug))
     .filter((a): a is ArticleFrontmatter => !!a);
+
+  const preview = pathArticles.slice(0, PREVIEW_COUNT);
+  const totalCount = pathArticles.length;
+  const hasMore = totalCount > PREVIEW_COUNT;
 
   return (
     <div
@@ -30,7 +36,7 @@ export default function PathCard({ path, articles }: PathCardProps) {
         {path.description}
       </p>
       <ul className="flex flex-col gap-2 mt-auto">
-        {pathArticles.map((article, i) => (
+        {preview.map((article, i) => (
           <li key={article.slug}>
             <Link
               href={`/learn/${article.slug}`}
@@ -58,6 +64,17 @@ export default function PathCard({ path, articles }: PathCardProps) {
           </li>
         ))}
       </ul>
+      {hasMore && (
+        <div className="mt-3 pt-3 border-t border-[var(--color-border)]">
+          <Link
+            href={`/learn/path/${path.id}`}
+            className="bs-link text-[0.8125rem] hover:text-[var(--stamp)] transition-colors"
+            style={{ color: "var(--ink-soft)" }}
+          >
+            View full path ({totalCount} articles) &rarr;
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

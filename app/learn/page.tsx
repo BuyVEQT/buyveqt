@@ -6,26 +6,25 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { buildBreadcrumbSchema, canonicalUrl } from "@/lib/seo-config";
 import LearnContent from "@/components/learn/LearnContent";
 
-export const metadata: Metadata = {
-  title: "Learn — VEQT & Canadian Passive Investing",
-  description:
-    "Twenty-five dispatches on VEQT, Canadian ETFs, tax-advantaged accounts, and building a passive portfolio. Written in plain English for real investors.",
-  alternates: { canonical: canonicalUrl("/learn") },
-  openGraph: {
+export function generateMetadata(): Metadata {
+  const count = getAllArticles().length;
+  const description = `${count} dispatches on VEQT, Canadian ETFs, tax-advantaged accounts, and building a passive portfolio. Written in plain English for real investors.`;
+  return {
     title: "Learn — VEQT & Canadian Passive Investing",
-    description:
-      "Plain-English guides on VEQT, all-in-one ETFs, tax-advantaged accounts, and passive investing in Canada.",
-    url: canonicalUrl("/learn"),
-  },
-};
+    description,
+    alternates: { canonical: canonicalUrl("/learn") },
+    openGraph: {
+      title: "Learn — VEQT & Canadian Passive Investing",
+      description:
+        "Plain-English guides on VEQT, all-in-one ETFs, tax-advantaged accounts, and passive investing in Canada.",
+      url: canonicalUrl("/learn"),
+    },
+  };
+}
 
 export default function LearnPage() {
   const all = getAllArticles();
-
-  const startHere =
-    all.find((a) => a.slug === "getting-started-with-veqt") ||
-    all.find((a) => a.category === "beginner") ||
-    null;
+  const count = all.length;
 
   return (
     <InteriorShell>
@@ -48,13 +47,13 @@ export default function LearnPage() {
           className="bs-body italic mt-3 max-w-[54ch] text-[1rem] sm:text-[1.0625rem]"
           style={{ color: "var(--ink-soft)" }}
         >
-          Twenty-five dispatches on VEQT and Canadian passive investing. Pick a
+          {count} dispatches on VEQT and Canadian passive investing. Pick a
           path, or browse the archive.
         </p>
       </section>
 
       <Suspense fallback={null}>
-        <LearnContent startHere={startHere} articles={all} />
+        <LearnContent articles={all} />
       </Suspense>
     </InteriorShell>
   );

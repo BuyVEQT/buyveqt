@@ -7,9 +7,9 @@ import type { ArticleFrontmatter } from "@/lib/articles";
 import ArticleRow from "./ArticleRow";
 import FilterRail from "./FilterRail";
 import PathsGrid from "./PathsGrid";
+import EditorsPicks from "./EditorsPicks";
 
 interface LearnContentProps {
-  startHere: ArticleFrontmatter | null;
   articles: ArticleFrontmatter[];
 }
 
@@ -48,10 +48,7 @@ function timeBucket(s: string): "quick" | "standard" | "long" {
   return "long";
 }
 
-export default function LearnContent({
-  startHere,
-  articles,
-}: LearnContentProps) {
+export default function LearnContent({ articles }: LearnContentProps) {
   const params = useSearchParams();
 
   const cat = params.get("cat") ?? null;
@@ -104,40 +101,11 @@ export default function LearnContent({
     <>
       <FilterRail />
 
+      {/* Editor's Picks — only in default state */}
+      {isDefault && <EditorsPicks articles={articles} />}
+
       {/* Paths grid — only in default state */}
       {isDefault && <PathsGrid articles={articles} />}
-
-      {/* Featured "Start Here" — only in default state */}
-      {isDefault && startHere && (
-        <Link
-          href={`/learn/${startHere.slug}`}
-          className="group block mt-2 mb-8 sm:mb-10 p-5 sm:p-6 border-t-2 border-b-2 border-[var(--ink)]"
-        >
-          <p className="bs-stamp mb-3">New to VEQT · Start here</p>
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4 md:gap-8 items-end">
-            <div>
-              <h2
-                className="bs-display-italic text-[1.875rem] sm:text-[2.5rem] lg:text-[3rem] leading-[1.02] group-hover:text-[var(--stamp)] transition-colors"
-                style={{ color: "var(--ink)" }}
-              >
-                {startHere.title}
-              </h2>
-              <p
-                className="bs-body text-[1rem] sm:text-[1.0625rem] mt-3 leading-[1.5] max-w-[60ch]"
-                style={{ color: "var(--ink)" }}
-              >
-                {startHere.excerpt || startHere.description}
-              </p>
-            </div>
-            <p
-              className="bs-label shrink-0"
-              style={{ color: "var(--ink-soft)" }}
-            >
-              {startHere.readingTime} &nbsp;&rarr;
-            </p>
-          </div>
-        </Link>
-      )}
 
       {/* Main content */}
       {showGrouped ? (
@@ -150,9 +118,7 @@ export default function LearnContent({
               "veqt-deep-dive",
             ] as CategoryKey[]
           ).map((catKey) => {
-            const entries = (grouped[catKey] ?? []).filter(
-              (a) => a.slug !== startHere?.slug
-            );
+            const entries = grouped[catKey] ?? [];
             if (entries.length === 0) return null;
             return (
               <section key={catKey}>
