@@ -762,6 +762,310 @@ body::after {
 }
 
 /* ──────────────────────────────────────────────────────────
+   /inside-veqt region drilldown — four ETF cards with center-axis
+   sector / country bars. Ports designs/Inside-VEQT.html .region.
+   ────────────────────────────────────────────────────────── */
+
+[data-broadsheet] .bs-regions__head {
+  padding: 36px 0 18px;
+  border-bottom: 1px solid var(--ink);
+  margin-bottom: 22px;
+}
+[data-broadsheet] .bs-regions__h3 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 2rem;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin: 0;
+  color: var(--ink);
+}
+[data-broadsheet] .bs-regions__h3 em {
+  font-style: italic;
+}
+[data-broadsheet] .bs-regions__deck {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin: 8px 0 0;
+  max-width: 56ch;
+}
+[data-broadsheet] .bs-regions__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  margin-top: 22px;
+}
+@media (max-width: 900px) {
+  [data-broadsheet] .bs-regions__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 640px) {
+  [data-broadsheet] .bs-regions__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+[data-broadsheet] .bs-region {
+  padding: 24px 22px 22px;
+  border-right: 1px solid color-mix(in oklab, var(--rule) 60%, transparent);
+  border-top: 2px solid var(--ink);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+[data-broadsheet] .bs-region:last-child {
+  border-right: none;
+}
+@media (max-width: 900px) {
+  [data-broadsheet] .bs-region:nth-child(2n) {
+    border-right: none;
+  }
+}
+@media (max-width: 640px) {
+  [data-broadsheet] .bs-region {
+    border-right: none;
+  }
+}
+[data-broadsheet] .bs-region.is-leader::before {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--stamp);
+}
+
+[data-broadsheet] .bs-region__head {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0 0 4px;
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+}
+[data-broadsheet] .bs-region__name {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 1.4rem;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+[data-broadsheet] .bs-region__name em {
+  font-style: italic;
+}
+[data-broadsheet] .bs-region__ord {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--stamp);
+  font-size: 1rem;
+}
+[data-broadsheet] .bs-region__full {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  margin: 2px 0 14px;
+}
+[data-broadsheet] .bs-region__tic {
+  font-family: var(--font-sans);
+  font-style: normal;
+  font-size: 9.5px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-left: 8px;
+  padding: 1px 5px;
+  border: 1px solid color-mix(in oklab, var(--rule) 80%, transparent);
+}
+[data-broadsheet] .bs-region__pct {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 2.6rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+[data-broadsheet] .bs-region__pct.is-up {
+  color: var(--print-green, #1d5431);
+}
+[data-broadsheet] .bs-region__pct.is-dn {
+  color: var(--print-red, #8a1c1c);
+}
+[data-broadsheet] .bs-region__pct-arr {
+  font-size: 0.7em;
+  vertical-align: 2px;
+}
+[data-broadsheet] .bs-region__stat {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin: 4px 0 8px;
+}
+[data-broadsheet] .bs-region__stat-num,
+[data-broadsheet] .bs-region__stat-pp {
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+[data-broadsheet] .bs-region__stat-num {
+  color: var(--ink);
+}
+[data-broadsheet] .bs-region__stat-pp.is-up {
+  color: var(--print-green, #1d5431);
+}
+[data-broadsheet] .bs-region__stat-pp.is-dn {
+  color: var(--print-red, #8a1c1c);
+}
+
+[data-broadsheet] .bs-region__contrib {
+  margin: 6px 0 16px;
+  height: 4px;
+  position: relative;
+  background: color-mix(in oklab, var(--ink) 6%, transparent);
+}
+[data-broadsheet] .bs-region__contrib-axis {
+  position: absolute;
+  left: 50%;
+  top: -3px;
+  bottom: -3px;
+  width: 1px;
+  background: var(--ink);
+}
+[data-broadsheet] .bs-region__contrib-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+}
+[data-broadsheet] .bs-region__contrib-fill.is-up {
+  left: 50%;
+  background: var(--print-green, #1d5431);
+}
+[data-broadsheet] .bs-region__contrib-fill.is-dn {
+  right: 50%;
+  background: var(--print-red, #8a1c1c);
+}
+
+[data-broadsheet] .bs-region__drill {
+  margin-top: auto;
+}
+[data-broadsheet] .bs-region__drill-head {
+  font-family: var(--font-sans);
+  font-size: 9.5px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  font-weight: 700;
+  margin: 4px 0 10px;
+  display: flex;
+  justify-content: space-between;
+}
+[data-broadsheet] .bs-region__drill-head em {
+  font-style: italic;
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink-soft);
+}
+[data-broadsheet] .bs-region__drow {
+  display: grid;
+  grid-template-columns: minmax(0, 84px) 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 0;
+  font-size: 12px;
+  line-height: 1.2;
+}
+[data-broadsheet] .bs-region__row-name {
+  font-family: var(--font-serif);
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+[data-broadsheet] .bs-region__row-wt {
+  font-family: var(--font-sans);
+  font-size: 9.5px;
+  color: var(--ink-soft);
+  margin-left: 4px;
+  letter-spacing: 0.04em;
+}
+
+[data-broadsheet] .bs-region__dbar {
+  position: relative;
+  height: 16px;
+  background: color-mix(in oklab, var(--ink) 4%, transparent);
+}
+[data-broadsheet] .bs-region__dbar-axis {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--ink);
+}
+[data-broadsheet] .bs-region__dbar-fill {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  background: color-mix(in oklab, var(--ink) 65%, var(--paper));
+}
+/* Critical placement: up grows right from center, down grows left. */
+[data-broadsheet] .bs-region__dbar-fill.is-up {
+  left: 50%;
+}
+[data-broadsheet] .bs-region__dbar-fill.is-dn {
+  right: 50%;
+}
+[data-broadsheet] .bs-region__dbar-fill.is-lead {
+  background: var(--stamp);
+}
+[data-broadsheet] .bs-region__dbar-num {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  color: var(--ink);
+  padding: 0 5px;
+  pointer-events: none;
+}
+/* Number sits in the EMPTY half — opposite the fill — so digits never
+   overlap the bar. Verifier-caught rule. */
+[data-broadsheet] .bs-region__dbar-num.is-up {
+  right: calc(50% + 4px);
+  left: auto;
+}
+[data-broadsheet] .bs-region__dbar-num.is-dn {
+  left: calc(50% + 4px);
+  right: auto;
+}
+
+[data-broadsheet] .bs-regions__footnote {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  margin: 22px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid color-mix(in oklab, var(--rule) 50%, transparent);
+  max-width: 78ch;
+}
+
+/* ──────────────────────────────────────────────────────────
    /inside-veqt heatboard — hero copy, range/compare controls,
    summary stat band, and the hero-size VolatilityHeatmap.
    Ports designs/Inside-VEQT.html .hero + .heatboard.
