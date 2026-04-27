@@ -95,7 +95,7 @@ export default function Home() {
       style={{ backgroundColor: "var(--paper)" }}
     >
       <div className="mx-auto max-w-[1200px] px-5 sm:px-8 lg:px-12 relative">
-        <Masthead quote={quote} loading={loading} />
+        <Masthead />
 
         {/* ─────────────────────── THE LEAD ─────────────────────── */}
         <section className="py-7 sm:py-10 lg:py-12 bs-enter">

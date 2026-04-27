@@ -1,7 +1,4 @@
-"use client";
-
 import type { ReactNode } from "react";
-import { useVeqtData } from "@/lib/useVeqtData";
 import Masthead from "@/components/broadsheet/Masthead";
 import Colophon from "@/components/broadsheet/Colophon";
 
@@ -16,20 +13,14 @@ interface InteriorShellProps {
 /**
  * Interior-page shell. Wraps non-home pages in the broadsheet chrome:
  *   - data-broadsheet attribute so typography + palette tokens flip to paper+ink
- *   - compact Masthead (smaller nameplate, same nav)
+ *   - compressed Masthead (single layout for home + interior)
  *   - Colophon footer
- *
- * Shared live quote is fetched here once via useVeqtData so every interior
- * page shows the running VEQT price in its masthead without duplicate fetches.
  */
 export default function InteriorShell({
   maxWidth = "max-w-[1200px]",
   padding = "px-5 sm:px-8 lg:px-12",
   children,
 }: InteriorShellProps) {
-  const { data, loading } = useVeqtData();
-  const quote = data?.quote ?? null;
-
   return (
     <div
       data-broadsheet
@@ -37,7 +28,7 @@ export default function InteriorShell({
       style={{ backgroundColor: "var(--paper)" }}
     >
       <div className={`mx-auto ${maxWidth} ${padding} relative`}>
-        <Masthead quote={quote} loading={loading} variant="interior" />
+        <Masthead />
         <main className="relative">{children}</main>
         <Colophon />
       </div>
