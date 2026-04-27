@@ -184,7 +184,7 @@ export function VanguardEffectTimeline() {
                         height: 40,
                         width: 1,
                         borderLeft: "1px dashed #c4122f",
-                        opacity: 0.5,
+                        opacity: 0.7,
                       }}
                     />
                   )}
@@ -250,7 +250,7 @@ export function VanguardEffectTimeline() {
                         height: 40,
                         width: 1,
                         borderLeft: "1px dashed #1a6dca",
-                        opacity: 0.5,
+                        opacity: 0.7,
                       }}
                     />
                   )}
