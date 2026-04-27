@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import InteriorShell from "@/components/broadsheet/InteriorShell";
 import SectorBars from "@/components/inside-veqt/SectorBars";
+import HeatBoard from "@/components/inside-veqt/HeatBoard";
 import { FUNDS, FUND_DATA_LAST_UPDATED } from "@/data/funds";
 import { VEQT_TOP_HOLDINGS, TOP_HOLDINGS_TOTAL_WEIGHT } from "@/data/holdings";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -69,6 +70,9 @@ export default function InsideVeqtPage() {
       </section>
 
       <div className="bs-rule-thick mb-10" />
+
+      {/* ── HeatBoard: hero + summary stats + 90-day heatmap ─── */}
+      <HeatBoard />
 
       {/* ── Section 1: The Architecture ────────────────────────── */}
       <section className="mb-14 sm:mb-16">
