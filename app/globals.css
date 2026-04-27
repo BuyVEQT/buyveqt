@@ -760,3 +760,154 @@ body::after {
   mix-blend-mode: screen;
   opacity: 0.03;
 }
+
+/* ──────────────────────────────────────────────────────────
+   Volatility heatmap (homepage compact + /inside-veqt hero)
+   Ports designs/Inside-VEQT.html and Round2-Plan.html. Cell
+   colors are inline (computed by shade()); this block owns
+   layout, hover/today/dispatch states, and the tooltip.
+   ────────────────────────────────────────────────────────── */
+
+[data-broadsheet] .bs-heatmap {
+  position: relative;
+}
+
+[data-broadsheet] .bs-heatmap--compact {
+  --bs-hm-cell-h: 22px;
+  --bs-hm-gap: 3px;
+}
+[data-broadsheet] .bs-heatmap--hero {
+  --bs-hm-cell-h: 38px;
+  --bs-hm-gap: 4px;
+}
+
+[data-broadsheet] .bs-heatmap__grid {
+  display: grid;
+  gap: var(--bs-hm-gap);
+  grid-auto-flow: column;
+}
+
+[data-broadsheet] .bs-heatmap__cell {
+  position: relative;
+  appearance: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background: color-mix(in oklab, var(--ink) 5%, transparent);
+  cursor: pointer;
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+[data-broadsheet] .bs-heatmap__cell:hover {
+  transform: scale(1.16);
+  box-shadow: 0 0 0 2px var(--paper), 0 0 0 3px var(--ink);
+  z-index: 3;
+}
+[data-broadsheet] .bs-heatmap__cell:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--paper), 0 0 0 3px var(--stamp);
+  z-index: 3;
+}
+
+[data-broadsheet] .bs-heatmap__cell--empty {
+  background: transparent;
+  border: 1px dashed color-mix(in oklab, var(--ink) 14%, transparent);
+  cursor: default;
+}
+[data-broadsheet] .bs-heatmap__cell--empty:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+[data-broadsheet] .bs-heatmap__cell--today {
+  box-shadow: 0 0 0 1.5px var(--paper), 0 0 0 3px var(--stamp);
+  z-index: 1;
+}
+
+[data-broadsheet] .bs-heatmap__cell--dispatch::after {
+  content: "";
+  position: absolute;
+  right: 3px;
+  top: 3px;
+  width: 4px;
+  height: 4px;
+  background: var(--paper);
+  border: 1px solid var(--ink);
+}
+
+[data-broadsheet] .bs-heatmap__tip {
+  position: absolute;
+  z-index: 10;
+  background: var(--ink);
+  color: var(--paper);
+  padding: 10px 14px;
+  min-width: 220px;
+  border: 1px solid var(--ink);
+  box-shadow: 4px 4px 0 0 var(--rule);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  pointer-events: none;
+}
+[data-broadsheet] .bs-heatmap__tip::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: 12px;
+  width: 10px;
+  height: 10px;
+  background: var(--ink);
+  transform: rotate(45deg);
+}
+[data-broadsheet] .bs-heatmap__tip-date {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--rule);
+  margin-bottom: 4px;
+}
+[data-broadsheet] .bs-heatmap__tip-pct {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 22px;
+  line-height: 1;
+  margin: 4px 0 6px;
+  font-variant-numeric: tabular-nums;
+}
+[data-broadsheet] .bs-heatmap__tip-pct.is-up {
+  color: #6cca8b;
+}
+[data-broadsheet] .bs-heatmap__tip-pct.is-dn {
+  color: #ef8079;
+}
+[data-broadsheet] .bs-heatmap__tip-meta {
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--paper) 70%, var(--ink));
+  font-size: 9.5px;
+}
+[data-broadsheet] .bs-heatmap__tip-link {
+  display: block;
+  pointer-events: auto;
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid color-mix(in oklab, var(--paper) 30%, var(--ink));
+  color: var(--rule);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 9.5px;
+  font-weight: 700;
+  text-decoration: none;
+}
+[data-broadsheet] .bs-heatmap__tip-link:hover {
+  color: var(--paper);
+}
+
+@media (max-width: 640px) {
+  [data-broadsheet] .bs-heatmap--compact {
+    --bs-hm-cell-h: 14px;
+    --bs-hm-gap: 2px;
+  }
+  [data-broadsheet] .bs-heatmap--hero {
+    --bs-hm-cell-h: 16px;
+    --bs-hm-gap: 2px;
+  }
+}
