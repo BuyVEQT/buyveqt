@@ -3,48 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 import VolatilityHeatmap, {
   type VolatilityHeatmapEntry,
-  type VolatilitySeverity,
 } from "@/components/broadsheet/VolatilityHeatmap";
 import { useVeqtData } from "@/lib/useVeqtData";
+import { classifyReturns, type ClassifiedReturn } from "@/lib/volatility";
 
 type Range = "30D" | "90D" | "YTD" | "1Y";
 
-interface DailyReturn {
-  date: string;
-  pct: number;
-  severity: VolatilitySeverity;
-}
-
-function computeReturns(
-  historical: { date: string; close: number }[]
-): { returns: DailyReturn[]; sigma: number } {
-  const returns: { date: string; pct: number }[] = [];
-  for (let i = 1; i < historical.length; i += 1) {
-    const prev = historical[i - 1].close;
-    const curr = historical[i].close;
-    if (prev > 0 && Number.isFinite(prev) && Number.isFinite(curr)) {
-      returns.push({
-        date: historical[i].date,
-        pct: ((curr - prev) / prev) * 100,
-      });
-    }
-  }
-  if (returns.length === 0) return { returns: [], sigma: 0 };
-  const mean = returns.reduce((s, r) => s + r.pct, 0) / returns.length;
-  const variance =
-    returns.reduce((s, r) => s + (r.pct - mean) ** 2, 0) / returns.length;
-  const sigma = Math.sqrt(variance);
-
-  const classified: DailyReturn[] = returns.map((r) => {
-    const z = sigma > 0 ? Math.abs(r.pct) / sigma : 0;
-    const severity: VolatilitySeverity =
-      z < 1 ? "typical" : z < 2 ? "notable" : z < 3 ? "unusual" : "rare";
-    return { date: r.date, pct: r.pct, severity };
-  });
-  return { returns: classified, sigma };
-}
-
-function sliceByRange(returns: DailyReturn[], range: Range): DailyReturn[] {
+function sliceByRange(returns: ClassifiedReturn[], range: Range): ClassifiedReturn[] {
   if (returns.length === 0) return [];
   if (range === "30D") return returns.slice(-30);
   if (range === "90D") return returns.slice(-90);
@@ -71,9 +36,9 @@ export default function HeatBoard() {
   const { data, loading } = useVeqtData();
   const [range, setRange] = useState<Range>("90D");
 
-  const { returns: allReturns, sigma } = useMemo(() => {
+  const { returns: allReturns } = useMemo(() => {
     if (!data?.historical) return { returns: [], sigma: 0 };
-    return computeReturns(data.historical);
+    return classifyReturns(data.historical);
   }, [data?.historical]);
 
   const slice = useMemo(() => sliceByRange(allReturns, range), [allReturns, range]);
@@ -94,8 +59,8 @@ export default function HeatBoard() {
     if (slice.length === 0) {
       return {
         arc: null as number | null,
-        worst: null as DailyReturn | null,
-        best: null as DailyReturn | null,
+        worst: null as ClassifiedReturn | null,
+        best: null as ClassifiedReturn | null,
         realisedVol: null as number | null,
       };
     }

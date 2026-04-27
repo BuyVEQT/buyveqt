@@ -12,6 +12,8 @@ import SeverityMeter from "@/components/broadsheet/SeverityMeter";
 import EditionRecommends, {
   type RecommendsZone,
 } from "@/components/broadsheet/EditionRecommends";
+import VolatilityHeatmap from "@/components/broadsheet/VolatilityHeatmap";
+import { classifyReturns, toHeatmapHistory } from "@/lib/volatility";
 import HeroSparkline from "@/components/broadsheet/HeroSparkline";
 import { useRegions } from "@/lib/useRegions";
 import { computeLeadHeadline } from "@/lib/lead-headline";
@@ -76,6 +78,14 @@ export default function Home() {
     () => computeSeverity(fullHistory ?? historical, quote?.changePercent),
     [fullHistory, historical, quote?.changePercent]
   );
+
+  // 90-day heatmap data — computed from the same historical series.
+  const heatmapHistory = useMemo(() => {
+    const source = fullHistory ?? historical;
+    if (!source || source.length < 2) return [];
+    const { returns } = classifyReturns(source);
+    return toHeatmapHistory(returns.slice(-90));
+  }, [fullHistory, historical]);
 
   // Inception return — prefer the full since-inception fetch so the "If you'd
   // bought $10k at launch" math is anchored to actual Jan 2019 pricing rather
@@ -146,6 +156,32 @@ export default function Home() {
             <SeverityMeter reading={severity} loading={loading} />
           </div>
         </section>
+
+        {/* ─────────────────────── 90-DAY HEATMAP ─────────────────────── */}
+        {heatmapHistory.length > 0 && (
+          <section className="pb-6 sm:pb-8 bs-enter">
+            <Link
+              href="/inside-veqt#heatmap"
+              className="bs-heatmap-link"
+              aria-label="Open the full 90-day session board on Inside VEQT"
+            >
+              <div className="bs-heatmap-link__cta">
+                <span>Ninety sessions of weather</span>
+                <span>
+                  See the full board{" "}
+                  <span className="bs-heatmap-link__cta-arrow" aria-hidden>
+                    →
+                  </span>
+                </span>
+              </div>
+              <VolatilityHeatmap
+                history={heatmapHistory}
+                size="compact"
+                todayIndex={heatmapHistory.length - 1}
+              />
+            </Link>
+          </section>
+        )}
 
         {/* ─────────────────── TODAY'S EDITION RECOMMENDS ─────────────────── */}
         {severity && (

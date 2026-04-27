@@ -762,6 +762,54 @@ body::after {
 }
 
 /* ──────────────────────────────────────────────────────────
+   Homepage click-throughs: wrap heatmap + region cards in links
+   that lead into /inside-veqt. Subtle paper-deep hover background;
+   no underline (cards already read as interactive).
+   ────────────────────────────────────────────────────────── */
+
+[data-broadsheet] .bs-heatmap-link {
+  display: block;
+  position: relative;
+  text-decoration: none;
+  color: inherit;
+  padding: 12px;
+  margin: -12px;
+  transition: background 0.15s;
+}
+[data-broadsheet] .bs-heatmap-link:hover,
+[data-broadsheet] .bs-heatmap-link:focus-visible {
+  background: color-mix(in oklab, var(--paper-deep) 60%, var(--paper));
+}
+[data-broadsheet] .bs-heatmap-link__cta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  font-family: var(--font-sans);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+[data-broadsheet] .bs-heatmap-link__cta-arrow {
+  color: var(--stamp);
+}
+
+[data-broadsheet] .bs-region-card-link {
+  text-decoration: none;
+  color: inherit;
+  padding: 0 8px;
+  margin: 0 -8px;
+  transition: background 0.15s;
+}
+[data-broadsheet] .bs-region-card-link:hover,
+[data-broadsheet] .bs-region-card-link:focus-visible {
+  background: color-mix(in oklab, var(--paper-deep) 60%, var(--paper));
+}
+
+/* ──────────────────────────────────────────────────────────
    /inside-veqt region drilldown — four ETF cards with center-axis
    sector / country bars. Ports designs/Inside-VEQT.html .region.
    ────────────────────────────────────────────────────────── */

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { Region } from "@/lib/useRegions";
 import { getComposition } from "@/data/sleeve-composition";
 import RegionSparkline from "@/components/broadsheet/RegionSparkline";
@@ -86,10 +87,13 @@ export default function RegionCards({ regions, loading }: RegionCardsProps) {
 
         const dispatchNumber = String(idx + 1).padStart(2, "0");
 
+        const slug = r.ticker.replace(/\.TO$/i, "").toLowerCase();
         return (
-          <article
+          <Link
             key={r.ticker}
-            className="relative pt-5 border-t-2 border-[var(--ink)] flex flex-col"
+            href={`/inside-veqt#regions-${slug}`}
+            className="bs-region-card-link relative pt-5 border-t-2 border-[var(--ink)] flex flex-col"
+            aria-label={`See ${r.label} drilldown on Inside VEQT`}
           >
             {/* ── Identity strip ── */}
             <header className="flex items-start gap-3 mb-4">
@@ -280,7 +284,7 @@ export default function RegionCards({ regions, loading }: RegionCardsProps) {
                 </ul>
               </div>
             )}
-          </article>
+          </Link>
         );
       })}
     </div>
