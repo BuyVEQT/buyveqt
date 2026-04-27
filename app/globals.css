@@ -762,6 +762,30 @@ body::after {
 }
 
 /* ──────────────────────────────────────────────────────────
+   Tilt bar — geographic allocation strip used in StatsTable's
+   Tilt row. 4 segments: US / Canada / Intl Developed / EM.
+   ────────────────────────────────────────────────────────── */
+
+[data-broadsheet] .bs-tilt-bar {
+  display: flex;
+  width: 80px;
+  height: 12px;
+  border: 1px solid color-mix(in oklab, var(--ink) 25%, transparent);
+}
+@media (min-width: 640px) {
+  [data-broadsheet] .bs-tilt-bar {
+    width: 120px;
+  }
+}
+[data-broadsheet] .bs-tilt-bar__seg {
+  display: block;
+  height: 100%;
+}
+[data-broadsheet] .bs-tilt-bar__seg + .bs-tilt-bar__seg {
+  border-left: 1px solid color-mix(in oklab, var(--paper) 50%, transparent);
+}
+
+/* ──────────────────────────────────────────────────────────
    Today's edition recommends — homepage rec-board
    Ports designs/Round2-Plan.html .rec-board.
    ────────────────────────────────────────────────────────── */

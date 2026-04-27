@@ -1,11 +1,13 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useState, useEffect } from "react";
 import { FUNDS, FUND_DATA_LAST_UPDATED } from "@/data/funds";
 import type { DataSourceType } from "@/lib/types";
 import type { RiskMetrics } from "@/lib/risk-metrics";
 import DataFreshness from "@/components/ui/DataFreshness";
 import StaleBanner from "@/components/ui/StaleBanner";
+import TiltBar from "@/components/compare/TiltBar";
 
 interface FundQuote {
   price: number | null;
@@ -29,6 +31,7 @@ interface Row {
   getValue: (ticker: string, quote: FundQuote | null) => string;
   highlight: HighlightMode;
   getNumericValue?: (ticker: string, quote: FundQuote | null) => number | null;
+  render?: (ticker: string, quote: FundQuote | null) => ReactNode;
 }
 
 export default function StatsTable({ selectedFunds }: StatsTableProps) {
@@ -168,6 +171,14 @@ export default function StatsTable({ selectedFunds }: StatsTableProps) {
       },
       highlight: "none",
     },
+    {
+      // Geographic stack-bar: US / Canada / Intl / EM. Matches the
+      // segment colors locked in TASKS.md (ink tints + stamp for EM).
+      label: "Tilt",
+      getValue: () => "",
+      highlight: "none",
+      render: (t) => <TiltBar ticker={t} />,
+    },
   ];
 
   function getBest(row: Row): string | null {
@@ -286,6 +297,8 @@ export default function StatsTable({ selectedFunds }: StatsTableProps) {
                       >
                         {skeletalRow ? (
                           <div className="skeleton h-4 w-14" />
+                        ) : row.render ? (
+                          row.render(t, quotes[t] ?? null)
                         ) : (
                           <span
                             style={{
