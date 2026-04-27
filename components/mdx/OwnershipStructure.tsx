@@ -11,9 +11,12 @@ function VanguardDiagram() {
       role="img"
       aria-label="Three concentric rings sharing one center: investors, funds, Vanguard Inc."
     >
-      {/* Three concentric rings, all centered */}
-      <circle cx={140} cy={140} r={120} fill="none" stroke={VANGUARD_RED} strokeWidth={2.5} opacity={0.4} />
-      <circle cx={140} cy={140} r={80}  fill="none" stroke={VANGUARD_RED} strokeWidth={2.5} opacity={0.7} />
+      {/* Three concentric rings, all centered.
+          Opacities tuned for legibility on light card background (#ffffff) — low opacities
+          wash out against white but read fine on dark; bumped up to maintain visual hierarchy
+          (outer is still relatively softer than inner) without losing edge definition in light mode. */}
+      <circle cx={140} cy={140} r={120} fill="none" stroke={VANGUARD_RED} strokeWidth={2.5} opacity={0.65} />
+      <circle cx={140} cy={140} r={80}  fill="none" stroke={VANGUARD_RED} strokeWidth={2.5} opacity={0.85} />
       <circle cx={140} cy={140} r={40}  fill="none" stroke={VANGUARD_RED} strokeWidth={2.5} opacity={1.0} />
       {/* Center dot — the single locus of ownership */}
       <circle cx={140} cy={140} r={4} fill={VANGUARD_RED} />
@@ -48,8 +51,8 @@ function VanguardDiagram() {
           At y=124, inner-ring stroke crosses x=103/177 — text at fontSize 10 is ~50px wide, fits comfortably. */}
       <text
         x={140}
-        y={126}
-        fontSize={10}
+        y={127}
+        fontSize={11}
         fontWeight={700}
         textAnchor="middle"
         fill={VANGUARD_RED}
@@ -71,16 +74,17 @@ function BlackRockDiagram() {
       role="img"
       aria-label="Two separate constituencies on either side of BlackRock Inc.: fund investors and BLK shareholders."
     >
-      {/* Brackets above showing two distinct groups */}
-      <line x1={20}  y1={68} x2={120} y2={68} stroke={BLACKROCK_BLUE} strokeWidth={1} opacity={0.5} />
-      <line x1={20}  y1={68} x2={20}  y2={78} stroke={BLACKROCK_BLUE} strokeWidth={1} opacity={0.5} />
-      <line x1={120} y1={68} x2={120} y2={78} stroke={BLACKROCK_BLUE} strokeWidth={1} opacity={0.5} />
-      <line x1={160} y1={68} x2={260} y2={68} stroke={BLACKROCK_BLUE} strokeWidth={1} opacity={0.5} />
-      <line x1={160} y1={68} x2={160} y2={78} stroke={BLACKROCK_BLUE} strokeWidth={1} opacity={0.5} />
-      <line x1={260} y1={68} x2={260} y2={78} stroke={BLACKROCK_BLUE} strokeWidth={1} opacity={0.5} />
-      {/* Bracket caption */}
-      <text x={70}  y={58} fontSize={9} fontWeight={700} textAnchor="middle" fill={BLACKROCK_BLUE} style={{ letterSpacing: "0.08em" }} opacity={0.85}>GROUP A</text>
-      <text x={210} y={58} fontSize={9} fontWeight={700} textAnchor="middle" fill={BLACKROCK_BLUE} style={{ letterSpacing: "0.08em" }} opacity={0.85}>GROUP B</text>
+      {/* Brackets above showing two distinct groups.
+          Stroke and opacity bumped from 1/0.5 to 1.25/0.75 for light-mode legibility against #ffffff. */}
+      <line x1={20}  y1={68} x2={120} y2={68} stroke={BLACKROCK_BLUE} strokeWidth={1.25} opacity={0.75} />
+      <line x1={20}  y1={68} x2={20}  y2={78} stroke={BLACKROCK_BLUE} strokeWidth={1.25} opacity={0.75} />
+      <line x1={120} y1={68} x2={120} y2={78} stroke={BLACKROCK_BLUE} strokeWidth={1.25} opacity={0.75} />
+      <line x1={160} y1={68} x2={260} y2={68} stroke={BLACKROCK_BLUE} strokeWidth={1.25} opacity={0.75} />
+      <line x1={160} y1={68} x2={160} y2={78} stroke={BLACKROCK_BLUE} strokeWidth={1.25} opacity={0.75} />
+      <line x1={260} y1={68} x2={260} y2={78} stroke={BLACKROCK_BLUE} strokeWidth={1.25} opacity={0.75} />
+      {/* Bracket caption — fontSize bumped 9 → 10, opacity removed for light-mode legibility */}
+      <text x={70}  y={58} fontSize={10} fontWeight={700} textAnchor="middle" fill={BLACKROCK_BLUE} style={{ letterSpacing: "0.08em" }}>GROUP A</text>
+      <text x={210} y={58} fontSize={10} fontWeight={700} textAnchor="middle" fill={BLACKROCK_BLUE} style={{ letterSpacing: "0.08em" }}>GROUP B</text>
 
       {/* Connecting line beneath the circles, drawn first so the center circle paints over its endpoints */}
       <line x1={120} y1={140} x2={160} y2={140} stroke={BLACKROCK_BLUE} strokeWidth={2.5} />
@@ -99,8 +103,9 @@ function BlackRockDiagram() {
           Filled with brand blue so it reads as the focal pivot between the two groups. */}
       <circle cx={140} cy={140} r={20} fill={BLACKROCK_BLUE} stroke={BLACKROCK_BLUE} strokeWidth={2.5} />
       <text x={140} y={144} fontSize={10} fontWeight={700} textAnchor="middle" fill="#ffffff" style={{ letterSpacing: "0.04em" }}>BLK</text>
-      {/* Label callout below the entire row of circles (cy=140, r=50 → bottom at y=190; place at y=210 with clearance) */}
-      <text x={140} y={214} fontSize={10} fontWeight={700} textAnchor="middle" fill={BLACKROCK_BLUE} style={{ letterSpacing: "0.06em" }}>BLACKROCK INC.</text>
+      {/* Label callout below the entire row of circles (cy=140, r=50 → bottom at y=190; place at y=216 with clearance).
+          fontSize bumped 10 → 11 for light-mode legibility. */}
+      <text x={140} y={216} fontSize={11} fontWeight={700} textAnchor="middle" fill={BLACKROCK_BLUE} style={{ letterSpacing: "0.06em" }}>BLACKROCK INC.</text>
     </svg>
   );
 }
