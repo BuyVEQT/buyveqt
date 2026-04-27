@@ -119,28 +119,15 @@ export function VanguardEffectTimeline() {
 
       {/* Desktop-only: dual-rail visual */}
       <div className="hidden sm:block">
-        {/* Time axis labels */}
-        <div className="relative mb-1" style={{ paddingLeft: "10%" }}>
-          {["1976", "2000", "2018", "2019", "2025"].map((y) => {
-            const pos = POSITIONS[y] ?? (y === "2000" ? 0.27 : 0);
-            return (
-              <span
-                key={y}
-                className="absolute text-[10px] tabular-nums text-[var(--color-text-muted)]"
-                style={{ left: `${10 + pos * 88}%`, transform: "translateX(-50%)" }}
-              >
-                {y}
-              </span>
-            );
-          })}
-          {/* Spacer so labels have room */}
-          <div style={{ height: 16 }} />
-        </div>
+        {/* Each event labels its own date inline; no separate time axis needed (would duplicate). */}
 
-        {/* Rails container */}
-        <div className="relative" style={{ height: 220 }}>
+        {/* Rails container — taller to give each rail's labels their own vertical lane.
+            Vanguard labels live ABOVE the Vanguard rail (top zone).
+            Industry labels live BELOW the Industry rail (bottom zone).
+            Within each rail, close-spaced labels stagger to a second sub-row to avoid collision. */}
+        <div className="relative" style={{ height: 280 }}>
           {/* ── Vanguard rail ── */}
-          <div className="absolute" style={{ top: 60, left: 0, right: 0 }}>
+          <div className="absolute" style={{ top: 110, left: 0, right: 0 }}>
             {/* Rail label */}
             <div
               className="absolute text-[11px] font-bold uppercase tracking-[0.1em]"
@@ -158,33 +145,56 @@ export function VanguardEffectTimeline() {
                 background: "var(--color-border)",
               }}
             />
-            {/* Vanguard event dots + labels */}
-            {VANGUARD_EVENTS.map((e) => (
-              <div
-                key={e.date}
-                className="absolute"
-                style={{ left: railLeft(POSITIONS[e.date]), transform: "translateX(-50%)", top: 0 }}
-              >
-                {/* Dot */}
+            {/* Vanguard event dots + labels above; close-spaced events stagger to second sub-row */}
+            {VANGUARD_EVENTS.map((e, i) => {
+              // Detect collision with previous event on same rail (closer than 15% triggers second row)
+              const prev = VANGUARD_EVENTS[i - 1];
+              const closeToPrev = prev && Math.abs(POSITIONS[e.date] - POSITIONS[prev.date]) < 0.15;
+              const stackedRow = closeToPrev ? 1 : 0;
+              const labelOffset = stackedRow === 0 ? 8 : 56; // mb-2 (8px) or mb-14 (56px)
+              return (
                 <div
-                  className="w-3 h-3 rounded-full mx-auto"
-                  style={{ background: "#c4122f" }}
-                />
-                {/* Label above */}
-                <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 whitespace-nowrap text-center">
-                  <p className="text-[11px] font-semibold text-[var(--color-text-primary)]">
-                    {e.title}
-                  </p>
-                  <p className="text-[10px] tabular-nums text-[var(--color-text-muted)]">
-                    {e.date}
-                  </p>
+                  key={e.date}
+                  className="absolute"
+                  style={{ left: railLeft(POSITIONS[e.date]), transform: "translateX(-50%)", top: 0 }}
+                >
+                  {/* Dot */}
+                  <div
+                    className="w-3 h-3 rounded-full mx-auto"
+                    style={{ background: "#c4122f" }}
+                  />
+                  {/* Label above (in upper zone, stacked if close to previous event) */}
+                  <div
+                    className="absolute left-1/2 -translate-x-1/2 text-center"
+                    style={{ bottom: `calc(100% + ${labelOffset}px)`, maxWidth: 140, width: "max-content" }}
+                  >
+                    <p className="text-[11px] font-semibold leading-tight text-[var(--color-text-primary)]">
+                      {e.title}
+                    </p>
+                    <p className="text-[10px] tabular-nums text-[var(--color-text-muted)]">
+                      {e.date}
+                    </p>
+                  </div>
+                  {/* Connector line from dot up to staggered label */}
+                  {stackedRow === 1 && (
+                    <div
+                      className="absolute left-1/2 -translate-x-1/2"
+                      style={{
+                        bottom: "calc(100% + 8px)",
+                        height: 40,
+                        width: 1,
+                        borderLeft: "1px dashed #c4122f",
+                        opacity: 0.5,
+                      }}
+                    />
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* ── Industry rail ── */}
-          <div className="absolute" style={{ top: 150, left: 0, right: 0 }}>
+          <div className="absolute" style={{ top: 190, left: 0, right: 0 }}>
             {/* Rail label */}
             <div
               className="absolute text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--color-text-muted)]"
@@ -202,32 +212,54 @@ export function VanguardEffectTimeline() {
                 background: "var(--color-border)",
               }}
             />
-            {/* Industry event dots + labels */}
-            {INDUSTRY_EVENTS.map((e) => (
-              <div
-                key={e.date}
-                className="absolute"
-                style={{ left: railLeft(POSITIONS[e.date]), transform: "translateX(-50%)", top: 0 }}
-              >
-                {/* Dot */}
+            {/* Industry event dots + labels below; close-spaced events stagger to second sub-row */}
+            {INDUSTRY_EVENTS.map((e, i) => {
+              const prev = INDUSTRY_EVENTS[i - 1];
+              const closeToPrev = prev && Math.abs(POSITIONS[e.date] - POSITIONS[prev.date]) < 0.15;
+              const stackedRow = closeToPrev ? 1 : 0;
+              const labelOffset = stackedRow === 0 ? 8 : 56;
+              return (
                 <div
-                  className="w-3 h-3 rounded-full mx-auto"
-                  style={{ background: "#1a6dca" }}
-                />
-                {/* Label below */}
-                <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 whitespace-nowrap text-center">
-                  <p className="text-[11px] font-semibold text-[var(--color-text-primary)]">
-                    {e.title}
-                  </p>
-                  <p className="text-[10px] tabular-nums text-[var(--color-text-muted)]">
-                    {e.date}
-                  </p>
+                  key={e.date}
+                  className="absolute"
+                  style={{ left: railLeft(POSITIONS[e.date]), transform: "translateX(-50%)", top: 0 }}
+                >
+                  {/* Dot */}
+                  <div
+                    className="w-3 h-3 rounded-full mx-auto"
+                    style={{ background: "#1a6dca" }}
+                  />
+                  {/* Label below (in lower zone, stacked if close to previous event) */}
+                  <div
+                    className="absolute left-1/2 -translate-x-1/2 text-center"
+                    style={{ top: `calc(100% + ${labelOffset}px)`, maxWidth: 140, width: "max-content" }}
+                  >
+                    <p className="text-[11px] font-semibold leading-tight text-[var(--color-text-primary)]">
+                      {e.title}
+                    </p>
+                    <p className="text-[10px] tabular-nums text-[var(--color-text-muted)]">
+                      {e.date}
+                    </p>
+                  </div>
+                  {/* Connector line from dot down to staggered label */}
+                  {stackedRow === 1 && (
+                    <div
+                      className="absolute left-1/2 -translate-x-1/2"
+                      style={{
+                        top: "calc(100% + 8px)",
+                        height: 40,
+                        width: 1,
+                        borderLeft: "1px dashed #1a6dca",
+                        opacity: 0.5,
+                      }}
+                    />
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
-          {/* ── Delay connectors ── */}
+          {/* ── Delay connectors (Vanguard rail dot → Industry rail dot) ── */}
           {INDUSTRY_EVENTS.filter((e) => e.delayFromPrev).map((e) => (
             <div
               key={`delay-${e.date}`}
@@ -235,12 +267,12 @@ export function VanguardEffectTimeline() {
               style={{
                 left: railLeft(POSITIONS[e.date]),
                 transform: "translateX(-50%)",
-                top: 65,
+                top: 115,
                 height: 80,
                 width: 1,
               }}
             >
-              {/* Dashed vertical line */}
+              {/* Dashed vertical line connecting Vanguard rail (top: 110+5) to Industry rail (top: 190+5) */}
               <div
                 className="h-full mx-auto"
                 style={{
@@ -251,7 +283,7 @@ export function VanguardEffectTimeline() {
               {/* Delay label */}
               <div
                 className="absolute left-2 text-[10px] font-semibold whitespace-nowrap"
-                style={{ top: "30%", color: "#1a6dca" }}
+                style={{ top: "35%", color: "#1a6dca" }}
               >
                 {e.delayFromPrev}
               </div>
