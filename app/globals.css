@@ -3,9 +3,15 @@
 /* ── Editorial Finance Design System ────────────────────────── */
 
 @theme inline {
-  /* Light — warm cream paper */
-  --color-base: #f7f5f0;
-  --color-base-warm: #f0ece4;
+  /* Light — warm cream paper.
+   * NOTE: --color-base / --color-base-warm are intentionally NOT in @theme.
+   * Tailwind v4 auto-generates `text-{name}` color utilities for every
+   * --color-* token, and `text-base` collides with the default font-size
+   * utility — silently turning every `text-base` in the codebase into a
+   * color class set to the cream paper color. Cream-on-cream is invisible
+   * in light mode. We declare those two below in plain :root so
+   * `var(--color-base)` still resolves but `text-base` keeps its font-size
+   * meaning. */
   --color-card: #ffffff;
   --color-card-hover: #faf8f4;
   --color-border: #e0dbd2;
