@@ -26,7 +26,7 @@ export default function WhoThisSuits({ selectedFunds }: WhoThisSuitsProps) {
           className="bs-display text-[1.25rem] sm:text-[1.5rem] leading-tight"
           style={{ color: "var(--ink)" }}
         >
-          <em className="bs-display-italic">Who each fund</em> is for
+          <em>Who each fund</em> is for
         </h2>
       </header>
 
@@ -54,7 +54,7 @@ export default function WhoThisSuits({ selectedFunds }: WhoThisSuitsProps) {
 
               <div className="min-w-0">
                 <h3
-                  className="bs-display-italic text-[1.25rem] sm:text-[1.5rem] leading-[1.15]"
+                  className="bs-display text-[1.25rem] sm:text-[1.5rem] leading-[1.15]"
                   style={{
                     color: isVeqt ? "var(--stamp)" : "var(--ink)",
                   }}

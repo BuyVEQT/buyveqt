@@ -6,6 +6,12 @@ import { severitySentence } from "@/lib/severity";
 interface Props {
   reading: SeverityReading | null;
   loading: boolean;
+  /**
+   * When true: hides the inline legend, hides the prose sentence, and
+   * halves the gauge height. Renders as an ~80px-tall horizontal strip:
+   * gauge on top, current severity word + benchmark caption underneath.
+   */
+  compact?: boolean;
 }
 
 /**
@@ -20,13 +26,19 @@ interface Props {
  *   3. The behavioural sentence underneath is keyed to the zone, so a
  *      holder gets a specific read of today rather than a template.
  */
-export default function SeverityMeter({ reading, loading }: Props) {
+export default function SeverityMeter({ reading, loading, compact = false }: Props) {
   if (loading || !reading) {
     return (
-      <div className="mt-7 sm:mt-9 pt-5 border-t border-[var(--ink)]">
+      <div
+        className={
+          compact
+            ? "py-3 border-t border-b border-[var(--ink)]"
+            : "mt-7 sm:mt-9 pt-5 border-t border-[var(--ink)]"
+        }
+      >
         <p className="bs-label">How unusual is today?</p>
-        <div className="mt-3 h-[22px] skeleton" />
-        <div className="mt-2 h-3 w-3/4 skeleton" />
+        <div className={`mt-3 ${compact ? "h-[10px]" : "h-[22px]"} skeleton`} />
+        {!compact && <div className="mt-2 h-3 w-3/4 skeleton" />}
       </div>
     );
   }
@@ -61,7 +73,13 @@ export default function SeverityMeter({ reading, loading }: Props) {
   ];
 
   return (
-    <div className="mt-7 sm:mt-9 pt-5 border-t border-[var(--ink)]">
+    <div
+      className={
+        compact
+          ? "py-3 border-t border-b border-[var(--ink)]"
+          : "mt-7 sm:mt-9 pt-5 border-t border-[var(--ink)]"
+      }
+    >
       {/* Header row: label on the left, typical-day benchmark on the right */}
       <div className="flex items-baseline justify-between gap-3">
         <p className="bs-label">How unusual is today?</p>
@@ -69,28 +87,40 @@ export default function SeverityMeter({ reading, loading }: Props) {
           className="bs-caption italic text-[12px]"
           style={{ color: "var(--ink-soft)" }}
         >
-          A typical session moves ±{typicalMovePercent.toFixed(2)}%.
+          {compact ? (
+            <>
+              <span style={{ color: "var(--ink)" }}>{reading.zone} day</span>
+              {" · "}
+              typical ±{typicalMovePercent.toFixed(2)}%
+            </>
+          ) : (
+            <>A typical session moves ±{typicalMovePercent.toFixed(2)}%.</>
+          )}
         </p>
       </div>
 
       {/* Marker callout — "Typical day" etc. floats above the marker so the
           reader sees both their location and what it's called, without
-          stuffing four labels onto a strip where zones are asymmetric. */}
-      <div className="relative mt-4 h-5">
-        <span
-          className="absolute -translate-x-1/2 bs-label whitespace-nowrap"
-          style={{
-            left: `${Math.max(8, Math.min(92, markerPosition))}%`,
-            color: "var(--stamp)",
-          }}
-        >
-          {reading.zone} day
-        </span>
-      </div>
+          stuffing four labels onto a strip where zones are asymmetric.
+          In compact mode, the zone word moves to the header row to save
+          vertical space. */}
+      {!compact && (
+        <div className="relative mt-4 h-5">
+          <span
+            className="absolute -translate-x-1/2 bs-label whitespace-nowrap"
+            style={{
+              left: `${Math.max(8, Math.min(92, markerPosition))}%`,
+              color: "var(--stamp)",
+            }}
+          >
+            {reading.zone} day
+          </span>
+        </div>
+      )}
 
       {/* The strip itself */}
       <div
-        className="relative h-[20px] overflow-hidden"
+        className={`relative ${compact ? "h-[10px] mt-2" : "h-[20px]"} overflow-hidden`}
         style={{
           backgroundColor: "color-mix(in oklab, var(--ink) 4%, transparent)",
         }}
@@ -165,44 +195,48 @@ export default function SeverityMeter({ reading, loading }: Props) {
       {/* Inline legend — reads left-to-right, no alignment games. Active zone
           is rendered in full ink, others fade. This is how the reader learns
           which zone is which, without per-zone labels overlapping. */}
-      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 bs-label">
-        {zones.map((z) => {
-          const active = z.label === reading.zone;
-          return (
-            <span
-              key={z.label}
-              style={{
-                color: active ? "var(--ink)" : "var(--ink-soft)",
-                opacity: active ? 1 : 0.75,
-              }}
-            >
+      {!compact && (
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 bs-label">
+          {zones.map((z) => {
+            const active = z.label === reading.zone;
+            return (
               <span
-                aria-hidden
-                className="inline-block w-[8px] h-[8px] mr-[0.45em] align-middle"
+                key={z.label}
                 style={{
-                  backgroundColor: `color-mix(in oklab, var(--ink) ${z.shade + 8}%, transparent)`,
-                  borderRadius: 1,
+                  color: active ? "var(--ink)" : "var(--ink-soft)",
+                  opacity: active ? 1 : 0.75,
                 }}
-              />
-              {z.label}{" "}
-              <span
-                className="opacity-70"
-                style={{ fontFeatureSettings: "'tnum' 1" }}
               >
-                {fmtFreq(z.frequency)} of days
+                <span
+                  aria-hidden
+                  className="inline-block w-[8px] h-[8px] mr-[0.45em] align-middle"
+                  style={{
+                    backgroundColor: `color-mix(in oklab, var(--ink) ${z.shade + 8}%, transparent)`,
+                    borderRadius: 1,
+                  }}
+                />
+                {z.label}{" "}
+                <span
+                  className="opacity-70"
+                  style={{ fontFeatureSettings: "'tnum' 1" }}
+                >
+                  {fmtFreq(z.frequency)} of days
+                </span>
               </span>
-            </span>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Editorial sentence — the behavioural anchor */}
-      <p
-        className="bs-body mt-5 text-[15px] sm:text-[16px] leading-[1.55] max-w-[58ch]"
-        style={{ color: "var(--ink)" }}
-      >
-        {severitySentence(reading)}
-      </p>
+      {!compact && (
+        <p
+          className="bs-body mt-5 text-[15px] sm:text-[16px] leading-[1.55] max-w-[58ch]"
+          style={{ color: "var(--ink)" }}
+        >
+          {severitySentence(reading)}
+        </p>
+      )}
     </div>
   );
 }

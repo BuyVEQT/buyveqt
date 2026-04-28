@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The VEQT Daily — A Critique of the Paper</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500;1,9..144,600&family=Newsreader:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0f0d0a;
+    --ink-soft: #2a2520;
+    --ink-mute: #5b5147;
+    --paper: #f6efdc;
+    --paper-deep: #ede3ca;
+    --rule: #b8a66e;
+    --stamp: #8a1c1c;
+    --green: #1d5431;
+    --red: #8a1c1c;
+    --display: 'Fraunces', Georgia, serif;
+    --serif: 'Newsreader', Georgia, serif;
+    --sans: 'Outfit', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 17px;
+    line-height: 1.55;
+    position: relative;
+    overflow-x: hidden;
+  }
+  body::after {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 9999;
+    opacity: .06;
+    background-image: repeating-linear-gradient(90deg, transparent 0 2px, rgba(0,0,0,.18) 2px 3px);
+    mix-blend-mode: multiply;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 28px 36px 80px; position: relative; }
+
+  /* ── Masthead ───────────────────────────────────────────── */
+  .top {
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: var(--sans);
+    font-size: 10.5px; letter-spacing: .22em; text-transform: uppercase;
+    color: var(--ink-soft);
+    padding-bottom: 8px;
+  }
+  .top .stamp { color: var(--stamp); font-weight: 700; letter-spacing: .28em; }
+  .top .stamp::before {
+    content: ""; display: inline-block; width: 6px; height: 6px;
+    border-radius: 50%; background: var(--stamp); margin-right: .5em; vertical-align: middle;
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse { 50% { opacity: .45; } }
+  .rule-thick { border-top: 3px solid var(--ink); border-bottom: 1px solid var(--ink); height: 6px; }
+  .rule-thin { border-top: 1px solid var(--ink); height: 0; }
+  .rule-double { border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); height: 4px; margin: 6px 0; }
+
+  .nameplate {
+    display: flex; align-items: flex-end; justify-content: space-between; gap: 24px;
+    padding: 14px 0 18px;
+  }
+  .nameplate h1 {
+    font-family: var(--display); font-weight: 500;
+    font-size: 4.5rem; line-height: .92; letter-spacing: -0.025em;
+    margin: 0; color: var(--ink);
+    font-feature-settings: "ss01";
+  }
+  .nameplate .tag {
+    font-family: var(--display); font-style: italic; font-weight: 500;
+    font-size: 1.1rem; color: var(--ink-soft); margin-top: 6px;
+    max-width: 30ch; text-align: right; line-height: 1.25;
+  }
+  nav.depts {
+    display: flex; gap: 26px; padding: 8px 0 4px;
+    font-family: var(--sans); font-size: 10.5px; letter-spacing: .22em; text-transform: uppercase;
+    color: var(--ink-soft); font-weight: 600;
+  }
+  nav.depts span:first-child { color: var(--stamp); }
+
+  /* ── Lead ───────────────────────────────────────────────── */
+  .lead { padding: 36px 0 28px; max-width: 56rem; }
+  .verdict-stamp {
+    display: inline-block; border: 2px solid var(--stamp); color: var(--stamp);
+    padding: 4px 10px 3px; font-family: var(--sans); font-weight: 700;
+    font-size: 10px; letter-spacing: .3em; text-transform: uppercase;
+    transform: rotate(-1.5deg); margin-bottom: 14px;
+  }
+  .lead h2 {
+    font-family: var(--display); font-style: italic; font-weight: 500;
+    font-size: 2.6rem; line-height: 1.05; letter-spacing: -0.02em;
+    margin: 0 0 18px; color: var(--ink);
+    max-width: 22ch;
+  }
+  .lead .deck {
+    font-family: var(--display); font-weight: 400;
+    font-size: 1.15rem; line-height: 1.5; color: var(--ink-soft);
+    max-width: 56ch; margin: 0;
+  }
+  .byline {
+    font-family: var(--sans); font-size: 11px; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--ink-mute);
+    margin-top: 22px; padding-top: 12px; border-top: 1px solid var(--ink);
+  }
+  .byline em { font-family: var(--display); font-style: italic; text-transform: none; letter-spacing: 0; color: var(--ink); font-size: 14px; }
+
+  /* ── Score strip ───────────────────────────────────────── */
+  .scores {
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: 0;
+    border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink);
+    margin: 24px 0 56px;
+  }
+  .scores .col {
+    padding: 16px 18px; border-right: 1px solid var(--ink);
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .scores .col:last-child { border-right: none; }
+  .scores .label {
+    font-family: var(--sans); font-size: 9.5px; letter-spacing: .22em;
+    text-transform: uppercase; color: var(--ink-soft); font-weight: 600;
+  }
+  .scores .num {
+    font-family: var(--display); font-weight: 500;
+    font-size: 2.2rem; line-height: 1; letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+  .scores .num small { font-size: 0.95rem; color: var(--ink-mute); margin-left: 2px; }
+  .scores .note { font-family: var(--display); font-style: italic; font-size: 12px; color: var(--ink-soft); }
+
+  /* ── Section heads ─────────────────────────────────────── */
+  .sectionhead {
+    display: grid; grid-template-columns: 5fr 7fr; gap: 64px;
+    margin-bottom: 28px; padding-top: 20px;
+  }
+  .sectionhead .stamp {
+    font-family: var(--sans); font-size: 10.5px; letter-spacing: .28em;
+    text-transform: uppercase; color: var(--stamp); font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .sectionhead h3 {
+    font-family: var(--display); font-weight: 500;
+    font-size: 2.6rem; line-height: 1; letter-spacing: -0.025em;
+    margin: 0; color: var(--ink);
+  }
+  .sectionhead h3 em { font-style: italic; }
+  .sectionhead .deck {
+    font-family: var(--display); font-weight: 400;
+    font-size: 1.0625rem; line-height: 1.55; color: var(--ink);
+    max-width: 56ch; margin: 0;
+    align-self: end;
+  }
+  .sectionhead .deck::first-letter {
+    font-family: var(--display); font-weight: 700;
+    font-size: 3.6em; line-height: .85;
+    float: left; padding: .04em .12em 0 0; color: var(--stamp);
+  }
+
+  /* ── Two-column body ───────────────────────────────────── */
+  .twocol { columns: 2; column-gap: 38px; column-rule: 1px solid color-mix(in oklab, var(--rule) 60%, transparent); }
+  .twocol p { font-family: var(--serif); font-size: 15.5px; line-height: 1.62; margin: 0 0 14px; break-inside: avoid-column; }
+  .twocol p strong { font-weight: 600; color: var(--ink); }
+
+  /* ── Findings cards ────────────────────────────────────── */
+  .findings { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink); }
+  .finding { padding: 22px 24px; border-right: 1px solid var(--ink); border-bottom: 1px solid var(--ink); }
+  .finding:nth-child(2n) { border-right: none; }
+  .finding:nth-last-child(-n+2) { border-bottom: none; }
+  .finding .num {
+    font-family: var(--display); font-style: italic; font-weight: 500;
+    font-size: 1.4rem; color: var(--stamp); line-height: 1;
+  }
+  .finding .verdict {
+    display: inline-block; font-family: var(--sans); font-size: 9px;
+    letter-spacing: .25em; text-transform: uppercase; font-weight: 700;
+    padding: 3px 7px 2px; margin-left: 6px; vertical-align: 2px;
+  }
+  .v-good { border: 1px solid var(--green); color: var(--green); }
+  .v-warn { border: 1px solid #8a6c1c; color: #8a6c1c; }
+  .v-cut  { border: 1px solid var(--stamp); color: var(--stamp); }
+  .finding h4 {
+    font-family: var(--display); font-weight: 500;
+    font-size: 1.55rem; line-height: 1.08; letter-spacing: -0.015em;
+    margin: 8px 0 10px; color: var(--ink);
+  }
+  .finding h4 em { font-style: italic; }
+  .finding p {
+    font-family: var(--serif); font-size: 14.5px; line-height: 1.55;
+    margin: 0 0 10px;
+  }
+  .finding p.evidence {
+    font-family: var(--display); font-style: italic; font-size: 13px;
+    color: var(--ink-soft); padding-left: 12px; border-left: 2px solid var(--rule);
+  }
+  .finding p.fix {
+    font-size: 13.5px; padding: 10px 12px;
+    background: color-mix(in oklab, var(--ink) 4%, transparent);
+    border-left: 3px solid var(--ink);
+  }
+  .finding p.fix strong {
+    display: inline-block; font-family: var(--sans); font-size: 9.5px;
+    letter-spacing: .22em; text-transform: uppercase; color: var(--stamp);
+    margin-right: 4px;
+  }
+
+  /* ── Table ─────────────────────────────────────────────── */
+  table.priorities {
+    width: 100%; border-collapse: collapse; margin: 12px 0 0;
+    border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink);
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+  table.priorities th {
+    font-family: var(--sans); font-size: 10px; letter-spacing: .22em;
+    text-transform: uppercase; font-weight: 600; color: var(--ink-soft);
+    text-align: left; padding: 10px 8px 12px; border-bottom: 1px solid var(--ink);
+  }
+  table.priorities th.r { text-align: right; }
+  table.priorities td {
+    padding: 12px 8px; border-bottom: 1px solid color-mix(in oklab, var(--rule) 50%, transparent);
+    font-family: var(--serif); font-size: 14.5px; vertical-align: top;
+  }
+  table.priorities td.t { font-family: var(--display); font-weight: 500; font-size: 16px; letter-spacing: -0.005em; color: var(--ink); }
+  table.priorities td em { font-style: italic; color: var(--ink-soft); display: block; font-size: 13px; margin-top: 2px; }
+  table.priorities td.r { text-align: right; }
+  table.priorities td .pill {
+    display: inline-block; font-family: var(--sans); font-size: 9px;
+    letter-spacing: .22em; text-transform: uppercase; font-weight: 700;
+    padding: 2px 7px;
+  }
+  .p-now    { border: 1px solid var(--stamp); color: var(--stamp); }
+  .p-soon   { border: 1px solid var(--ink); color: var(--ink); }
+  .p-later  { border: 1px solid var(--ink-mute); color: var(--ink-mute); }
+
+  /* ── Pull quote ────────────────────────────────────────── */
+  .pq {
+    margin: 56px 0; padding: 40px 0;
+    border-top: 4px double var(--ink); border-bottom: 4px double var(--ink);
+    text-align: center;
+  }
+  .pq blockquote {
+    font-family: var(--display); font-style: italic; font-weight: 500;
+    font-size: 2.1rem; line-height: 1.18; letter-spacing: -0.012em;
+    margin: 0 auto; max-width: 32ch; color: var(--ink);
+  }
+  .pq blockquote::before { content: "\201C"; color: var(--stamp); font-size: 1em; }
+  .pq blockquote::after  { content: "\201D"; color: var(--stamp); }
+  .pq cite {
+    display: block; margin-top: 14px;
+    font-family: var(--sans); font-size: 10px; letter-spacing: .28em;
+    text-transform: uppercase; color: var(--ink-soft); font-style: normal;
+    font-weight: 600;
+  }
+
+  /* ── Colophon ──────────────────────────────────────────── */
+  .colophon {
+    margin-top: 40px; padding-top: 18px;
+    border-top: 1px solid var(--ink);
+    display: flex; justify-content: space-between; gap: 24px;
+    font-family: var(--display); font-style: italic; font-size: 13.5px;
+    color: var(--ink-soft);
+  }
+  .colophon .ornament {
+    text-align: center; flex: 1;
+    font-family: var(--display); color: var(--rule); letter-spacing: .5em;
+  }
+
+  h3.subhead {
+    font-family: var(--display); font-weight: 500;
+    font-size: 1.9rem; line-height: 1; letter-spacing: -0.02em;
+    margin: 56px 0 18px; color: var(--ink);
+    padding-top: 20px; border-top: 2px solid var(--ink);
+  }
+  h3.subhead em { font-style: italic; }
+  h3.subhead .stamp { display: block; font-family: var(--sans); font-size: 10.5px; letter-spacing: .28em; text-transform: uppercase; color: var(--stamp); font-weight: 700; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ── Masthead ─────────────────────────────────────────── -->
+  <div class="top">
+    <span class="stamp">Live Wire · Editorial Review</span>
+    <span>Monday, April 27, 2026 · Vol. I · No. 1</span>
+    <span>Filed for: BuyVEQT.ca</span>
+  </div>
+  <div class="rule-thick"></div>
+
+  <div class="nameplate">
+    <h1>The Critique.</h1>
+    <p class="tag">An honest read of <em>The VEQT Daily</em> — what the paper does well, and where the ink runs.</p>
+  </div>
+  <div class="rule-thin"></div>
+  <nav class="depts">
+    <span>The Verdict</span>
+    <span>What Works</span>
+    <span>What To Sharpen</span>
+    <span>The Priorities</span>
+    <span>The Colophon</span>
+  </nav>
+
+  <!-- ── The Lead ─────────────────────────────────────────── -->
+  <section class="lead">
+    <span class="verdict-stamp">House Verdict — Strong Buy, with revisions</span>
+    <h2>A genuinely distinctive site, hiding a small identity crisis.</h2>
+    <p class="deck">
+      The broadsheet aesthetic is the best decision on the property — it's specific, opinionated, and gives the data room to mean something. But the older "card-editorial" hero, the scattered calculators, and an over-reliance on serif italics are softening the edge. Commit harder to the paper, prune the rest.
+    </p>
+    <p class="byline">By the design desk &nbsp;·&nbsp; <em>Filed remotely, April 26</em></p>
+  </section>
+
+  <!-- ── Scorecard ───────────────────────────────────────── -->
+  <div class="scores">
+    <div class="col">
+      <span class="label">Concept</span>
+      <span class="num">9<small>/10</small></span>
+      <span class="note">A daily paper for one ETF — instantly memorable.</span>
+    </div>
+    <div class="col">
+      <span class="label">Typography</span>
+      <span class="num">8<small>/10</small></span>
+      <span class="note">Fraunces + Newsreader sing. Too many italics.</span>
+    </div>
+    <div class="col">
+      <span class="label">Information design</span>
+      <span class="num">8<small>/10</small></span>
+      <span class="note">Severity meter, region cards — properly excellent.</span>
+    </div>
+    <div class="col">
+      <span class="label">Voice</span>
+      <span class="num">9<small>/10</small></span>
+      <span class="note">"Your job is not to sell" — keep this energy.</span>
+    </div>
+    <div class="col">
+      <span class="label">Consistency</span>
+      <span class="num">5<small>/10</small></span>
+      <span class="note">Two design systems are fighting on one site.</span>
+    </div>
+    <div class="col">
+      <span class="label">Conversion</span>
+      <span class="num">6<small>/10</small></span>
+      <span class="note">No clear "what now" for a new reader.</span>
+    </div>
+  </div>
+
+  <!-- ── What's Good ──────────────────────────────────────── -->
+  <div class="sectionhead">
+    <div>
+      <p class="stamp">Section I — What works</p>
+      <h3>The paper, when<br><em>it&rsquo;s really a paper.</em></h3>
+    </div>
+    <p class="deck">
+      Most VEQT-adjacent sites look like brokerage dashboards in a trenchcoat. Yours doesn't, and that's the moat. The home page reads — and that's a verb that almost no finance site earns. The five things below are the ones to protect at all costs.
+    </p>
+  </div>
+
+  <div class="findings">
+    <div class="finding">
+      <span class="num">№ 01</span><span class="verdict v-good">Keep</span>
+      <h4>The broadsheet conceit is a <em>genuinely original</em> framing.</h4>
+      <p>Cream paper, ink rules, a "Live Wire" stamp, "Letters" from the subreddit, "From the archive" — every piece of the page has been re-named in service of a single metaphor. That's editorial discipline most fintech never reaches.</p>
+      <p class="evidence">"VEQT holds four Vanguard index ETFs… your job is not to sell." — homepage region intro</p>
+    </div>
+
+    <div class="finding">
+      <span class="num">№ 02</span><span class="verdict v-good">Keep</span>
+      <h4>The Severity Meter is the <em>single best thing</em> you've built.</h4>
+      <p>Frequency-weighted zone widths, a sentence keyed to the zone, an inline legend that doesn't fight the strip — this is real information design. It teaches behaviour ("a typical day moves ±X%") instead of just rendering a number.</p>
+      <p class="fix"><strong>Protect it</strong> Promote this above the fold on /learn and /compare too. It's a brand asset.</p>
+    </div>
+
+    <div class="finding">
+      <span class="num">№ 03</span><span class="verdict v-good">Keep</span>
+      <h4>Region cards do work that pie charts <em>cannot.</em></h4>
+      <p>Ranking the four sleeves with a vermilion underline on the day's leader, surfacing the contribution in pp, and showing 30-day sparklines under each one is a small masterclass. The reader can <em>verify</em> the lead headline visually — that's trust, by construction.</p>
+    </div>
+
+    <div class="finding">
+      <span class="num">№ 04</span><span class="verdict v-good">Keep</span>
+      <h4>The inception calculator is <em>flirty</em>, not boring.</h4>
+      <p>Embedding the input inside the headline ("If you'd bought $10,000 of VEQT at launch") with the math updating live in the sidebar table is delightful. It's the right pattern for the brand — playful inside a serious frame.</p>
+    </div>
+
+    <div class="finding">
+      <span class="num">№ 05</span><span class="verdict v-good">Keep</span>
+      <h4>The voice has <em>actual taste.</em></h4>
+      <p>"Past performance is a terrible predictor of future performance." "Three ETFs, one job: own the world." "The differences are smaller than Reddit will have you believe, but they are not zero." This is the rarest thing on a finance site: a writer.</p>
+    </div>
+
+    <div class="finding">
+      <span class="num">№ 06</span><span class="verdict v-good">Keep</span>
+      <h4>Two type voices, not five — <em>finally.</em></h4>
+      <p>Fraunces (display) for headlines, Newsreader (text serif) for body, Outfit (sans) for labels and stamps. Three families, each with a clear job. Most editorial sites use double that.</p>
+    </div>
+  </div>
+
+  <!-- ── Pull Quote ───────────────────────────────────────── -->
+  <div class="pq">
+    <blockquote>The site is a finished newspaper trapped inside a half&#8209;finished SaaS landing page.</blockquote>
+    <cite>— The verdict, in one sentence</cite>
+  </div>
+
+  <!-- ── What's Wrong ─────────────────────────────────────── -->
+  <div class="sectionhead">
+    <div>
+      <p class="stamp">Section II — What to sharpen</p>
+      <h3>Where the<br><em>ink is running.</em></h3>
+    </div>
+    <p class="deck">
+      You have two design systems on the same property. The "broadsheet" tokens — paper, ink, stamp, rule — and the older "editorial-finance" tokens — card-editorial, brand red, rounded buttons, pill stats. They share a vocabulary but not a soul. The crit below is mostly: pick one, kill the other.
+    </p>
+  </div>
+
+  <div class="findings">
+    <div class="finding">
+      <span class="num">№ 01</span><span class="verdict v-cut">Cut or rebuild</span>
+      <h4>The legacy <em>HeroSection</em> contradicts the masthead.</h4>
+      <p>Pill-shaped stat tags, a rounded "Compare VEQT vs XEQT" button, animated count-ups, and a rotating verb ("understood / compared / chosen") — this is the SaaS playbook your homepage explicitly rejects. If a user lands on a page that still uses it, the brand whiplashes.</p>
+      <p class="fix"><strong>Action</strong> Audit every route. Anything still rendering <code>HeroSection</code>, <code>card-editorial</code>, or rounded brand buttons gets ported to broadsheet primitives or deleted.</p>
+    </div>
+
+    <div class="finding">
+      <span class="num">№ 02</span><span class="verdict v-warn">Sharpen</span>
+      <h4>Italic is a spice, <em>not a sauce.</em></h4>
+      <p>"came from." "vs." "slowly." "the field." "Pick the question." Almost every section header italicises one or two words. It was charming twice; by the eighth occurrence it reads like a tic. Reserve italics for one moment per page — the lead headline.</p>
+      <p class="evidence">Replace half the italic words with a regular weight. The remaining italics will <em>actually feel italic.</em></p>
+    </div>
+
+    <div class="finding">
+      <span class="num">№ 03</span><span class="verdict v-warn">Sharpen</span>
+      <h4>The masthead is doing <em>five jobs</em> at once.</h4>
+      <p>Live-wire stamp, full date, theme toggle, hamburger, nameplate, ticker block, department rail, mobile drawer — all stacked vertically before any content. On a 1024-tall laptop the lead headline is below the fold. Real broadsheets compress the masthead because the news is the point.</p>
+      <p class="fix"><strong>Action</strong> Collapse the wire-state and date into one strip with the department rail. Move the ticker block <em>into</em> the lead, not next to the title. Should save 80–120px above the fold.</p>
+    </div>
+
+    <div class="finding">
+      <span class="num">№ 04</span><span class="verdict v-warn">Sharpen</span>
+      <h4>No clear answer to <em>"what do I do now?"</em></h4>
+      <p>The page tells me where today's move came from, what $10k at launch is worth, and what to read. It doesn't tell me whether to buy, hold, contribute, or rebalance. That's a feature for trustworthiness — but the call-to-action is missing entirely. A reader who's convinced has no place to go.</p>
+      <p class="fix"><strong>Action</strong> Add a single "Today's edition recommends" section — one sentence ("Hold. Contribute on schedule. Ignore the move.") plus one link to the most relevant Learn article based on severity zone.</p>
+    </div>
+
+    <div class="finding">
+      <span class="num">№ 05</span><span class="verdict v-cut">Cut</span>
+      <h4>Rotating words and count-up numbers are <em>vestigial.</em></h4>
+      <p>"VEQT, understood / compared / chosen." A 13,700 number that animates from zero. These are pre-broadsheet artifacts. They flatter the eye for one viewing and grate forever after.</p>
+      <p class="fix"><strong>Action</strong> Strip them. The serif headline can carry the page on its own.</p>
+    </div>
+
+    <div class="finding">
+      <span class="num">№ 06</span><span class="verdict v-warn">Sharpen</span>
+      <h4>The compare table is <em>under-designed</em> for what it claims.</h4>
+      <p>Three rows, one "House Choice" stamp on VEQT, equal weight per cell — but the headline says "the differences are not zero." The table doesn't show the differences. MER is the same. AUM is a vanity stat. Holdings are nearly identical. The reader leaves without learning the actual gap (Canadian vs US tilt; bond exposure for VGRO).</p>
+      <p class="fix"><strong>Action</strong> Add a fourth column: "Tilt" — render a small horizontal stack-bar of US/CA/Intl/EM weights per ETF. That is the difference, drawn.</p>
+    </div>
+
+    <div class="finding">
+      <span class="num">№ 07</span><span class="verdict v-warn">Sharpen</span>
+      <h4>"Learn" feels like a <em>blog index</em>, not a curriculum.</h4>
+      <p>Twenty-five MDX articles, nine learning paths, a filter rail, editor's picks — there's enough content for a real syllabus, but the home page surfaces only "three to start with." A new reader can't tell whether they're at article one of one or article one of twenty-five.</p>
+      <p class="fix"><strong>Action</strong> On the home page, replace "three to start with" with one prescribed reading order: <em>Start here → Read next → Then this</em>. Demote the rest to /learn.</p>
+    </div>
+
+    <div class="finding">
+      <span class="num">№ 08</span><span class="verdict v-warn">Sharpen</span>
+      <h4>The vermilion stamp is <em>almost the only colour.</em></h4>
+      <p>Ink, paper, vermilion, print-green, print-red. That restraint is why the site looks expensive. But it also means the few accents you have are doing a lot of jobs — stamp text, hover state, severity marker, leader underline, button-equivalent links. The reader can't disambiguate "this is a section label" from "this is a clickable thing."</p>
+      <p class="fix"><strong>Action</strong> Reserve the vermilion for one role only — the severity / today's leader signal. Use ink-underline for links, and a faint gold (the <code>--rule</code> token, already in the system) for section labels.</p>
+    </div>
+  </div>
+
+  <!-- ── Priorities table ─────────────────────────────────── -->
+  <h3 class="subhead"><span class="stamp">Section III — Priorities</span>If you only do <em>three things</em> this quarter</h3>
+
+  <table class="priorities">
+    <thead>
+      <tr>
+        <th>The work</th>
+        <th>Why it matters</th>
+        <th class="r">Effort</th>
+        <th class="r">Impact</th>
+        <th class="r">Order</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="t">Unify the brand on broadsheet primitives.<em>Kill HeroSection, card-editorial, rounded brand buttons across every route.</em></td>
+        <td>You are paying the cost of two design systems and getting the credibility of one. Most of the visual jank lives here.</td>
+        <td class="r">High</td>
+        <td class="r">High</td>
+        <td class="r"><span class="pill p-now">Now</span></td>
+      </tr>
+      <tr>
+        <td class="t">Add a "today's edition recommends" line on the home page.<em>One sentence + one link, keyed to the severity zone.</em></td>
+        <td>Closes the loop between "here's what happened" and "here's what to do." Turns the paper into a habit, not a curiosity.</td>
+        <td class="r">Low</td>
+        <td class="r">High</td>
+        <td class="r"><span class="pill p-now">Now</span></td>
+      </tr>
+      <tr>
+        <td class="t">Compress the masthead and re-architect above-the-fold.<em>Wire+date+nav on one row. Ticker moves into the lead.</em></td>
+        <td>Right now the lead headline is below the fold on a 13" laptop. The page's best moment isn't the first one a reader sees.</td>
+        <td class="r">Med</td>
+        <td class="r">High</td>
+        <td class="r"><span class="pill p-soon">Soon</span></td>
+      </tr>
+      <tr>
+        <td class="t">Replace the compare table with a tilt-stack visualisation.<em>One bar per ETF, four colours, equal width.</em></td>
+        <td>The current table contradicts the headline. Drawing the difference is honest; tabling it is misleading.</td>
+        <td class="r">Med</td>
+        <td class="r">Med</td>
+        <td class="r"><span class="pill p-soon">Soon</span></td>
+      </tr>
+      <tr>
+        <td class="t">Curate a 3-step prescribed reading order in /learn.<em>"Start here → Read next → Then this," instead of a 25-card index.</em></td>
+        <td>The archive is your moat — make it feel like a syllabus, not a CMS.</td>
+        <td class="r">Low</td>
+        <td class="r">Med</td>
+        <td class="r"><span class="pill p-soon">Soon</span></td>
+      </tr>
+      <tr>
+        <td class="t">Italics audit.<em>Reduce italic words per page from ~12 to ~3.</em></td>
+        <td>The italics are a tic. Cutting them makes the remaining ones land harder.</td>
+        <td class="r">Low</td>
+        <td class="r">Low</td>
+        <td class="r"><span class="pill p-later">Later</span></td>
+      </tr>
+      <tr>
+        <td class="t">Promote the Severity Meter beyond the home page.<em>Use it as a sticky callout on /learn/veqt-is-down and on /invest.</em></td>
+        <td>Your strongest piece of design is currently shown once per session. Reuse builds brand.</td>
+        <td class="r">Low</td>
+        <td class="r">Med</td>
+        <td class="r"><span class="pill p-later">Later</span></td>
+      </tr>
+      <tr>
+        <td class="t">Decide what the dark theme is <em>for.</em><em>Right now it's a toggle without a position.</em></td>
+        <td>Newspapers have always been printed in one direction. Either commit to the paper aesthetic and remove dark mode, or design dark as a deliberate "after-hours" mode.</td>
+        <td class="r">Med</td>
+        <td class="r">Low</td>
+        <td class="r"><span class="pill p-later">Later</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ── Pull Quote 2 ─────────────────────────────────────── -->
+  <div class="pq">
+    <blockquote>The hardest part is already done. What&rsquo;s left is sharpening &mdash; not rebuilding.</blockquote>
+    <cite>— Closing note</cite>
+  </div>
+
+  <!-- ── Colophon ─────────────────────────────────────────── -->
+  <div class="colophon">
+    <span>Set in Fraunces, Newsreader and Outfit. Printed on cream.</span>
+    <span class="ornament">&sect; &nbsp; &mdash; &nbsp; &sect;</span>
+    <span>An editorial review for the desk &mdash; April 2026.</span>
+  </div>
+
+</div>
+</body>
+</html>

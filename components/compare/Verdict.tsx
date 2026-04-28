@@ -41,7 +41,7 @@ export default function Verdict({ selectedFunds }: VerdictProps) {
             Our Take
           </p>
           <h3
-            className="bs-display-italic text-[1.5rem] sm:text-[1.875rem] leading-[1.1]"
+            className="bs-display text-[1.5rem] sm:text-[1.875rem] leading-[1.1]"
             style={{ color: "var(--ink)" }}
           >
             &ldquo;{verdict.headline}&rdquo;

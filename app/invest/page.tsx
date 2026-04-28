@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import InteriorShell from "@/components/broadsheet/InteriorShell";
 import CalculatorTabs from "@/components/invest/CalculatorTabs";
 import StandingFeature from "@/components/invest/StandingFeature";
+import SeverityMeterAuto from "@/components/broadsheet/SeverityMeterAuto";
 import { getDailyHistory } from "@/lib/data";
 import { computeVolatilityStats } from "@/lib/data/volatility";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -205,9 +206,14 @@ export default async function InvestPage() {
           className="bs-display text-[1.5rem] sm:text-[2rem] mb-5"
           style={{ color: "var(--ink)" }}
         >
-          <em className="bs-display-italic">Pick the question</em> you came
-          here to ask
+          <em>Pick the question</em> you came here to ask
         </h2>
+
+        {/* Severity strip — anchors today's reading right above the
+            calculators so a panicked reader sees their context first. */}
+        <div className="mb-6">
+          <SeverityMeterAuto compact />
+        </div>
 
         <CalculatorTabs
           history={historyResult}
@@ -227,8 +233,7 @@ export default async function InvestPage() {
           className="bs-display text-[1.5rem] sm:text-[2rem] mb-5"
           style={{ color: "var(--ink)" }}
         >
-          <em className="bs-display-italic">What these are,</em> and what
-          they aren&apos;t
+          <em>What these are,</em> and what they aren&apos;t
         </h2>
 
         <div

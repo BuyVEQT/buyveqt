@@ -25,7 +25,7 @@ export default function EditorsPicks({ articles }: EditorsPicksProps) {
             style={{ background: "var(--paper)" }}
           >
             <h3
-              className="bs-display-italic text-[1.0625rem] sm:text-[1.125rem] leading-[1.1] mb-2 group-hover:text-[var(--stamp)] transition-colors"
+              className="bs-display text-[1.0625rem] sm:text-[1.125rem] leading-[1.1] mb-2 group-hover:text-[var(--stamp)] transition-colors"
               style={{ color: "var(--ink)" }}
             >
               {article.title}

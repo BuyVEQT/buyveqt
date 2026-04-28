@@ -70,7 +70,7 @@ export default function WeeklyIndexPage() {
         <section className="mt-10 sm:mt-14 border-t-2 border-b-2 border-[var(--ink)] py-10 px-5 sm:px-8">
           <p className="bs-stamp mb-3">The First Edition</p>
           <h2
-            className="bs-display-italic text-[1.75rem] sm:text-[2.25rem] leading-[1.05] mb-4 max-w-[24ch]"
+            className="bs-display text-[1.75rem] sm:text-[2.25rem] leading-[1.05] mb-4 max-w-[24ch]"
             style={{ color: "var(--ink)" }}
           >
             The press hasn&apos;t run yet.
@@ -114,7 +114,7 @@ export default function WeeklyIndexPage() {
                       {range}
                     </p>
                     <h3
-                      className="bs-display-italic text-[1.25rem] sm:text-[1.5rem] leading-[1.15] group-hover:text-[var(--stamp)] transition-colors"
+                      className="bs-display text-[1.25rem] sm:text-[1.5rem] leading-[1.15] group-hover:text-[var(--stamp)] transition-colors"
                       style={{ color: "var(--ink)" }}
                     >
                       {recap.title}
@@ -151,7 +151,7 @@ export default function WeeklyIndexPage() {
         <section className="mt-12 mb-4 max-w-[60ch]">
           <p className="bs-stamp mb-3">Subscribe</p>
           <h2
-            className="bs-display-italic text-[1.5rem] sm:text-[1.875rem] leading-[1.1] mb-3"
+            className="bs-display text-[1.5rem] sm:text-[1.875rem] leading-[1.1] mb-3"
             style={{ color: "var(--ink)" }}
           >
             Get The Wire in your inbox.

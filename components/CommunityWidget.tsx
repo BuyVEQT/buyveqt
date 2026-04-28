@@ -43,7 +43,7 @@ export default function CommunityWidget() {
     <section className="py-10">
       <div className="flex items-center justify-between mb-5">
         <div>
-          <p className="section-label mb-1">Community</p>
+          <p className="bs-stamp mb-1">Community</p>
           <h2 className="font-serif text-xl font-medium text-[var(--color-text-primary)]">
             From the community
           </h2>

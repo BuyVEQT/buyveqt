@@ -113,8 +113,7 @@ export default async function DistributionsPage() {
           className="bs-display text-[1.5rem] sm:text-[2rem] mb-5"
           style={{ color: "var(--ink)" }}
         >
-          <em className="bs-display-italic">What&apos;s next</em> and what just
-          landed
+          <em>What&apos;s next</em> and what just landed
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
@@ -124,7 +123,7 @@ export default async function DistributionsPage() {
               Next expected
             </p>
             <p
-              className="bs-display-italic text-[1.625rem] sm:text-[1.875rem] leading-[1.1]"
+              className="bs-display text-[1.625rem] sm:text-[1.875rem] leading-[1.1]"
               style={{ color: "var(--ink)" }}
             >
               {estimate.estimatedWindow}
@@ -204,7 +203,7 @@ export default async function DistributionsPage() {
           className="bs-display text-[1.5rem] sm:text-[2rem] mb-2"
           style={{ color: "var(--ink)" }}
         >
-          <em className="bs-display-italic">The check,</em> year by year
+          <em>The check,</em> year by year
         </h2>
         <p
           className="bs-caption italic mb-5"
@@ -233,7 +232,7 @@ export default async function DistributionsPage() {
           className="bs-display text-[1.5rem] sm:text-[2rem] mb-5"
           style={{ color: "var(--ink)" }}
         >
-          <em className="bs-display-italic">Every payment</em> on record
+          <em>Every payment</em> on record
         </h2>
         <div className="overflow-x-auto -mx-2 sm:mx-0">
           <table className="w-full text-sm border-collapse min-w-[460px]">
@@ -351,7 +350,7 @@ export default async function DistributionsPage() {
             className="bs-display text-[1.5rem] sm:text-[2rem] mb-2"
             style={{ color: "var(--ink)" }}
           >
-            <em className="bs-display-italic">What your stake</em> pays
+            <em>What your stake</em> pays
           </h2>
           <p
             className="bs-caption italic mb-5"
@@ -387,7 +386,7 @@ export default async function DistributionsPage() {
           className="bs-display text-[1.5rem] sm:text-[2rem] mb-5"
           style={{ color: "var(--ink)" }}
         >
-          <em className="bs-display-italic">What a distribution</em>{" "}
+          <em>What a distribution</em>{" "}
           actually is
         </h2>
 

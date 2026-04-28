@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>VEQT — Round 2: Strategic Memo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink:#1a1410;
+    --ink-2:#3a2f26;
+    --ink-3:#6a5d50;
+    --ink-4:#9b8e80;
+    --paper:#f8f1de;
+    --paper-2:#efe6cc;
+    --paper-3:#e3d6b3;
+    --rule:#c8b886;
+    --red:#a31c1c;       /* Vanguard red, the discipline */
+    --red-deep:#7a1414;
+    --red-tint:#f1d9d9;
+    --green:#1d5431;
+    --amber:#8a6c1c;
+    --serif:'Source Serif 4', Georgia, serif;
+    --sans:'Inter', system-ui, -apple-system, sans-serif;
+    --mono:'JetBrains Mono', ui-monospace, monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--paper);color:var(--ink);font-family:var(--serif);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1180px;margin:0 auto;padding:48px 56px 96px;}
+
+  /* === Header === */
+  .doc-head{display:grid;grid-template-columns:auto 1fr auto;gap:24px;align-items:end;padding-bottom:18px;border-bottom:2px solid var(--ink);}
+  .doc-head .mark{display:flex;align-items:center;gap:10px;font-family:var(--sans);font-weight:700;font-size:13px;letter-spacing:.04em;color:var(--ink);}
+  .doc-head .mark::before{content:"";display:block;width:14px;height:14px;background:var(--red);}
+  .doc-head .meta{display:flex;gap:24px;font-family:var(--sans);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);font-weight:500;}
+  .doc-head .meta b{color:var(--ink);font-weight:600;}
+  .doc-title{padding:48px 0 24px;}
+  .doc-title .kicker{font-family:var(--sans);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--red);font-weight:700;margin-bottom:14px;}
+  .doc-title h1{font-family:var(--serif);font-weight:600;font-size:3.6rem;line-height:1.05;letter-spacing:-0.025em;margin:0 0 28px;color:var(--ink);max-width:22ch;}
+  .doc-title h1 em{font-style:italic;font-weight:500;color:var(--red);}
+  .doc-title .deck{font-family:var(--serif);font-size:1.2rem;line-height:1.5;color:var(--ink-2);max-width:60ch;margin:0;}
+
+  /* === Section header === */
+  .sec{margin-top:80px;}
+  .sec-head{display:grid;grid-template-columns:160px 1fr;gap:32px;align-items:start;padding-bottom:18px;margin-bottom:32px;border-bottom:1px solid var(--ink);}
+  .sec-num{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--red);font-weight:600;}
+  .sec-num small{display:block;color:var(--ink-3);margin-top:4px;font-weight:400;letter-spacing:.08em;}
+  .sec h2{font-family:var(--serif);font-weight:600;font-size:2.4rem;line-height:1.05;letter-spacing:-0.02em;margin:0 0 10px;}
+  .sec h2 em{font-style:italic;}
+  .sec-deck{font-family:var(--serif);font-size:1.05rem;line-height:1.55;color:var(--ink-2);max-width:62ch;margin:0;}
+
+  /* === Thesis box === */
+  .thesis{background:var(--paper-2);border-left:4px solid var(--red);padding:24px 28px;margin:24px 0 32px;}
+  .thesis .lab{font-family:var(--sans);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--red);font-weight:700;margin-bottom:8px;}
+  .thesis p{font-family:var(--serif);font-size:1.15rem;line-height:1.5;margin:0;color:var(--ink);font-weight:500;}
+  .thesis p em{font-style:italic;}
+
+  /* === Bet card === */
+  .bet{display:grid;grid-template-columns:1fr;gap:0;border:1px solid var(--ink);margin:32px 0;background:var(--paper);}
+  .bet-head{display:grid;grid-template-columns:auto 1fr auto auto;gap:20px;align-items:center;padding:18px 24px;border-bottom:1px solid var(--ink);background:var(--ink);color:var(--paper);}
+  .bet-head .b-num{font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:.08em;color:var(--paper-3);}
+  .bet-head h3{font-family:var(--serif);font-weight:600;font-size:1.5rem;line-height:1;letter-spacing:-0.015em;margin:0;color:var(--paper);}
+  .bet-head h3 em{font-style:italic;color:#f4d4a3;}
+  .bet-head .effort, .bet-head .impact{font-family:var(--sans);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--paper-3);font-weight:600;}
+  .bet-head .impact b{color:#f4d4a3;font-weight:700;margin-left:4px;}
+  .bet-body{display:grid;grid-template-columns:5fr 7fr;gap:0;}
+  .bet-arg{padding:24px 28px;border-right:1px solid var(--rule);}
+  .bet-arg p{font-family:var(--serif);font-size:15px;line-height:1.55;margin:0 0 12px;color:var(--ink-2);}
+  .bet-arg p:first-child{font-size:16px;color:var(--ink);font-weight:500;}
+  .bet-arg p strong{color:var(--ink);font-weight:600;}
+  .bet-arg p:last-child{margin-bottom:0;}
+  .bet-mock{padding:24px 28px;background:var(--paper-2);}
+  .bet-mock .moc-cap{font-family:var(--sans);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-bottom:10px;}
+  .bet-spec{padding:18px 28px;background:#1a1410;color:var(--paper-3);font-family:var(--mono);font-size:12px;line-height:1.7;border-top:1px solid var(--ink);}
+  .bet-spec b{color:var(--paper);font-weight:600;}
+  .bet-spec span.k{color:#f4d4a3;}
+
+  /* Mock primitives === */
+  .mock{font-family:var(--sans);}
+  .mock-frame{background:var(--paper);border:1px solid var(--ink);padding:18px;}
+  .mock h4{font-family:var(--serif);font-weight:600;font-size:18px;margin:0 0 12px;color:var(--ink);letter-spacing:-0.01em;}
+  .mock h4 em{font-style:italic;}
+  .mock .cap{font-family:var(--sans);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:600;}
+
+  /* === Teardown === */
+  .teardown{margin:32px 0;border:1px solid var(--ink);}
+  .td-head{display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:baseline;padding:16px 22px;background:var(--paper-2);border-bottom:1px solid var(--ink);}
+  .td-head .route{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--red);}
+  .td-head h3{font-family:var(--serif);font-weight:600;font-size:1.35rem;margin:0;line-height:1.1;color:var(--ink);}
+  .td-head h3 em{font-style:italic;}
+  .td-head .verdict{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--red);font-weight:700;}
+  .td-body{display:grid;grid-template-columns:1fr 1fr;}
+  .td-now,.td-prop{padding:22px 24px;}
+  .td-now{border-right:1px solid var(--rule);background:var(--paper);}
+  .td-prop{background:var(--paper-2);}
+  .td-lab{display:flex;align-items:center;gap:10px;font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;margin-bottom:14px;}
+  .td-lab.now{color:var(--ink-3);}
+  .td-lab.prop{color:var(--red);}
+  .td-lab::after{content:"";flex:1;height:1px;background:currentColor;opacity:.3;}
+  .td-now p,.td-prop p{font-family:var(--serif);font-size:14.5px;line-height:1.55;margin:0 0 12px;color:var(--ink-2);}
+  .td-now p strong, .td-prop p strong{color:var(--ink);font-weight:600;}
+  .td-prop ul{margin:10px 0 0;padding:0;list-style:none;}
+  .td-prop ul li{font-family:var(--serif);font-size:14px;padding:8px 0 8px 22px;position:relative;border-top:1px solid var(--rule);color:var(--ink-2);}
+  .td-prop ul li:first-child{border-top:none;padding-top:4px;}
+  .td-prop ul li::before{content:"";position:absolute;left:0;top:14px;width:14px;height:1px;background:var(--red);}
+  .td-prop ul li b{color:var(--ink);font-weight:600;}
+
+  /* === Scoreboard === */
+  table.score{width:100%;border-collapse:collapse;margin:24px 0;font-variant-numeric:tabular-nums;border-top:2px solid var(--ink);border-bottom:2px solid var(--ink);}
+  table.score th{font-family:var(--sans);font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--ink-3);text-align:left;padding:10px 12px;border-bottom:1px solid var(--ink);}
+  table.score th.r{text-align:right;}
+  table.score td{padding:11px 12px;border-bottom:1px solid var(--rule);font-family:var(--serif);font-size:14px;vertical-align:top;color:var(--ink-2);}
+  table.score td.t{font-family:var(--serif);font-weight:600;color:var(--ink);}
+  table.score td.r{text-align:right;}
+  table.score .pill{display:inline-block;font-family:var(--sans);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;padding:3px 8px;}
+  .pill-ok{background:var(--green);color:#f1ecd9;}
+  .pill-pa{border:1px solid var(--amber);color:var(--amber);}
+  .pill-no{background:var(--red);color:#f1ecd9;}
+  .pill-bo{border:1px dashed var(--ink);color:var(--ink);}
+
+  /* === Stats strip === */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--ink);border-bottom:1px solid var(--ink);margin:8px 0 24px;}
+  .stats .s{padding:18px 20px;border-right:1px solid var(--rule);}
+  .stats .s:last-child{border-right:none;}
+  .stats .s .k{font-family:var(--sans);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:600;}
+  .stats .s .v{font-family:var(--serif);font-weight:600;font-size:2rem;line-height:1;letter-spacing:-0.02em;margin-top:6px;color:var(--ink);}
+  .stats .s .v em{font-style:italic;color:var(--red);}
+  .stats .s .n{font-family:var(--serif);font-size:13px;color:var(--ink-3);font-style:italic;margin-top:6px;line-height:1.4;}
+
+  code.inl{font-family:var(--mono);font-size:.88em;background:var(--paper-2);padding:1px 5px;color:var(--red-deep);}
+
+  /* === Inline SVG mock styles === */
+  .swatch{display:inline-block;width:10px;height:10px;vertical-align:1px;margin-right:6px;}
+
+  /* Closing */
+  .closing{margin-top:64px;padding:32px 0 0;border-top:2px solid var(--ink);font-family:var(--serif);font-size:15px;line-height:1.6;color:var(--ink-2);max-width:62ch;}
+  .closing strong{color:var(--ink);font-weight:600;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Header -->
+  <div class="doc-head">
+    <div class="mark">VEQT&nbsp;/&nbsp;Internal</div>
+    <div></div>
+    <div class="meta">
+      <span><b>Doc</b>&nbsp;&nbsp;Round&nbsp;2&nbsp;Review</span>
+      <span><b>Rev</b>&nbsp;&nbsp;v2</span>
+      <span><b>Date</b>&nbsp;&nbsp;Apr&nbsp;28,&nbsp;2026</span>
+    </div>
+  </div>
+
+  <div class="doc-title">
+    <div class="kicker">Strategic memo · for planning use</div>
+    <h1>Round&nbsp;2 was incremental. <em>Round&nbsp;3 should not be.</em></h1>
+    <p class="deck">The heatmap and the price-chart accordion proved a thesis: <strong>information density that rewards a second look</strong> is what makes this site different from every other ETF page on the internet. Almost nothing else in the build clears that bar yet. This memo argues for three swings, tears down the three weakest surfaces, and ends with a tight scoreboard.</p>
+  </div>
+
+  <!-- Stats strip -->
+  <div class="stats">
+    <div class="s">
+      <div class="k">Bar set by</div>
+      <div class="v"><em>2</em>&nbsp;components</div>
+      <div class="n">Heatmap, price-chart accordion. Everything else is a step down.</div>
+    </div>
+    <div class="s">
+      <div class="k">Pages still generic</div>
+      <div class="v">3&nbsp;<small style="font-size:1rem;color:var(--ink-3);font-weight:400;">/&nbsp;6</small></div>
+      <div class="n">/compare, /invest, /learn read like a competitor's site.</div>
+    </div>
+    <div class="s">
+      <div class="k">VEQT &mdash; the unused fact</div>
+      <div class="v">13,500</div>
+      <div class="n">Holdings inside one ticker. The site barely mentions this.</div>
+    </div>
+    <div class="s">
+      <div class="k">Time covered on the home page</div>
+      <div class="v">90&nbsp;<small style="font-size:1rem;color:var(--ink-3);font-weight:400;">days</small></div>
+      <div class="n">VEQT inception was 2019. There&rsquo;s a six-year gap nobody is showing.</div>
+    </div>
+  </div>
+
+  <!-- ────────────────────────────────────────────────────────────── -->
+  <!-- SECTION I — STRATEGY -->
+  <!-- ────────────────────────────────────────────────────────────── -->
+  <section class="sec">
+    <div class="sec-head">
+      <div class="sec-num">§&nbsp;01<small>Strategy</small></div>
+      <div>
+        <h2>Three bigger bets, <em>in order of effort.</em></h2>
+        <p class="sec-deck">The heatmap was a swing. Round&nbsp;3 needs three more, escalating from a one-component addition to a structural rethink to an entirely new section the site doesn&rsquo;t have. Each bet below is argued, then mocked, then specified.</p>
+      </div>
+    </div>
+
+    <div class="thesis">
+      <div class="lab">Underlying thesis</div>
+      <p>VEQT is unusual because it is <em>boring on purpose &mdash; and contains the world.</em> The site should make both halves legible: the discipline (one ticker, hold forever) and the contents (thirteen thousand companies across forty-seven countries). Round&nbsp;1 nailed the discipline. Round&nbsp;2 left the contents almost entirely undisclosed.</p>
+    </div>
+
+    <!-- ============ BET 01 ============ -->
+    <div class="bet">
+      <div class="bet-head">
+        <span class="b-num">BET&nbsp;01</span>
+        <h3>The <em>What You Own</em> panel</h3>
+        <span class="effort">Effort&nbsp;·&nbsp;Medium</span>
+        <span class="impact">Impact&nbsp;·&nbsp;<b>High</b></span>
+      </div>
+      <div class="bet-body">
+        <div class="bet-arg">
+          <p>VEQT holds 13,500 companies. The site never shows you a single one. That&rsquo;s the most interesting fact about the fund and it&rsquo;s the most aggressively under-told story on the property.</p>
+          <p>This is the <strong>Round&nbsp;3 equivalent of the heatmap</strong>: one ambitious component on the home page that gives a confident, opinionated visualization of an otherwise opaque thing. The mock at right shows it: a region treemap on the left (US, Canada, Developed-ex-US, EM), a top-10 list on the right with weights, and one number underneath &mdash; <strong>"the bottom 13,490 holdings together weigh less than Apple alone."</strong> That sentence, if true, sells the entire fund.</p>
+          <p>Crucially this is <strong>not</strong> a pie chart. It&rsquo;s a treemap because pie charts can&rsquo;t do 13k slices and a treemap with the long-tail collapsed into a single cell <em>is the visual argument</em>: the long tail looks small precisely because it is.</p>
+          <p>Build cost: a single <code class="inl">HoldingsPanel.tsx</code> with static JSON. The data doesn&rsquo;t need a feed &mdash; Vanguard publishes it quarterly and you can hand-paste it.</p>
+        </div>
+        <div class="bet-mock">
+          <div class="moc-cap">Mock · home page, between region cards and compare table</div>
+          <div class="mock-frame">
+            <h4>Inside the ticker. <em>13,478 names.</em></h4>
+            <p style="font-family:var(--serif);font-size:13px;color:var(--ink-3);margin:0 0 14px;font-style:italic;">Region treemap, top names, the long-tail line.</p>
+
+            <!-- Treemap SVG -->
+            <svg viewBox="0 0 480 200" width="100%" style="display:block;margin-bottom:14px;">
+              <!-- US 45% -->
+              <rect x="0" y="0" width="216" height="200" fill="#a31c1c"/>
+              <text x="14" y="28" font-family="Inter" font-size="11" font-weight="600" fill="#f8f1de" letter-spacing=".08em">UNITED STATES</text>
+              <text x="14" y="190" font-family="Source Serif 4" font-size="36" font-weight="600" fill="#f8f1de">45%</text>
+              <text x="120" y="190" font-family="Source Serif 4" font-size="13" font-style="italic" fill="#f4d4a3">≈ 6,100 names</text>
+
+              <!-- Developed-ex-US 25% -->
+              <rect x="216" y="0" width="160" height="120" fill="#3a2f26"/>
+              <text x="226" y="22" font-family="Inter" font-size="10" font-weight="600" fill="#f4d4a3" letter-spacing=".08em">DEV-EX-US</text>
+              <text x="226" y="100" font-family="Source Serif 4" font-size="28" font-weight="600" fill="#f8f1de">25%</text>
+              <text x="226" y="115" font-family="Source Serif 4" font-size="11" font-style="italic" fill="#c8b886">≈ 4,200</text>
+
+              <!-- Canada 18% -->
+              <rect x="216" y="120" width="160" height="80" fill="#7a1414"/>
+              <text x="226" y="140" font-family="Inter" font-size="10" font-weight="600" fill="#f1d9d9" letter-spacing=".08em">CANADA</text>
+              <text x="226" y="180" font-family="Source Serif 4" font-size="22" font-weight="600" fill="#f8f1de">18%</text>
+              <text x="290" y="180" font-family="Source Serif 4" font-size="10" font-style="italic" fill="#f1d9d9">≈ 200</text>
+
+              <!-- EM 12% -->
+              <rect x="376" y="0" width="104" height="200" fill="#6a5d50"/>
+              <text x="386" y="22" font-family="Inter" font-size="10" font-weight="600" fill="#f8f1de" letter-spacing=".08em">EM</text>
+              <text x="386" y="170" font-family="Source Serif 4" font-size="22" font-weight="600" fill="#f8f1de">12%</text>
+              <text x="386" y="186" font-family="Source Serif 4" font-size="10" font-style="italic" fill="#e3d6b3">≈ 3,000</text>
+            </svg>
+
+            <!-- Top 10 horizontal bars -->
+            <div style="border-top:1px solid var(--ink);padding-top:10px;">
+              <div style="font-family:var(--sans);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-bottom:8px;">Top names · weight</div>
+              <div style="display:grid;grid-template-columns:80px 1fr 36px;gap:6px 10px;font-family:var(--serif);font-size:12px;color:var(--ink-2);align-items:center;">
+                <span>Apple</span><div style="height:8px;background:var(--paper-2);"><div style="width:100%;height:100%;background:var(--red);"></div></div><span style="text-align:right;font-variant-numeric:tabular-nums;">3.7%</span>
+                <span>Microsoft</span><div style="height:8px;background:var(--paper-2);"><div style="width:90%;height:100%;background:var(--red);"></div></div><span style="text-align:right;font-variant-numeric:tabular-nums;">3.3%</span>
+                <span>Nvidia</span><div style="height:8px;background:var(--paper-2);"><div style="width:80%;height:100%;background:var(--red);"></div></div><span style="text-align:right;font-variant-numeric:tabular-nums;">2.9%</span>
+                <span>Amazon</span><div style="height:8px;background:var(--paper-2);"><div style="width:50%;height:100%;background:var(--red);"></div></div><span style="text-align:right;font-variant-numeric:tabular-nums;">1.8%</span>
+                <span>RBC</span><div style="height:8px;background:var(--paper-2);"><div style="width:38%;height:100%;background:var(--red);"></div></div><span style="text-align:right;font-variant-numeric:tabular-nums;">1.4%</span>
+                <span style="color:var(--ink-3);font-style:italic;">…13,473 more</span><div style="height:8px;background:var(--paper-2);"><div style="width:24%;height:100%;background:var(--ink-3);"></div></div><span style="text-align:right;font-variant-numeric:tabular-nums;color:var(--ink-3);">86.9%</span>
+              </div>
+            </div>
+
+            <p style="font-family:var(--serif);font-style:italic;font-size:14px;line-height:1.45;color:var(--ink);margin:14px 0 0;border-top:1px solid var(--ink);padding-top:12px;"><strong style="color:var(--red);font-style:normal;">The long tail.</strong>&nbsp; The bottom 13,468 holdings together weigh less than Apple, Microsoft and Nvidia combined.</p>
+          </div>
+        </div>
+      </div>
+      <div class="bet-spec">
+        <b>Spec</b> &nbsp; <span class="k">component</span> HoldingsPanel.tsx&nbsp;&nbsp;|&nbsp;&nbsp; <span class="k">data</span> /data/veqt-holdings-2026-q1.json&nbsp;&nbsp;|&nbsp;&nbsp; <span class="k">deps</span> none&nbsp;(SVG by hand)&nbsp;&nbsp;|&nbsp;&nbsp; <span class="k">props</span> compact?:boolean&nbsp;|&nbsp;asOf?:Date&nbsp;&nbsp;|&nbsp;&nbsp; <span class="k">est</span> ~6h
+      </div>
+    </div>
+
+    <!-- ============ BET 02 ============ -->
+    <div class="bet">
+      <div class="bet-head">
+        <span class="b-num">BET&nbsp;02</span>
+        <h3>Rebuild <em>/compare</em> as a behavioural document</h3>
+        <span class="effort">Effort&nbsp;·&nbsp;Medium-High</span>
+        <span class="impact">Impact&nbsp;·&nbsp;<b>High</b></span>
+      </div>
+      <div class="bet-body">
+        <div class="bet-arg">
+          <p>"VEQT vs XEQT vs ZEQT" with five columns is a Wikipedia table. Every Canadian PFC blogger has the same one. The reason this comparison is interesting is <strong>not the MERs &mdash; they&rsquo;re effectively identical</strong> &mdash; it&rsquo;s how each fund actually <em>behaved</em> when something happened.</p>
+          <p>Replace the table with three vertical narrative columns, each anchored to a real event: <strong>March 2020 (covid)</strong>, <strong>October 2022 (rate-hike trough)</strong>, <strong>August 2024 (yen carry unwind)</strong>. Show the drawdown, the recovery time, and one sentence each on <em>why these funds diverged that week</em>.</p>
+          <p>This is a structural rethink: the page becomes a piece of writing, not a spec sheet. The MER table can live below the fold for the people who came for that. The headline becomes &ldquo;<strong>Three funds. Three moments. The differences you can&rsquo;t see in a fact sheet.</strong>&rdquo;</p>
+          <p>This is the page that converts a casual visitor into a believer. It&rsquo;s also the page that buys the brand permission to use vermilion at all &mdash; right now the red is doing decoration; on this page it would be doing argument.</p>
+        </div>
+        <div class="bet-mock">
+          <div class="moc-cap">Mock · /compare, above the spec table</div>
+          <div class="mock-frame">
+            <h4>Three funds, <em>three moments.</em></h4>
+            <p style="font-family:var(--serif);font-size:13px;color:var(--ink-3);margin:0 0 14px;font-style:italic;">A column per event. The bars are drawdowns; the line is the recovery path.</p>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;">
+              <!-- Event 1 -->
+              <div style="border-top:2px solid var(--ink);padding-top:8px;">
+                <div style="font-family:var(--sans);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--red);font-weight:700;">Mar 2020</div>
+                <div style="font-family:var(--serif);font-weight:600;font-size:15px;line-height:1.15;margin:4px 0 10px;">Covid&nbsp;crash</div>
+                <svg viewBox="0 0 140 90" width="100%" style="display:block;">
+                  <line x1="0" y1="20" x2="140" y2="20" stroke="#c8b886" stroke-width="0.5"/>
+                  <line x1="0" y1="60" x2="140" y2="60" stroke="#c8b886" stroke-width="0.5" stroke-dasharray="2 2"/>
+                  <text x="2" y="17" font-family="JetBrains Mono" font-size="7" fill="#6a5d50">0%</text>
+                  <text x="2" y="68" font-family="JetBrains Mono" font-size="7" fill="#a31c1c">−34%</text>
+                  <!-- VEQT path -->
+                  <path d="M 0 20 L 20 20 L 35 70 L 60 50 L 100 30 L 140 22" fill="none" stroke="#a31c1c" stroke-width="2"/>
+                  <!-- XEQT -->
+                  <path d="M 0 20 L 20 20 L 35 73 L 60 52 L 100 31 L 140 23" fill="none" stroke="#3a2f26" stroke-width="1" stroke-dasharray="3 2" opacity="0.7"/>
+                  <!-- ZEQT -->
+                  <path d="M 0 20 L 20 20 L 35 67 L 60 48 L 100 28 L 140 21" fill="none" stroke="#6a5d50" stroke-width="1" stroke-dasharray="2 1" opacity="0.7"/>
+                </svg>
+                <div style="font-family:var(--serif);font-size:11.5px;line-height:1.4;color:var(--ink-2);margin-top:8px;border-top:1px solid var(--rule);padding-top:6px;"><b style="color:var(--red);">VEQT</b> fell 34%, recovered in 142 days. The Canada tilt hurt.</div>
+              </div>
+
+              <!-- Event 2 -->
+              <div style="border-top:2px solid var(--ink);padding-top:8px;">
+                <div style="font-family:var(--sans);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--red);font-weight:700;">Oct 2022</div>
+                <div style="font-family:var(--serif);font-weight:600;font-size:15px;line-height:1.15;margin:4px 0 10px;">Rate&#8209;hike&nbsp;trough</div>
+                <svg viewBox="0 0 140 90" width="100%" style="display:block;">
+                  <line x1="0" y1="20" x2="140" y2="20" stroke="#c8b886" stroke-width="0.5"/>
+                  <line x1="0" y1="55" x2="140" y2="55" stroke="#c8b886" stroke-width="0.5" stroke-dasharray="2 2"/>
+                  <text x="2" y="17" font-family="JetBrains Mono" font-size="7" fill="#6a5d50">0%</text>
+                  <text x="2" y="63" font-family="JetBrains Mono" font-size="7" fill="#a31c1c">−21%</text>
+                  <path d="M 0 20 L 30 35 L 60 60 L 90 50 L 130 28 L 140 24" fill="none" stroke="#a31c1c" stroke-width="2"/>
+                  <path d="M 0 20 L 30 36 L 60 58 L 90 49 L 130 27 L 140 23" fill="none" stroke="#3a2f26" stroke-width="1" stroke-dasharray="3 2" opacity="0.7"/>
+                  <path d="M 0 20 L 30 38 L 60 62 L 90 52 L 130 30 L 140 27" fill="none" stroke="#6a5d50" stroke-width="1" stroke-dasharray="2 1" opacity="0.7"/>
+                </svg>
+                <div style="font-family:var(--serif);font-size:11.5px;line-height:1.4;color:var(--ink-2);margin-top:8px;border-top:1px solid var(--rule);padding-top:6px;"><b style="color:var(--red);">VEQT</b> drew down 21% over ten months. ZEQT fell less, the EM weight saved it.</div>
+              </div>
+
+              <!-- Event 3 -->
+              <div style="border-top:2px solid var(--ink);padding-top:8px;">
+                <div style="font-family:var(--sans);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--red);font-weight:700;">Aug 2024</div>
+                <div style="font-family:var(--serif);font-weight:600;font-size:15px;line-height:1.15;margin:4px 0 10px;">Yen&nbsp;carry&nbsp;unwind</div>
+                <svg viewBox="0 0 140 90" width="100%" style="display:block;">
+                  <line x1="0" y1="20" x2="140" y2="20" stroke="#c8b886" stroke-width="0.5"/>
+                  <line x1="0" y1="42" x2="140" y2="42" stroke="#c8b886" stroke-width="0.5" stroke-dasharray="2 2"/>
+                  <text x="2" y="17" font-family="JetBrains Mono" font-size="7" fill="#6a5d50">0%</text>
+                  <text x="2" y="50" font-family="JetBrains Mono" font-size="7" fill="#a31c1c">−7.4%</text>
+                  <path d="M 0 20 L 40 22 L 70 48 L 90 35 L 110 24 L 140 20" fill="none" stroke="#a31c1c" stroke-width="2"/>
+                  <path d="M 0 20 L 40 23 L 70 47 L 90 34 L 110 23 L 140 19" fill="none" stroke="#3a2f26" stroke-width="1" stroke-dasharray="3 2" opacity="0.7"/>
+                  <path d="M 0 20 L 40 24 L 70 51 L 90 36 L 110 25 L 140 21" fill="none" stroke="#6a5d50" stroke-width="1" stroke-dasharray="2 1" opacity="0.7"/>
+                </svg>
+                <div style="font-family:var(--serif);font-size:11.5px;line-height:1.4;color:var(--ink-2);margin-top:8px;border-top:1px solid var(--rule);padding-top:6px;"><b style="color:var(--red);">VEQT</b> bottomed at −7.4% in three sessions, recovered in 14. ZEQT lost more, more Japan.</div>
+              </div>
+            </div>
+            <div style="font-family:var(--sans);font-size:10px;color:var(--ink-3);margin-top:12px;display:flex;gap:14px;letter-spacing:.04em;">
+              <span><span class="swatch" style="background:var(--red);"></span>VEQT</span>
+              <span><span style="display:inline-block;width:14px;height:2px;background:#3a2f26;border-bottom:2px dashed #3a2f26;vertical-align:3px;margin-right:6px;"></span>XEQT</span>
+              <span><span style="display:inline-block;width:14px;height:2px;background:#6a5d50;border-bottom:2px dotted #6a5d50;vertical-align:3px;margin-right:6px;"></span>ZEQT</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="bet-spec">
+        <b>Spec</b> &nbsp; <span class="k">page</span> /compare → narrative-first&nbsp;&nbsp;|&nbsp;&nbsp; <span class="k">component</span> EventColumn.tsx (event, drawdown, recovery, anecdote)&nbsp;&nbsp;|&nbsp;&nbsp; <span class="k">data</span> 3×3 closing prices, hand-tabbed&nbsp;&nbsp;|&nbsp;&nbsp; <span class="k">est</span> ~12h
+      </div>
+    </div>
+
+    <!-- ============ BET 03 ============ -->
+    <div class="bet">
+      <div class="bet-head">
+        <span class="b-num">BET&nbsp;03</span>
+        <h3>A new section: <em>VEQT&nbsp;through&nbsp;history</em></h3>
+        <span class="effort">Effort&nbsp;·&nbsp;High</span>
+        <span class="impact">Impact&nbsp;·&nbsp;<b>Defining</b></span>
+      </div>
+      <div class="bet-body">
+        <div class="bet-arg">
+          <p>VEQT was launched January 29, 2019. The site has zero coverage of the seven years since. The 90-day heatmap is a microscope; this is the telescope.</p>
+          <p>Build <code class="inl">/history</code> as a single, scrollable, year-by-year reading of the fund: a giant timeline that scrolls horizontally inside a sticky frame, with five anchors &mdash; <strong>2019 launch · 2020 crash · 2022 rates · 2024 yen · today</strong> &mdash; and at each anchor a price, a drawdown, a paragraph of what was happening, and (the trick) <em>"$10,000 invested at this moment is now worth&hellip;"</em>.</p>
+          <p>This is the section that <strong>turns the inception calculator on the home page into a real story.</strong> The calculator answers "what would I have made"; this section answers "what would I have lived through."</p>
+          <p>It is the most ambitious item on this page. It is also the one that, if it lands, single-handedly makes the site a destination instead of a fact sheet.</p>
+        </div>
+        <div class="bet-mock">
+          <div class="moc-cap">Mock · /history hero, scroll-locked horizontal timeline</div>
+          <div class="mock-frame" style="padding:14px;">
+            <div style="font-family:var(--sans);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--red);font-weight:700;">/history</div>
+            <h4 style="margin-top:6px;">Seven years <em>of one ticker.</em></h4>
+
+            <svg viewBox="0 0 480 220" width="100%" style="display:block;margin:12px 0 8px;">
+              <!-- Price line -->
+              <path d="M 20 130 Q 60 115 90 110 L 130 175 Q 160 140 200 90 Q 230 70 260 130 Q 290 145 330 100 Q 370 80 400 95 Q 430 80 460 50" fill="none" stroke="#a31c1c" stroke-width="2"/>
+              <path d="M 20 130 Q 60 115 90 110 L 130 175 Q 160 140 200 90 Q 230 70 260 130 Q 290 145 330 100 Q 370 80 400 95 Q 430 80 460 50 L 460 200 L 20 200 Z" fill="#a31c1c" opacity="0.06"/>
+
+              <!-- Anchor lines -->
+              <g font-family="JetBrains Mono" font-size="8" fill="#6a5d50">
+                <line x1="20" y1="20" x2="20" y2="200" stroke="#c8b886" stroke-width="0.5"/>
+                <line x1="130" y1="20" x2="130" y2="200" stroke="#c8b886" stroke-width="0.5"/>
+                <line x1="260" y1="20" x2="260" y2="200" stroke="#c8b886" stroke-width="0.5"/>
+                <line x1="370" y1="20" x2="370" y2="200" stroke="#c8b886" stroke-width="0.5"/>
+                <line x1="460" y1="20" x2="460" y2="200" stroke="#c8b886" stroke-width="0.5"/>
+                <text x="22" y="215">2019</text>
+                <text x="132" y="215">Mar 2020</text>
+                <text x="262" y="215">Oct 2022</text>
+                <text x="372" y="215">Aug 2024</text>
+                <text x="442" y="215">Today</text>
+              </g>
+
+              <!-- Anchor dots + labels -->
+              <g font-family="Source Serif 4">
+                <circle cx="20" cy="130" r="4" fill="#a31c1c"/>
+                <text x="28" y="125" font-size="10" font-weight="600" fill="#1a1410">$25.00</text>
+                <text x="28" y="138" font-size="9" font-style="italic" fill="#6a5d50">launch · Jan 29</text>
+
+                <circle cx="130" cy="175" r="4" fill="#a31c1c"/>
+                <text x="138" y="172" font-size="10" font-weight="600" fill="#1a1410">$16.50</text>
+                <text x="138" y="185" font-size="9" font-style="italic" fill="#a31c1c">−34% in 32d</text>
+
+                <circle cx="260" cy="130" r="4" fill="#a31c1c"/>
+                <text x="200" y="123" font-size="10" font-weight="600" fill="#1a1410">$28.10</text>
+                <text x="190" y="115" font-size="9" font-style="italic" fill="#a31c1c">−21% trough</text>
+
+                <circle cx="370" cy="80" r="4" fill="#a31c1c"/>
+                <text x="378" y="76" font-size="10" font-weight="600" fill="#1a1410">$36.80</text>
+                <text x="378" y="89" font-size="9" font-style="italic" fill="#6a5d50">yen wobble</text>
+
+                <circle cx="460" cy="50" r="5" fill="#a31c1c" stroke="#1a1410" stroke-width="1.5"/>
+                <text x="408" y="40" font-size="11" font-weight="700" fill="#a31c1c">$42.61</text>
+                <text x="402" y="28" font-size="9" font-style="italic" fill="#6a5d50">today</text>
+              </g>
+            </svg>
+
+            <!-- $10K becoming X -->
+            <div style="border-top:1px solid var(--ink);padding-top:10px;display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:baseline;">
+              <span style="font-family:var(--sans);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:600;">$10K at launch</span>
+              <span style="font-family:var(--serif);font-style:italic;color:var(--ink-3);font-size:13px;border-bottom:1px dotted var(--rule);">→</span>
+              <span style="font-family:var(--serif);font-weight:600;font-size:1.6rem;color:var(--red);font-variant-numeric:tabular-nums;">$17,044</span>
+            </div>
+            <div style="font-family:var(--serif);font-size:11.5px;color:var(--ink-3);font-style:italic;margin-top:4px;">…that bought you a covid crash, two corrections, and seven years of paychecks.</div>
+          </div>
+        </div>
+      </div>
+      <div class="bet-spec">
+        <b>Spec</b> &nbsp; <span class="k">route</span> /history&nbsp;&nbsp;|&nbsp;&nbsp; <span class="k">interaction</span> sticky scroll-locked horizontal timeline (Framer&nbsp;motion or vanilla)&nbsp;&nbsp;|&nbsp;&nbsp; <span class="k">data</span> daily closes 2019‒2026 (~1700 rows, ~120kb)&nbsp;&nbsp;|&nbsp;&nbsp; <span class="k">est</span> ~3 days
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ────────────────────────────────────────────────────────────── -->
+  <!-- SECTION II — TEARDOWNS -->
+  <!-- ────────────────────────────────────────────────────────────── -->
+  <section class="sec">
+    <div class="sec-head">
+      <div class="sec-num">§&nbsp;02<small>Teardowns</small></div>
+      <div>
+        <h2>Three pages that <em>are letting the home page down.</em></h2>
+        <p class="sec-deck">The home page does heavy lifting. The interior pages don&rsquo;t. A user who clicks deeper currently gets <em>less</em> ambition, not more. These three are the most exposed.</p>
+      </div>
+    </div>
+
+    <!-- /compare -->
+    <div class="teardown">
+      <div class="td-head">
+        <span class="route">/compare</span>
+        <h3>Five-column ETF table that doesn&rsquo;t earn its h1.</h3>
+        <span class="verdict">Replace</span>
+      </div>
+      <div class="td-body">
+        <div class="td-now">
+          <div class="td-lab now">As built</div>
+          <p>A standard responsive table: <strong>Ticker · MER · AUM · Holdings · Inception</strong>. Headline says <em>"the differences are not zero"</em> &mdash; the table doesn&rsquo;t prove it. MERs are 0.24/0.20/0.20. AUMs differ but who cares. Inception years are roughly the same.</p>
+          <p>The single most interesting comparable &mdash; <strong>regional tilt</strong> &mdash; is missing entirely. The CSS for it (<code class="inl">.bs-tilt-bar</code>) is in <code class="inl">globals.css:1300</code>, suggesting someone started.</p>
+          <p>Reads like a Wikipedia page. No reason to bookmark, share, or come back.</p>
+        </div>
+        <div class="td-prop">
+          <div class="td-lab prop">Proposed</div>
+          <p><strong>Demote the spec table; promote the behavior.</strong> Lead with Bet&nbsp;02 above &mdash; three event columns. The MER/AUM/Holdings table goes under a "<em>If you&rsquo;re here for the spec sheet&hellip;</em>" heading at the bottom.</p>
+          <ul>
+            <li><b>Hero</b>&nbsp;— the three events (Bet 02), full-width.</li>
+            <li><b>Tilt comparison</b>&nbsp;— stacked 100% bars, US/CA/Dev/EM, three rows.</li>
+            <li><b>Spec table</b>&nbsp;— moved below the fold, condensed.</li>
+            <li><b>One verdict line</b>&nbsp;— "they hold the same world, weighted differently."</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- /invest -->
+    <div class="teardown">
+      <div class="td-head">
+        <span class="route">/invest&nbsp;&middot;&nbsp;calculators</span>
+        <h3>The most generic page on the site.</h3>
+        <span class="verdict">Reframe</span>
+      </div>
+      <div class="td-body">
+        <div class="td-now">
+          <div class="td-lab now">As built</div>
+          <p>Two calculators: <strong>"if I had invested $X in 2019&hellip;"</strong> and <strong>"if I invest $Y/month for Z years&hellip;"</strong>. Inputs left, big number right. It&rsquo;s correct. It&rsquo;s also indistinguishable from every advisor&rsquo;s site.</p>
+          <p>The result is presented as a single cumulative number. Useful for ego, useless for understanding. There&rsquo;s no <strong>distribution</strong>, no <strong>worst case</strong>, no <strong>sequence-of-returns</strong> intuition.</p>
+        </div>
+        <div class="td-prop">
+          <div class="td-lab prop">Proposed</div>
+          <p>Reframe both calculators as <strong>"what actually happened to people who started in&hellip;"</strong>. Same inputs, very different output: a <strong>fan chart of all rolling cohorts</strong> who started in different months, with the user&rsquo;s scenario highlighted as one line in the cloud.</p>
+          <ul>
+            <li><b>Cohort fan</b>&nbsp;— 84 monthly cohorts since launch, plotted as light lines.</li>
+            <li><b>Your line</b>&nbsp;— bold red, your specific start month.</li>
+            <li><b>Three numbers</b>&nbsp;— median outcome, your outcome, worst-case cohort.</li>
+            <li><b>One sentence</b>&nbsp;— "you started in <em>March 2020.</em> 71 of 84 cohorts did better than yours; 13 did worse."</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- /learn -->
+    <div class="teardown">
+      <div class="td-head">
+        <span class="route">/learn</span>
+        <h3>Overshot the brief. <em>Now scattered.</em></h3>
+        <span class="verdict">Refocus</span>
+      </div>
+      <div class="td-body">
+        <div class="td-now">
+          <div class="td-lab now">As built</div>
+          <p>Filter rail · Editor&rsquo;s Picks · Paths · grouped categories. It&rsquo;s a CMS-shaped page with seven affordances and no path. The Round&nbsp;2 plan asked for "a reading order in three parts" &mdash; what shipped is the opposite of that: every order, all at once.</p>
+          <p>The home page&rsquo;s "From the archive · Three to start with" was supposed to feed into <em>Step 1 → Step 2 → Step 3</em>. Neither end of that pipe got wired up.</p>
+        </div>
+        <div class="td-prop">
+          <div class="td-lab prop">Proposed</div>
+          <p>Cut the page in half. Lead with <strong>three named courses</strong>, three articles each, in order. The grouped/filtered archive lives below as <strong>"Everything else, by topic."</strong></p>
+          <ul>
+            <li><b>Course&nbsp;1</b>&nbsp;— "What VEQT actually is" (3 reads).</li>
+            <li><b>Course&nbsp;2</b>&nbsp;— "Why one fund and hold forever" (3 reads).</li>
+            <li><b>Course&nbsp;3</b>&nbsp;— "What to do when it&rsquo;s down" (3 reads).</li>
+            <li><b>Below</b>&nbsp;— full archive, current grouping intact.</li>
+            <li><b>Home page</b>&nbsp;— renders Course 1, three numbered cards. The promised pipe.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ────────────────────────────────────────────────────────────── -->
+  <!-- SECTION III — SCOREBOARD -->
+  <!-- ────────────────────────────────────────────────────────────── -->
+  <section class="sec">
+    <div class="sec-head">
+      <div class="sec-num">§&nbsp;03<small>Scoreboard</small></div>
+      <div>
+        <h2>What shipped, <em>what slipped.</em></h2>
+        <p class="sec-deck">Tight version. The full task-by-task breakdown is in v1 of this doc; this is the one-line-per-task scoreboard.</p>
+      </div>
+    </div>
+
+    <table class="score">
+      <thead>
+        <tr><th style="width:36px;">№</th><th>Task</th><th>Notes</th><th class="r" style="width:120px;">Status</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>0</td><td class="t">Inventory pass</td><td>Real <code class="inl">audit.md</code>, with file:line links. Make this standing.</td><td class="r"><span class="pill pill-ok">Shipped</span></td></tr>
+        <tr><td>1</td><td class="t">Plain-noun nav</td><td>Calculators · Compare · Learn · Inside VEQT · Community.</td><td class="r"><span class="pill pill-ok">Shipped</span></td></tr>
+        <tr><td>2</td><td class="t">Kill legacy HeroSection + dead CSS</td><td>HeroSection unimported but file remains; 9 components still consume <code class="inl">card-editorial</code>.</td><td class="r"><span class="pill pill-pa">Partial</span></td></tr>
+        <tr><td>3</td><td class="t">Compress masthead</td><td>One row, headline above the fold on 1366×768. Clean.</td><td class="r"><span class="pill pill-ok">Shipped</span></td></tr>
+        <tr><td>4</td><td class="t">Edition recommends</td><td>One verdict, one link, keyed to severity zone.</td><td class="r"><span class="pill pill-ok">Shipped</span></td></tr>
+        <tr><td>5</td><td class="t">Tilt column on /compare</td><td>CSS scaffolding exists; render didn&rsquo;t ship to home table.</td><td class="r"><span class="pill pill-no">Skipped</span></td></tr>
+        <tr><td>6</td><td class="t">Home /learn syllabus</td><td>Still "From the archive · Three to start with" with map(). Wrong shape.</td><td class="r"><span class="pill pill-no">Skipped</span></td></tr>
+        <tr><td>7</td><td class="t">Italics audit</td><td>22 occurrences across 10 files. Target was ≤2/page.</td><td class="r"><span class="pill pill-no">Skipped</span></td></tr>
+        <tr><td>8</td><td class="t">Color discipline</td><td>Vermilion still on labels, drop-caps, hovers, $&hellip;. Three-line CSS fix.</td><td class="r"><span class="pill pill-pa">Partial</span></td></tr>
+        <tr><td>9</td><td class="t">Promote Severity Meter</td><td>No reuse, no <code class="inl">compact</code> prop. Component renders once on the property.</td><td class="r"><span class="pill pill-no">Skipped</span></td></tr>
+        <tr><td>10</td><td class="t">Dark mode → After Hours</td><td>Live Wire stamp swaps to "After Hours" off-hours. Right answer.</td><td class="r"><span class="pill pill-ok">Shipped</span></td></tr>
+        <tr><td style="color:var(--green);">+</td><td class="t">Bonus &mdash; 90-day heatmap</td><td>Tooltip pinning, weekend rows, dispatch deep-links. <strong>Bar-setter.</strong></td><td class="r"><span class="pill pill-bo">Bonus</span></td></tr>
+        <tr><td style="color:var(--green);">+</td><td class="t">Bonus &mdash; price-chart accordion</td><td>The other thing punching above its weight.</td><td class="r"><span class="pill pill-bo">Bonus</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Closing -->
+  <div class="closing">
+    <p><strong>Read this doc as:</strong> two ambitions clearly proved (heatmap, accordion) and a roadmap that should now match their tempo. Round&nbsp;2 was a scoreboard round. Round&nbsp;3 is a thesis round &mdash; <em>What You Own</em>, the <em>/compare</em> rebuild, and <em>VEQT through history</em>, in that order. The loose threads from Round 2 (italics, vermilion, dead CSS, severity reuse) clean up in a single afternoon and shouldn&rsquo;t share oxygen with the bets above.</p>
+    <p style="color:var(--ink-3);font-style:italic;margin-top:18px;font-size:14px;">— end of memo —</p>
+  </div>
+
+</div>
+</body>
+</html>

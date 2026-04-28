@@ -194,8 +194,7 @@ export default function PerformanceChart({
             className="bs-display text-[1.25rem] sm:text-[1.5rem] leading-tight"
             style={{ color: "var(--ink)" }}
           >
-            <em className="bs-display-italic">Normalized return</em> from day one
-            of the window
+            <em>Normalized return</em> from day one of the window
           </h2>
         </div>
 

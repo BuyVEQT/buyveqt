@@ -180,7 +180,7 @@ export default function CompareGap({
           >
             {fundA.shortName}
             <span className="opacity-50 mx-2">·</span>
-            <em className="bs-display-italic">{fundB.shortName}</em>
+            <em>{fundB.shortName}</em>
             <span
               className="bs-caption italic font-normal not-italic ml-2"
               style={{ color: "var(--ink-soft)", fontSize: "0.7em" }}

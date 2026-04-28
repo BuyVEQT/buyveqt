@@ -60,7 +60,7 @@ export default function ArticleRow({ article }: ArticleRowProps) {
           <div className="min-w-0">
             <div className="flex items-start justify-between gap-3">
               <h3
-                className="bs-display-italic text-[1.125rem] sm:text-[1.375rem] leading-[1.2] group-hover:text-[var(--stamp)] transition-colors"
+                className="bs-display text-[1.125rem] sm:text-[1.375rem] leading-[1.2] group-hover:text-[var(--stamp)] transition-colors"
                 style={{ color: "var(--ink)" }}
               >
                 {article.title}

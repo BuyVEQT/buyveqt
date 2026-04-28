@@ -58,7 +58,7 @@ export default function StandingFeature({ history }: StandingFeatureProps) {
         className="bs-display text-[1.5rem] sm:text-[2rem] mb-5"
         style={{ color: "var(--ink)" }}
       >
-        <em className="bs-display-italic">What $10,000 became</em>
+        <em>What $10,000 became</em>
       </h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">

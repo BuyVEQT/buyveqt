@@ -67,7 +67,7 @@ export default function Letters() {
           <h3 className="bs-display text-3xl sm:text-4xl lg:text-[2.75rem] leading-[1]">
             What the subreddit
             <br />
-            <em className="bs-display-italic">is talking about.</em>
+            <em>is talking about.</em>
           </h3>
         </div>
         <p className="lg:col-span-7 bs-body">
@@ -132,7 +132,7 @@ export default function Letters() {
                 rel="noopener noreferrer"
                 className="group block"
               >
-                <h4 className="bs-display-italic text-xl sm:text-2xl leading-[1.15] text-[var(--ink)] group-hover:text-[var(--stamp)] transition-colors">
+                <h4 className="bs-display text-xl sm:text-2xl leading-[1.15] text-[var(--ink)] group-hover:text-[var(--stamp)] transition-colors">
                   &ldquo;{post.title}&rdquo;
                 </h4>
                 <p className="bs-caption mt-1.5 flex items-center gap-2 flex-wrap">

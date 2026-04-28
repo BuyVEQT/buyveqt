@@ -1,0 +1,809 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Inside VEQT — The VEQT Daily</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500;1,9..144,600&family=Newsreader:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0f0d0a;
+    --ink-soft: #2a2520;
+    --ink-mute: #5b5147;
+    --paper: #f6efdc;
+    --paper-deep: #ede3ca;
+    --rule: #b8a66e;
+    --stamp: #8a1c1c;
+    --green: #1d5431;
+    --red: #8a1c1c;
+    --display: 'Fraunces', Georgia, serif;
+    --serif: 'Newsreader', Georgia, serif;
+    --sans: 'Outfit', system-ui, sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 17px;
+    line-height: 1.55;
+    overflow-x: hidden;
+  }
+  body::after {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 9999;
+    opacity: .045;
+    background-image: repeating-linear-gradient(90deg, transparent 0 2px, rgba(0,0,0,.18) 2px 3px);
+    mix-blend-mode: multiply;
+  }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 24px 36px 80px; }
+
+  /* ── Masthead (compressed variant, per Task 02 of the plan) ── */
+  .top-row { display: grid; grid-template-columns: auto 1fr auto auto; gap: 24px; align-items: center; padding: 6px 0; font-family: var(--sans); font-size: 10px; letter-spacing: .24em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; }
+  .top-row .live { color: var(--stamp); font-weight: 700; }
+  .top-row .live::before { content:""; display:inline-block; width:6px; height:6px; border-radius:50%; background: var(--stamp); margin-right:.5em; vertical-align: middle; }
+  .top-row .nav { display:flex; gap: 18px; justify-content: center; }
+  .top-row .nav a { color: var(--ink-soft); text-decoration: none; font-weight: 600; }
+  .top-row .nav a.cur { color: var(--stamp); }
+  .rule-thick { border-top: 3px solid var(--ink); border-bottom: 1px solid var(--ink); height: 6px; }
+  .nameplate { display: flex; justify-content: space-between; align-items: baseline; padding: 8px 0 12px; }
+  .nameplate h1 { font-family: var(--display); font-weight: 500; font-size: 1.875rem; line-height: 1; letter-spacing: -0.02em; margin: 0; }
+  .nameplate .ed { font-family: var(--display); font-style: italic; font-size: 12px; color: var(--ink-soft); white-space: nowrap; }
+  .rule-thin { border-top: 1px solid var(--ink); height: 0; margin: 0 0 22px; }
+
+  .label { font-family: var(--sans); font-size: 10px; letter-spacing: .22em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; }
+  .stamp-label { font-family: var(--sans); font-size: 10.5px; letter-spacing: .28em; text-transform: uppercase; color: var(--stamp); font-weight: 700; }
+
+  /* ── Page hero ── */
+  .hero { padding: 8px 0 28px; border-bottom: 2px solid var(--ink); margin-bottom: 30px; }
+  .hero .crumb { font-family: var(--sans); font-size: 10.5px; letter-spacing: .26em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; margin-bottom: 14px; }
+  .hero .crumb a { color: var(--ink-soft); text-decoration: none; }
+  .hero .crumb .sep { color: var(--rule); margin: 0 .6em; }
+  .hero h2 { font-family: var(--display); font-weight: 500; font-size: 4.25rem; line-height: .95; letter-spacing: -0.025em; margin: 0 0 18px; max-width: 18ch; }
+  .hero h2 em { font-style: italic; }
+  .hero .deck { font-family: var(--display); font-size: 1.125rem; line-height: 1.55; color: var(--ink); max-width: 56ch; margin: 0; }
+  .hero .deck::first-letter { font-family: var(--display); font-weight: 700; font-size: 3.4em; line-height: .85; float: left; padding: .04em .14em 0 0; color: var(--stamp); }
+
+  /* ════════════════════════════════════════════════════
+     HEATMAP — page hero treatment
+     ════════════════════════════════════════════════════ */
+  .heatboard { padding: 0 0 18px; margin-bottom: 36px; }
+  .heatboard .head { display: grid; grid-template-columns: 1fr auto auto; gap: 20px; align-items: end; padding-bottom: 14px; border-bottom: 1px solid var(--ink); margin-bottom: 22px; }
+  .heatboard .head h3 { font-family: var(--display); font-weight: 500; font-size: 2.4rem; line-height: 1; letter-spacing: -0.02em; margin: 0; }
+  .heatboard .head h3 em { font-style: italic; }
+  .heatboard .head .deck { font-family: var(--display); font-style: italic; font-size: 14px; color: var(--ink-soft); margin: 4px 0 0; max-width: 32ch; }
+  .heatboard .controls { display: flex; gap: 4px; }
+  .ctrl {
+    font-family: var(--sans); font-size: 10px; letter-spacing: .22em; text-transform: uppercase; font-weight: 700;
+    padding: 6px 10px; border: 1px solid var(--ink-soft); background: transparent; color: var(--ink-soft);
+    cursor: pointer; white-space: nowrap;
+  }
+  .controls { display: flex; flex-wrap: nowrap; gap: 4px; }
+  .ctrl.cur { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  /* the headline summary above the grid */
+  .heat-summary {
+    display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 28px;
+    padding: 4px 0 24px;
+  }
+  .heat-summary .card { }
+  .heat-summary .card .lab { font-family: var(--sans); font-size: 9.5px; letter-spacing: .26em; text-transform: uppercase; color: var(--ink-soft); font-weight: 700; margin-bottom: 6px; }
+  .heat-summary .card .num { font-family: var(--display); font-weight: 500; font-size: 1.95rem; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; color: var(--ink); }
+  .heat-summary .card .sub { font-family: var(--display); font-style: italic; font-size: 12.5px; color: var(--ink-soft); margin-top: 4px; }
+  .heat-summary .card.lead .num { font-size: 2.6rem; }
+  .heat-summary .card.lead .sub { font-size: 14px; max-width: 30ch; }
+
+  /* the grid itself — bigger than the homepage variant */
+  .heat-frame { display: grid; grid-template-columns: 36px 1fr 200px; gap: 18px; align-items: start; }
+  .day-axis {
+    display: grid; grid-template-rows: repeat(5, 1fr); gap: 4px;
+    font-family: var(--sans); font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--ink-soft); font-weight: 700;
+    padding-top: 22px;
+  }
+  .grid-area { position: relative; }
+  .month-axis {
+    display: grid; grid-template-columns: repeat(18, 1fr); gap: 4px;
+    font-family: var(--sans); font-size: 9px; letter-spacing: .2em; text-transform: uppercase; color: var(--ink-soft); font-weight: 700;
+    height: 16px; margin-bottom: 6px;
+    text-align: center;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(18, 1fr);
+    grid-template-rows: repeat(5, 38px);
+    gap: 4px;
+    grid-auto-flow: column;
+  }
+  .cell {
+    position: relative; cursor: pointer;
+    background: color-mix(in oklab, var(--ink) 5%, transparent);
+    transition: transform .12s, box-shadow .12s, z-index 0s;
+  }
+  .cell:hover { transform: scale(1.16); box-shadow: 0 0 0 2px var(--paper), 0 0 0 3px var(--ink); z-index: 3; }
+  .cell.empty { background: transparent; border: 1px dashed color-mix(in oklab, var(--ink) 14%, transparent); cursor: default; }
+  .cell.empty:hover { transform: none; box-shadow: none; }
+  .cell.today { box-shadow: 0 0 0 1.5px var(--paper), 0 0 0 3px var(--stamp); z-index: 1; }
+  .cell.dispatch::after {
+    content: ""; position: absolute; right: 3px; top: 3px; width: 4px; height: 4px;
+    background: var(--paper); border: 1px solid var(--ink);
+  }
+
+  /* legend column */
+  .legend {
+    padding-top: 22px; font-family: var(--sans);
+    border-left: 1px solid color-mix(in oklab, var(--rule) 60%, transparent);
+    padding-left: 18px;
+  }
+  .legend h5 { font-size: 10px; letter-spacing: .26em; text-transform: uppercase; color: var(--ink-soft); font-weight: 700; margin: 0 0 8px; }
+  .legend .row { display: grid; grid-template-columns: 18px 1fr auto; gap: 8px; align-items: center; padding: 3px 0; font-size: 10.5px; color: var(--ink); }
+  .legend .row .sw { width: 14px; height: 14px; }
+  .legend .row .ct { font-variant-numeric: tabular-nums; color: var(--ink-soft); font-size: 10px; }
+  .legend hr { border: none; border-top: 1px solid color-mix(in oklab, var(--rule) 60%, transparent); margin: 10px 0 8px; }
+  .legend .annot { font-family: var(--display); font-style: italic; font-size: 12px; color: var(--ink-soft); margin-top: 14px; line-height: 1.45; }
+
+  /* tooltip on grid */
+  .tip {
+    position: absolute; z-index: 10;
+    background: var(--ink); color: var(--paper);
+    padding: 10px 14px; min-width: 220px;
+    border: 1px solid var(--ink); box-shadow: 4px 4px 0 0 var(--rule);
+    font-family: var(--sans); font-size: 11px;
+    pointer-events: none;
+  }
+  .tip::before {
+    content: ""; position: absolute; top: -6px; left: 28px; width: 10px; height: 10px;
+    background: var(--ink); transform: rotate(45deg);
+  }
+  .tip .d { font-family: var(--display); font-style: italic; font-size: 13px; color: var(--rule); margin-bottom: 4px; }
+  .tip .pct { font-family: var(--display); font-weight: 500; font-size: 22px; line-height: 1; margin: 4px 0 6px; font-variant-numeric: tabular-nums; }
+  .tip .pct.up { color: #6cca8b; }
+  .tip .pct.dn { color: #ef8079; }
+  .tip .meta { letter-spacing: .18em; text-transform: uppercase; color: color-mix(in oklab, var(--paper) 70%, var(--ink)); font-size: 9.5px; }
+  .tip .lk { display: block; margin-top: 8px; padding-top: 6px; border-top: 1px solid color-mix(in oklab, var(--paper) 30%, var(--ink)); color: var(--rule); text-transform: uppercase; letter-spacing: .2em; font-size: 9.5px; font-weight: 700; }
+
+  /* read-out row beneath the grid */
+  .heat-readout {
+    margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--ink);
+    display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: baseline;
+  }
+  .heat-readout .narrative {
+    font-family: var(--display); font-size: 1.05rem; line-height: 1.55; color: var(--ink); max-width: 64ch;
+  }
+  .heat-readout .narrative strong { font-weight: 600; color: var(--ink); font-style: normal; }
+  .heat-readout .narrative em.stamp { font-style: normal; color: var(--stamp); font-family: var(--sans); font-size: 10.5px; letter-spacing: .26em; text-transform: uppercase; font-weight: 700; padding: 0 4px; border-bottom: 1px solid var(--stamp); }
+  .heat-readout .meta { font-family: var(--sans); font-size: 9.5px; letter-spacing: .22em; text-transform: uppercase; color: var(--ink-soft); }
+
+  /* ── Tab strip switching the regions panel below ── */
+  .panel-head {
+    display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: end;
+    padding: 36px 0 18px; border-bottom: 1px solid var(--ink);
+  }
+  .panel-head h3 { font-family: var(--display); font-weight: 500; font-size: 2rem; line-height: 1; letter-spacing: -0.02em; margin: 0; }
+  .panel-head h3 em { font-style: italic; }
+  .panel-head .deck { font-family: var(--display); font-style: italic; font-size: 13px; color: var(--ink-soft); margin: 4px 0 0; max-width: 38ch; }
+
+  /* ════════════════════════════════════════════════════
+     REGION CARDS — the four ETFs
+     ════════════════════════════════════════════════════ */
+  .regions {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 0;
+    margin-top: 22px;
+  }
+  .region {
+    padding: 24px 22px 22px;
+    border-right: 1px solid color-mix(in oklab, var(--rule) 60%, transparent);
+    border-top: 2px solid var(--ink);
+    position: relative;
+    display: flex; flex-direction: column;
+  }
+  .region:last-child { border-right: none; }
+  .region.leader::before {
+    content: ""; position: absolute; top: -2px; left: 0; right: 0; height: 4px; background: var(--stamp);
+  }
+
+  .region-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
+  .region-head .rname { font-family: var(--display); font-weight: 500; font-size: 1.4rem; line-height: 1; letter-spacing: -0.01em; }
+  .region-head .rname em { font-style: italic; }
+  .region-head .ord { font-family: var(--display); font-weight: 500; font-variant-numeric: tabular-nums; color: var(--stamp); font-size: 1rem; }
+  .region .full { font-family: var(--display); font-style: italic; font-size: 12.5px; color: var(--ink-soft); margin: 2px 0 14px; }
+  .region .full .tic { font-family: var(--sans); font-style: normal; font-size: 9.5px; letter-spacing: .2em; text-transform: uppercase; margin-left: 8px; padding: 1px 5px; border: 1px solid color-mix(in oklab, var(--rule) 80%, transparent); }
+
+  .region .pct { font-family: var(--display); font-weight: 500; font-size: 2.6rem; line-height: 1; font-variant-numeric: tabular-nums; }
+  .region .pct.up { color: var(--green); }
+  .region .pct.dn { color: var(--red); }
+  .region .pct .arr { font-size: .7em; vertical-align: 2px; }
+
+  .region .stat { font-family: var(--display); font-style: italic; font-size: 13px; color: var(--ink-soft); margin: 4px 0 16px; padding-bottom: 14px; border-bottom: 1px solid color-mix(in oklab, var(--rule) 50%, transparent); }
+  .region .stat .num { font-style: normal; color: var(--ink); font-variant-numeric: tabular-nums; font-weight: 500; }
+  .region .stat .pp { font-style: normal; font-variant-numeric: tabular-nums; font-weight: 500; }
+  .region .stat .pp.up { color: var(--green); }
+  .region .stat .pp.dn { color: var(--red); }
+
+  /* contribution bar — visualises pp impact relative to fund total */
+  .contrib-bar {
+    margin: 6px 0 16px; height: 4px; position: relative;
+    background: color-mix(in oklab, var(--ink) 6%, transparent);
+  }
+  .contrib-bar .axis { position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: var(--ink); }
+  .contrib-bar .fill { position: absolute; top: 0; bottom: 0; }
+  .contrib-bar .fill.up { left: 50%; background: var(--green); }
+  .contrib-bar .fill.dn { right: 50%; background: var(--red); }
+
+  /* drilldown: sectors / countries with directional bars */
+  .drill { margin-top: auto; }
+  .drill h6 { font-family: var(--sans); font-size: 9.5px; letter-spacing: .26em; text-transform: uppercase; color: var(--ink-soft); font-weight: 700; margin: 4px 0 10px; display: flex; justify-content: space-between; }
+  .drill h6 em { font-style: normal; font-family: var(--display); font-style: italic; font-size: 11px; letter-spacing: 0; text-transform: none; color: var(--ink-soft); }
+
+  .drow {
+    display: grid;
+    grid-template-columns: minmax(0, 84px) 1fr;
+    align-items: center; gap: 10px;
+    padding: 4px 0; font-size: 12px;
+    line-height: 1.2;
+  }
+  .drow .name { font-family: var(--serif); color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .drow .name .wt { font-family: var(--sans); font-size: 9.5px; color: var(--ink-soft); margin-left: 4px; letter-spacing: .04em; }
+
+  /* directional bar — center axis, bar grows L or R */
+  .dbar {
+    position: relative; height: 16px;
+    background: color-mix(in oklab, var(--ink) 4%, transparent);
+  }
+  .dbar .axis { position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: var(--ink); }
+  .dbar .fill {
+    position: absolute; top: 2px; bottom: 2px;
+    background: color-mix(in oklab, var(--ink) 65%, var(--paper));
+  }
+  .dbar .fill.up { left: 50%; }
+  .dbar .fill.dn { right: 50%; }
+  .dbar .fill.lead { background: var(--stamp); }
+  .dbar .fill.lead.up::after, .dbar .fill.lead.dn::after { }
+  .dbar .num {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    font-family: var(--sans); font-size: 10px; font-variant-numeric: tabular-nums; font-weight: 500;
+    color: var(--ink); padding: 0 5px;
+    pointer-events: none;
+  }
+  /* Place the number in the EMPTY half of the bar, opposite the fill, so the
+     fill never overlaps the digits. */
+  .dbar .num.up { right: calc(50% + 4px); left: auto; }
+  .dbar .num.dn { left: calc(50% + 4px); right: auto; }
+  /* hatching */
+  .dbar .fill::before {
+    content: ""; position: absolute; inset: 0;
+    background-image: repeating-linear-gradient(90deg, color-mix(in oklab, var(--paper) 32%, transparent) 0 1px, transparent 1px 5px);
+    pointer-events: none;
+  }
+
+  /* ─── footer for region card: source + holdings count ─── */
+  .region .foot {
+    margin-top: 14px; padding-top: 10px; border-top: 1px solid color-mix(in oklab, var(--rule) 50%, transparent);
+    font-family: var(--sans); font-size: 9px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600;
+    display: flex; justify-content: space-between; gap: 8px;
+  }
+
+  /* ════════════════════════════════════════════════════
+     MOBILE PREVIEW BLOCK
+     ════════════════════════════════════════════════════ */
+  .mobile-section {
+    margin-top: 56px; padding-top: 24px; border-top: 2px solid var(--ink);
+  }
+  .mobile-section .head { display: grid; grid-template-columns: 5fr 7fr; gap: 36px; padding-bottom: 20px; }
+  .mobile-section h3 { font-family: var(--display); font-weight: 500; font-size: 2rem; line-height: 1; margin: 0; letter-spacing: -0.02em; }
+  .mobile-section h3 em { font-style: italic; }
+  .mobile-section .deck { font-family: var(--display); font-size: 14.5px; line-height: 1.55; color: var(--ink); align-self: end; margin: 0; max-width: 50ch; }
+  .device-row { display: grid; grid-template-columns: repeat(2, minmax(0, 380px)); gap: 28px; justify-content: center; align-items: start; padding-top: 14px; }
+  .phone {
+    background: var(--paper); border: 1px solid var(--ink); padding: 18px 18px 22px; position: relative;
+    box-shadow: 4px 4px 0 0 color-mix(in oklab, var(--rule) 70%, transparent);
+  }
+  .phone::before {
+    content: attr(data-label); position: absolute; top: -10px; left: 14px;
+    background: var(--paper); padding: 0 10px;
+    font-family: var(--sans); font-size: 9px; letter-spacing: .26em; text-transform: uppercase; color: var(--ink-soft); font-weight: 700;
+  }
+  .phone .top { font-family: var(--sans); font-size: 8.5px; letter-spacing: .22em; text-transform: uppercase; color: var(--ink-soft); display: flex; justify-content: space-between; padding-bottom: 6px; border-bottom: 1px solid color-mix(in oklab, var(--rule) 60%, transparent); }
+  .phone h4 { font-family: var(--display); font-weight: 500; font-size: 1.25rem; line-height: 1; margin: 12px 0 8px; }
+  .phone h4 em { font-style: italic; }
+  .phone .mini-grid {
+    display: grid; grid-template-columns: 18px 1fr; gap: 6px; margin: 10px 0 8px;
+  }
+  .phone .mini-grid .day-axis { display: grid; grid-template-rows: repeat(7, 1fr); gap: 2px; padding-top: 12px; font-size: 8px; letter-spacing: .15em; }
+  .phone .mini-grid .grid {
+    grid-template-columns: repeat(13, 1fr);
+    grid-template-rows: repeat(7, 14px);
+    gap: 2px;
+    grid-auto-flow: column;
+  }
+
+  .phone .legend-strip {
+    display: flex; align-items: center; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px solid color-mix(in oklab, var(--rule) 60%, transparent);
+    font-family: var(--sans); font-size: 8.5px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600;
+  }
+  .phone .legend-strip .gradient { flex: 1; height: 8px; background: linear-gradient(to right, color-mix(in oklab, var(--ink) 5%, var(--paper)) 0%, color-mix(in oklab, var(--ink) 22%, var(--paper)) 28%, color-mix(in oklab, var(--ink) 45%, var(--paper)) 60%, color-mix(in oklab, var(--stamp) 70%, var(--ink)) 100%); }
+
+  .phone .acc {
+    border-top: 1px solid color-mix(in oklab, var(--rule) 60%, transparent);
+    padding: 10px 0;
+  }
+  .phone .acc:first-of-type { margin-top: 14px; }
+  .phone .acc-head {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+    cursor: pointer;
+  }
+  .phone .acc-head .rn { font-family: var(--display); font-weight: 500; font-size: 1rem; }
+  .phone .acc-head .rwt { font-family: var(--sans); font-size: 8px; letter-spacing: .2em; text-transform: uppercase; color: var(--ink-soft); margin-left: 4px; font-weight: 600; }
+  .phone .acc-head .rpct { font-family: var(--display); font-weight: 500; font-size: 1.1rem; font-variant-numeric: tabular-nums; }
+  .phone .acc-head .rpct.up { color: var(--green); }
+  .phone .acc-head .rpct.dn { color: var(--red); }
+  .phone .acc-head .chev { font-family: var(--sans); font-size: 11px; color: var(--ink-soft); margin-left: 6px; }
+  .phone .acc.open .acc-body { display: block; }
+  .phone .acc-body { display: none; padding-top: 10px; }
+  .phone .acc.open .acc-head .chev { transform: rotate(180deg); display: inline-block; }
+
+  .phone .drow { font-size: 11px; padding: 3px 0; grid-template-columns: minmax(0, 70px) 1fr; }
+  .phone .drow .name { font-size: 11px; }
+  .phone .drow .name .wt { font-size: 8.5px; }
+  .phone .dbar { height: 12px; }
+  .phone .dbar .num { font-size: 8.5px; }
+
+  /* ════════════════════════════════════════════════════
+     COMPARISON ROW — what we did differently than XEQTBrief
+     ════════════════════════════════════════════════════ */
+  .delta-vs {
+    margin-top: 60px; padding: 28px 30px; background: color-mix(in oklab, var(--paper-deep) 60%, var(--paper));
+    border: 1px solid var(--ink);
+    position: relative;
+  }
+  .delta-vs::before {
+    content: "Notes for the build"; position: absolute; top: -10px; left: 16px;
+    background: var(--paper); padding: 0 10px;
+    font-family: var(--sans); font-size: 9.5px; letter-spacing: .26em; text-transform: uppercase; color: var(--stamp); font-weight: 700;
+  }
+  .delta-vs h4 { font-family: var(--display); font-weight: 500; font-size: 1.6rem; line-height: 1.1; margin: 0 0 16px; }
+  .delta-vs h4 em { font-style: italic; }
+  .delta-vs .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+  .delta-vs .item h5 { font-family: var(--sans); font-size: 9.5px; letter-spacing: .26em; text-transform: uppercase; color: var(--stamp); font-weight: 700; margin: 0 0 8px; }
+  .delta-vs .item p { font-family: var(--serif); font-size: 13.5px; line-height: 1.55; margin: 0; color: var(--ink); }
+  .delta-vs .item p strong { color: var(--ink); font-weight: 600; }
+
+  /* footer */
+  .colophon { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--ink); display: flex; justify-content: space-between; gap: 24px; font-family: var(--display); font-style: italic; font-size: 13px; color: var(--ink-soft); }
+  .colophon .ornament { text-align: center; flex: 1; color: var(--rule); letter-spacing: .5em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ── Compressed masthead (matches Task 02) ── -->
+  <div class="top-row">
+    <span class="live">Live Wire</span>
+    <span>Monday, April 27, 2026</span>
+    <span class="nav">
+      <a href="#">Calculators</a>
+      <a href="#">Compare</a>
+      <a href="#">Learn</a>
+      <a href="#" class="cur">Inside VEQT</a>
+      <a href="#">Community</a>
+    </span>
+    <span>☼ Light</span>
+  </div>
+  <div class="rule-thick"></div>
+  <div class="nameplate">
+    <h1>The VEQT Daily</h1>
+    <span class="ed">Mon &middot; Vol. VII &middot; No. 88</span>
+  </div>
+  <div class="rule-thin"></div>
+
+  <!-- ── Hero ── -->
+  <section class="hero">
+    <div class="crumb"><a href="#">Front Page</a> <span class="sep">/</span> Inside VEQT</div>
+    <h2>Inside the<br><em>fund of funds.</em></h2>
+    <p class="deck">VEQT is a basket of four ETFs. Those four ETFs hold roughly 14,000 stocks across forty-odd countries. This page shows how those parts behaved &mdash; today, this week, this season &mdash; and which ones moved the parent fund.</p>
+  </section>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- HEATMAP — page hero                           -->
+  <!-- ════════════════════════════════════════════ -->
+  <section class="heatboard">
+    <div class="head">
+      <div>
+        <h3>Ninety days of<br><em>weather.</em></h3>
+        <p class="deck">Each cell is a session. Shade is the size of the move; hue is its direction.</p>
+      </div>
+      <div class="controls">
+        <button class="ctrl">30D</button>
+        <button class="ctrl cur">90D</button>
+        <button class="ctrl">YTD</button>
+        <button class="ctrl">1Y</button>
+      </div>
+      <div class="controls">
+        <button class="ctrl cur">VEQT</button>
+        <button class="ctrl">vs. XEQT</button>
+      </div>
+    </div>
+
+    <!-- summary stat band -->
+    <div class="heat-summary">
+      <div class="card lead">
+        <div class="lab">90-day arc</div>
+        <div class="num" style="color: var(--green);">+4.62%</div>
+        <div class="sub">Up 51 sessions, down 36, three flat. The Trump-tariff drawdown in late February has been fully recovered.</div>
+      </div>
+      <div class="card">
+        <div class="lab">Worst session</div>
+        <div class="num" style="color: var(--red);">&minus;2.41%</div>
+        <div class="sub">Mon, Mar 2 &middot; Tariff escalation</div>
+      </div>
+      <div class="card">
+        <div class="lab">Best session</div>
+        <div class="num" style="color: var(--green);">+1.94%</div>
+        <div class="sub">Wed, Mar 11 &middot; CPI surprise</div>
+      </div>
+      <div class="card">
+        <div class="lab">Realised volatility</div>
+        <div class="num">0.71%</div>
+        <div class="sub">Below the 10-year norm of 0.83%</div>
+      </div>
+    </div>
+
+    <!-- the grid -->
+    <div class="heat-frame">
+      <div class="day-axis"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span></div>
+      <div class="grid-area">
+        <div class="month-axis" id="month-axis"></div>
+        <div class="grid" id="heatgrid"></div>
+        <!-- sample tooltip pinned for the comp -->
+        <div class="tip" id="sampletip" style="left: 60%; top: 14px;">
+          <div class="d">Wed, Apr 16, 2026</div>
+          <div class="pct dn">&#9660; &minus;1.42%</div>
+          <div class="meta">Unusual day &middot; ~4% of sessions &middot; led by U.S.</div>
+          <span class="lk">Read the dispatch &rarr;</span>
+        </div>
+      </div>
+      <div class="legend">
+        <h5>Down days</h5>
+        <div class="row"><span class="sw" style="background: color-mix(in oklab, var(--stamp) 75%, var(--ink));"></span><span>Rare ≥ 2%</span><span class="ct">2</span></div>
+        <div class="row"><span class="sw" style="background: color-mix(in oklab, var(--stamp) 55%, var(--paper));"></span><span>Unusual</span><span class="ct">3</span></div>
+        <div class="row"><span class="sw" style="background: color-mix(in oklab, var(--stamp) 25%, var(--paper));"></span><span>Notable</span><span class="ct">9</span></div>
+        <div class="row"><span class="sw" style="background: color-mix(in oklab, var(--ink) 5%, transparent);"></span><span>Typical</span><span class="ct">22</span></div>
+        <hr>
+        <h5>Up days</h5>
+        <div class="row"><span class="sw" style="background: color-mix(in oklab, var(--ink) 8%, transparent);"></span><span>Typical</span><span class="ct">29</span></div>
+        <div class="row"><span class="sw" style="background: color-mix(in oklab, var(--ink) 22%, transparent);"></span><span>Notable</span><span class="ct">15</span></div>
+        <div class="row"><span class="sw" style="background: color-mix(in oklab, var(--ink) 38%, transparent);"></span><span>Unusual</span><span class="ct">5</span></div>
+        <div class="row"><span class="sw" style="background: color-mix(in oklab, var(--ink) 60%, transparent);"></span><span>Rare ≥ 2%</span><span class="ct">2</span></div>
+        <hr>
+        <p class="annot">Cells with a corner mark have a published <em>Dispatch</em>. Click a cell to read it.</p>
+      </div>
+    </div>
+
+    <div class="heat-readout">
+      <p class="narrative">
+        <em class="stamp">Read</em>
+        Of the last 90 sessions, <strong>61 were typical</strong>, <strong>22 notable</strong>, <strong>5 unusual</strong>, and <strong>2 rare</strong>. The two rare days &mdash; both downward, both in early March &mdash; clustered around the tariff announcements; everything since has been ordinary weather.
+      </p>
+      <span class="meta">Source · Yahoo &middot; Closing prices · 90 sessions &middot; Updated 4:32pm ET</span>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- THE FOUR ETFs — region cards                  -->
+  <!-- ════════════════════════════════════════════ -->
+  <div class="panel-head">
+    <div>
+      <h3>The four <em>ETFs that make VEQT.</em></h3>
+      <p class="deck">VEQT holds nothing directly. It owns four other Vanguard funds &mdash; one per region &mdash; in fixed weights. Today&rsquo;s move is the weight-blended sum of theirs.</p>
+    </div>
+    <div class="controls">
+      <button class="ctrl cur">Today</button>
+      <button class="ctrl">Week</button>
+      <button class="ctrl">Month</button>
+      <button class="ctrl">YTD</button>
+    </div>
+  </div>
+
+  <div class="regions" id="regions">
+    <!-- each region rendered via JS below to keep markup tidy -->
+  </div>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- MOBILE TREATMENT                              -->
+  <!-- ════════════════════════════════════════════ -->
+  <section class="mobile-section">
+    <div class="head">
+      <h3>The same page,<br><em>at 380px wide.</em></h3>
+      <p class="deck">The heatmap transposes &mdash; weekdays become rows top-to-bottom, weeks become columns left-to-right (most recent on the right). Legend collapses to an inline gradient. The four region cards become an accordion: tap a region to expand its sector or country breakdown. The contribution math &mdash; the most important number &mdash; sits on the always-visible header line.</p>
+    </div>
+    <div class="device-row">
+      <!-- Phone 1: heatmap -->
+      <div class="phone" data-label="01 — Heatmap, fold one">
+        <div class="top"><span>● Live Wire</span><span>Apr 27</span></div>
+        <h4>Inside <em>VEQT.</em></h4>
+        <div style="display:flex; justify-content: space-between; align-items: baseline; margin: 4px 0 8px;">
+          <span style="font-family: var(--display); font-style: italic; font-size: 12px; color: var(--ink-soft);">90-day arc</span>
+          <span style="font-family: var(--display); font-weight: 500; font-size: 1.4rem; color: var(--green); font-variant-numeric: tabular-nums;">+4.62%</span>
+        </div>
+
+        <div class="mini-grid">
+          <div class="day-axis"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+          <div class="grid" id="heatgrid-mobile-a"></div>
+        </div>
+        <div class="legend-strip">
+          <span>Quiet</span><span class="gradient"></span><span>Wild</span>
+        </div>
+
+        <p style="font-family: var(--display); font-size: 13px; line-height: 1.55; color: var(--ink-soft); margin: 14px 0 0;">
+          61 typical, 22 notable, 5 unusual, 2 rare. Tap any cell for date, % change, and zone.
+        </p>
+      </div>
+
+      <!-- Phone 2: region accordion -->
+      <div class="phone" data-label="02 — Regions, accordion">
+        <div class="top"><span>● Live Wire</span><span>Apr 27</span></div>
+        <h4>The four <em>ETFs.</em></h4>
+
+        <div class="acc open">
+          <div class="acc-head">
+            <span><span class="rn">United States</span><span class="rwt">44%</span></span>
+            <span><span class="rpct dn">&#9660; &minus;0.84%</span><span class="chev">▾</span></span>
+          </div>
+          <div class="acc-body">
+            <p style="font-family: var(--display); font-style: italic; font-size: 11.5px; color: var(--ink-soft); margin: 2px 0 8px;">Took <span style="font-style: normal; color: var(--red); font-weight: 500;">&minus;0.37pp</span> from the day &mdash; the biggest single mover.</p>
+            <h6 style="font-family: var(--sans); font-size: 8.5px; letter-spacing: .22em; text-transform: uppercase; color: var(--ink-soft); margin: 2px 0 6px;">Sector returns</h6>
+            <div class="drow"><span class="name">Tech<span class="wt">31%</span></span><div class="dbar"><span class="axis"></span><span class="fill dn lead" style="width: 28%; right: 50%;"></span><span class="num dn">−1.72%</span></div></div>
+            <div class="drow"><span class="name">Comm. Svc.<span class="wt">9%</span></span><div class="dbar"><span class="axis"></span><span class="fill dn" style="width: 18%; right: 50%;"></span><span class="num dn">−1.10%</span></div></div>
+            <div class="drow"><span class="name">Health<span class="wt">11%</span></span><div class="dbar"><span class="axis"></span><span class="fill up" style="width: 8%; left: 50%;"></span><span class="num up">+0.48%</span></div></div>
+            <div class="drow"><span class="name">Energy<span class="wt">4%</span></span><div class="dbar"><span class="axis"></span><span class="fill up" style="width: 14%; left: 50%;"></span><span class="num up">+0.86%</span></div></div>
+          </div>
+        </div>
+
+        <div class="acc">
+          <div class="acc-head">
+            <span><span class="rn">Canada</span><span class="rwt">26%</span></span>
+            <span><span class="rpct up">&#9650; +0.31%</span><span class="chev">▾</span></span>
+          </div>
+        </div>
+        <div class="acc">
+          <div class="acc-head">
+            <span><span class="rn">Intl. Developed</span><span class="rwt">25%</span></span>
+            <span><span class="rpct up">&#9650; +0.22%</span><span class="chev">▾</span></span>
+          </div>
+        </div>
+        <div class="acc">
+          <div class="acc-head">
+            <span><span class="rn">Emerging</span><span class="rwt">5%</span></span>
+            <span><span class="rpct up">&#9650; +1.04%</span><span class="chev">▾</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- HOW WE BEAT XEQTBRIEF                         -->
+  <!-- ════════════════════════════════════════════ -->
+  <div class="delta-vs">
+    <h4>Three things we&rsquo;re doing <em>differently</em> than XEQTBrief</h4>
+    <div class="grid3">
+      <div class="item">
+        <h5>01 · Lead with contribution, not return</h5>
+        <p>XEQTBrief headlines each region&rsquo;s daily return. We headline the return <em>and</em> the contribution to VEQT in basis points. Emerging Markets +1.66% sounds like the day&rsquo;s mover &mdash; until you remember EM is 5% of the fund, contributing <strong>+0.08pp</strong>. The U.S. up 0.51% on a 44% weight contributes <strong>+0.22pp</strong>. Our region card surfaces both numbers and visually weights the contribution bar.</p>
+      </div>
+      <div class="item">
+        <h5>02 · Directional bars on a center axis</h5>
+        <p>XEQTBrief&rsquo;s sector bars all start from the left edge, with positives tinted green and negatives tinted red. Reading "is this up or down?" requires colour discrimination at a glance. We center the axis &mdash; bars grow left for losses, right for gains &mdash; and the number sits adjacent to the bar end. Direction is shape, not just colour.</p>
+      </div>
+      <div class="item">
+        <h5>03 · The leader gets a vermilion cap</h5>
+        <p>The single biggest contributor &mdash; the region that moved VEQT most today &mdash; gets a 4px stamp-coloured cap above its card. Same treatment in the sector drilldown: the leading sector&rsquo;s bar is filled in stamp red. A reader scanning the page sees, in one glance: <em>U.S. tech weakness drove the day.</em></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="colophon">
+    <span>Drawn in Fraunces, Newsreader and Outfit. Printed on cream.</span>
+    <span class="ornament">&sect; &nbsp; &mdash; &nbsp; &sect;</span>
+    <span>/inside-veqt &middot; comp · April 27, 2026</span>
+  </div>
+
+</div>
+
+<script>
+  // ── Heatmap data generation ──────────────────────────
+  function rng(seed) {
+    let s = seed;
+    return () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
+  }
+  function genCells(n, seed) {
+    const r = rng(seed);
+    const out = [];
+    for (let i = 0; i < n; i++) {
+      const x = r();
+      let abs;
+      if (x < 0.67) abs = r() * 0.6;
+      else if (x < 0.91) abs = 0.6 + r() * 0.6;
+      else if (x < 0.98) abs = 1.2 + r() * 0.8;
+      else abs = 2.0 + r() * 1.5;
+      const sign = r() > 0.49 ? 1 : -1;
+      out.push({ pct: abs * sign, dispatch: r() < 0.08 });
+    }
+    return out;
+  }
+  function shade(pct) {
+    const abs = Math.abs(pct);
+    const isUp = pct >= 0;
+    let intensity;
+    if (abs < 0.6) intensity = 0.05 + abs * 0.05;
+    else if (abs < 1.2) intensity = 0.16 + (abs - 0.6) * 0.16;
+    else if (abs < 2.0) intensity = 0.32 + (abs - 1.2) * 0.18;
+    else intensity = 0.6 + Math.min(0.25, (abs - 2.0) * 0.15);
+    const p = Math.round(intensity * 100);
+    if (isUp) return `color-mix(in oklab, var(--ink) ${p}%, transparent)`;
+    return `color-mix(in oklab, var(--stamp) ${p}%, var(--paper))`;
+  }
+  function renderGrid(elId, count, todayIdx, seed) {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    const cells = genCells(count, seed);
+    let html = '';
+    cells.forEach((c, i) => {
+      const empty = (i * 13 + 7) % 26 === 0;
+      if (empty) {
+        html += '<span class="cell empty"></span>';
+        return;
+      }
+      const cls = ['cell'];
+      if (i === todayIdx) cls.push('today');
+      if (c.dispatch) cls.push('dispatch');
+      html += `<span class="${cls.join(' ')}" style="background:${shade(c.pct)}"></span>`;
+    });
+    el.innerHTML = html;
+  }
+  // month labels for desktop axis (18 columns)
+  function renderMonthAxis() {
+    const el = document.getElementById('month-axis');
+    if (!el) return;
+    // distribute labels across columns roughly: Feb, Mar, Apr
+    const labels = ['Feb','','','','Mar','','','','','Apr','','','','','May','','',''];
+    el.innerHTML = labels.map(l => `<span>${l}</span>`).join('');
+  }
+  // Region cards: render 4 regions w/ sector / country drilldowns
+  const regionData = [
+    {
+      name: 'United States', em: 'States', tic: 'VUN.TO', full: 'Vanguard U.S. Total Market Index ETF',
+      weight: 44, pct: -0.84, contribPp: -0.37, leader: true,
+      drillLabel: 'Sector returns',
+      drillNote: '~3,800 holdings',
+      rows: [
+        { name: 'Tech', wt: 31, pct: -1.72, lead: true },
+        { name: 'Comm. Svc.', wt: 9,  pct: -1.10 },
+        { name: 'Cons. Disc.', wt: 11, pct: -0.92 },
+        { name: 'Industrials', wt: 9, pct: -0.41 },
+        { name: 'Financials', wt: 13, pct: -0.18 },
+        { name: 'Health', wt: 11, pct: +0.48 },
+        { name: 'Energy', wt: 4, pct: +0.86 },
+        { name: 'Real Estate', wt: 3, pct: +0.12 }
+      ]
+    },
+    {
+      name: 'Canada', em: 'home turf', tic: 'VCN.TO', full: 'Vanguard FTSE Canada All Cap Index ETF',
+      weight: 26, pct: +0.31, contribPp: +0.08,
+      drillLabel: 'Sector returns',
+      drillNote: '~180 holdings',
+      rows: [
+        { name: 'Energy', wt: 17, pct: +1.34, lead: true },
+        { name: 'Materials', wt: 11, pct: +0.94 },
+        { name: 'Financials', wt: 35, pct: +0.18 },
+        { name: 'Industrials', wt: 13, pct: +0.06 },
+        { name: 'Tech', wt: 8, pct: -0.22 },
+        { name: 'Cons. Staples', wt: 4, pct: -0.10 },
+        { name: 'Telecom', wt: 4, pct: -0.41 },
+        { name: 'Utilities', wt: 4, pct: -0.62 }
+      ]
+    },
+    {
+      name: 'Intl. Developed', em: 'developed', tic: 'VIU.TO', full: 'Vanguard FTSE Developed All Cap ex N.A.',
+      weight: 25, pct: +0.22, contribPp: +0.06,
+      drillLabel: 'Country returns',
+      drillNote: '~3,800 holdings',
+      rows: [
+        { name: 'Netherlands', wt: 4, pct: +1.51, lead: true },
+        { name: 'Germany', wt: 7, pct: +1.03 },
+        { name: 'Switzerland', wt: 8, pct: +0.66 },
+        { name: 'France', wt: 10, pct: +0.40 },
+        { name: 'Japan', wt: 21, pct: +0.29 },
+        { name: 'U.K.', wt: 14, pct: +0.31 },
+        { name: 'Australia', wt: 7, pct: -0.34 },
+        { name: 'Hong Kong', wt: 2, pct: +0.43 }
+      ]
+    },
+    {
+      name: 'Emerging', em: 'emerging', tic: 'VEE.TO', full: 'Vanguard FTSE Emerging Markets All Cap',
+      weight: 5, pct: +1.04, contribPp: +0.05,
+      drillLabel: 'Country returns',
+      drillNote: '~5,400 holdings',
+      rows: [
+        { name: 'Taiwan', wt: 22, pct: +2.41, lead: true },
+        { name: 'China', wt: 24, pct: +1.62 },
+        { name: 'India', wt: 17, pct: +0.94 },
+        { name: 'S. Korea', wt: 11, pct: +1.22 },
+        { name: 'Brazil', wt: 5, pct: -0.37 },
+        { name: 'S. Africa', wt: 3, pct: +1.26 },
+        { name: 'Mexico', wt: 2, pct: +1.11 },
+        { name: 'Saudi Arabia', wt: 4, pct: +0.23 }
+      ]
+    }
+  ];
+
+  function renderRegions() {
+    const el = document.getElementById('regions');
+    if (!el) return;
+    // Find max abs sector pct across all regions for consistent bar scale within each region
+    const maxAbsPct = 3.0; // anchor visual scale to ~3% so 1% reads small, not always full-bar
+    el.innerHTML = regionData.map((r, i) => {
+      const isUp = r.pct >= 0;
+      const cls = `region${r.leader ? ' leader' : ''}`;
+      const ord = String(i + 1).padStart(2, '0');
+      const contribAbs = Math.min(50, Math.abs(r.contribPp) * 60); // scale pp impact to 0-50% width
+      const rowsHtml = r.rows.map(row => {
+        const rowUp = row.pct >= 0;
+        const widthPct = Math.min(48, (Math.abs(row.pct) / maxAbsPct) * 50);
+        const fillCls = `fill ${rowUp ? 'up' : 'dn'}${row.lead ? ' lead' : ''}`;
+        const fillStyle = rowUp
+          ? `left: 50%; width: ${widthPct}%;`
+          : `right: 50%; width: ${widthPct}%;`;
+        const numCls = `num ${rowUp ? 'up' : 'dn'}`;
+        const numText = `${rowUp ? '+' : '−'}${Math.abs(row.pct).toFixed(2)}%`;
+        return `
+          <div class="drow">
+            <span class="name">${row.name}<span class="wt">${row.wt}%</span></span>
+            <div class="dbar">
+              <span class="axis"></span>
+              <span class="${fillCls}" style="${fillStyle}"></span>
+              <span class="${numCls}">${numText}</span>
+            </div>
+          </div>`;
+      }).join('');
+
+      return `
+        <article class="${cls}">
+          <div class="region-head">
+            <div class="rname">${r.name}</div>
+            <div class="ord">№ ${ord}</div>
+          </div>
+          <div class="full">${r.full} <span class="tic">${r.tic}</span></div>
+          <div class="pct ${isUp ? 'up' : 'dn'}">
+            <span class="arr">${isUp ? '▲' : '▼'}</span> ${isUp ? '+' : '−'}${Math.abs(r.pct).toFixed(2)}%
+          </div>
+          <p class="stat">
+            <span class="num">${r.weight}%</span> of VEQT &middot;
+            contributed <span class="pp ${isUp ? 'up' : 'dn'}">${isUp ? '+' : '−'}${Math.abs(r.contribPp).toFixed(2)}pp</span> to the day
+          </p>
+          <div class="contrib-bar">
+            <span class="axis"></span>
+            <span class="fill ${isUp ? 'up' : 'dn'}" style="width:${contribAbs}%;"></span>
+          </div>
+          <div class="drill">
+            <h6>${r.drillLabel}<em>${r.drillNote}</em></h6>
+            ${rowsHtml}
+          </div>
+          <div class="foot">
+            <span>Source &middot; ${r.tic}</span>
+            <span>${r.drillNote}</span>
+          </div>
+        </article>`;
+    }).join('');
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    renderMonthAxis();
+    renderGrid('heatgrid', 90, 80, 1234);
+    renderGrid('heatgrid-mobile-a', 91, 88, 5678);
+    renderRegions();
+  });
+</script>
+</body>
+</html>

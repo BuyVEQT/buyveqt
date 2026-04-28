@@ -60,7 +60,7 @@ export default function RelatedReading({
               className="group block py-3 grid grid-cols-[1fr_auto] gap-4 items-baseline border-t border-[var(--color-border)] first:border-t-0"
             >
               <h3
-                className="bs-display-italic text-[1.0625rem] sm:text-[1.125rem] leading-[1.2] group-hover:text-[var(--stamp)] transition-colors"
+                className="bs-display text-[1.0625rem] sm:text-[1.125rem] leading-[1.2] group-hover:text-[var(--stamp)] transition-colors"
                 style={{ color: "var(--ink)" }}
               >
                 {article.title}

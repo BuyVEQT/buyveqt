@@ -32,7 +32,7 @@ export default function StakeDefault({
     >
       <p className="bs-stamp mb-3">A worked example</p>
       <p
-        className="bs-display-italic text-[1.5rem] sm:text-[1.875rem] leading-[1.15] mb-4"
+        className="bs-display text-[1.5rem] sm:text-[1.875rem] leading-[1.15] mb-4"
         style={{ color: "var(--ink)" }}
       >
         On a {fmt(DEFAULT_STAKE_DOLLARS)} VEQT position…

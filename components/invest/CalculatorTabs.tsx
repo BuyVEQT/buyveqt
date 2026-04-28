@@ -120,7 +120,7 @@ function CalculatorTabsInner({ history, volatilityStats }: CalculatorTabsProps) 
                 }}
               >
                 <span
-                  className="bs-display-italic text-[15px] sm:text-[17px] leading-none whitespace-nowrap"
+                  className="bs-display text-[15px] sm:text-[17px] leading-none whitespace-nowrap"
                   style={{
                     color: isActive ? "var(--ink)" : "var(--ink-soft)",
                   }}

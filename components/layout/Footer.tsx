@@ -67,7 +67,7 @@ export default function Footer() {
 
         {/* Newsletter */}
         <div className="pb-6">
-          <p className="section-label mb-2">
+          <p className="bs-stamp mb-2">
             Stay informed
           </p>
           <p className="text-xs text-[var(--color-text-muted)] mb-3">

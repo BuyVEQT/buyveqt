@@ -1,81 +1,190 @@
-# Round 2 — Task 0 Audit
+# Round 3 — M1 cleanup audit
 
-Snapshot of the codebase before any Round 2 changes are applied. Scope:
-imports of `Masthead`, `HeroSection`, `RegionCards`, `SeverityMeter`; the
-`Masthead` variant rendered by each route; current top-level routes; and
-the `HeroSection` dead-code gate for Task 3.
+Snapshot of the codebase after the M1 "tidy" pass. Tickets CL-01 through
+CL-08 from `design_handoff_round3/01-cleanup-pr.md` are addressed in this
+PR; what's listed below is the resulting state, not the diff.
 
-## 1. Importers of the four target components
+## 1. Dead components removed
 
-Grouped by component. Path · line of `import` · line(s) where the symbol
-is rendered or referenced.
+`HeroSection.tsx` was already gone. The cleanup pass found six more
+components on disk with zero importers; all were the legacy
+`.card-editorial` primitive's only callers, so deleting them satisfied
+CL-03 without a manual migration.
 
-### `Masthead` (`components/broadsheet/Masthead.tsx`)
+| File                              | Status   | Notes                                                          |
+|-----------------------------------|----------|----------------------------------------------------------------|
+| `components/HeroSection.tsx`      | gone     | Deleted in Round 2; verified via repo-wide grep.               |
+| `components/CalculatorsPreview.tsx` | deleted | No importers.                                                  |
+| `components/LearnPreview.tsx`     | deleted  | No importers.                                                  |
+| `components/ComparePreview.tsx`   | deleted  | No importers.                                                  |
+| `components/InsideVeqtPreview.tsx`| deleted  | No importers.                                                  |
+| `components/ChartSidebar.tsx`     | deleted  | No importers.                                                  |
+| `components/PriceChart.tsx`       | deleted  | No importers; the home accordion lives in `app/page.tsx`.      |
 
-- [app/page.tsx:7](app/page.tsx:7) — imports `Masthead`; renders at [app/page.tsx:98](app/page.tsx:98) (no `variant` prop → defaults to `"home"`).
-- [components/broadsheet/InteriorShell.tsx:5](components/broadsheet/InteriorShell.tsx:5) — imports `Masthead`; renders at [components/broadsheet/InteriorShell.tsx:40](components/broadsheet/InteriorShell.tsx:40) with `variant="interior"`.
+`components/CommunityWidget.tsx`, `components/layout/Footer.tsx`, and
+`components/layout/PageShell.tsx` are also unimported but were left in
+place pending an explicit decision — they are coherent components that
+may get re-introduced. CL-02's `.section-label` class was the only thing
+they shared with the deletion target, and that class has been migrated
+to `.bs-stamp` on both files so the CSS could be dropped safely.
 
-### `HeroSection` (`components/HeroSection.tsx`)
+## 2. CSS strip (CL-02)
 
-- **No external importers.** The symbol appears only inside its own file: the `HeroSectionProps` interface at [components/HeroSection.tsx:11](components/HeroSection.tsx:11) and the default export at [components/HeroSection.tsx:80](components/HeroSection.tsx:80). `grep -r HeroSection` across `app/`, `components/`, `lib/` returns the single file.
+Removed from `app/globals.css`:
 
-### `RegionCards` (`components/broadsheet/RegionCards.tsx`)
+- `.card-editorial`, `.card-editorial:hover`, and the
+  `[data-theme="dark"] .card-editorial[*]` overrides (≈30 lines around
+  the old line 142).
+- `.section-label` (≈8 lines around the old line 174).
+- `.hero-gradient` and its dark-theme override (≈30 lines around the old
+  line 277).
 
-- [app/page.tsx:8](app/page.tsx:8) — imports `RegionCards`; renders at [app/page.tsx:166](app/page.tsx:166).
-- [lib/useRegions.ts:34](lib/useRegions.ts:34) — **comment-only mention** in the JSDoc for `useRegions`; not an import.
+Verification: `grep -n "card-editorial\|hero-gradient\|section-label"
+app/globals.css` returns zero matches, and the same grep across
+`components/` and `app/` is empty.
 
-### `SeverityMeter` (`components/broadsheet/SeverityMeter.tsx`)
+## 3. Italics audit (CL-04)
 
-- [app/page.tsx:11](app/page.tsx:11) — imports `SeverityMeter`; renders at [app/page.tsx:143](app/page.tsx:143).
+Before: 66 occurrences of `bs-display-italic` across 35 files (the
+context doc's "22 / 10" count was a snapshot of `app/`-only files, not
+the components tree).
 
-## 2. Routes → `Masthead` variant rendered
+After: 12 occurrences, distributed one-per-file. After `LEARN_ARTICLES`
+is fully retired the count drops to 11.
 
-Every `app/**/page.tsx` and the masthead variant it produces. Pages that
-use `InteriorShell` inherit `variant="interior"` from
-[components/broadsheet/InteriorShell.tsx:40](components/broadsheet/InteriorShell.tsx:40).
+| File                                              | Uses | Role                                       |
+|---------------------------------------------------|------|--------------------------------------------|
+| `app/page.tsx`                                    | 1    | Lead h2 (data-driven headline).            |
+| `app/distributions/page.tsx`                      | 1    | Lead h1.                                   |
+| `app/inside-veqt/page.tsx`                        | 1    | Lead h1.                                   |
+| `app/invest/page.tsx`                             | 1    | Lead h1 ("slowly").                        |
+| `app/methodology/page.tsx`                        | 1    | Lead h1 ("fine print").                    |
+| `app/weekly/page.tsx`                             | 1    | Lead h1 ("week by week").                  |
+| `app/community/page.tsx`                          | 1    | Lead h3 ("the holders").                   |
+| `app/compare/page.tsx`                            | 1    | Lead h2 ("the field").                     |
+| `components/learn/ArticleLayout.tsx`              | 1    | Article-page lead h1.                      |
+| `components/weekly/WeeklyDispatchLayout.tsx`      | 1    | Dispatch-page lead h1.                     |
+| `components/mdx/Pullquote.tsx`                    | 1    | Pullquote display style (deliberate).      |
 
-| Route                    | File                                                                   | Variant     | How                          |
-|--------------------------|------------------------------------------------------------------------|-------------|------------------------------|
-| `/`                      | [app/page.tsx](app/page.tsx)                                           | `home`      | direct `<Masthead>` (default) |
-| `/calculators`           | [app/calculators/page.tsx](app/calculators/page.tsx)                   | _none_      | server redirect to `/invest` |
-| `/community`             | [app/community/page.tsx](app/community/page.tsx)                       | `interior`  | `InteriorShell`              |
-| `/compare`               | [app/compare/page.tsx](app/compare/page.tsx)                           | `interior`  | `InteriorShell`              |
-| `/compare/[slug]`        | [app/compare/[slug]/page.tsx](app/compare/[slug]/page.tsx)             | `interior`  | `InteriorShell`              |
-| `/distributions`         | [app/distributions/page.tsx](app/distributions/page.tsx)               | `interior`  | `InteriorShell`              |
-| `/inside-veqt`           | [app/inside-veqt/page.tsx](app/inside-veqt/page.tsx)                   | `interior`  | `InteriorShell`              |
-| `/invest`                | [app/invest/page.tsx](app/invest/page.tsx)                             | `interior`  | `InteriorShell`              |
-| `/learn`                 | [app/learn/page.tsx](app/learn/page.tsx)                               | `interior`  | `InteriorShell`              |
-| `/learn/[slug]`          | [app/learn/[slug]/page.tsx](app/learn/[slug]/page.tsx)                 | `interior`  | `InteriorShell` (max-w-1200) |
-| `/learn/path/[id]`       | [app/learn/path/[id]/page.tsx](app/learn/path/[id]/page.tsx)           | `interior`  | `InteriorShell`              |
-| `/methodology`           | [app/methodology/page.tsx](app/methodology/page.tsx)                   | `interior`  | `InteriorShell`              |
-| `/weekly`                | [app/weekly/page.tsx](app/weekly/page.tsx)                             | `interior`  | `InteriorShell`              |
-| `/weekly/[slug]`         | [app/weekly/[slug]/page.tsx](app/weekly/[slug]/page.tsx)               | `interior`  | `InteriorShell` (max-w-1200) |
+Section-level italic ems on `BottomLine`, `WhoThisSuits`,
+`FAQSection`, `Letters`, `CommunityContent`, `StakeDefault`,
+`StandingFeature`, `CalculatorFrame`, `CalculatorTabs`, the various
+`learn/` cards, and the in-page `<em>` decorations on the page files
+were all stripped. Their `<em>` tags remain so semantic emphasis
+survives — only the editorial display class is gone.
 
-## 3. Top-level routes — one-line description
+## 4. Vermilion discipline (CL-05)
 
-Sourced from each page's `metadata.description` (or first paragraph of
-copy where no metadata exists).
+Explicit edits this PR ships:
 
-- **`/`** — Homepage. Live VEQT broadsheet: lead headline computed from today's move, severity meter, region cards, marquee article, and editorial sections.
-- **`/calculators`** — Server redirect to `/invest`. No content of its own.
-- **`/community`** — _The Forum — r/JustBuyVEQT._ Curated subreddit links and community resources for VEQT investors.
-- **`/compare`** — _The Bouts — VEQT vs the field._ Head-to-head comparisons of VEQT against XEQT, VGRO, and other Canadian asset-allocation ETFs.
-- **`/compare/[slug]`** — Per-pairing comparison page (e.g. VEQT vs XEQT) with full structural analysis.
-- **`/distributions`** — _The Annual — VEQT Distribution History & Income._ Distribution history table, yield trends, and income context.
-- **`/inside-veqt`** — _Inside VEQT — Holdings, Sectors & Geographic Allocation._ "What's inside VEQT? Explore the 4 underlying ETFs, top 15 holdings, sector breakdown, and geographic allocation of Vanguard's all-equity ETF."
-- **`/invest`** — _The Reckoner — VEQT Calculators._ Lump-sum, DCA, dividend, account, and FIRE calculators with shareable result OGs.
-- **`/learn`** — _Learn — VEQT & Canadian Passive Investing._ Plain-English dispatches on VEQT, Canadian ETFs, tax-advantaged accounts, and building a passive portfolio.
-- **`/learn/[slug]`** — Individual learn article (MDX-rendered).
-- **`/learn/path/[id]`** — Curated multi-article reading path.
-- **`/methodology`** — _The Colophon — Sources, Methods, Fine Print._ Where prices come from, refresh cadence, manual data, editorial process.
-- **`/weekly`** — _The Wire — VEQT Week-by-Week Recaps._ Weekly recap index.
-- **`/weekly/[slug]`** — Individual weekly recap.
+- `app/globals.css` — `.bs-stamp` color: `var(--stamp)` → `var(--rule)`.
+  Section labels now read in tan, not vermilion.
+- `app/globals.css` — `.bs-lede::first-letter` color:
+  `var(--stamp)` → `var(--ink)`. The duplicate-color declaration was
+  also removed.
+- `app/globals.css` — `.bs-link:hover` no longer changes color; it
+  thickens the underline (`text-decoration-thickness: 2px`).
+- `app/page.tsx` — the inception-calculator `$` glyph and its input
+  underline switched to `var(--ink)`. Focus state now flips to
+  `var(--stamp)` (matches the "today's signal" rule, since active focus
+  is a momentary highlight).
 
-## 4. `HeroSection` dead-code gate (for Task 3)
+Vermilion call sites that remain (intentional):
 
-**Verdict: dead code. Safe to delete in Task 3.**
+- The live-wire dot in the masthead (when the market is open).
+- `SeverityMeter` marker disc + zone label.
+- `VolatilityHeatmap` negative-day cells, the today ring, and the legend
+  swatch.
+- `TiltBar` US segment (US-tilt is the at-a-glance signal in the home
+  compare table).
+- `EditionRecommends` zone badge.
+- "House Choice" badge on VEQT in the home compare table.
 
-- Repository-wide search (`grep -r HeroSection --include="*.tsx" --include="*.ts" .`) returns exactly one file: [components/HeroSection.tsx](components/HeroSection.tsx).
-- Only matches inside that file are the `HeroSectionProps` interface declaration ([components/HeroSection.tsx:11](components/HeroSection.tsx:11)) and the default export ([components/HeroSection.tsx:80](components/HeroSection.tsx:80)).
-- No tests reference it (`**/HeroSection*` glob: only the source file).
-- No OG-image generation route imports it.
+Out-of-scope and flagged for follow-up: 14 files still ship
+`hover:text-[var(--stamp)]` / `group-hover:text-[var(--stamp)]` link
+hovers (`Letters`, `learn/PathCard`, `learn/RelatedReading`,
+`learn/EditorsPicks`, `learn/ArticleRow`, `learn/PathDetail`,
+`broadsheet/dispatch/NextDispatch`, `broadsheet/dispatch/DispatchTOC`,
+`broadsheet/EngravingChart`, `broadsheet/Masthead`,
+`weekly/WeeklyDispatchLayout`, `community/CommunityContent`,
+`app/page.tsx`, `app/weekly/page.tsx`). These violate the
+"link hovers don't recolor" rule but were not part of CL-05's listed
+edits — the home page screenshots still meet the static-state
+acceptance ("vermilion appears only on…").
+
+## 5. SeverityMeter compact (CL-06)
+
+`SeverityMeter` accepts an optional `compact` prop. When set:
+- inline legend hidden,
+- editorial sentence hidden,
+- gauge halves to ~10px tall,
+- the zone label moves into the header row.
+
+`SeverityMeterAuto` (`components/broadsheet/SeverityMeterAuto.tsx`) is
+a new client wrapper that fetches the data the home page wires by hand,
+so interior pages can mount `<SeverityMeterAuto compact />` without
+duplicating the `useVeqtData` + full-history fetch logic.
+
+Mounted at:
+
+- `app/invest/page.tsx`, between the "Pick the question" header and the
+  CalculatorTabs strip.
+- `components/learn/ArticleLayout.tsx`, conditional on
+  `frontmatter.slug === "veqt-is-down"`, rendered above the body
+  prose. There is no dedicated `app/learn/veqt-is-down/page.tsx`; the
+  article is MDX served by `app/learn/[slug]/page.tsx`, so the meter is
+  injected at the layout level.
+
+Home-page `<SeverityMeter />` (no props) is unchanged.
+
+## 6. Home `/learn` triplet (CL-07)
+
+The home `LEARN_ARTICLES.map(...)` block is replaced by a hardcoded
+`COURSE_1` constant in `app/page.tsx`. Three steps, three slugs:
+
+1. `what-is-veqt` — "What VEQT actually is"
+2. `veqt-vs-diy-portfolio` — "Why one fund and hold forever"
+3. `veqt-is-down` — "What to do when it's down"
+
+The handoff prompt suggested a slug `one-fund-portfolio` for step 2;
+no such article exists in `content/learn/`. The closest semantic match
+is `veqt-vs-diy-portfolio` (the canonical "why one fund vs five" piece),
+which is what step 2 now points at.
+
+Headline: `"From the archive · Three to start with"` → `"A reading
+order, in three parts."` Stamp: `"From the archive"` → `"Course One"`.
+
+`LEARN_ARTICLES` is no longer imported on the home page. It still lives
+in `lib/constants.ts` and may have other consumers; not removed in this
+PR.
+
+## 7. Home Tilt column (CL-08)
+
+New tiny component: `components/broadsheet/TiltBar.tsx`.
+- `weights: { us, ca, dev, em }` (sum ≈ 1).
+- Optional `label` for the `aria-label`.
+- Renders four `<span>`s under `.bs-tilt-bar` (CSS already in
+  `globals.css:1304`).
+
+Q1 2026 weights for VEQT/XEQT/ZEQT are hardcoded in `app/page.tsx`
+as `TILTS`. Update when fresh factsheets file.
+
+The home compare table now has six columns. A small-caps inline legend
+sits below the table on `sm+` viewports; the Tilt column collapses on
+mobile (the `<th>` is `hidden sm:table-cell`).
+
+## 8. Routes — masthead variants (unchanged)
+
+Same as Round 2 audit. Every interior page renders `<Masthead
+variant="interior" />` via `InteriorShell`; only `app/page.tsx` renders
+`variant="home"` directly. No routes added in this PR.
+
+## 9. Build & lint
+
+- `npm run build` passes (verified at start, after each ticket, and at
+  the end). Output unchanged in route count.
+- `npm run lint` errors with `TypeError: Converting circular structure
+  to JSON` from `@eslint/eslintrc`. **This error reproduces on
+  `origin/main` before any of these changes** — it is a pre-existing
+  problem with the ESLint config, not something this PR introduced.
+  Flagged for separate investigation.

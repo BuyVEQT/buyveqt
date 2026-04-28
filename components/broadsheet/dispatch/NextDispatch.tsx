@@ -25,7 +25,7 @@ export default function NextDispatch({ next, previous }: NextDispatchProps) {
           style={{ color: "var(--ink)" }}
         >
           <p className="bs-stamp mb-3">Continue to the next dispatch</p>
-          <h3 className="bs-display-italic text-[1.75rem] sm:text-[2.25rem] leading-[1.05] group-hover:text-[var(--stamp)] transition-colors">
+          <h3 className="bs-display text-[1.75rem] sm:text-[2.25rem] leading-[1.05] group-hover:text-[var(--stamp)] transition-colors">
             {next.title}
           </h3>
           <p

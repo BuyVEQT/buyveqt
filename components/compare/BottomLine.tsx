@@ -74,7 +74,7 @@ export default function BottomLine({
           className="bs-display text-[1.5rem] sm:text-[1.875rem] leading-tight"
           style={{ color: "var(--ink)" }}
         >
-          <em className="bs-display-italic">Round-by-round,</em> who took it
+          <em>Round-by-round,</em> who took it
         </h2>
       </header>
 
@@ -97,7 +97,7 @@ export default function BottomLine({
           >
             <div className="flex items-center justify-between gap-3 mb-2">
               <h3
-                className="bs-display-italic text-[1rem] sm:text-[1.125rem]"
+                className="bs-display text-[1rem] sm:text-[1.125rem]"
                 style={{ color: "var(--ink)" }}
               >
                 {point.label}
@@ -124,7 +124,7 @@ export default function BottomLine({
       >
         <p className="bs-stamp mb-2">Our recommendation</p>
         <p
-          className="bs-display-italic text-[1.125rem] sm:text-[1.25rem] leading-[1.4] max-w-[68ch]"
+          className="bs-display text-[1.125rem] sm:text-[1.25rem] leading-[1.4] max-w-[68ch]"
           style={{ color: "var(--ink)" }}
         >
           {verdict.recommendation}

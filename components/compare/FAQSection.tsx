@@ -19,8 +19,7 @@ export default function FAQSection() {
           className="bs-display text-[1.25rem] sm:text-[1.5rem] leading-tight"
           style={{ color: "var(--ink)" }}
         >
-          <em className="bs-display-italic">Common questions,</em> straight
-          answers
+          <em>Common questions,</em> straight answers
         </h2>
       </header>
 
@@ -38,7 +37,7 @@ export default function FAQSection() {
                 aria-expanded={isOpen}
               >
                 <span
-                  className="bs-display-italic text-[16px] sm:text-[17px] leading-snug pr-2"
+                  className="bs-display text-[16px] sm:text-[17px] leading-snug pr-2"
                   style={{
                     color: isOpen ? "var(--stamp)" : "var(--ink)",
                   }}

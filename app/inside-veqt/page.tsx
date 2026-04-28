@@ -221,7 +221,7 @@ export default function InsideVeqtPage() {
                       style={{ color: "var(--ink)" }}
                     >
                       <span
-                        className="bs-display-italic text-[1rem] sm:text-[1.0625rem]"
+                        className="bs-display text-[1rem] sm:text-[1.0625rem]"
                       >
                         {g.region}
                       </span>
@@ -351,7 +351,7 @@ export default function InsideVeqtPage() {
                     className="py-2.5 px-2 sm:px-3"
                     style={{ color: "var(--ink)" }}
                   >
-                    <span className="bs-display-italic text-[0.9375rem] sm:text-[1rem] leading-tight">
+                    <span className="bs-display text-[0.9375rem] sm:text-[1rem] leading-tight">
                       {h.name}
                     </span>
                     {/* Mobile: show ticker + country inline since columns are hidden */}

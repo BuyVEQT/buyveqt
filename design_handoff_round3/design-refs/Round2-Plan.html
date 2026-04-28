@@ -1,0 +1,938 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The VEQT Daily — Round 2 Design Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500;1,9..144,600&family=Newsreader:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0f0d0a;
+    --ink-soft: #2a2520;
+    --ink-mute: #5b5147;
+    --paper: #f6efdc;
+    --paper-deep: #ede3ca;
+    --rule: #b8a66e;
+    --stamp: #8a1c1c;
+    --green: #1d5431;
+    --red: #8a1c1c;
+    --display: 'Fraunces', Georgia, serif;
+    --serif: 'Newsreader', Georgia, serif;
+    --sans: 'Outfit', system-ui, sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 17px;
+    line-height: 1.55;
+    overflow-x: hidden;
+  }
+  body::after {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 9999;
+    opacity: .05;
+    background-image: repeating-linear-gradient(90deg, transparent 0 2px, rgba(0,0,0,.18) 2px 3px);
+    mix-blend-mode: multiply;
+  }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 28px 36px 80px; }
+  .top { display: flex; justify-content: space-between; font-family: var(--sans); font-size: 10.5px; letter-spacing: .22em; text-transform: uppercase; color: var(--ink-soft); padding-bottom: 8px; }
+  .top .stamp { color: var(--stamp); font-weight: 700; letter-spacing: .28em; }
+  .top .stamp::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--stamp); margin-right: .5em; vertical-align: middle; }
+  .rule-thick { border-top: 3px solid var(--ink); border-bottom: 1px solid var(--ink); height: 6px; }
+  .rule-thin { border-top: 1px solid var(--ink); height: 0; margin-top: 6px; }
+
+  .nameplate { display:flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding: 14px 0 18px; }
+  .nameplate h1 { font-family: var(--display); font-weight: 500; font-size: 4.25rem; line-height: .92; letter-spacing: -0.025em; margin: 0; }
+  .nameplate .tag { font-family: var(--display); font-style: italic; font-size: 1.05rem; color: var(--ink-soft); max-width: 30ch; text-align: right; }
+
+  .stamp-label { font-family: var(--sans); font-size: 10.5px; letter-spacing: .28em; text-transform: uppercase; color: var(--stamp); font-weight: 700; }
+  .label { font-family: var(--sans); font-size: 10px; letter-spacing: .22em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; }
+
+  .lead { padding: 28px 0 18px; max-width: 56rem; }
+  .lead h2 { font-family: var(--display); font-style: italic; font-weight: 500; font-size: 2.4rem; line-height: 1.05; letter-spacing: -0.015em; margin: 12px 0 14px; max-width: 26ch; }
+  .lead p { font-family: var(--display); font-weight: 400; font-size: 1.05rem; line-height: 1.55; color: var(--ink-soft); max-width: 56ch; margin: 0; }
+
+  /* ── TOC ──────────────────────────────────── */
+  .toc {
+    border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink);
+    margin: 24px 0 50px; padding: 14px 0;
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px;
+  }
+  .toc .item { display: flex; gap: 12px; align-items: baseline; }
+  .toc .num { font-family: var(--display); font-weight: 500; font-size: 1.6rem; color: var(--stamp); line-height: 1; }
+  .toc .body { font-family: var(--display); font-size: 0.98rem; line-height: 1.25; }
+  .toc .body em { font-style: italic; display: block; font-size: 0.78rem; color: var(--ink-soft); margin-top: 3px; letter-spacing: 0; }
+
+  /* ── Section heads ─────────────────────────── */
+  .secthead { padding-top: 18px; margin-bottom: 26px; display: grid; grid-template-columns: 5fr 7fr; gap: 56px; }
+  .secthead h3 { font-family: var(--display); font-weight: 500; font-size: 2.4rem; line-height: 1; letter-spacing: -0.025em; margin: 6px 0 0; }
+  .secthead h3 em { font-style: italic; }
+  .secthead .deck { font-family: var(--display); font-weight: 400; font-size: 1.0625rem; line-height: 1.55; color: var(--ink); max-width: 56ch; align-self: end; margin: 0; }
+  .secthead .deck::first-letter { font-family: var(--display); font-weight: 700; font-size: 3.4em; line-height: .85; float: left; padding: .04em .12em 0 0; color: var(--stamp); }
+
+  /* ════════════════════════════════════════════════════
+     HEATMAP MOCKUP
+     ════════════════════════════════════════════════════ */
+  .mockboard {
+    border: 1px solid var(--ink);
+    background: var(--paper);
+    padding: 28px 30px 26px;
+    margin: 0 0 18px;
+    position: relative;
+  }
+  .mockboard::before {
+    content: "DESKTOP — homepage, beneath the severity meter";
+    position: absolute; top: -10px; left: 16px;
+    background: var(--paper); padding: 0 10px;
+    font-family: var(--sans); font-size: 9.5px; letter-spacing: .26em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600;
+  }
+  .mockboard.mobile::before { content: "MOBILE — same component, stacked"; }
+
+  .severity-strip {
+    height: 18px; position: relative; overflow: hidden;
+    background: color-mix(in oklab, var(--ink) 4%, transparent);
+    margin: 14px 0 6px;
+    border: 1px solid color-mix(in oklab, var(--ink) 25%, transparent);
+  }
+  .severity-strip > .zone { position: absolute; top: 0; bottom: 0; }
+  .severity-strip > .marker { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 14px; height: 14px; border-radius: 50%; background: var(--stamp); box-shadow: 0 0 0 2px var(--paper); }
+  .severity-meta { display: flex; justify-content: space-between; align-items: baseline; }
+  .severity-meta em { font-family: var(--display); font-style: italic; font-size: 12px; color: var(--ink-soft); }
+
+  /* The actual heatmap */
+  .heatwrap {
+    margin-top: 22px;
+    display: grid;
+    grid-template-columns: 28px 1fr 88px;
+    gap: 14px;
+  }
+  .day-axis {
+    display: grid; grid-template-rows: repeat(5, 1fr); gap: 3px;
+    font-family: var(--sans); font-size: 9px; letter-spacing: .2em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600;
+    align-items: center;
+    padding-top: 16px;
+  }
+  .day-axis span { line-height: 1; }
+  .grid-area { position: relative; }
+  .week-axis {
+    display: grid; grid-template-columns: repeat(18, 1fr); gap: 3px;
+    font-family: var(--sans); font-size: 8.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600;
+    margin-bottom: 4px;
+    text-align: center;
+    height: 12px;
+  }
+  .week-axis span { line-height: 1; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(18, 1fr);
+    grid-template-rows: repeat(5, 22px);
+    gap: 3px;
+  }
+  .grid .cell {
+    background: color-mix(in oklab, var(--ink) 5%, transparent);
+    position: relative;
+    cursor: pointer;
+    transition: transform .12s, box-shadow .12s;
+  }
+  .grid .cell:hover {
+    transform: scale(1.18);
+    box-shadow: 0 0 0 2px var(--paper), 0 0 0 3px var(--ink);
+    z-index: 2;
+  }
+  .grid .cell.empty { background: transparent; border: 1px dashed color-mix(in oklab, var(--ink) 14%, transparent); }
+  .grid .cell.today { box-shadow: 0 0 0 1.5px var(--paper), 0 0 0 3px var(--stamp); z-index: 1; }
+  /* legend block of pre-rendered cells */
+  .legend {
+    display: flex; flex-direction: column; gap: 8px;
+    font-family: var(--sans); font-size: 9.5px; letter-spacing: .15em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600;
+    padding-top: 16px;
+  }
+  .legend-row { display: flex; align-items: center; gap: 6px; }
+  .legend-row .sw { width: 12px; height: 12px; display: inline-block; }
+  .legend hr { border: none; border-top: 1px solid color-mix(in oklab, var(--rule) 60%, transparent); margin: 4px 0; width: 100%; }
+
+  .heat-foot {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-top: 14px; padding-top: 12px;
+    border-top: 1px solid color-mix(in oklab, var(--rule) 50%, transparent);
+    font-family: var(--display); font-style: italic; font-size: 13px; color: var(--ink-soft);
+  }
+  .heat-foot .reads { max-width: 46ch; }
+
+  /* Tooltip example, anchored visually */
+  .tooltip {
+    position: absolute;
+    top: 30px; left: calc(60% - 100px);
+    background: var(--ink); color: var(--paper);
+    border: 1px solid var(--ink);
+    padding: 10px 14px; min-width: 200px;
+    font-family: var(--sans); font-size: 12px;
+    box-shadow: 4px 4px 0 0 var(--rule);
+    z-index: 5;
+  }
+  .tooltip::before {
+    content: ""; position: absolute; top: -6px; left: 28px;
+    width: 10px; height: 10px; background: var(--ink); transform: rotate(45deg);
+    border-left: 1px solid var(--ink); border-top: 1px solid var(--ink);
+  }
+  .tooltip .date { font-family: var(--display); font-style: italic; font-size: 13px; color: var(--rule); margin-bottom: 4px; }
+  .tooltip .pct { font-family: var(--display); font-weight: 500; font-size: 22px; line-height: 1; margin: 4px 0 6px; font-variant-numeric: tabular-nums; }
+  .tooltip .pct.up { color: #6cca8b; }
+  .tooltip .pct.dn { color: #ef8079; }
+  .tooltip .meta { font-family: var(--sans); font-size: 9.5px; letter-spacing: .18em; text-transform: uppercase; color: color-mix(in oklab, var(--paper) 70%, var(--ink)); }
+
+  /* ──── Mobile heatmap variant ──── */
+  .mockboard.mobile { width: 380px; margin: 0 auto; padding: 22px 22px 20px; }
+  .mockboard.mobile .heatwrap { grid-template-columns: 22px 1fr; gap: 8px; }
+  .mockboard.mobile .legend { display: none; }
+  .mockboard.mobile .grid { grid-template-columns: repeat(13, 1fr); gap: 2px; grid-template-rows: repeat(7, 16px); }
+  .mockboard.mobile .week-axis { grid-template-columns: repeat(13, 1fr); }
+  .mockboard.mobile .day-axis { grid-template-rows: repeat(7, 1fr); font-size: 8px; padding-top: 12px; }
+  .mockboard.mobile .legend-inline { display: flex; gap: 0; align-items: center; margin-top: 14px; padding-top: 12px; border-top: 1px solid color-mix(in oklab, var(--rule) 50%, transparent); }
+  .mockboard.mobile .legend-inline .gradient { flex: 1; height: 10px; background: linear-gradient(to right, color-mix(in oklab, var(--ink) 5%, var(--paper)) 0%, color-mix(in oklab, var(--ink) 18%, var(--paper)) 25%, color-mix(in oklab, var(--ink) 38%, var(--paper)) 50%, color-mix(in oklab, var(--stamp) 60%, var(--ink)) 100%); }
+  .mockboard.mobile .legend-inline .lo, .mockboard.mobile .legend-inline .hi { font-family: var(--sans); font-size: 9px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; padding: 0 8px; }
+
+  /* ════════════════════════════════════════════════════
+     MASTHEAD COMPRESSION
+     ════════════════════════════════════════════════════ */
+  .mast-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 18px 0 0; }
+  .mast-card { border: 1px solid var(--ink); padding: 14px; background: var(--paper); }
+  .mast-card .lab { font-family: var(--sans); font-size: 9.5px; letter-spacing: .26em; text-transform: uppercase; font-weight: 700; padding-bottom: 8px; margin-bottom: 10px; border-bottom: 1px solid color-mix(in oklab, var(--rule) 60%, transparent); }
+  .mast-card.before .lab { color: var(--ink-soft); }
+  .mast-card.after .lab { color: var(--stamp); }
+
+  /* Mini masthead — before */
+  .mini { font-family: var(--sans); }
+  .mini .row1 { display: flex; justify-content: space-between; font-size: 9px; letter-spacing: .22em; text-transform: uppercase; color: var(--ink-soft); padding: 4px 0; }
+  .mini .row1 .live { color: var(--stamp); font-weight: 700; }
+  .mini .rt { border-top: 2.5px solid var(--ink); border-bottom: 1px solid var(--ink); height: 4px; margin: 4px 0 6px; }
+  .mini .name { display:flex; justify-content: space-between; align-items: flex-end; padding: 6px 0 8px; }
+  .mini .name h4 { font-family: var(--display); font-weight: 500; font-size: 1.6rem; line-height: 1; margin: 0; letter-spacing: -0.02em; }
+  .mini .name .tic { text-align: right; font-family: var(--display); }
+  .mini .name .tic small { font-family: var(--sans); font-size: 7.5px; letter-spacing: .22em; text-transform: uppercase; color: var(--ink-soft); display: block; }
+  .mini .name .tic .px { font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+  .mini .rb { border-top: 1px solid var(--ink); height: 0; margin: 4px 0; }
+  .mini .nav { display: flex; gap: 14px; padding: 5px 0 4px; font-size: 8.5px; letter-spacing: .22em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; }
+  .mini .nav .home { color: var(--stamp); }
+  .mini .ctx { margin-top: 6px; font-family: var(--display); font-style: italic; font-size: 11px; color: var(--ink-soft); border-top: 1px dashed color-mix(in oklab, var(--rule) 60%, transparent); padding-top: 6px; }
+
+  .mast-after-row {
+    display: grid; grid-template-columns: auto 1fr auto auto auto; gap: 16px; align-items: center;
+    font-family: var(--sans); font-size: 9px; letter-spacing: .22em; text-transform: uppercase; color: var(--ink-soft);
+    padding: 4px 0;
+  }
+  .mast-after-row .live { color: var(--stamp); font-weight: 700; }
+  .mast-after-row .nav-inline { display: flex; gap: 12px; font-weight: 600; justify-content: center; }
+  .mast-after-row .nav-inline .home { color: var(--stamp); }
+
+  .mast-after-name { display: flex; justify-content: space-between; align-items: baseline; padding: 8px 0 10px; }
+  .mast-after-name h4 { font-family: var(--display); font-weight: 500; font-size: 1.85rem; line-height: 1; margin: 0; letter-spacing: -0.02em; }
+  .mast-after-name .ed { font-family: var(--display); font-style: italic; font-size: 11px; color: var(--ink-soft); }
+
+  .delta {
+    margin-top: 16px; padding: 14px;
+    background: color-mix(in oklab, var(--ink) 4%, transparent);
+    border-left: 3px solid var(--stamp);
+    font-family: var(--display); font-size: 14px; line-height: 1.55;
+  }
+  .delta strong { font-family: var(--sans); font-size: 9.5px; letter-spacing: .26em; text-transform: uppercase; color: var(--stamp); margin-right: 6px; }
+  .delta .num { font-family: var(--display); font-weight: 500; color: var(--ink); font-size: 18px; font-variant-numeric: tabular-nums; }
+
+  /* ════════════════════════════════════════════════════
+     RECOMMENDS SECTION
+     ════════════════════════════════════════════════════ */
+  .rec-board { border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink); padding: 24px 0; margin: 0 0 18px; }
+  .rec-board .stamp-label { display: block; margin-bottom: 14px; }
+  .rec-board h3 { font-family: var(--display); font-style: italic; font-weight: 500; font-size: 2.1rem; line-height: 1.1; letter-spacing: -0.015em; margin: 0 0 14px; max-width: 36ch; color: var(--ink); }
+  .rec-board .read { font-family: var(--sans); font-size: 11px; letter-spacing: .22em; text-transform: uppercase; font-weight: 700; color: var(--ink); border-bottom: 1.5px solid var(--ink); padding-bottom: 1px; }
+  .rec-board .zone-tag { display: inline-block; font-family: var(--sans); font-size: 9px; letter-spacing: .26em; text-transform: uppercase; font-weight: 700; color: var(--stamp); border: 1px solid var(--stamp); padding: 2px 7px; margin-left: 10px; vertical-align: 4px; }
+
+  .rec-variants { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; margin-top: 12px; }
+  .rec-variant { padding: 14px 16px; border: 1px solid color-mix(in oklab, var(--rule) 60%, transparent); background: color-mix(in oklab, var(--paper-deep) 60%, var(--paper)); }
+  .rec-variant .zone { font-family: var(--sans); font-size: 9px; letter-spacing: .26em; text-transform: uppercase; color: var(--stamp); font-weight: 700; }
+  .rec-variant .verdict { font-family: var(--display); font-style: italic; font-size: 1.1rem; line-height: 1.3; margin: 6px 0 8px; color: var(--ink); }
+  .rec-variant .lk { font-family: var(--sans); font-size: 9.5px; letter-spacing: .2em; text-transform: uppercase; font-weight: 700; color: var(--ink); border-bottom: 1px solid var(--ink); padding-bottom: 1px; }
+
+  /* ════════════════════════════════════════════════════
+     LEARN PAGE REDESIGN
+     ════════════════════════════════════════════════════ */
+  .learn-mock {
+    border: 1px solid var(--ink); padding: 28px 32px 32px;
+    margin: 12px 0 18px; position: relative;
+  }
+  .learn-mock::before {
+    content: "LEARN — proposed information architecture";
+    position: absolute; top: -10px; left: 16px;
+    background: var(--paper); padding: 0 10px;
+    font-family: var(--sans); font-size: 9.5px; letter-spacing: .26em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600;
+  }
+  .learn-head { display: grid; grid-template-columns: 5fr 7fr; gap: 48px; padding-bottom: 22px; border-bottom: 2px solid var(--ink); }
+  .learn-head h2 { font-family: var(--display); font-weight: 500; font-size: 2.6rem; line-height: 1; letter-spacing: -0.025em; margin: 8px 0 0; }
+  .learn-head h2 em { font-style: italic; }
+  .learn-head .deck { font-family: var(--display); font-size: 1.05rem; line-height: 1.55; color: var(--ink); align-self: end; margin: 0; }
+
+  /* Path strip — the syllabus */
+  .syllabus { padding: 22px 0 0; }
+  .syllabus h4 { font-family: var(--sans); font-size: 10px; letter-spacing: .28em; text-transform: uppercase; color: var(--stamp); font-weight: 700; margin: 0 0 14px; }
+  .syllabus .row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+  .syllabus .ch {
+    border: 1px solid var(--ink); padding: 18px 20px; background: var(--paper);
+    display: flex; flex-direction: column; gap: 10px; min-height: 180px;
+  }
+  .syllabus .ch .ord { font-family: var(--sans); font-size: 9.5px; letter-spacing: .28em; text-transform: uppercase; color: var(--ink-soft); font-weight: 700; }
+  .syllabus .ch h5 { font-family: var(--display); font-style: italic; font-weight: 500; font-size: 1.45rem; line-height: 1.1; margin: 0; letter-spacing: -0.01em; }
+  .syllabus .ch .meta { font-family: var(--sans); font-size: 9px; letter-spacing: .2em; text-transform: uppercase; color: var(--ink-soft); display: flex; gap: 12px; margin-top: auto; padding-top: 8px; border-top: 1px solid color-mix(in oklab, var(--rule) 60%, transparent); }
+  .syllabus .ch .meta .reads { color: var(--ink); }
+  .syllabus .ch p { font-family: var(--serif); font-size: 13.5px; line-height: 1.5; color: var(--ink-soft); margin: 0; }
+
+  /* Cadence rail */
+  .cadence-rail {
+    margin: 38px 0 0; padding: 22px 0; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink);
+    display: grid; grid-template-columns: 200px 1fr; gap: 36px; align-items: start;
+  }
+  .cadence-rail h4 { font-family: var(--display); font-weight: 500; font-size: 1.55rem; line-height: 1.1; margin: 0; letter-spacing: -0.01em; }
+  .cadence-rail h4 em { font-style: italic; }
+  .cadence-rail h4 + p { font-family: var(--display); font-style: italic; font-size: 13px; color: var(--ink-soft); line-height: 1.4; margin: 6px 0 0; }
+  .cadence-list { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .cadence-item { padding: 12px 14px; border-left: 2px solid var(--stamp); background: color-mix(in oklab, var(--paper-deep) 50%, var(--paper)); }
+  .cadence-item .day { font-family: var(--sans); font-size: 9px; letter-spacing: .28em; text-transform: uppercase; font-weight: 700; color: var(--stamp); }
+  .cadence-item .kind { font-family: var(--display); font-style: italic; font-size: 1.05rem; line-height: 1.15; margin: 4px 0 4px; color: var(--ink); }
+  .cadence-item .desc { font-family: var(--serif); font-size: 12px; color: var(--ink-soft); line-height: 1.45; }
+
+  /* Sections of the archive */
+  .archive-grid {
+    display: grid; grid-template-columns: 220px 1fr; gap: 36px;
+    margin-top: 38px; padding-top: 22px; border-top: 2px solid var(--ink);
+  }
+  .archive-rail { font-family: var(--sans); }
+  .archive-rail h4 { font-family: var(--display); font-weight: 500; font-size: 1.4rem; line-height: 1.1; margin: 0 0 10px; }
+  .archive-rail h4 em { font-style: italic; }
+  .archive-rail .filter-grp { margin-bottom: 18px; }
+  .archive-rail .filter-grp .lab { font-size: 9.5px; letter-spacing: .26em; text-transform: uppercase; color: var(--ink-soft); font-weight: 700; margin-bottom: 8px; }
+  .archive-rail .filter-grp ul { list-style: none; padding: 0; margin: 0; }
+  .archive-rail .filter-grp li { font-size: 12.5px; padding: 4px 0; display: flex; justify-content: space-between; color: var(--ink); cursor: pointer; }
+  .archive-rail .filter-grp li.active { font-weight: 600; color: var(--stamp); }
+  .archive-rail .filter-grp li .ct { color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+
+  .archive-list { display: flex; flex-direction: column; }
+  .archive-row {
+    display: grid; grid-template-columns: 70px 1fr 96px 64px; gap: 18px; align-items: baseline;
+    padding: 14px 0; border-bottom: 1px solid color-mix(in oklab, var(--rule) 50%, transparent);
+  }
+  .archive-row:first-child { border-top: 1px solid color-mix(in oklab, var(--rule) 50%, transparent); }
+  .archive-row .ord { font-family: var(--display); font-style: italic; font-size: 1.05rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+  .archive-row .title { font-family: var(--display); font-weight: 500; font-size: 1.05rem; line-height: 1.25; letter-spacing: -0.005em; }
+  .archive-row .title em { font-style: italic; color: var(--stamp); font-weight: 500; font-size: 0.7rem; letter-spacing: .22em; text-transform: uppercase; padding: 1px 6px; border: 1px solid var(--stamp); margin-left: 8px; vertical-align: 3px; }
+  .archive-row .title .desc { display: block; font-family: var(--serif); font-style: normal; font-size: 12.5px; color: var(--ink-soft); margin-top: 2px; line-height: 1.4; font-weight: 400; }
+  .archive-row .tags { font-family: var(--sans); font-size: 9px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; }
+  .archive-row .reads { font-family: var(--sans); font-size: 10.5px; color: var(--ink-soft); text-align: right; font-variant-numeric: tabular-nums; letter-spacing: .04em; }
+
+  /* Cadence-proposal table */
+  table.cadence {
+    width: 100%; border-collapse: collapse;
+    border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink);
+    margin-top: 16px;
+  }
+  table.cadence th { font-family: var(--sans); font-size: 10px; letter-spacing: .22em; text-transform: uppercase; font-weight: 600; color: var(--ink-soft); padding: 10px 10px 12px; text-align: left; border-bottom: 1px solid var(--ink); }
+  table.cadence td { font-family: var(--serif); font-size: 14.5px; padding: 12px 10px; vertical-align: top; border-bottom: 1px solid color-mix(in oklab, var(--rule) 50%, transparent); }
+  table.cadence td.t { font-family: var(--display); font-weight: 500; font-size: 1rem; }
+  table.cadence td em { font-style: italic; color: var(--ink-soft); display: block; font-size: 12.5px; margin-top: 2px; }
+  table.cadence td.day { font-family: var(--sans); font-size: 10.5px; letter-spacing: .22em; text-transform: uppercase; font-weight: 700; color: var(--stamp); white-space: nowrap; }
+
+  /* Pull quote */
+  .pq { margin: 56px 0; padding: 36px 0; border-top: 4px double var(--ink); border-bottom: 4px double var(--ink); text-align: center; }
+  .pq blockquote { font-family: var(--display); font-style: italic; font-weight: 500; font-size: 2rem; line-height: 1.18; margin: 0 auto; max-width: 36ch; color: var(--ink); }
+  .pq blockquote::before { content: "\201C"; color: var(--stamp); }
+  .pq blockquote::after { content: "\201D"; color: var(--stamp); }
+  .pq cite { display: block; margin-top: 14px; font-family: var(--sans); font-size: 10px; letter-spacing: .28em; text-transform: uppercase; color: var(--ink-soft); font-style: normal; font-weight: 600; }
+
+  .colophon { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--ink); display: flex; justify-content: space-between; gap: 24px; font-family: var(--display); font-style: italic; font-size: 13.5px; color: var(--ink-soft); }
+  .colophon .ornament { text-align: center; flex: 1; color: var(--rule); letter-spacing: .5em; }
+
+  /* Layout with side-by-side desktop+mobile */
+  .device-row { display: grid; grid-template-columns: 1fr 400px; gap: 28px; align-items: start; margin-top: 14px; }
+
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ── Masthead ── -->
+  <div class="top">
+    <span class="stamp">Live Wire · Round 2 · Design Plan</span>
+    <span>Monday, April 27, 2026 · Vol. I · No. 2</span>
+    <span>Filed for: BuyVEQT.ca</span>
+  </div>
+  <div class="rule-thick"></div>
+  <div class="nameplate">
+    <h1>The Plan, Sharpened.</h1>
+    <p class="tag">Heatmap, masthead, recommendations &mdash; and a <em>real</em> plan for the archive.</p>
+  </div>
+  <div class="rule-thin"></div>
+
+  <!-- ── Lead ── -->
+  <section class="lead">
+    <span class="stamp-label">The Edition</span>
+    <h2>Four pieces of work, scoped to the things you actually asked for.</h2>
+    <p>
+      Volatility heatmap under the severity strip. Compressed masthead that stays grand on desktop and disappears on mobile. A recommends section that earns its keep on both. And an archive page rebuilt around a real publishing cadence &mdash; not a CMS dump.
+    </p>
+  </section>
+
+  <!-- ── TOC ── -->
+  <div class="toc">
+    <div class="item"><span class="num">01</span><span class="body">The Heatmap<em>90 days, hover for detail</em></span></div>
+    <div class="item"><span class="num">02</span><span class="body">The Masthead<em>One row on desktop, collapse on mobile</em></span></div>
+    <div class="item"><span class="num">03</span><span class="body">The Recommendation<em>Sized for both screens</em></span></div>
+    <div class="item"><span class="num">04</span><span class="body">The Archive<em>Cadence, sections, syllabus</em></span></div>
+  </div>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- 01 — HEATMAP                                  -->
+  <!-- ════════════════════════════════════════════ -->
+  <div class="secthead">
+    <div>
+      <span class="stamp-label">№ 01</span>
+      <h3>Hover the meter,<br><em>see the weather.</em></h3>
+    </div>
+    <p class="deck">
+      The severity meter answers "how unusual is today?" The matrix below it answers "how unusual has the season been?" Ninety trading days laid out as a calendar grid &mdash; rows are weekday, columns are week. Each cell's shade encodes the absolute size of that day's move; hue distinguishes up-days from down-days. Hover any cell for the date, the percent change, and the severity zone.
+    </p>
+  </div>
+
+  <!-- DESKTOP -->
+  <div class="mockboard">
+    <span class="label">How unusual is today?</span>
+    <div class="severity-meta" style="margin-top:6px;">
+      <span style="font-family: var(--display); font-style: italic; font-size: 13px; color: var(--stamp);">Notable day</span>
+      <em>A typical session moves &plusmn;0.61%.</em>
+    </div>
+    <div class="severity-strip">
+      <span class="zone" style="left:0; width:55%; background: color-mix(in oklab, var(--ink) 5%, transparent);"></span>
+      <span class="zone" style="left:55%; width:25%; background: color-mix(in oklab, var(--ink) 13%, transparent);"></span>
+      <span class="zone" style="left:80%; width:13%; background: color-mix(in oklab, var(--ink) 24%, transparent);"></span>
+      <span class="zone" style="left:93%; width:7%;  background: color-mix(in oklab, var(--ink) 38%, transparent);"></span>
+      <span class="marker" style="left:67%;"></span>
+    </div>
+
+    <!-- Heatmap proper -->
+    <div class="heatwrap">
+      <div class="day-axis"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span></div>
+      <div class="grid-area">
+        <div class="week-axis">
+          <span>Feb</span><span></span><span></span><span></span>
+          <span>Mar</span><span></span><span></span><span></span>
+          <span></span><span>Apr</span><span></span><span></span>
+          <span></span><span></span><span>May</span><span></span><span></span><span></span>
+        </div>
+        <div class="grid" id="heatgrid"><!-- cells injected via JS for cleanliness --></div>
+
+        <!-- Tooltip example -->
+        <div class="tooltip">
+          <div class="date">Wed, Apr 16, 2026</div>
+          <div class="pct dn">&#9660; &minus;1.42%</div>
+          <div class="meta">Unusual day · 4% of sessions</div>
+        </div>
+      </div>
+      <div class="legend">
+        <div>Down</div>
+        <div class="legend-row"><span class="sw" style="background: color-mix(in oklab, var(--stamp) 75%, var(--ink)); border: 1px solid color-mix(in oklab, var(--ink) 30%, transparent);"></span> Rare ≥ 2%</div>
+        <div class="legend-row"><span class="sw" style="background: color-mix(in oklab, var(--stamp) 55%, var(--paper));"></span> Unusual</div>
+        <div class="legend-row"><span class="sw" style="background: color-mix(in oklab, var(--stamp) 25%, var(--paper));"></span> Notable</div>
+        <div class="legend-row"><span class="sw" style="background: color-mix(in oklab, var(--ink) 5%, transparent);"></span> Typical</div>
+        <hr>
+        <div>Up</div>
+        <div class="legend-row"><span class="sw" style="background: color-mix(in oklab, var(--ink) 8%, transparent);"></span> Typical</div>
+        <div class="legend-row"><span class="sw" style="background: color-mix(in oklab, var(--ink) 22%, transparent);"></span> Notable</div>
+        <div class="legend-row"><span class="sw" style="background: color-mix(in oklab, var(--ink) 38%, transparent);"></span> Unusual</div>
+        <div class="legend-row"><span class="sw" style="background: color-mix(in oklab, var(--ink) 60%, transparent);"></span> Rare ≥ 2%</div>
+      </div>
+    </div>
+
+    <div class="heat-foot">
+      <span class="reads">Of the last 90 sessions, <strong style="font-style:normal; color: var(--ink); font-weight: 500;">61 were typical</strong>, <strong style="font-style:normal; color: var(--ink); font-weight: 500;">22 notable</strong>, <strong style="font-style:normal; color: var(--ink); font-weight: 500;">5 unusual</strong>, and <strong style="font-style:normal; color: var(--ink); font-weight: 500;">2 rare</strong>.</span>
+      <span style="font-family: var(--sans); font-size: 9.5px; letter-spacing: .22em; text-transform: uppercase; color: var(--ink-soft);">Source · Yahoo &middot; Closing prices</span>
+    </div>
+  </div>
+
+  <!-- MOBILE -->
+  <div class="device-row">
+    <div>
+      <p style="font-family: var(--display); font-size: 14.5px; line-height: 1.6; color: var(--ink); max-width: 56ch; margin: 6px 0 14px;">
+        On mobile the matrix transposes &mdash; rows become weekdays Mon&ndash;Sun (weekend rows render empty cells, which preserves the calendar metaphor without sacrificing density). Legend collapses to a single inline gradient strip below the grid. Hover becomes tap, tooltip pins below the tapped cell with a 3-second auto-dismiss. The whole component is ~280px tall, fits one mobile fold.
+      </p>
+      <ul style="font-family: var(--display); font-size: 14px; line-height: 1.6; padding-left: 20px; color: var(--ink); margin: 0;">
+        <li><strong>Hover/tap a cell</strong> &rarr; tooltip with date, % change, severity zone</li>
+        <li><strong>Click a cell</strong> &rarr; deep-links to /weekly/&lsaquo;week&rsaquo; (if a dispatch was filed) or to /learn/veqt-is-down for unusual/rare days</li>
+        <li><strong>Today's cell</strong> always carries the vermilion ring &mdash; even when the hover is elsewhere</li>
+        <li><strong>Empty cells</strong> (holidays, weekends on desktop) are dashed, not solid &mdash; reads as "no print today"</li>
+      </ul>
+    </div>
+
+    <div class="mockboard mobile">
+      <span class="label" style="font-size: 9px;">How unusual is today?</span>
+      <div class="severity-strip" style="height: 12px; margin: 8px 0 4px;">
+        <span class="zone" style="left:0; width:55%; background: color-mix(in oklab, var(--ink) 5%, transparent);"></span>
+        <span class="zone" style="left:55%; width:25%; background: color-mix(in oklab, var(--ink) 13%, transparent);"></span>
+        <span class="zone" style="left:80%; width:13%; background: color-mix(in oklab, var(--ink) 24%, transparent);"></span>
+        <span class="zone" style="left:93%; width:7%;  background: color-mix(in oklab, var(--ink) 38%, transparent);"></span>
+        <span class="marker" style="left:67%; width: 10px; height: 10px;"></span>
+      </div>
+      <div class="severity-meta">
+        <span style="font-family: var(--display); font-style: italic; font-size: 11px; color: var(--stamp);">Notable day</span>
+        <em style="font-size: 10.5px;">&plusmn;0.61% typical</em>
+      </div>
+
+      <div class="heatwrap" style="margin-top: 14px;">
+        <div class="day-axis"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+        <div class="grid-area">
+          <div class="grid" id="heatgrid-mobile"></div>
+        </div>
+      </div>
+      <div class="legend-inline">
+        <span class="lo">Quiet</span><span class="gradient"></span><span class="hi">Wild</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- 02 — MASTHEAD                                 -->
+  <!-- ════════════════════════════════════════════ -->
+  <div class="secthead" style="margin-top: 64px;">
+    <div>
+      <span class="stamp-label">№ 02</span>
+      <h3>The masthead,<br><em>printed smaller.</em></h3>
+    </div>
+    <p class="deck">
+      Two changes only. Desktop: the wire-state, date, and department rail merge into one row, the nameplate drops one type-step, and the right-side ticker block is deleted (the price already lives in the lead two seconds later). Mobile: nameplate stays as a single line, hamburger drawer is unchanged. The grand-newspaper feel survives &mdash; the page just opens on the news, not on the chrome.
+    </p>
+  </div>
+
+  <div class="mast-compare">
+    <div class="mast-card before">
+      <div class="lab">Before · Desktop · ~220px tall</div>
+      <div class="mini">
+        <div class="row1"><span class="live">● Live Wire</span><span>Monday, April 27, 2026</span><span>Light Mode ☼</span></div>
+        <div class="rt"></div>
+        <div class="name">
+          <h4>The VEQT Daily</h4>
+          <div class="tic"><small>VEQT.TO · Last close</small><span class="px">$53.47</span></div>
+        </div>
+        <div class="rb"></div>
+        <div class="nav"><span class="home">The Calculator</span><span>The Comparison</span><span>Learning</span><span>The Portfolio</span><span>Community</span></div>
+      </div>
+      <div class="ctx">Lead headline lands at ~y=240px. On a 13" laptop, that's right at the fold.</div>
+    </div>
+    <div class="mast-card after">
+      <div class="lab">After · Desktop · ~140px tall</div>
+      <div class="mini">
+        <div class="mast-after-row">
+          <span class="live">● Live Wire</span>
+          <span>Monday, April 27, 2026</span>
+          <span class="nav-inline"><span class="home">Calculators</span><span>Compare</span><span>Learn</span><span>Inside VEQT</span><span>Community</span></span>
+          <span></span>
+          <span>☼ Light</span>
+        </div>
+        <div class="rt"></div>
+        <div class="mast-after-name">
+          <h4>The VEQT Daily</h4>
+          <span class="ed">Mon &middot; Vol. VII &middot; No. 88</span>
+        </div>
+        <div class="rb"></div>
+      </div>
+      <div class="ctx">Lead headline lands at ~y=160px. Above the fold on every laptop sold this decade.</div>
+    </div>
+  </div>
+
+  <div class="delta">
+    <div><strong>Mobile</strong>One change only: the wire-state row stays at top, but the nameplate compresses from a wrapping two-line treatment to a single 1.5rem line, and the right-side ticker block (already hidden on mobile) is deleted from the JSX. <span class="num">~60px</span> reclaimed; everything else stays.</div>
+  </div>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- 03 — RECOMMENDS                               -->
+  <!-- ════════════════════════════════════════════ -->
+  <div class="secthead" style="margin-top: 56px;">
+    <div>
+      <span class="stamp-label">№ 03</span>
+      <h3>Today&rsquo;s edition<br><em>recommends.</em></h3>
+    </div>
+    <p class="deck">
+      A single editorial verdict sentence keyed to the severity zone, plus one link to the most relevant Learn article. Sits between the severity meter / heatmap and the region cards on desktop &mdash; collapsed to a slimmer one-column variant on mobile. No buttons, no boxes, no rounded anything. Just a sentence, set big, with one read-more underline.
+    </p>
+  </div>
+
+  <!-- live preview -->
+  <div class="rec-board">
+    <span class="stamp-label">Today&rsquo;s edition recommends <span class="zone-tag">Notable</span></span>
+    <h3>Hold. If you&rsquo;re contributing this month, today is a slightly better entry than yesterday.</h3>
+    <a class="read" href="#">Read &rarr; Lump sum vs. dollar-cost averaging</a>
+  </div>
+
+  <!-- four zone variants, smaller -->
+  <p class="label" style="margin: 26px 0 10px;">All four zones, side by side</p>
+  <div class="rec-variants">
+    <div class="rec-variant">
+      <span class="zone">Typical zone</span>
+      <p class="verdict">Hold. Contribute on schedule. Today is noise.</p>
+      <a class="lk" href="#">Read &rarr; Why timing the market fails</a>
+    </div>
+    <div class="rec-variant">
+      <span class="zone">Notable zone</span>
+      <p class="verdict">Hold. If you&rsquo;re contributing this month, today is a slightly better entry than yesterday.</p>
+      <a class="lk" href="#">Read &rarr; Lump sum vs. DCA</a>
+    </div>
+    <div class="rec-variant">
+      <span class="zone">Unusual zone</span>
+      <p class="verdict">Hold. Resist the urge to check again before tomorrow.</p>
+      <a class="lk" href="#">Read &rarr; VEQT is down &mdash; what now?</a>
+    </div>
+    <div class="rec-variant">
+      <span class="zone">Rare zone</span>
+      <p class="verdict">Hold. Days like this are exactly what your time horizon is for.</p>
+      <a class="lk" href="#">Read &rarr; Why stocks go up (over decades)</a>
+    </div>
+  </div>
+
+  <div class="delta" style="margin-top: 22px;">
+    <div><strong>Mobile</strong>Same component, no extra work. The h3 wraps to two lines at 22px on a 360-wide screen and the read-more underline sits below it. We do <em>not</em> render the four-up grid on mobile &mdash; only the single live verdict for today's zone.</div>
+  </div>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- 04 — LEARN ARCHIVE                            -->
+  <!-- ════════════════════════════════════════════ -->
+  <div class="pq">
+    <blockquote>An archive without a cadence is a CMS. An archive with a cadence is a publication.</blockquote>
+    <cite>— The case for structuring /learn</cite>
+  </div>
+
+  <div class="secthead">
+    <div>
+      <span class="stamp-label">№ 04</span>
+      <h3>The archive,<br><em>given a spine.</em></h3>
+    </div>
+    <p class="deck">
+      Twenty-five articles is too many for a "three to start with" home block and too few for a search-and-filter index. The right answer is the one your taxonomy already implies: a syllabus on top, a publishing cadence in the middle, and a sectioned archive below. A new reader can start; a returning reader can graze; a regular reader has something new to expect each week.
+    </p>
+  </div>
+
+  <!-- ── Cadence proposal ── -->
+  <p class="label">A. The cadence (proposed)</p>
+  <p style="font-family: var(--display); font-size: 15.5px; line-height: 1.55; color: var(--ink); max-width: 64ch; margin: 8px 0 16px;">
+    Stop publishing in batches. Move to a fixed weekly rhythm with named slots. The slot tells the reader what kind of thing they're getting before they click. Five slots, four weeks; one slot is held for whenever-the-market-requires-it.
+  </p>
+
+  <table class="cadence">
+    <thead>
+      <tr><th>Day</th><th style="width:30%">Slot</th><th>What it is</th><th style="width:15%; text-align:right;">Existing fits</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="day">Mon</td>
+        <td class="t">The Lookback<em>One number, with context.</em></td>
+        <td>500-word stat-of-the-week. "VEQT has had 73 down days &gt;1% since inception. Here&rsquo;s what came after."</td>
+        <td style="text-align:right;"><em>NEW format</em></td>
+      </tr>
+      <tr>
+        <td class="day">Wed</td>
+        <td class="t">The Dispatch<em>The deep article.</em></td>
+        <td>Your existing long-form articles. 1500&ndash;3000 words, MDX, interactive widgets where they earn it.</td>
+        <td style="text-align:right;">22 of 25 fit here</td>
+      </tr>
+      <tr>
+        <td class="day">Fri</td>
+        <td class="t">Letters<em>From the subreddit, edited.</em></td>
+        <td>One question lifted from r/CanadianInvestor or r/PersonalFinanceCanada, answered in 300 words with a House Verdict box.</td>
+        <td style="text-align:right;"><em>NEW format</em></td>
+      </tr>
+      <tr>
+        <td class="day">Sun</td>
+        <td class="t">The Weekly<em>What the market did.</em></td>
+        <td>Your existing /weekly dispatch &mdash; market recap with severity context, region attribution, and a "what to do this week" recommendation.</td>
+        <td style="text-align:right;">/weekly already exists</td>
+      </tr>
+      <tr>
+        <td class="day">Ad-hoc</td>
+        <td class="t">The Special<em>Whenever the market requires it.</em></td>
+        <td>Triggered by a Rare-zone day or a structural news event (MER change, fund split). Short, opinionated, dated within the hour.</td>
+        <td style="text-align:right;">3 of 25 fit here</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ── Page architecture ── -->
+  <p class="label" style="margin: 50px 0 10px;">B. The /learn page itself</p>
+
+  <div class="learn-mock">
+    <div class="learn-head">
+      <div>
+        <span class="stamp-label">The Archive</span>
+        <h2>Read VEQT,<br><em>start to finish.</em></h2>
+      </div>
+      <p class="deck">A four-chapter syllabus that takes a brand-new investor from "what is VEQT" to "I'm contributing on autopilot." Below it, every dispatch we&rsquo;ve ever filed, organised by the question it answers.</p>
+    </div>
+
+    <!-- The syllabus -->
+    <div class="syllabus">
+      <h4>The Syllabus &mdash; four chapters, 12 dispatches</h4>
+      <div class="row">
+        <div class="ch">
+          <span class="ord">Ch. 01 &middot; The Foundation</span>
+          <h5>What you&rsquo;re actually buying</h5>
+          <p>Three dispatches. The fund, the math, the holding philosophy. ~25 minutes.</p>
+          <div class="meta"><span class="reads">3 dispatches</span><span>Beginner</span></div>
+        </div>
+        <div class="ch">
+          <span class="ord">Ch. 02 &middot; The Decision</span>
+          <h5>VEQT vs. everything else</h5>
+          <p>Four dispatches. XEQT, VGRO, VFV, robos, GICs. Why we lean VEQT and where we&rsquo;d concede.</p>
+          <div class="meta"><span class="reads">4 dispatches</span><span>Intermediate</span></div>
+        </div>
+        <div class="ch">
+          <span class="ord">Ch. 03 &middot; The Mechanics</span>
+          <h5>How to actually own it</h5>
+          <p>Three dispatches. TFSA vs. RRSP, automation, distributions, brokerage choice.</p>
+          <div class="meta"><span class="reads">3 dispatches</span><span>Practical</span></div>
+        </div>
+        <div class="ch">
+          <span class="ord">Ch. 04 &middot; The Long Game</span>
+          <h5>Holding through the bad days</h5>
+          <p>Two dispatches. Behavioural, withdrawal strategy, why timing fails.</p>
+          <div class="meta"><span class="reads">2 dispatches</span><span>Advanced</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cadence rail -->
+    <div class="cadence-rail">
+      <div>
+        <h4>The <em>cadence rail</em></h4>
+        <p>Latest dispatch from each weekly slot. Updates automatically as new pieces ship.</p>
+      </div>
+      <div class="cadence-list">
+        <div class="cadence-item">
+          <span class="day">Mon · Lookback</span>
+          <p class="kind">73 down days, then what?</p>
+          <p class="desc">A stat from the inception data, contextualised in 500 words.</p>
+        </div>
+        <div class="cadence-item">
+          <span class="day">Wed · Dispatch</span>
+          <p class="kind">VEQT vs XEQT, settled</p>
+          <p class="desc">The most-asked question, answered with a tilt-comparison and a verdict.</p>
+        </div>
+        <div class="cadence-item">
+          <span class="day">Fri · Letters</span>
+          <p class="kind">"Should I sell into this?"</p>
+          <p class="desc">A question from r/CanadianInvestor, answered in 300 words.</p>
+        </div>
+        <div class="cadence-item">
+          <span class="day">Sun · Weekly</span>
+          <p class="kind">Apr 19 &mdash; the slow week</p>
+          <p class="desc">Five sessions, ±0.4% range, two notable days, no rare ones.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sectioned archive -->
+    <div class="archive-grid">
+      <aside class="archive-rail">
+        <h4>Browse the <em>archive</em></h4>
+        <div class="filter-grp">
+          <div class="lab">By chapter</div>
+          <ul>
+            <li class="active">All <span class="ct">25</span></li>
+            <li>Foundation <span class="ct">3</span></li>
+            <li>Decision <span class="ct">4</span></li>
+            <li>Mechanics <span class="ct">3</span></li>
+            <li>Long Game <span class="ct">2</span></li>
+            <li>Outside the syllabus <span class="ct">13</span></li>
+          </ul>
+        </div>
+        <div class="filter-grp">
+          <div class="lab">By format</div>
+          <ul>
+            <li>Dispatch <span class="ct">22</span></li>
+            <li>Lookback <span class="ct">0</span></li>
+            <li>Letters <span class="ct">0</span></li>
+            <li>Special <span class="ct">3</span></li>
+          </ul>
+        </div>
+        <div class="filter-grp">
+          <div class="lab">By difficulty</div>
+          <ul>
+            <li>Beginner <span class="ct">10</span></li>
+            <li>Intermediate <span class="ct">10</span></li>
+            <li>Advanced <span class="ct">5</span></li>
+          </ul>
+        </div>
+      </aside>
+
+      <div class="archive-list">
+        <div class="archive-row">
+          <span class="ord">№ 01</span>
+          <span class="title">VEQT vs. XEQT: what&rsquo;s the difference (and which should you buy)?<em>House choice</em><span class="desc">The most-asked question, answered. Two similar ETFs &mdash; here&rsquo;s what actually differs.</span></span>
+          <span class="tags">Decision · Comparison</span>
+          <span class="reads">12 min · 2.4k</span>
+        </div>
+        <div class="archive-row">
+          <span class="ord">№ 02</span>
+          <span class="title">Why timing the market fails (and what to do instead)<span class="desc">Bob, the world&rsquo;s worst market timer, ends up fine. The data is overwhelming.</span></span>
+          <span class="tags">Long Game · Behaviour</span>
+          <span class="reads">8 min · 1.9k</span>
+        </div>
+        <div class="archive-row">
+          <span class="ord">№ 03</span>
+          <span class="title">Getting started with VEQT: a beginner&rsquo;s complete guide<span class="desc">Everything you need to buy your first shares. Account types, brokerages, what to expect.</span></span>
+          <span class="tags">Foundation</span>
+          <span class="reads">14 min · 4.1k</span>
+        </div>
+        <div class="archive-row">
+          <span class="ord">№ 04</span>
+          <span class="title">VEQT distributions, explained<span class="desc">One annual payout in late December. Why, what it means for your taxes, and what to do with it.</span></span>
+          <span class="tags">Mechanics</span>
+          <span class="reads">9 min · 1.1k</span>
+        </div>
+        <div class="archive-row">
+          <span class="ord">№ 05</span>
+          <span class="title">VEQT vs. VGRO: the 20% bond question<span class="desc">If you&rsquo;re forty-something and twitchy in drawdowns, this is the actual decision.</span></span>
+          <span class="tags">Decision</span>
+          <span class="reads">11 min · 1.6k</span>
+        </div>
+        <div class="archive-row">
+          <span class="ord">№ 06</span>
+          <span class="title">VEQT is down. Now what?<em>Special</em><span class="desc">A standing dispatch updated whenever the severity meter says we owe one.</span></span>
+          <span class="tags">Special</span>
+          <span class="reads">6 min · 3.7k</span>
+        </div>
+        <div class="archive-row">
+          <span class="ord">№ 07</span>
+          <span class="title">VEQT in your TFSA, RRSP, or both<span class="desc">A simple decision tree, with the mistakes most Canadians make on the way to it.</span></span>
+          <span class="tags">Mechanics · Tax</span>
+          <span class="reads">10 min · 2.0k</span>
+        </div>
+        <div class="archive-row" style="opacity: .6;">
+          <span class="ord">…</span>
+          <span class="title">+ 18 more dispatches in the archive</span>
+          <span class="tags"></span>
+          <span class="reads"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Cadence answer ── -->
+  <p class="label" style="margin: 56px 0 10px;">C. Yes &mdash; the cadence will help. Specifically, this much</p>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 36px; margin-top: 12px;">
+    <div>
+      <h4 style="font-family: var(--display); font-weight: 500; font-size: 1.4rem; line-height: 1.1; margin: 0 0 12px;">For readers</h4>
+      <p style="font-family: var(--serif); font-size: 14.5px; line-height: 1.6; margin: 0 0 10px;">A reader who lands on the site for the first time on a Wednesday gets <strong>The Dispatch</strong> &mdash; a meaty piece. A reader who lands on a Friday gets <strong>Letters</strong> &mdash; a quick, conversational read. They don&rsquo;t bounce because the depth doesn&rsquo;t match the moment they showed up.</p>
+      <p style="font-family: var(--serif); font-size: 14.5px; line-height: 1.6; margin: 0;">A returning reader develops <em>habit</em>. "It's Wednesday, the new dispatch is up." That's the entire newsletter business model in one sentence, and you already have the brand to support it.</p>
+    </div>
+    <div>
+      <h4 style="font-family: var(--display); font-weight: 500; font-size: 1.4rem; line-height: 1.1; margin: 0 0 12px;">For the writer</h4>
+      <p style="font-family: var(--serif); font-size: 14.5px; line-height: 1.6; margin: 0 0 10px;">Five named slots make blank-page paralysis impossible. Monday's prompt is <em>find one number from the data, write 500 words around it.</em> Friday's is <em>scroll the subreddit, find one question, answer it.</em> The Dispatch slot is where you put the energy you used to spread thin across all 25 articles.</p>
+      <p style="font-family: var(--serif); font-size: 14.5px; line-height: 1.6; margin: 0;">It also gives you a way to recycle. A great Dispatch from six months ago becomes Monday&rsquo;s Lookback this week, with one new chart. The archive starts working <em>for</em> you.</p>
+    </div>
+  </div>
+
+  <!-- ── Tasks summary ── -->
+  <p class="label" style="margin: 56px 0 10px;">The shortlist, locked</p>
+
+  <table class="cadence">
+    <thead>
+      <tr><th>Task</th><th>What changes on your page</th><th style="width:14%">Effort</th><th style="width:14%; text-align:right;">Status</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="t">90-day volatility heatmap</td><td>New component beneath the severity meter on the homepage. Reused at /invest. Hover for date + % + zone.</td><td>Medium</td><td style="text-align:right;"><em style="color: var(--stamp); font-style: normal; font-size: 9.5px; letter-spacing: .26em; text-transform: uppercase; font-weight: 700;">Build</em></td></tr>
+      <tr><td class="t">Plain nouns for nav labels</td><td>Calculator → Calculators · Comparison → Compare · Portfolio → Inside VEQT. Five-word change to <code style="font-family: var(--mono); font-size: 12px;">DEPARTMENTS</code>.</td><td>Trivial</td><td style="text-align:right;"><em style="color: var(--stamp); font-style: normal; font-size: 9.5px; letter-spacing: .26em; text-transform: uppercase; font-weight: 700;">Build</em></td></tr>
+      <tr><td class="t">Delete legacy <code style="font-family: var(--mono); font-size: 12px;">HeroSection</code></td><td>Audit first; remove if unused. No visible change if truly unused.</td><td>Low</td><td style="text-align:right;"><em style="color: var(--stamp); font-style: normal; font-size: 9.5px; letter-spacing: .26em; text-transform: uppercase; font-weight: 700;">Build</em></td></tr>
+      <tr><td class="t">Compress the masthead</td><td>One-row top strip on desktop, smaller nameplate, ticker block deleted. Mobile gains ~60px.</td><td>Medium</td><td style="text-align:right;"><em style="color: var(--stamp); font-style: normal; font-size: 9.5px; letter-spacing: .26em; text-transform: uppercase; font-weight: 700;">Build</em></td></tr>
+      <tr><td class="t">Today&rsquo;s edition recommends</td><td>One new section between severity / heatmap and region cards. One sentence + one link, keyed to zone.</td><td>Low</td><td style="text-align:right;"><em style="color: var(--stamp); font-style: normal; font-size: 9.5px; letter-spacing: .26em; text-transform: uppercase; font-weight: 700;">Build</em></td></tr>
+      <tr><td class="t">Compare table → add Tilt column</td><td>One column added to the existing 3-row ETF table. Stack-bar visualises US/CA/Intl/EM split.</td><td>Low</td><td style="text-align:right;"><em style="color: var(--stamp); font-style: normal; font-size: 9.5px; letter-spacing: .26em; text-transform: uppercase; font-weight: 700;">Build</em></td></tr>
+      <tr><td class="t">/learn page rebuild</td><td>Syllabus + cadence rail + sectioned archive (this design). Plus a frontmatter migration to add chapter + slot fields.</td><td>High</td><td style="text-align:right;"><em style="color: var(--stamp); font-style: normal; font-size: 9.5px; letter-spacing: .26em; text-transform: uppercase; font-weight: 700;">Build</em></td></tr>
+      <tr style="opacity: .55;"><td class="t">Italics audit</td><td>Section subheads lose decorative italics.</td><td>Low</td><td style="text-align:right;"><em style="color: var(--ink-soft); font-style: normal; font-size: 9.5px; letter-spacing: .26em; text-transform: uppercase; font-weight: 700;">Skip</em></td></tr>
+      <tr style="opacity: .55;"><td class="t">Color discipline (vermilion-only)</td><td>Section labels gold instead of red. Drop cap ink instead of red.</td><td>Low</td><td style="text-align:right;"><em style="color: var(--ink-soft); font-style: normal; font-size: 9.5px; letter-spacing: .26em; text-transform: uppercase; font-weight: 700;">Skip</em></td></tr>
+      <tr style="opacity: .55;"><td class="t">Dark mode rethink</td><td>Either remove or rebrand as "After Hours."</td><td>Medium</td><td style="text-align:right;"><em style="color: var(--ink-soft); font-style: normal; font-size: 9.5px; letter-spacing: .26em; text-transform: uppercase; font-weight: 700;">Skip</em></td></tr>
+    </tbody>
+  </table>
+
+  <div class="colophon">
+    <span>Drawn in Fraunces, Newsreader and Outfit. Printed on cream.</span>
+    <span class="ornament">&sect; &nbsp; &mdash; &nbsp; &sect;</span>
+    <span>Round 2 · April 27, 2026</span>
+  </div>
+
+</div>
+
+<script>
+  // Generate plausible-looking 90-day data for the heatmap mockups.
+  // Mostly typical, a handful of notable, two unusual, one rare.
+  function genCells(n) {
+    const out = [];
+    // seed with deterministic-ish pseudorandom for stability
+    let seed = 1234;
+    const rng = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+    for (let i = 0; i < n; i++) {
+      const r = rng();
+      // distribution: ~67% typical (<0.6%), ~24% notable, ~7% unusual, ~2% rare
+      let abs;
+      if (r < 0.67) abs = rng() * 0.6;
+      else if (r < 0.91) abs = 0.6 + rng() * 0.6;
+      else if (r < 0.98) abs = 1.2 + rng() * 0.8;
+      else abs = 2.0 + rng() * 1.5;
+      const sign = rng() > 0.49 ? 1 : -1;
+      out.push({ pct: abs * sign });
+    }
+    return out;
+  }
+  function shadeFor(pct) {
+    const abs = Math.abs(pct);
+    const isUp = pct >= 0;
+    let intensity;
+    if (abs < 0.6) intensity = 0.05 + abs * 0.05;
+    else if (abs < 1.2) intensity = 0.15 + (abs - 0.6) * 0.15;
+    else if (abs < 2.0) intensity = 0.28 + (abs - 1.2) * 0.15;
+    else intensity = 0.55 + Math.min(0.25, (abs - 2.0) * 0.15);
+    const pct100 = Math.round(intensity * 100);
+    if (isUp) {
+      return `color-mix(in oklab, var(--ink) ${pct100}%, transparent)`;
+    } else {
+      // down days lean toward stamp
+      return `color-mix(in oklab, var(--stamp) ${pct100}%, var(--paper))`;
+    }
+  }
+  function renderGrid(elId, rows, cols, todayIdx) {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    const cells = genCells(rows * cols);
+    let html = '';
+    for (let i = 0; i < cells.length; i++) {
+      const c = cells[i];
+      // Random "empty" days to read like holidays — about 4%
+      const empty = (i * 13 + 7) % 26 === 0;
+      if (empty) {
+        html += `<span class="cell empty"></span>`;
+      } else {
+        const cls = i === todayIdx ? 'cell today' : 'cell';
+        html += `<span class="${cls}" style="background:${shadeFor(c.pct)}"></span>`;
+      }
+    }
+    el.innerHTML = html;
+  }
+  // Desktop: 5 rows (Mon-Fri) × 18 weeks-ish — but render in column-major order
+  // To get that without overthinking, use grid-auto-flow column.
+  document.addEventListener('DOMContentLoaded', () => {
+    const dg = document.getElementById('heatgrid');
+    if (dg) dg.style.gridAutoFlow = 'column';
+    const mg = document.getElementById('heatgrid-mobile');
+    if (mg) mg.style.gridAutoFlow = 'column';
+    renderGrid('heatgrid', 5, 18, 80);  // 90 cells, today near end
+    renderGrid('heatgrid-mobile', 7, 13, 88);  // 91 cells
+  });
+</script>
+</body>
+</html>

@@ -24,7 +24,7 @@ export default function PathCard({ path, articles }: PathCardProps) {
       style={{ background: "var(--paper)" }}
     >
       <h3
-        className="bs-display-italic text-[1.25rem] sm:text-[1.5rem] leading-[1.1] mb-1"
+        className="bs-display text-[1.25rem] sm:text-[1.5rem] leading-[1.1] mb-1"
         style={{ color: "var(--ink)" }}
       >
         {path.title}

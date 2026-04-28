@@ -264,7 +264,7 @@ export default function MethodologyPage() {
               </span>
               <div className="min-w-0">
                 <h2
-                  className="bs-display-italic text-[1.375rem] sm:text-[1.75rem] leading-[1.15] mb-3"
+                  className="bs-display text-[1.375rem] sm:text-[1.75rem] leading-[1.15] mb-3"
                   style={{ color: "var(--ink)" }}
                 >
                   {note.title}

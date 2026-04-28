@@ -208,7 +208,7 @@ export default function CommunityContent({
                 rel="noopener noreferrer"
                 className="group block min-w-0"
               >
-                <h3 className="bs-display-italic text-xl sm:text-[1.625rem] leading-[1.18] text-[var(--ink)] group-hover:text-[var(--stamp)] transition-colors">
+                <h3 className="bs-display text-xl sm:text-[1.625rem] leading-[1.18] text-[var(--ink)] group-hover:text-[var(--stamp)] transition-colors">
                   &ldquo;{post.title}&rdquo;
                 </h3>
                 <p className="bs-caption mt-2 flex items-center gap-x-2 gap-y-1 flex-wrap">
@@ -295,7 +295,7 @@ export default function CommunityContent({
           <h3 className="bs-display text-2xl sm:text-3xl leading-[1.05]">
             Got a question, a milestone,
             <br />
-            <em className="bs-display-italic">or a panic to share?</em>
+            <em>or a panic to share?</em>
           </h3>
           <p
             className="bs-body mt-3 max-w-[44ch] text-[15px]"

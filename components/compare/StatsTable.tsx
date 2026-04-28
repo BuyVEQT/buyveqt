@@ -211,8 +211,7 @@ export default function StatsTable({ selectedFunds }: StatsTableProps) {
           className="bs-display text-[1.25rem] sm:text-[1.5rem] leading-tight"
           style={{ color: "var(--ink)" }}
         >
-          <em className="bs-display-italic">Side-by-side</em> on the metrics
-          that decide it
+          <em>Side-by-side</em> on the metrics that decide it
         </h2>
       </header>
 

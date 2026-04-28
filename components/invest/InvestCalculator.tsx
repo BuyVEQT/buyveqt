@@ -466,7 +466,7 @@ export default function InvestCalculator({ history }: InvestCalculatorProps) {
       {result && !validationMsg && (
         <>
           {/* Hero Result */}
-          <div className="card-editorial p-5 sm:p-6">
+          <div className="bg-[color:var(--paper-deep)] p-5 sm:p-6">
             <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-1">
               {isDCA ? "Your portfolio would be worth" : "Your investment would be worth"}
             </p>
@@ -564,7 +564,7 @@ export default function InvestCalculator({ history }: InvestCalculatorProps) {
           />
 
           {/* Chart */}
-          <div className="card-editorial p-0 overflow-hidden">
+          <div className="border border-[color:var(--rule)] overflow-hidden">
             <h3 className="text-sm font-semibold text-[var(--color-text-secondary)] mb-3 px-4 pt-4 sm:px-5 sm:pt-5">
               {isDCA
                 ? "Portfolio Value vs. Contributions"

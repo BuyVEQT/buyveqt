@@ -54,7 +54,7 @@ export default function AllocationBars({ selectedFunds }: AllocationBarsProps) {
           className="bs-display text-[1.25rem] sm:text-[1.5rem] leading-tight"
           style={{ color: "var(--ink)" }}
         >
-          <em className="bs-display-italic">Where each fund</em> places its bets
+          <em>Where each fund</em> places its bets
         </h2>
       </header>
 

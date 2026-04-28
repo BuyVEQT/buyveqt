@@ -3,11 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useVeqtData } from "@/lib/useVeqtData";
-import { COMPARISON_DATA, LEARN_ARTICLES } from "@/lib/constants";
+import { COMPARISON_DATA } from "@/lib/constants";
 import Masthead from "@/components/broadsheet/Masthead";
 import RegionCards from "@/components/broadsheet/RegionCards";
 import Letters from "@/components/broadsheet/Letters";
 import Colophon from "@/components/broadsheet/Colophon";
+import TiltBar from "@/components/broadsheet/TiltBar";
 import SeverityMeter from "@/components/broadsheet/SeverityMeter";
 import EditionRecommends, {
   type RecommendsZone,
@@ -25,6 +26,51 @@ function formatCAD(n: number, digits = 0): string {
     maximumFractionDigits: digits,
   });
 }
+
+/**
+ * Course One — the home page reading order. Hardcoded so the home page
+ * always opens with the same three pieces, regardless of archive order.
+ *
+ * Step 2 maps to `veqt-vs-diy-portfolio` because that article is the
+ * canonical "why one fund and not five" argument. The full archive lives
+ * on /learn.
+ */
+const COURSE_1 = [
+  {
+    step: 1,
+    slug: "what-is-veqt",
+    title: "What VEQT actually is",
+    excerpt:
+      "Twelve thousand stocks in one ticker, run by Vanguard for a quarter-percent. The structural argument before any of the trading talk.",
+  },
+  {
+    step: 2,
+    slug: "veqt-vs-diy-portfolio",
+    title: "Why one fund and hold forever",
+    excerpt:
+      "The five-ETF DIY portfolio is the same equity exposure plus a quarterly chore. Here is the math on what that chore costs.",
+  },
+  {
+    step: 3,
+    slug: "veqt-is-down",
+    title: "What to do when it's down",
+    excerpt:
+      "Drawdowns are the price of equity returns. A short script for the days when your inbox tells you to sell.",
+  },
+];
+
+/**
+ * Regional tilt for the home compare table. Weights are approximate Q1 2026
+ * factsheet figures (Vanguard / iShares / BMO) — they are the published
+ * holdings of each fund's underlying regional ETFs, normalized to sum to 1.
+ * Update these when fresh factsheets are filed; the component on /compare
+ * uses live data, but the home strip is a snapshot.
+ */
+const TILTS: Record<string, { us: number; ca: number; dev: number; em: number }> = {
+  VEQT: { us: 0.43, ca: 0.32, dev: 0.18, em: 0.07 },
+  XEQT: { us: 0.46, ca: 0.26, dev: 0.22, em: 0.06 },
+  ZEQT: { us: 0.43, ca: 0.26, dev: 0.24, em: 0.07 },
+};
 
 export default function Home() {
   const { data, loading } = useVeqtData();
@@ -202,7 +248,7 @@ export default function Home() {
               <h3 className="bs-display text-3xl sm:text-4xl lg:text-[2.75rem] leading-[1]">
                 Where today&apos;s move
                 <br />
-                <em className="bs-display-italic">came from.</em>
+                came from.
               </h3>
             </div>
             <p className="lg:col-span-7 bs-body">
@@ -273,7 +319,7 @@ export default function Home() {
             <p className="bs-stamp mb-2">Inception calculator</p>
             <h3 className="bs-display text-3xl sm:text-4xl lg:text-[2.75rem] leading-[1]">
               If you&apos;d bought{" "}
-              <span className="inline-flex items-baseline gap-1 text-[var(--stamp)]">
+              <span className="inline-flex items-baseline gap-1 text-[var(--ink)]">
                 <span className="text-xl sm:text-2xl">$</span>
                 <input
                   type="number"
@@ -284,7 +330,7 @@ export default function Home() {
                     const v = parseInt(e.target.value, 10);
                     if (!isNaN(v) && v > 0) setInvestment(v);
                   }}
-                  className="bg-transparent border-b-2 border-[var(--stamp)] outline-none w-[5.5ch] text-center tabular-nums focus:border-[var(--ink)] transition-colors"
+                  className="bg-transparent border-b-2 border-[var(--ink)] outline-none w-[5.5ch] text-center tabular-nums focus:border-[var(--stamp)] transition-colors"
                   aria-label="Investment amount"
                 />
               </span>{" "}
@@ -309,7 +355,7 @@ export default function Home() {
             <div className="lg:col-span-5">
               <p className="bs-stamp mb-2">Head to head</p>
               <h3 className="bs-display text-3xl sm:text-4xl lg:text-[2.75rem] leading-[1]">
-                VEQT <em className="bs-display-italic">vs.</em>
+                VEQT vs.
                 <br />
                 the field.
               </h3>
@@ -330,6 +376,7 @@ export default function Home() {
                 <th className="bs-label text-left py-3">MER</th>
                 <th className="bs-label text-left py-3">AUM</th>
                 <th className="bs-label text-left py-3 hidden sm:table-cell">Holdings</th>
+                <th className="bs-label text-left py-3 hidden sm:table-cell">Tilt</th>
                 <th className="bs-label text-left py-3">Inception</th>
               </tr>
             </thead>
@@ -345,7 +392,7 @@ export default function Home() {
                 >
                   <td className="py-4 font-serif italic hidden sm:table-cell">{etf.name}</td>
                   <td className="py-4 font-mono text-sm tracking-wider">
-                    <span className="sm:hidden bs-display-italic not-italic font-serif italic text-[var(--ink-soft)] text-xs block mb-1 tracking-normal">{etf.name}</span>
+                    <span className="sm:hidden font-serif italic text-[var(--ink-soft)] text-xs block mb-1 tracking-normal">{etf.name}</span>
                     {etf.ticker}
                     {etf.ticker === "VEQT" && (
                       <span
@@ -370,11 +417,58 @@ export default function Home() {
                   <td className="py-4 tabular-nums">{etf.mer}</td>
                   <td className="py-4 tabular-nums">{etf.aum}</td>
                   <td className="py-4 tabular-nums hidden sm:table-cell">{etf.holdings}</td>
+                  <td className="py-4 hidden sm:table-cell">
+                    {TILTS[etf.ticker] && (
+                      <TiltBar
+                        weights={TILTS[etf.ticker]}
+                        label={`${etf.ticker} regional tilt`}
+                      />
+                    )}
+                  </td>
                   <td className="py-4 tabular-nums">{etf.inception}</td>
                 </tr>
               ))}
             </tbody>
           </table>
+          {/* Tilt legend — small caps, sans, ink-mute. Hidden on mobile
+              since the Tilt column itself collapses below sm. */}
+          <p
+            className="bs-label mt-3 hidden sm:flex flex-wrap items-center gap-x-4 gap-y-1"
+            style={{ color: "var(--ink-mute)" }}
+          >
+            <span className="inline-flex items-center gap-1.5">
+              <span
+                aria-hidden
+                className="inline-block w-2.5 h-2.5"
+                style={{ backgroundColor: "var(--stamp)" }}
+              />
+              US
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span
+                aria-hidden
+                className="inline-block w-2.5 h-2.5"
+                style={{ backgroundColor: "var(--ink)" }}
+              />
+              Canada
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span
+                aria-hidden
+                className="inline-block w-2.5 h-2.5"
+                style={{ backgroundColor: "var(--ink-mute)" }}
+              />
+              Dev. ex-US
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span
+                aria-hidden
+                className="inline-block w-2.5 h-2.5"
+                style={{ backgroundColor: "var(--rule)" }}
+              />
+              Emerging
+            </span>
+          </p>
           <p className="bs-caption mt-4 text-right">
             <Link href="/compare" className="bs-link">
               Full head-to-head &rarr;
@@ -385,27 +479,25 @@ export default function Home() {
         {/* ─────────────────── LEARN DISPATCHES ─────────────────── */}
         <section className="py-8 sm:py-12 bs-enter">
           <div className="mb-8">
-            <p className="bs-stamp mb-2">From the archive</p>
+            <p className="bs-stamp mb-2">Course One</p>
             <h3 className="bs-display text-3xl sm:text-4xl lg:text-[2.75rem] leading-[1]">
-              Three to start with.
+              A reading order, in three parts.
             </h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12">
-            {LEARN_ARTICLES.map((article, i) => (
-              <article key={article.slug} className="flex flex-col">
-                <p className="bs-label mb-2">
-                  {String(i + 1).padStart(2, "0")}
-                </p>
-                <Link href={`/learn/${article.slug}`} className="group block">
-                  <h4 className="bs-display-italic text-[1.5rem] sm:text-[1.75rem] leading-[1.08] group-hover:text-[var(--stamp)] transition-colors">
-                    {article.title}
+            {COURSE_1.map((entry) => (
+              <article key={entry.slug} className="flex flex-col">
+                <p className="bs-label mb-2">Step {entry.step}</p>
+                <Link href={`/learn/${entry.slug}`} className="group block">
+                  <h4 className="bs-display text-[1.5rem] sm:text-[1.75rem] leading-[1.08] group-hover:text-[var(--stamp)] transition-colors">
+                    {entry.title}
                   </h4>
                 </Link>
                 <p className="bs-body mt-3 flex-1 text-[0.9375rem] leading-[1.5]">
-                  {article.teaser}
+                  {entry.excerpt}
                 </p>
                 <Link
-                  href={`/learn/${article.slug}`}
+                  href={`/learn/${entry.slug}`}
                   className="bs-label mt-4 inline-flex items-center hover:text-[var(--stamp)] transition-colors"
                 >
                   Read it &rarr;

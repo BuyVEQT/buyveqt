@@ -9,6 +9,7 @@ import NewsletterSignup from "@/components/NewsletterSignup";
 import ReadingProgress from "@/components/broadsheet/dispatch/ReadingProgress";
 import DispatchTOC from "@/components/broadsheet/dispatch/DispatchTOC";
 import NextDispatch from "@/components/broadsheet/dispatch/NextDispatch";
+import SeverityMeterAuto from "@/components/broadsheet/SeverityMeterAuto";
 import { Summary } from "@/components/mdx/Summary";
 import { Callout } from "@/components/mdx/Callout";
 import { ComparisonTable } from "@/components/mdx/ComparisonTable";
@@ -189,6 +190,15 @@ export default function ArticleLayout({
           )}
         </p>
       </header>
+
+      {/* ── Severity strip (only on "VEQT is down") ──────────────
+          Anchors today's reading at the top of the article a
+          panicked reader is most likely to land on. */}
+      {frontmatter.slug === "veqt-is-down" && (
+        <div className="max-w-[65ch] mt-6">
+          <SeverityMeterAuto compact />
+        </div>
+      )}
 
       {/* ── Body + optional sticky TOC ──────────────────────────── */}
       <div className="pt-8 lg:pt-10 flex gap-12">

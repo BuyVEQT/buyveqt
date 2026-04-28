@@ -28,7 +28,7 @@ export default function CalculatorFrame({
         className="bs-display text-[1.5rem] sm:text-[2rem] mb-2"
         style={{ color: "var(--ink)" }}
       >
-        <em className="bs-display-italic">{title}</em>
+        {title}
       </h2>
       <p
         className="bs-caption italic mb-6 max-w-[60ch]"
