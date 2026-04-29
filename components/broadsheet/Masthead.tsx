@@ -100,6 +100,7 @@ const DEPARTMENTS = [
   { href: "/compare", label: "Compare" },
   { href: "/learn", label: "Learn" },
   { href: "/inside-veqt", label: "Inside VEQT" },
+  { href: "/history", label: "History" },
   { href: "/community", label: "Community" },
 ];
 

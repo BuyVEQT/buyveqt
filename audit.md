@@ -5,6 +5,87 @@ appended; nothing is rewritten in place.
 
 ---
 
+# M4 — /history (Bet 03)
+
+New top-level route, scroll-locked horizontal timeline of seven
+years of one ticker. Implements
+`design_handoff_round3/12-bet-veqt-history.md`.
+
+## Files
+
+- `lib/data/veqt-history.json` — monthly closes from 2019-01-29
+  through 2026-04-28 (~88 rows). Five hand-curated anchors:
+  launch, covid trough, rate-hike trough, yen carry wobble, today.
+  `_source` field flags the next refresh path (existing `/api/veqt`
+  pipeline). Monthly resolution chosen over daily to keep the
+  bundle small; at the seven-year zoom the chart is identical.
+- `lib/veqt-history.ts` — types + `dateProgress`,
+  `priceProgress`, `priceAtProgress`, `nearestAnchor` helpers, and
+  the `JOURNEY_CAPTIONS` map (caption per anchor).
+- `components/history/HistoryHero.tsx` — client component, sticky
+  scroll-locked horizontal timeline. Vanilla scroll listener +
+  `getBoundingClientRect`. Renders only on `lg+`; on smaller
+  screens the static fallback takes over.
+- `components/history/HistoryStaticFallback.tsx` — server
+  component, full-width static SVG of the same series + inline
+  journey strip. Rendered only on `<lg`.
+- `components/history/HistoryAnchorCard.tsx` — vertical card
+  rendered below the sticky hero on desktop and as the primary
+  anchor display on mobile.
+- `app/history/page.tsx` — route. Renders the hero, the static
+  fallback, the chronology of five anchor cards (with longform
+  prose), the closing reflection block, and the CTA link to
+  `/inside-veqt#heatmap`.
+- `components/broadsheet/Masthead.tsx` — adds `History` to the
+  desktop department rail between `Inside VEQT` and `Community`.
+  Same nav array drives the mobile drawer; no separate mobile
+  edit needed.
+
+## Interaction notes
+
+- The SVG is rendered at `viewBox="0 0 1920 600"` so the price
+  path doesn't need to be recomputed when the timeline sweeps.
+  The illusion is achieved by translating an inner `<g>` based on
+  scroll progress.
+- Section height is `300vh`, giving the user three viewport-heights
+  of vertical scroll for one full sweep across seven years.
+- Anchor annotations are absolutely positioned inside the
+  translated `<g>`. Their opacity is computed per anchor as
+  `1 - distance × 6` so each fades in as scroll progress nears it
+  and fades out as the next anchor approaches.
+- The investment-journey strip (\"$10K → $X\") sits *outside* the
+  translated SVG group — fixed inside the sticky viewport — and
+  reads its current value from `priceAtProgress(progress)` ×
+  `10000 / launchPrice`. The caption pulls from `nearestAnchor`.
+
+## Mobile fallback
+
+Sticky scroll-locked horizontal scroll is disabled below 1024px.
+`HistoryStaticFallback` renders the same data as a single static
+SVG with the five anchor circles + an inline journey strip
+showing the final value. Below the static chart, the
+`HistoryAnchorCard` stack provides the longform reading.
+
+## Constraints honored
+
+- No new dependencies. Scroll-lock is a vanilla scroll listener
+  + `matchMedia('(min-width: 1024px)')`.
+- No new design tokens.
+- The price path is rendered once and never recomputed; only the
+  outer `transform` updates per scroll tick.
+- Anchor opacity values are computed inline in the JSX; no extra
+  state for fade-in.
+- `<HistoryHero>` is `\"use client\"` (it has scroll state and a
+  matchMedia subscription); everything else is server.
+
+## Out of scope (still)
+
+- No date scrubber. The scroll *is* the scrubber.
+- No comparison with XEQT/ZEQT — this is VEQT alone.
+- No projections forward — history only.
+
+---
+
 # M3 — /compare behavioural rebuild + cohort-fan calculators
 
 ## /compare (11-bet-compare-rebuild.md)
