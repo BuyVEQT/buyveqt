@@ -1,4 +1,97 @@
-# Round 3 — M1 cleanup audit
+# Round 3 audit
+
+Running snapshot updated at the end of each milestone. Sections are
+appended; nothing is rewritten in place.
+
+---
+
+# M2 — Bet 01 (HoldingsPanel) + /learn three courses
+
+## HoldingsPanel (10-bet-what-you-own.md)
+
+- `lib/data/holdings-2026-q1.json` — Q1 2026 placeholder snapshot.
+  `_source` field flags Vanguard's product page for the next refresh.
+  Numbers are the publicly-known shape of VEQT (US-heavy, Canadian
+  tilt, EM as the long tail) but are not pulled from the live
+  factsheet. **Refresh required at next quarter end.**
+- `lib/holdings.ts` — `RegionWeight`, `TopName`, `HoldingsData`,
+  `LongTail` types; `computeLongTail()` picks whatever leading slice
+  of top names first outweighs the long tail (or falls back to all of
+  them if the placeholder data hasn't been refreshed); `joinNames()`
+  formats English lists with the Oxford comma.
+- `components/broadsheet/HoldingsPanel.tsx` — server component.
+  Hand-rolled four-leaf treemap algorithm; no library.
+
+Mounted in `app/page.tsx` directly after `<RegionCards>`. The Letters
+/ inception calculator / compare table run still sits between the
+panel and the bottom of the page.
+
+## /learn three courses (22-teardown-learn.md)
+
+### Slug audit
+
+The handoff's `COURSES` definition uses placeholder slugs that don't
+exist in `content/learn/`. Each was substituted with the closest
+existing article rather than stubbed, so all nine course links
+resolve to real content.
+
+| Course | Step | Handoff slug             | Shipped slug                          | Status        |
+|--------|------|--------------------------|---------------------------------------|---------------|
+| 1      | 1    | `what-is-veqt`           | `what-is-veqt`                        | ✓ exists      |
+| 1      | 2    | `anatomy-of-veqt`        | `veqt-canadian-home-bias`             | substituted   |
+| 1      | 3    | `13000-companies`        | `getting-started-with-veqt`           | substituted   |
+| 2      | 1    | `why-not-stockpicking`   | `why-timing-the-market-fails`         | substituted   |
+| 2      | 2    | `the-couch-potato`       | `veqt-vs-diy-portfolio`               | substituted   |
+| 2      | 3    | `rebalance-or-not`       | `automate-veqt-purchases`             | substituted   |
+| 3      | 1    | `veqt-is-down`           | `veqt-is-down`                        | ✓ exists      |
+| 3      | 2    | `history-of-drawdowns`   | `why-stocks-go-up`                    | substituted   |
+| 3      | 3    | `the-discipline`         | `passive-investing-behavioral-edge`   | substituted   |
+
+If any of these articles is later renamed or replaced with content
+that more directly matches the course intent, update `lib/learn.ts`.
+
+### Files
+
+- `lib/learn.ts` — exports `COURSES` (the syllabus). Imported by both
+  `app/learn/page.tsx` (full grid) and `app/page.tsx` (Course 1 only).
+- `components/learn/CourseCard.tsx` — server component. No box, no
+  shadow; vertical hairlines come from the parent grid's
+  `lg:divide-x` rules.
+- `components/learn/LearnContent.tsx` — gains a `demoted` prop. When
+  set, category h2s shrink and shift to `--ink-soft`, the
+  per-category blurb is hidden, the Editor's Picks block and the
+  Paths grid are suppressed (the courses block above replaces them),
+  and outer spacing tightens.
+
+### Page changes
+
+- `app/learn/page.tsx` — lead now reads "Three courses. Three articles
+  each. *In order.*" Below: the three-up `CourseCard` grid
+  (`grid-cols-1 lg:grid-cols-3 lg:divide-x`). Below that: a 2px ink
+  rule, an "Everything else, by topic" eyebrow, and the existing
+  `<LearnContent demoted />` archive.
+- `app/page.tsx` — the home Step 1/2/3 block now imports `COURSES[0]`
+  from `lib/learn.ts`. The home-page-specific excerpt copy stays in
+  `app/page.tsx` (`COURSE_1_EXCERPTS`) since the cards on `/learn`
+  don't display excerpts.
+
+### Constraints honored
+
+- No new dependencies, no new design tokens.
+- Server components throughout (LearnContent stays "use client" for
+  filter/search; that was pre-existing).
+- Filter rail and category groupings remain functional in the demoted
+  archive; bookmarked filter URLs still work.
+
+### Out of scope (still)
+
+- No new article content. Stubs would be cleaner editorially but
+  bigger; the substitutions above make every link resolve.
+- No "track your progress" UX.
+
+---
+
+# M1 cleanup audit
 
 Snapshot of the codebase after the M1 "tidy" pass. Tickets CL-01 through
 CL-08 from `design_handoff_round3/01-cleanup-pr.md` are addressed in this
