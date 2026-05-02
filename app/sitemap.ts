@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { getAllSlugs } from "@/lib/articles";
 import { getAllWeeklyRecaps } from "@/lib/weekly";
 import { COMPARISON_PAGES } from "@/data/comparisons";
+import { LEARN_PATHS } from "@/lib/learn-paths-data";
 import { SITE_URL } from "@/lib/seo-config";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -73,6 +74,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.9,
   }));
 
+  const learnPathPages: MetadataRoute.Sitemap = LEARN_PATHS.map((path) => ({
+    url: `${SITE_URL}/learn/path/${path.id}`,
+    lastModified: now,
+    changeFrequency: "weekly" as const,
+    priority: 0.7,
+  }));
+
   let articlePages: MetadataRoute.Sitemap = [];
   try {
     const articleSlugs = getAllSlugs();
@@ -102,6 +110,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     ...staticPages,
     ...comparisonPages,
+    ...learnPathPages,
     ...articlePages,
     ...weeklyPages,
   ];
