@@ -7,10 +7,10 @@ import { getCached, setCache } from "./cache";
 /** Re-fetch interval: 5 minutes (matches server-side ISR revalidation) */
 const REFETCH_INTERVAL_MS = 5 * 60 * 1000;
 
-export function useVeqtData() {
+export function useVeqtData(initialPeriod: ChartPeriod = "1Y") {
   const [data, setData] = useState<VeqtApiResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [period, setPeriod] = useState<ChartPeriod>("1Y");
+  const [period, setPeriod] = useState<ChartPeriod>(initialPeriod);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchData = useCallback(async (p: ChartPeriod, isRefresh = false) => {

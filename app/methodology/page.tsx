@@ -233,9 +233,8 @@ export default function MethodologyPage() {
           className="bs-display text-[2.25rem] sm:text-[3.25rem] lg:text-[4.25rem] leading-[0.98]"
           style={{ color: "var(--ink)" }}
         >
-          Sources, methods,
-          <br />
-          <em className="bs-display-italic">fine print.</em>
+          <span className="block">Sources, methods,</span>{" "}
+          <em className="bs-display-italic block">fine print.</em>
         </h1>
         <p
           className="bs-body italic mt-5 max-w-[58ch] text-[1.0625rem]"

@@ -49,9 +49,8 @@ export default function ComparePage() {
           className="bs-display text-[2.25rem] sm:text-[3.25rem] lg:text-[4.25rem] leading-[0.98]"
           style={{ color: "var(--ink)" }}
         >
-          VEQT against
-          <br />
-          <em className="bs-display-italic">the field.</em>
+          <span className="block">VEQT against</span>{" "}
+          <em className="bs-display-italic block">the field.</em>
         </h1>
         <p
           className="bs-body mt-5 max-w-[58ch]"

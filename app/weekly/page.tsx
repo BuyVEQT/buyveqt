@@ -51,9 +51,8 @@ export default function WeeklyIndexPage() {
           className="bs-display text-[2.25rem] sm:text-[3.25rem] lg:text-[4.25rem] leading-[0.98]"
           style={{ color: "var(--ink)" }}
         >
-          VEQT,
-          <br />
-          <em className="bs-display-italic">week by week.</em>
+          <span className="block">VEQT,</span>{" "}
+          <em className="bs-display-italic block">week by week.</em>
         </h1>
         <p
           className="bs-body italic mt-5 max-w-[58ch] text-[1.0625rem]"

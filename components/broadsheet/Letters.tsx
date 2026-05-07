@@ -13,12 +13,19 @@ interface RedditPost {
   createdAt: string;
 }
 
-interface RedditPayload {
+export interface RedditPayload {
   posts: {
     trending?: RedditPost[];
     top?: RedditPost[];
   };
   stats: { subscribers: number; activeUsers: number | null } | null;
+}
+
+interface LettersProps {
+  /** Server-rendered initial state. When present, the component mounts
+   *  with the headlines already painted and only re-fetches in the
+   *  background to keep them fresh. */
+  initialPayload?: RedditPayload | null;
 }
 
 function formatAgo(iso: string): string {
@@ -31,9 +38,9 @@ function formatAgo(iso: string): string {
   return "just now";
 }
 
-export default function Letters() {
-  const [payload, setPayload] = useState<RedditPayload | null>(null);
-  const [loading, setLoading] = useState(true);
+export default function Letters({ initialPayload = null }: LettersProps = {}) {
+  const [payload, setPayload] = useState<RedditPayload | null>(initialPayload);
+  const [loading, setLoading] = useState(initialPayload === null);
 
   useEffect(() => {
     let cancelled = false;
@@ -65,9 +72,8 @@ export default function Letters() {
         <div className="lg:col-span-5">
           <p className="bs-stamp mb-2">r/JustBuyVEQT</p>
           <h3 className="bs-display text-3xl sm:text-4xl lg:text-[2.75rem] leading-[1]">
-            What the subreddit
-            <br />
-            <em>is talking about.</em>
+            <span className="block">What the subreddit</span>{" "}
+            <em className="block">is talking about.</em>
           </h3>
         </div>
         <p className="lg:col-span-7 bs-body">

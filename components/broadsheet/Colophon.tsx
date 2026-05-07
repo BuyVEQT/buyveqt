@@ -26,7 +26,7 @@ export default function Colophon() {
               </Link>
             </li>
             <li>
-              <Link href="/invest" className="bs-link">
+              <Link href="/calculators" className="bs-link">
                 Calculators
               </Link>
             </li>

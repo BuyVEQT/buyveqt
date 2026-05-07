@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { isMarketOpen } from "@/lib/data/market-hours";
 import { useTheme } from "@/components/ThemeProvider";
@@ -96,7 +97,7 @@ function toRoman(n: number): string {
 }
 
 const DEPARTMENTS = [
-  { href: "/invest", label: "Calculators" },
+  { href: "/calculators", label: "Calculators" },
   { href: "/compare", label: "Compare" },
   { href: "/learn", label: "Learn" },
   { href: "/inside-veqt", label: "Inside VEQT" },
@@ -123,6 +124,8 @@ export default function Masthead() {
   const [marketOpen, setMarketOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
+  const pathname = usePathname();
+  const isHome = pathname === "/";
 
   useEffect(() => {
     const tick = () => {
@@ -266,10 +269,16 @@ export default function Masthead() {
 
       {/* ── Compressed nameplate: title + edition string on one line ── */}
       <div className="flex items-baseline justify-between gap-4 py-2 sm:py-3">
-        <Link href="/" className="block min-w-0">
-          <h1 className="bs-display text-[var(--ink)] text-[1.5rem] sm:text-[1.875rem] leading-[1] tracking-[-0.018em]">
-            The VEQT Daily
-          </h1>
+        <Link href="/" className="block min-w-0" aria-label="The VEQT Daily — home">
+          {isHome ? (
+            <h1 className="bs-display text-[var(--ink)] text-[1.5rem] sm:text-[1.875rem] leading-[1] tracking-[-0.018em]">
+              The VEQT Daily
+            </h1>
+          ) : (
+            <p className="bs-display text-[var(--ink)] text-[1.5rem] sm:text-[1.875rem] leading-[1] tracking-[-0.018em]">
+              The VEQT Daily
+            </p>
+          )}
         </Link>
         <span className="hidden sm:inline bs-display italic text-[12px] text-[var(--ink-soft)] whitespace-nowrap">
           {edition || " "}

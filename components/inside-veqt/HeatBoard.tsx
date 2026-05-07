@@ -101,9 +101,8 @@ export default function HeatBoard() {
       <div className="bs-heatboard__hero">
         <p className="bs-stamp mb-3">Inside VEQT · Centerfold</p>
         <h2 className="bs-heatboard__hero-h2">
-          Ninety sessions
-          <br />
-          <em>of weather.</em>
+          <span className="block">Ninety sessions</span>{" "}
+          <em className="block">of weather.</em>
         </h2>
         <p className="bs-heatboard__hero-deck">
           Each cell below is a session. Shade is the size of the move; hue is

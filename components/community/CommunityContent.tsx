@@ -293,9 +293,8 @@ export default function CommunityContent({
         <div className="sm:col-span-7">
           <p className="bs-stamp mb-2">Take part</p>
           <h3 className="bs-display text-2xl sm:text-3xl leading-[1.05]">
-            Got a question, a milestone,
-            <br />
-            <em>or a panic to share?</em>
+            <span className="block">Got a question, a milestone,</span>{" "}
+            <em className="block">or a panic to share?</em>
           </h3>
           <p
             className="bs-body mt-3 max-w-[44ch] text-[15px]"

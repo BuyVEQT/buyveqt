@@ -81,7 +81,7 @@ function CalculatorTabsInner({ history, volatilityStats }: CalculatorTabsProps) 
       params.set("tab", activeTab);
     }
     const qs = params.toString();
-    const newUrl = qs ? `/invest?${qs}` : "/invest";
+    const newUrl = qs ? `/calculators?${qs}` : "/calculators";
     window.history.replaceState(null, "", newUrl);
   }, [activeTab, searchParams]);
 

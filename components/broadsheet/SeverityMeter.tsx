@@ -80,8 +80,9 @@ export default function SeverityMeter({ reading, loading, compact = false }: Pro
           : "mt-7 sm:mt-9 pt-5 border-t border-[var(--ink)]"
       }
     >
-      {/* Header row: label on the left, typical-day benchmark on the right */}
-      <div className="flex items-baseline justify-between gap-3">
+      {/* Header row: label on the left, typical-day benchmark on the right.
+          On mobile the two stack so neither line wraps mid-phrase. */}
+      <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-3">
         <p className="bs-label">How unusual is today?</p>
         <p
           className="bs-caption italic text-[12px]"

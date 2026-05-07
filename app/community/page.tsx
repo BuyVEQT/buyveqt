@@ -60,9 +60,8 @@ export default async function CommunityPage() {
           className="bs-display text-[2.25rem] sm:text-[3.25rem] lg:text-[4.25rem] leading-[0.98]"
           style={{ color: "var(--ink)" }}
         >
-          Letters from
-          <br />
-          <em className="bs-display-italic">the holders.</em>
+          <span className="block">Letters from</span>{" "}
+          <em className="bs-display-italic block">the holders.</em>
         </h1>
         <p
           className="bs-body mt-5 max-w-[58ch]"

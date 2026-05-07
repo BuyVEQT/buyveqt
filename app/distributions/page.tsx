@@ -78,9 +78,8 @@ export default async function DistributionsPage() {
           className="bs-display text-[2.25rem] sm:text-[3.25rem] lg:text-[4.25rem] leading-[0.98]"
           style={{ color: "var(--ink)" }}
         >
-          One envelope,
-          <br />
-          <em className="bs-display-italic">every December.</em>
+          <span className="block">One envelope,</span>{" "}
+          <em className="bs-display-italic block">every December.</em>
         </h1>
         <p
           className="bs-body italic mt-5 max-w-[58ch] text-[1.0625rem]"
