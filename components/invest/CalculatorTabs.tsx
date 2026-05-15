@@ -15,40 +15,35 @@ import { inferTab } from "@/lib/share-params";
 const TABS = [
   {
     id: "historical",
-    label: "The Lookback",
-    shortLabel: "Lookback",
+    label: "Lookback",
     frameTitle: "What it would have been",
     frameSubhead:
       "Pick a date in the past. We'll tell you what your money would be worth today.",
   },
   {
     id: "dca",
-    label: "The Drip",
-    shortLabel: "Drip",
+    label: "DCA",
     frameTitle: "What steady contributions become",
     frameSubhead:
       "Regular contributions, projected forward. Adjustable for what the market actually does.",
   },
   {
     id: "dividends",
-    label: "The Yield",
-    shortLabel: "Yield",
+    label: "Dividends",
     frameTitle: "What your stake pays",
     frameSubhead:
       "Annual distribution income from a VEQT position, projected at today's yield.",
   },
   {
     id: "tfsa-rrsp",
-    label: "The Shelter",
-    shortLabel: "Shelter",
+    label: "TFSA / RRSP",
     frameTitle: "What grows tax-free",
     frameSubhead:
       "Project a TFSA or RRSP balance over the long horizon, with VEQT-typical returns.",
   },
   {
     id: "fire",
-    label: "The Exit",
-    shortLabel: "Exit",
+    label: "FIRE",
     frameTitle: "When the fund buys you out",
     frameSubhead:
       "Your financial independence number, and how many years of saving stand between you and it.",
@@ -93,7 +88,7 @@ function CalculatorTabsInner({ history, volatilityStats }: CalculatorTabsProps) 
       <div
         className="border-b border-[var(--ink)] mb-2"
         role="tablist"
-        aria-label="Reckoner sections"
+        aria-label="Calculator sections"
       >
         <div
           className="flex sm:grid sm:grid-cols-5 gap-0 overflow-x-auto hide-scrollbar snap-x snap-mandatory"
@@ -125,8 +120,7 @@ function CalculatorTabsInner({ history, volatilityStats }: CalculatorTabsProps) 
                     color: isActive ? "var(--ink)" : "var(--ink-soft)",
                   }}
                 >
-                  <span className="sm:hidden">{tab.shortLabel}</span>
-                  <span className="hidden sm:inline">{tab.label}</span>
+                  {tab.label}
                 </span>
               </button>
             );

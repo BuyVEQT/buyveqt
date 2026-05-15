@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import InteriorShell from "@/components/broadsheet/InteriorShell";
 import CalculatorTabs from "@/components/invest/CalculatorTabs";
-import StandingFeature from "@/components/invest/StandingFeature";
-import SeverityMeterAuto from "@/components/broadsheet/SeverityMeterAuto";
 import { getDailyHistory } from "@/lib/data";
 import { computeVolatilityStats } from "@/lib/data/volatility";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -173,48 +171,23 @@ export default async function CalculatorsPage() {
       />
 
       {/* SECTION: Page head ─────────────────────────────────────── */}
-      <section className="pt-8 sm:pt-10 pb-2 bs-enter">
-        <p className="bs-stamp mb-3">The Reckoner</p>
+      <section className="pt-8 sm:pt-10 pb-6 bs-enter">
         <h1
           className="bs-display text-[1.875rem] sm:text-[2.25rem] leading-[1.1]"
           style={{ color: "var(--ink)" }}
         >
           Run the figures, <em className="bs-display-italic">slowly.</em>
         </h1>
-        <p
-          className="bs-body italic mt-5 max-w-[58ch] text-[1.0625rem]"
-          style={{ color: "var(--ink-soft)" }}
-        >
-          Five reckonings on the boring fund — what it would have been,
-          what it might be, what it pays, what it shelters, and how soon
-          it could buy you out.
-        </p>
       </section>
 
-      {/* SECTION: The Standing — feature lookback stat ─────────── */}
-      <StandingFeature history={historyResult} />
-
-      {/* SECTION: The Questions — tab selector + active calc ───── */}
+      {/* SECTION: Calculator tabs ──────────────────────────────── */}
       <section
-        className="mt-10 sm:mt-14 pt-6 border-t-2 border-[var(--ink)]"
-        aria-labelledby="questions-heading"
+        className="mt-4 sm:mt-6"
+        aria-labelledby="calculators-heading"
       >
-        <p id="questions-heading" className="bs-stamp mb-3">
-          The Questions
-        </p>
-        <h2
-          className="bs-display text-[1.5rem] sm:text-[2rem] mb-5"
-          style={{ color: "var(--ink)" }}
-        >
-          <em>Pick the question</em> you came here to ask
+        <h2 id="calculators-heading" className="sr-only">
+          Calculators
         </h2>
-
-        {/* Severity strip — anchors today's reading right above the
-            calculators so a panicked reader sees their context first. */}
-        <div className="mb-6">
-          <SeverityMeterAuto compact />
-        </div>
-
         <CalculatorTabs
           history={historyResult}
           volatilityStats={volatilityStats}
@@ -226,15 +199,12 @@ export default async function CalculatorsPage() {
         className="mt-10 sm:mt-14 pt-6 border-t-2 border-[var(--ink)]"
         aria-labelledby="invest-fineprint-heading"
       >
-        <p id="invest-fineprint-heading" className="bs-stamp mb-3">
-          The Fine Print
-        </p>
         <h2
+          id="invest-fineprint-heading"
           className="bs-display text-[1.5rem] sm:text-[2rem] mb-5"
           style={{ color: "var(--ink)" }}
         >
-          <em>What these are,</em> and what they aren&apos;t
-        </h2>
+          <em>Fine print</em></h2>
 
         <div
           className="bs-body text-[15px] leading-[1.65] space-y-4 max-w-[62ch]"
