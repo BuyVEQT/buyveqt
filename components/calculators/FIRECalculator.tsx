@@ -8,6 +8,9 @@ import MonteCarloChart from "./MonteCarloChart";
 import ShareModal from "@/components/ShareModal";
 import type { VolatilityStats } from "@/lib/data/volatility";
 
+const VEQT_MER = 0.0024; // 0.24%
+const INFLATION_RATE = 0.02; // 2%
+
 interface FIRECalculatorProps {
   volatilityStats: VolatilityStats | null;
 }
@@ -22,6 +25,12 @@ export default function FIRECalculator({ volatilityStats }: FIRECalculatorProps)
   const [withdrawalRate, setWithdrawalRate] = useState(4);
   const [shareOpen, setShareOpen] = useState(false);
 
+  // Enhancement toggles — same pattern as DCACalculator/TFSARRSPCalculator.
+  // For FIRE these matter the most: the calc is about a future spending
+  // number, so inflation and fees shape every result.
+  const [showFees, setShowFees] = useState(false);
+  const [showInflation, setShowInflation] = useState(false);
+
   const {
     targetPortfolio,
     yearsToFire,
@@ -30,10 +39,13 @@ export default function FIRECalculator({ volatilityStats }: FIRECalculatorProps)
     alreadyFIRE,
     coastFIREAchieved,
     projectedFireYear,
+    feeImpactYears,
   } = useMemo(() => {
     const target = annualExpenses / (withdrawalRate / 100);
     const years = Math.max(1, retirementAge - currentAge);
-    const rate = expectedReturn / 100;
+    // Effective return rate: subtract MER if fees are shown.
+    const nominalRate = expectedReturn / 100;
+    const rate = showFees ? nominalRate - VEQT_MER : nominalRate;
     const annualContrib = monthlyContribution * 12;
 
     // Coast FIRE: amount needed today such that growth alone reaches target
@@ -42,15 +54,39 @@ export default function FIRECalculator({ volatilityStats }: FIRECalculatorProps)
     const already = portfolioValue >= target;
     const coastAchieved = portfolioValue >= coast;
 
-    // Find the year the portfolio hits the target
+    // Find the year the portfolio hits the target. When "Today's dollars"
+    // is on, we deflate the running balance back to today's purchasing
+    // power before comparing — this stretches yearsToFire because real
+    // returns are slower than nominal.
     let projectedYear: number | null = null;
     let balance = portfolioValue;
     for (let y = 1; y <= years; y++) {
       balance = (balance + annualContrib) * (1 + rate);
-      if (balance >= target && projectedYear === null) {
+      const adjusted = showInflation
+        ? balance / Math.pow(1 + INFLATION_RATE, y)
+        : balance;
+      if (adjusted >= target && projectedYear === null) {
         projectedYear = y;
       }
     }
+
+    // Compute the "no fees" projection so we can show the fee impact.
+    let projectedYearNominal: number | null = null;
+    let balanceNominal = portfolioValue;
+    for (let y = 1; y <= years; y++) {
+      balanceNominal = (balanceNominal + annualContrib) * (1 + nominalRate);
+      const adjusted = showInflation
+        ? balanceNominal / Math.pow(1 + INFLATION_RATE, y)
+        : balanceNominal;
+      if (adjusted >= target && projectedYearNominal === null) {
+        projectedYearNominal = y;
+      }
+    }
+
+    const feeYears =
+      showFees && projectedYear && projectedYearNominal
+        ? projectedYear - projectedYearNominal
+        : 0;
 
     return {
       targetPortfolio: target,
@@ -60,8 +96,19 @@ export default function FIRECalculator({ volatilityStats }: FIRECalculatorProps)
       alreadyFIRE: already,
       coastFIREAchieved: coastAchieved,
       projectedFireYear: projectedYear,
+      feeImpactYears: feeYears,
     };
-  }, [currentAge, retirementAge, portfolioValue, monthlyContribution, annualExpenses, expectedReturn, withdrawalRate]);
+  }, [
+    currentAge,
+    retirementAge,
+    portfolioValue,
+    monthlyContribution,
+    annualExpenses,
+    expectedReturn,
+    withdrawalRate,
+    showFees,
+    showInflation,
+  ]);
 
   // Animated stat values
   const animTarget = useAnimatedNumber(targetPortfolio);
@@ -233,6 +280,30 @@ export default function FIRECalculator({ volatilityStats }: FIRECalculatorProps)
         </div>
       </div>
 
+      {/* Enhancement toggles — match DCA/TFSA pattern. FIRE is the most
+          inflation- and fee-sensitive calc on the page; these toggles
+          should have been here from the start. */}
+      <div className="flex flex-wrap gap-3 mb-6">
+        <label className="flex items-center gap-2 text-xs text-[var(--color-text-secondary)] cursor-pointer">
+          <input
+            type="checkbox"
+            checked={showFees}
+            onChange={(e) => setShowFees(e.target.checked)}
+            className="accent-[var(--color-brand)] w-3.5 h-3.5"
+          />
+          Show fee impact
+        </label>
+        <label className="flex items-center gap-2 text-xs text-[var(--color-text-secondary)] cursor-pointer">
+          <input
+            type="checkbox"
+            checked={showInflation}
+            onChange={(e) => setShowInflation(e.target.checked)}
+            className="accent-[var(--color-brand)] w-3.5 h-3.5"
+          />
+          Today&apos;s dollars
+        </label>
+      </div>
+
       {/* Hero stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
         <div className={STAT_CARD}>
@@ -296,6 +367,21 @@ export default function FIRECalculator({ volatilityStats }: FIRECalculatorProps)
         </div>
       </div>
 
+      {/* Fee impact callout — surfaces the years-to-FIRE delta caused by
+          MER drag, in the same callout pattern as DCA's fee impact. */}
+      {showFees && feeImpactYears > 0 && !alreadyFIRE && (
+        <div className="rounded-lg bg-[var(--color-base)] border border-[var(--color-border)] p-3 mb-6">
+          <p className="text-xs text-[var(--color-text-secondary)]">
+            <span className="font-medium text-[var(--color-negative)]">
+              Estimated fee drag: +{feeImpactYears} year
+              {feeImpactYears === 1 ? "" : "s"} to FIRE
+            </span>{" "}
+            at VEQT&apos;s 0.24% MER. Still far lower than most mutual funds
+            (1–2% MER).
+          </p>
+        </div>
+      )}
+
       {/* Conditional callouts */}
       {alreadyFIRE && (
         <div className="rounded-lg bg-[var(--color-positive)]/10 border border-[var(--color-positive)]/20 p-4 mb-6">
@@ -324,15 +410,27 @@ export default function FIRECalculator({ volatilityStats }: FIRECalculatorProps)
         </div>
       )}
 
-      {/* Monte Carlo chart — always on for FIRE */}
+      {/* Monte Carlo chart — always on for FIRE.
+          When fees are toggled on we shift the simulation's mean return
+          down by VEQT's MER so the bands and median line reflect the
+          same reality the headline stats use. Inflation deflation lives
+          in MonteCarloChart so the chart and the notes stay in sync. */}
       <div className="mb-6">
         <MonteCarloChart
-          volatilityStats={volatilityStats}
+          volatilityStats={
+            showFees && volatilityStats
+              ? {
+                  ...volatilityStats,
+                  meanReturn: volatilityStats.meanReturn - VEQT_MER,
+                }
+              : volatilityStats
+          }
           startingValue={portfolioValue}
           annualContribution={monthlyContribution * 12}
           years={yearsToRetirement}
           targetValue={targetPortfolio}
           height={300}
+          deflateInflation={showInflation}
         />
       </div>
 
@@ -385,8 +483,19 @@ export default function FIRECalculator({ volatilityStats }: FIRECalculatorProps)
           model uncertainty. Each scenario randomly samples annual returns. This
           is not a prediction — it shows the range of possible outcomes.
         </p>
+        {showInflation && (
+          <p>
+            Values shown in today&apos;s purchasing power, assuming 2% annual inflation.
+          </p>
+        )}
+        {!showFees && (
+          <p>
+            Does not account for VEQT&apos;s 0.24% MER. Toggle &ldquo;Show fee
+            impact&rdquo; to see the years it adds.
+          </p>
+        )}
         <p>
-          Does not account for taxes, inflation, changes in expenses, or
+          Does not account for taxes, changes in expenses over time, or
           government benefits (CPP/OAS/GIS).
         </p>
       </div>

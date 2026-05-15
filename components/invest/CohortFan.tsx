@@ -171,6 +171,13 @@ export default function CohortFan({
         )}
       </h3>
 
+      {/* Caption — mirrors MonteCarloChart's "Distribution across N
+          scenarios" so both uncertainty visuals on the page introduce
+          themselves with the same shape. */}
+      <p className="text-xs text-[var(--color-text-muted)] mb-2">
+        Distribution across {totalCohorts} historical start dates
+      </p>
+
       {/* Fan chart */}
       <svg
         viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}

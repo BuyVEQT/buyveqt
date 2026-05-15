@@ -16,6 +16,7 @@ import { formatDollars, ChartTooltipWrapper, GRID_PROPS, AXIS_PROPS } from "@/li
 import { DEFAULT_VOLATILITY, type VolatilityStats } from "@/lib/data/volatility";
 
 const NUM_SIMULATIONS = 500;
+const INFLATION_RATE = 0.02;
 
 interface MonteCarloChartProps {
   volatilityStats: VolatilityStats | null;
@@ -25,6 +26,13 @@ interface MonteCarloChartProps {
   /** Optional target line (e.g. FIRE target portfolio) */
   targetValue?: number;
   height?: number;
+  /**
+   * Deflate every simulated balance by 2%/yr so the chart and the
+   * caller's headline stats are both expressed in today's purchasing
+   * power. Used by FIRE / Shelter / DCA "Today's dollars" toggles so
+   * the chart matches what the user sees in the stat cards.
+   */
+  deflateInflation?: boolean;
 }
 
 interface PercentilePoint {
@@ -59,7 +67,8 @@ function simulate(
   std: number,
   startingValue: number,
   annualContrib: number,
-  years: number
+  years: number,
+  deflateInflation: boolean
 ): PercentilePoint[] {
   // Run all simulations: outcomes[year][sim] = portfolio value
   const outcomes: number[][] = Array.from({ length: years + 1 }, () => []);
@@ -77,10 +86,14 @@ function simulate(
     }
   }
 
-  // Extract percentiles at each year
+  // Extract percentiles at each year, deflating to today's dollars if asked.
   return outcomes.map((values, year) => {
+    const deflator = deflateInflation
+      ? Math.pow(1 + INFLATION_RATE, year)
+      : 1;
     const sorted = values.slice().sort((a, b) => a - b);
-    const pct = (p: number) => sorted[Math.floor(p * sorted.length)] || 0;
+    const pct = (p: number) =>
+      (sorted[Math.floor(p * sorted.length)] || 0) / deflator;
 
     const p10 = pct(0.1);
     const p25 = pct(0.25);
@@ -147,18 +160,42 @@ export default function MonteCarloChart({
   years,
   targetValue,
   height = 280,
+  deflateInflation = false,
 }: MonteCarloChartProps) {
   const stats = volatilityStats ?? DEFAULT_VOLATILITY;
 
   const data = useMemo(
-    () => simulate(stats.meanReturn, stats.stdDev, startingValue, annualContribution, years),
-    [stats.meanReturn, stats.stdDev, startingValue, annualContribution, years]
+    () =>
+      simulate(
+        stats.meanReturn,
+        stats.stdDev,
+        startingValue,
+        annualContribution,
+        years,
+        deflateInflation
+      ),
+    [
+      stats.meanReturn,
+      stats.stdDev,
+      startingValue,
+      annualContribution,
+      years,
+      deflateInflation,
+    ]
   );
+
+  // Final-year stats — surfaced as a CohortFan-style strip below the
+  // chart so both uncertainty visuals on the page share the same
+  // "median + range" reading pattern.
+  const finalYear = data[data.length - 1];
 
   return (
     <div>
       <p className="text-xs text-[var(--color-text-muted)] mb-2">
-        Monte Carlo simulation ({NUM_SIMULATIONS} scenarios based on historical VEQT volatility)
+        Distribution across {NUM_SIMULATIONS} simulated scenarios{" "}
+        {deflateInflation && (
+          <span className="italic">(today&apos;s dollars)</span>
+        )}
       </p>
       <ResponsiveContainer width="100%" height={height}>
         <AreaChart data={data}>
@@ -249,17 +286,52 @@ export default function MonteCarloChart({
       <div className="flex items-center gap-4 mt-2 text-[10px] text-[var(--color-text-muted)]">
         <span className="flex items-center gap-1">
           <span className="inline-block w-3 h-0.5 bg-[var(--color-positive)]" />
-          Median outcome
+          Median
         </span>
         <span className="flex items-center gap-1">
           <span className="inline-block w-3 h-3 bg-[var(--color-positive)] opacity-12 rounded-sm" />
-          25th–75th percentile
+          25th–75th
         </span>
         <span className="flex items-center gap-1">
           <span className="inline-block w-3 h-3 bg-[var(--color-positive)] opacity-6 rounded-sm" />
-          10th–90th percentile
+          10th–90th
         </span>
       </div>
+
+      {/* Final-year stat strip — same shape as CohortFan's strip so the
+          page's two uncertainty visuals (historical fan, simulated cone)
+          read with one consistent set of numbers underneath. */}
+      {finalYear && years > 0 && (
+        <div className="grid grid-cols-3 gap-4 sm:gap-8 border-t border-b border-[var(--color-border)] py-3 mt-3">
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-[var(--color-text-muted)]">
+              Median (year {years})
+            </p>
+            <p className="text-[1rem] sm:text-[1.125rem] font-semibold tabular-nums text-[var(--color-positive)]">
+              {formatDollars(finalYear.p50)}
+            </p>
+          </div>
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-[var(--color-text-muted)]">
+              10th–90th range
+            </p>
+            <p className="text-[0.875rem] sm:text-[0.9375rem] font-medium tabular-nums">
+              {formatDollars(finalYear.p10)} – {formatDollars(finalYear.p90)}
+            </p>
+          </div>
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-[var(--color-text-muted)]">
+              Worst (10th)
+            </p>
+            <p
+              className="text-[0.875rem] sm:text-[0.9375rem] font-medium tabular-nums italic"
+              style={{ color: "var(--color-text-muted)" }}
+            >
+              {formatDollars(finalYear.p10)}
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
