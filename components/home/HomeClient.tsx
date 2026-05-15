@@ -9,15 +9,14 @@ import RegionCards from "@/components/broadsheet/RegionCards";
 import Colophon from "@/components/broadsheet/Colophon";
 import TiltBar from "@/components/broadsheet/TiltBar";
 import SeverityMeter from "@/components/broadsheet/SeverityMeter";
-import EditionRecommends, {
-  type RecommendsZone,
-} from "@/components/broadsheet/EditionRecommends";
+import EditionRecommends from "@/components/broadsheet/EditionRecommends";
 import VolatilityHeatmap from "@/components/broadsheet/VolatilityHeatmap";
 import { classifyReturns } from "@/lib/volatility";
 import HeroSparkline from "@/components/broadsheet/HeroSparkline";
 import { useRegions } from "@/lib/useRegions";
 import { computeLeadHeadline } from "@/lib/lead-headline";
 import { computeSeverity } from "@/lib/severity";
+import { buildRecommendation } from "@/lib/edition-recommends";
 
 function formatCAD(n: number, digits = 0): string {
   return n.toLocaleString("en-CA", {
@@ -104,6 +103,23 @@ export default function HomeClient({ lettersSlot }: HomeClientProps) {
     () => computeSeverity(fullHistory, quote?.changePercent),
     [fullHistory, quote?.changePercent]
   );
+
+  // Editor's-take recommendation — composed from the same severity reading
+  // and regional sleeves, seeded by the latest close date so the article
+  // pick and the verdict template are stable for a session but rotate
+  // across sessions instead of recycling the same twelve cells.
+  const recommendation = useMemo(() => {
+    if (!severity) return null;
+    const latestDate =
+      fullHistory.length > 0
+        ? fullHistory[fullHistory.length - 1].date
+        : new Date().toISOString().slice(0, 10);
+    return buildRecommendation({
+      reading: severity,
+      regions,
+      dateKey: latestDate,
+    });
+  }, [severity, regions, fullHistory]);
 
   // 90-day heatmap data — computed from the same historical series.
   // ClassifiedReturn is structurally compatible with VolatilityHeatmapEntry
@@ -206,19 +222,10 @@ export default function HomeClient({ lettersSlot }: HomeClientProps) {
           </section>
         )}
 
-        {/* ─────────────────── TODAY'S EDITION RECOMMENDS ─────────────────── */}
-        {severity && (
+        {/* ─────────────────── EDITOR'S TAKE ─────────────────── */}
+        {recommendation && (
           <section className="pb-8 sm:pb-10 bs-enter">
-            <EditionRecommends
-              zone={severity.zone.toLowerCase() as RecommendsZone}
-              direction={
-                severity.todayChangePercent > 0.1
-                  ? "up"
-                  : severity.todayChangePercent < -0.1
-                    ? "down"
-                    : "flat"
-              }
-            />
+            <EditionRecommends recommendation={recommendation} />
           </section>
         )}
 
