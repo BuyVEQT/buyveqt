@@ -25,6 +25,13 @@ type Mode = "lump" | "dca";
 
 interface InvestCalculatorProps {
   history: HistoricalData | null;
+  /**
+   * Optional handler that lets the calculator switch the parent
+   * CalculatorTabs to a different tab. Used by the DCA-mode link that
+   * sends a user to the forward-looking DCA calculator when they
+   * realize they wanted projection instead of backtest.
+   */
+  onSelectTab?: (id: string) => void;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────
@@ -274,7 +281,7 @@ function ChartTooltip({
 
 // ─── Main Component ───────────────────────────────────────────
 
-export default function InvestCalculator({ history }: InvestCalculatorProps) {
+export default function InvestCalculator({ history, onSelectTab }: InvestCalculatorProps) {
   // Derive date constraints from data
   const earliestDate = history?.data[0]?.date ?? "2019-01-29";
   const latestDate = history?.data[history.data.length - 1]?.date ?? "";
@@ -443,9 +450,28 @@ export default function InvestCalculator({ history }: InvestCalculatorProps) {
               : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
           }`}
         >
-          Monthly (DCA)
+          Monthly contributions
         </button>
       </div>
+
+      {/* Backtest-vs-projection signpost — only when in DCA mode, where
+          the distinction from the forward-looking DCA tab is easiest to
+          confuse. */}
+      {isDCA && onSelectTab && (
+        <p
+          className="text-xs italic"
+          style={{ color: "var(--color-text-muted)" }}
+        >
+          Backtest against real VEQT history.{" "}
+          <button
+            type="button"
+            onClick={() => onSelectTab("dca")}
+            className="underline hover:text-[var(--color-text-primary)] transition-colors"
+          >
+            Projecting forward instead? Use the DCA tab &rarr;
+          </button>
+        </p>
+      )}
 
       {/* Inputs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

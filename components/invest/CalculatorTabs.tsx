@@ -18,14 +18,14 @@ const TABS = [
     label: "Lookback",
     frameTitle: "What it would have been",
     frameSubhead:
-      "Pick a date in the past. We'll tell you what your money would be worth today.",
+      "Backtest against real VEQT history — pick a past date and see what a lump sum or monthly plan would have grown into today.",
   },
   {
     id: "dca",
     label: "DCA",
     frameTitle: "What steady contributions become",
     frameSubhead:
-      "Regular contributions, projected forward. Adjustable for what the market actually does.",
+      "Forward projection — set a monthly amount, a horizon, and an assumed return rate, see what it could compound into.",
   },
   {
     id: "dividends",
@@ -50,7 +50,7 @@ const TABS = [
   },
 ] as const;
 
-type TabId = (typeof TABS)[number]["id"];
+export type TabId = (typeof TABS)[number]["id"];
 
 interface CalculatorTabsProps {
   history: HistoricalData | null;
@@ -102,6 +102,7 @@ function CalculatorTabsInner({ history, volatilityStats }: CalculatorTabsProps) 
                 role="tab"
                 aria-selected={isActive}
                 onClick={() => setActiveTab(tab.id)}
+                title={tab.frameSubhead}
                 className={`
                   flex items-center justify-center sm:justify-start text-left
                   px-4 py-3 sm:px-5 sm:py-4 cursor-pointer shrink-0 snap-start min-h-[52px]
@@ -129,19 +130,40 @@ function CalculatorTabsInner({ history, volatilityStats }: CalculatorTabsProps) 
       </div>
 
       {activeTabData && (
-        <CalculatorFrame
-          stamp={activeTabData.label}
-          title={activeTabData.frameTitle}
-          subhead={activeTabData.frameSubhead}
-        >
-          {activeTab === "historical" && <InvestCalculator history={history} />}
-          {activeTab === "dca" && <DCACalculator volatilityStats={volatilityStats} />}
-          {activeTab === "dividends" && <DividendCalculator />}
-          {activeTab === "tfsa-rrsp" && (
-            <TFSARRSPCalculator volatilityStats={volatilityStats} />
-          )}
-          {activeTab === "fire" && <FIRECalculator volatilityStats={volatilityStats} />}
-        </CalculatorFrame>
+        <>
+          {/* Active tab subhead — surfaces what the active calc does
+              immediately under the tab row, instead of forcing the user
+              to scroll into the frame to read it. Hover-tooltip on each
+              tab button preview the same line for inactive tabs. */}
+          <p
+            className="bs-caption italic mt-3 mb-2 max-w-[60ch] text-[13px] sm:text-[14px]"
+            style={{ color: "var(--ink-soft)" }}
+          >
+            {activeTabData.frameSubhead}
+          </p>
+
+          <CalculatorFrame
+            stamp={activeTabData.label}
+            title={activeTabData.frameTitle}
+          >
+            {activeTab === "historical" && (
+              <InvestCalculator
+                history={history}
+                onSelectTab={(id) => {
+                  if (TABS.some((t) => t.id === id)) {
+                    setActiveTab(id as TabId);
+                  }
+                }}
+              />
+            )}
+            {activeTab === "dca" && <DCACalculator volatilityStats={volatilityStats} />}
+            {activeTab === "dividends" && <DividendCalculator />}
+            {activeTab === "tfsa-rrsp" && (
+              <TFSARRSPCalculator volatilityStats={volatilityStats} />
+            )}
+            {activeTab === "fire" && <FIRECalculator volatilityStats={volatilityStats} />}
+          </CalculatorFrame>
+        </>
       )}
     </div>
   );
