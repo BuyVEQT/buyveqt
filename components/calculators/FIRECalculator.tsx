@@ -8,15 +8,19 @@ import MonteCarloChart from "./MonteCarloChart";
 import ShareModal from "@/components/ShareModal";
 import type { VolatilityStats } from "@/lib/data/volatility";
 import { expandParams } from "@/lib/share-params";
+import type { NewPin } from "@/lib/usePinnedScenarios";
+import PinScenarioButton from "@/components/invest/PinScenarioButton";
 
 const VEQT_MER = 0.0024; // 0.24%
 const INFLATION_RATE = 0.02; // 2%
 
 interface FIRECalculatorProps {
   volatilityStats: VolatilityStats | null;
+  /** Pin the current scenario to the compare bar. */
+  onPin?: (input: NewPin) => void;
 }
 
-export default function FIRECalculator({ volatilityStats }: FIRECalculatorProps) {
+export default function FIRECalculator({ volatilityStats, onPin }: FIRECalculatorProps) {
   const [currentAge, setCurrentAge] = useState(30);
   const [retirementAge, setRetirementAge] = useState(55);
   const [portfolioValue, setPortfolioValue] = useState(50000);
@@ -469,8 +473,34 @@ export default function FIRECalculator({ volatilityStats }: FIRECalculatorProps)
         />
       </div>
 
-      {/* Share Results */}
-      <div className="flex justify-end">
+      {/* Pin + Share */}
+      <div className="flex flex-wrap justify-end gap-2">
+        <PinScenarioButton
+          onPin={onPin}
+          build={() => ({
+            tab: "fire",
+            tabLabel: "FIRE",
+            label: alreadyFIRE
+              ? `FIRE achieved · target ${formatDollars(targetPortfolio)}`
+              : projectedFireYear
+              ? `${projectedFireYear}yr to ${formatDollars(targetPortfolio)} target`
+              : `Target ${formatDollars(targetPortfolio)} · ${formatDollars(annualExpenses)}/yr expenses`,
+            highlight: alreadyFIRE
+              ? "FIRE achieved"
+              : projectedFireYear
+              ? `~${projectedFireYear} years`
+              : `${yearsToRetirement}+ years`,
+            params: {
+              portfolio: portfolioValue,
+              monthly: monthlyContribution,
+              rate: expectedReturn,
+              expenses: annualExpenses,
+              withdrawalRate,
+              currentAge,
+              retirementAge,
+            },
+          })}
+        />
         <button
           onClick={() => setShareOpen(true)}
           className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] px-3 py-2 text-sm font-medium text-[var(--color-text-secondary)] hover:bg-[var(--color-base)] transition-colors"
