@@ -15,6 +15,13 @@ import Link from "next/link";
 import { formatDollars, ChartTooltipWrapper, GRID_PROPS, AXIS_PROPS } from "@/lib/chart-utils";
 import { CARD, STAT_CARD } from "@/lib/styles";
 import ShareModal from "@/components/ShareModal";
+import type { NewPin } from "@/lib/usePinnedScenarios";
+import PinScenarioButton from "@/components/invest/PinScenarioButton";
+
+interface DividendCalculatorProps {
+  /** Pin the current scenario to the compare bar. */
+  onPin?: (input: NewPin) => void;
+}
 
 function CustomTooltip({
   active,
@@ -38,7 +45,7 @@ function CustomTooltip({
   );
 }
 
-export default function DividendCalculator() {
+export default function DividendCalculator({ onPin }: DividendCalculatorProps) {
   const [portfolio, setPortfolio] = useState(100000);
   const [yieldRate, setYieldRate] = useState(1.3);
   const [growthRate, setGrowthRate] = useState(8);
@@ -215,8 +222,22 @@ export default function DividendCalculator() {
         </ResponsiveContainer>
       </div>
 
-      {/* Share Results */}
-      <div className="flex justify-end">
+      {/* Pin + Share */}
+      <div className="flex flex-wrap justify-end gap-2">
+        <PinScenarioButton
+          onPin={onPin}
+          build={() => ({
+            tab: "dividends",
+            tabLabel: "Dividends",
+            label: `${formatDollars(portfolio)} @ ${yieldRate.toFixed(1)}% yield`,
+            highlight: `${formatDollars(annual)}/yr`,
+            params: {
+              portfolio,
+              yield: yieldRate,
+              growthRate,
+            },
+          })}
+        />
         <button
           onClick={() => setShareOpen(true)}
           className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] px-3 py-2 text-sm font-medium text-[var(--color-text-secondary)] hover:bg-[var(--color-base)] transition-colors"

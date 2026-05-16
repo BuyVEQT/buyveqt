@@ -11,6 +11,8 @@ import type { VolatilityStats } from "@/lib/data/volatility";
 import type { Handoff } from "@/lib/calculator-handoffs";
 import { dcaToShelter } from "@/lib/calculator-handoffs";
 import { expandParams } from "@/lib/share-params";
+import type { NewPin } from "@/lib/usePinnedScenarios";
+import PinScenarioButton from "@/components/invest/PinScenarioButton";
 
 const VEQT_MER = 0.0024; // 0.24%
 const INFLATION_RATE = 0.02; // 2%
@@ -20,11 +22,14 @@ interface DCACalculatorProps {
   /** Cross-calc handoff. Renders a "Plan this in TFSA/RRSP" CTA after
    *  results when supplied. */
   onHandoff?: (handoff: Handoff) => void;
+  /** Pin the current scenario to the compare bar. */
+  onPin?: (input: NewPin) => void;
 }
 
 export default function DCACalculator({
   volatilityStats,
   onHandoff,
+  onPin,
 }: DCACalculatorProps) {
   const [monthly, setMonthly] = useState(500);
   const [years, setYears] = useState(20);
@@ -249,8 +254,8 @@ export default function DCACalculator({
         </div>
       )}
 
-      {/* Next-step handoff + Share — handoff to the Shelter is the
-          natural next question ("…in what account?"). */}
+      {/* Next-step handoff + Pin + Share — handoff to the Shelter is
+          the natural next question ("…in what account?"). */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         {onHandoff ? (
           <button
@@ -267,16 +272,28 @@ export default function DCACalculator({
         ) : (
           <span />
         )}
-        <button
-          onClick={() => setShareOpen(true)}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] px-3 py-2 text-sm font-medium text-[var(--color-text-secondary)] hover:bg-[var(--color-base)] transition-colors"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-          </svg>
-          Share Results
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <PinScenarioButton
+            onPin={onPin}
+            build={() => ({
+              tab: "dca",
+              tabLabel: "DCA",
+              label: `$${monthly.toLocaleString("en-CA")}/mo @ ${returnRate}% × ${years}yr`,
+              highlight: formatDollars(portfolioValue),
+              params: { monthly, horizon: years, rate: returnRate },
+            })}
+          />
+          <button
+            onClick={() => setShareOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] px-3 py-2 text-sm font-medium text-[var(--color-text-secondary)] hover:bg-[var(--color-base)] transition-colors"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+            </svg>
+            Share Results
+          </button>
+        </div>
       </div>
       <ShareModal
         tab="dca"

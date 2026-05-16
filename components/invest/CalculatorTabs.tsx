@@ -8,10 +8,12 @@ import DividendCalculator from "@/components/calculators/DividendCalculator";
 import TFSARRSPCalculator from "@/components/calculators/TFSARRSPCalculator";
 import FIRECalculator from "@/components/calculators/FIRECalculator";
 import CalculatorFrame from "./CalculatorFrame";
+import PinnedScenariosBar from "./PinnedScenariosBar";
 import type { HistoricalData } from "@/lib/data/types";
 import type { VolatilityStats } from "@/lib/data/volatility";
 import { inferTab } from "@/lib/share-params";
 import type { Handoff } from "@/lib/calculator-handoffs";
+import { usePinnedScenarios, type NewPin } from "@/lib/usePinnedScenarios";
 
 const TABS = [
   {
@@ -105,6 +107,18 @@ function CalculatorTabsInner({ history, volatilityStats }: CalculatorTabsProps) 
     setActiveTab(h.tab as TabId);
   }, []);
 
+  // Pinned scenarios — persist across tab switches and reloads. The
+  // hook owns the localStorage round-trip; we just pass the actions
+  // down to each calc + render the compare bar.
+  const { scenarios, pin, unpin, clear } = usePinnedScenarios();
+
+  const handlePin = useCallback(
+    (input: NewPin) => {
+      pin(input);
+    },
+    [pin]
+  );
+
   const activeTabData = TABS.find((t) => t.id === activeTab);
 
   return (
@@ -167,6 +181,16 @@ function CalculatorTabsInner({ history, volatilityStats }: CalculatorTabsProps) 
             {activeTabData.frameSubhead}
           </p>
 
+          {/* Compare bar for pinned scenarios — visible across all tabs
+              so the user can pin a DCA scenario, switch to FIRE, and
+              still see the prior numbers. */}
+          <PinnedScenariosBar
+            scenarios={scenarios}
+            onLoad={handleHandoff}
+            onRemove={unpin}
+            onClear={clear}
+          />
+
           <CalculatorFrame
             stamp={activeTabData.label}
             title={activeTabData.frameTitle}
@@ -175,22 +199,32 @@ function CalculatorTabsInner({ history, volatilityStats }: CalculatorTabsProps) 
               <InvestCalculator
                 history={history}
                 onHandoff={handleHandoff}
+                onPin={handlePin}
               />
             )}
             {activeTab === "dca" && (
               <DCACalculator
                 volatilityStats={volatilityStats}
                 onHandoff={handleHandoff}
+                onPin={handlePin}
               />
             )}
-            {activeTab === "dividends" && <DividendCalculator />}
+            {activeTab === "dividends" && (
+              <DividendCalculator onPin={handlePin} />
+            )}
             {activeTab === "tfsa-rrsp" && (
               <TFSARRSPCalculator
                 volatilityStats={volatilityStats}
                 onHandoff={handleHandoff}
+                onPin={handlePin}
               />
             )}
-            {activeTab === "fire" && <FIRECalculator volatilityStats={volatilityStats} />}
+            {activeTab === "fire" && (
+              <FIRECalculator
+                volatilityStats={volatilityStats}
+                onPin={handlePin}
+              />
+            )}
           </CalculatorFrame>
         </>
       )}

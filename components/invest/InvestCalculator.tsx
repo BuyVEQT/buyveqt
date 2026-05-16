@@ -22,6 +22,8 @@ import CohortFan from "./CohortFan";
 import { computeCohorts, findUserCohort } from "@/lib/calculators";
 import type { Handoff } from "@/lib/calculator-handoffs";
 import { lookbackDcaToDca } from "@/lib/calculator-handoffs";
+import type { NewPin } from "@/lib/usePinnedScenarios";
+import PinScenarioButton from "./PinScenarioButton";
 
 type Mode = "lump" | "dca";
 
@@ -32,6 +34,8 @@ interface InvestCalculatorProps {
    * user's monthly amount + duration into the forward-looking DCA tab.
    */
   onHandoff?: (handoff: Handoff) => void;
+  /** Pin the current scenario to the compare bar. */
+  onPin?: (input: NewPin) => void;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────
@@ -281,7 +285,7 @@ function ChartTooltip({
 
 // ─── Main Component ───────────────────────────────────────────
 
-export default function InvestCalculator({ history, onHandoff }: InvestCalculatorProps) {
+export default function InvestCalculator({ history, onHandoff, onPin }: InvestCalculatorProps) {
   // Derive date constraints from data
   const earliestDate = history?.data[0]?.date ?? "2019-01-29";
   const latestDate = history?.data[history.data.length - 1]?.date ?? "";
@@ -604,8 +608,24 @@ export default function InvestCalculator({ history, onHandoff }: InvestCalculato
             </div>
           </div>
 
-          {/* Share Results */}
-          <div className="flex justify-end">
+          {/* Share Results + Pin scenario */}
+          <div className="flex flex-wrap justify-end gap-2">
+            <PinScenarioButton
+              onPin={onPin}
+              build={() => ({
+                tab: "historical",
+                tabLabel: "Lookback",
+                label: isDCA
+                  ? `$${amount.toLocaleString("en-CA")}/mo since ${result!.startDate.slice(0, 7)}`
+                  : `$${amount.toLocaleString("en-CA")} since ${result!.startDate.slice(0, 7)}`,
+                highlight: formatDollars(result!.currentValue),
+                params: {
+                  mode,
+                  amount,
+                  start: result!.startDate.slice(0, 10),
+                },
+              })}
+            />
             <button
               onClick={() => setShareOpen(true)}
               className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-white px-3 py-2 text-sm font-medium text-[var(--color-text-secondary)] hover:bg-[var(--color-base)] transition-colors"
