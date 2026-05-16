@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { formatDollars } from "@/lib/chart-utils";
 import { CARD, STAT_CARD } from "@/lib/styles";
 import { useAnimatedNumber } from "./useAnimatedNumber";
 import MonteCarloChart from "./MonteCarloChart";
 import ShareModal from "@/components/ShareModal";
 import type { VolatilityStats } from "@/lib/data/volatility";
+import { expandParams } from "@/lib/share-params";
 
 const VEQT_MER = 0.0024; // 0.24%
 const INFLATION_RATE = 0.02; // 2%
@@ -24,6 +25,40 @@ export default function FIRECalculator({ volatilityStats }: FIRECalculatorProps)
   const [expectedReturn, setExpectedReturn] = useState(7);
   const [withdrawalRate, setWithdrawalRate] = useState(4);
   const [shareOpen, setShareOpen] = useState(false);
+
+  // Read URL params on mount — supports Shelter → FIRE handoffs and
+  // share-link landings.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const raw: Record<string, string> = {};
+    new URLSearchParams(window.location.search).forEach((v, k) => {
+      raw[k] = v;
+    });
+    const p = expandParams(raw);
+    const portfolio =
+      typeof p.portfolio === "string" ? Number(p.portfolio) : NaN;
+    if (!isNaN(portfolio) && portfolio >= 0 && portfolio <= 10_000_000) {
+      setPortfolioValue(Math.round(portfolio / 1000) * 1000);
+    }
+    const monthly = typeof p.monthly === "string" ? Number(p.monthly) : NaN;
+    if (!isNaN(monthly) && monthly >= 0 && monthly <= 50_000) {
+      setMonthlyContribution(Math.round(monthly / 50) * 50);
+    }
+    const rate = typeof p.rate === "string" ? Number(p.rate) : NaN;
+    if (!isNaN(rate) && rate >= 1 && rate <= 15) setExpectedReturn(rate);
+    const expenses = typeof p.expenses === "string" ? Number(p.expenses) : NaN;
+    if (!isNaN(expenses) && expenses >= 10_000 && expenses <= 500_000) {
+      setAnnualExpenses(Math.round(expenses / 1000) * 1000);
+    }
+    const wr =
+      typeof p.withdrawalRate === "string" ? Number(p.withdrawalRate) : NaN;
+    if (!isNaN(wr) && wr >= 2 && wr <= 5) setWithdrawalRate(wr);
+    const ca = typeof p.currentAge === "string" ? Number(p.currentAge) : NaN;
+    if (!isNaN(ca) && ca >= 18 && ca <= 70) setCurrentAge(Math.round(ca));
+    const ra =
+      typeof p.retirementAge === "string" ? Number(p.retirementAge) : NaN;
+    if (!isNaN(ra) && ra >= 18 && ra <= 80) setRetirementAge(Math.round(ra));
+  }, []);
 
   // Enhancement toggles — same pattern as DCACalculator/TFSARRSPCalculator.
   // For FIRE these matter the most: the calc is about a future spending

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import InvestCalculator from "./InvestCalculator";
 import DCACalculator from "@/components/calculators/DCACalculator";
@@ -11,6 +11,7 @@ import CalculatorFrame from "./CalculatorFrame";
 import type { HistoricalData } from "@/lib/data/types";
 import type { VolatilityStats } from "@/lib/data/volatility";
 import { inferTab } from "@/lib/share-params";
+import type { Handoff } from "@/lib/calculator-handoffs";
 
 const TABS = [
   {
@@ -68,17 +69,41 @@ function CalculatorTabsInner({ history, volatilityStats }: CalculatorTabsProps) 
     : "historical";
   const [activeTab, setActiveTab] = useState<TabId>(initialTab);
 
+  // Sync activeTab into the URL. We read window.location.search directly
+  // (not searchParams) because useSearchParams doesn't observe
+  // replaceState, so handleHandoff's URL writes would otherwise be
+  // clobbered here. Bail early if the URL already reflects activeTab.
   useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString());
+    if (typeof window === "undefined") return;
+    const current = new URLSearchParams(window.location.search);
+    const currentTab = current.get("tab") || "historical";
+    if (currentTab === activeTab) return;
+
     if (activeTab === "historical") {
-      params.delete("tab");
+      current.delete("tab");
     } else {
-      params.set("tab", activeTab);
+      current.set("tab", activeTab);
     }
-    const qs = params.toString();
+    const qs = current.toString();
     const newUrl = qs ? `/calculators?${qs}` : "/calculators";
     window.history.replaceState(null, "", newUrl);
-  }, [activeTab, searchParams]);
+  }, [activeTab]);
+
+  // Cross-calc handoff handler — writes the handoff's params to the URL
+  // (so the destination calc reads them on mount via expandParams) and
+  // switches the active tab. Each calc unmounts when its tab changes,
+  // so the destination's mount effect picks up the fresh params cleanly.
+  const handleHandoff = useCallback((h: Handoff) => {
+    if (!TABS.some((t) => t.id === h.tab)) return;
+    const sp = new URLSearchParams();
+    for (const [k, v] of Object.entries(h.params)) {
+      sp.set(k, String(v));
+    }
+    if (h.tab !== "historical") sp.set("tab", h.tab);
+    const newUrl = `/calculators?${sp.toString()}`;
+    window.history.replaceState(null, "", newUrl);
+    setActiveTab(h.tab as TabId);
+  }, []);
 
   const activeTabData = TABS.find((t) => t.id === activeTab);
 
@@ -149,17 +174,21 @@ function CalculatorTabsInner({ history, volatilityStats }: CalculatorTabsProps) 
             {activeTab === "historical" && (
               <InvestCalculator
                 history={history}
-                onSelectTab={(id) => {
-                  if (TABS.some((t) => t.id === id)) {
-                    setActiveTab(id as TabId);
-                  }
-                }}
+                onHandoff={handleHandoff}
               />
             )}
-            {activeTab === "dca" && <DCACalculator volatilityStats={volatilityStats} />}
+            {activeTab === "dca" && (
+              <DCACalculator
+                volatilityStats={volatilityStats}
+                onHandoff={handleHandoff}
+              />
+            )}
             {activeTab === "dividends" && <DividendCalculator />}
             {activeTab === "tfsa-rrsp" && (
-              <TFSARRSPCalculator volatilityStats={volatilityStats} />
+              <TFSARRSPCalculator
+                volatilityStats={volatilityStats}
+                onHandoff={handleHandoff}
+              />
             )}
             {activeTab === "fire" && <FIRECalculator volatilityStats={volatilityStats} />}
           </CalculatorFrame>

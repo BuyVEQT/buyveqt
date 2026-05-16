@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { formatDollars } from "@/lib/chart-utils";
 import { CARD } from "@/lib/styles";
 import { useAnimatedNumber } from "./useAnimatedNumber";
@@ -8,19 +8,46 @@ import ContributionGrowthChart from "./ContributionGrowthChart";
 import MonteCarloChart from "./MonteCarloChart";
 import ShareModal from "@/components/ShareModal";
 import type { VolatilityStats } from "@/lib/data/volatility";
+import type { Handoff } from "@/lib/calculator-handoffs";
+import { dcaToShelter } from "@/lib/calculator-handoffs";
+import { expandParams } from "@/lib/share-params";
 
 const VEQT_MER = 0.0024; // 0.24%
 const INFLATION_RATE = 0.02; // 2%
 
 interface DCACalculatorProps {
   volatilityStats: VolatilityStats | null;
+  /** Cross-calc handoff. Renders a "Plan this in TFSA/RRSP" CTA after
+   *  results when supplied. */
+  onHandoff?: (handoff: Handoff) => void;
 }
 
-export default function DCACalculator({ volatilityStats }: DCACalculatorProps) {
+export default function DCACalculator({
+  volatilityStats,
+  onHandoff,
+}: DCACalculatorProps) {
   const [monthly, setMonthly] = useState(500);
   const [years, setYears] = useState(20);
   const [returnRate, setReturnRate] = useState(8);
   const [shareOpen, setShareOpen] = useState(false);
+
+  // Read URL params on mount — supports incoming cross-calc handoffs
+  // (e.g. Lookback's "Use these inputs going forward" → DCA tab) and
+  // share-link landings.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const raw: Record<string, string> = {};
+    new URLSearchParams(window.location.search).forEach((v, k) => {
+      raw[k] = v;
+    });
+    const p = expandParams(raw);
+    const m = typeof p.monthly === "string" ? Number(p.monthly) : NaN;
+    if (!isNaN(m) && m >= 50 && m <= 10000) setMonthly(Math.round(m / 50) * 50);
+    const h = typeof p.horizon === "string" ? Number(p.horizon) : NaN;
+    if (!isNaN(h) && h >= 1 && h <= 40) setYears(Math.round(h));
+    const r = typeof p.rate === "string" ? Number(p.rate) : NaN;
+    if (!isNaN(r) && r >= 1 && r <= 15) setReturnRate(r);
+  }, []);
 
   // Enhancement toggles
   const [showMonteCarlo, setShowMonteCarlo] = useState(false);
@@ -222,8 +249,24 @@ export default function DCACalculator({ volatilityStats }: DCACalculatorProps) {
         </div>
       )}
 
-      {/* Share Results */}
-      <div className="flex justify-end">
+      {/* Next-step handoff + Share — handoff to the Shelter is the
+          natural next question ("…in what account?"). */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        {onHandoff ? (
+          <button
+            type="button"
+            onClick={() =>
+              onHandoff(
+                dcaToShelter({ monthly, horizon: years, rate: returnRate })
+              )
+            }
+            className="text-sm italic underline text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
+          >
+            Plan this inside a TFSA or RRSP &rarr;
+          </button>
+        ) : (
+          <span />
+        )}
         <button
           onClick={() => setShareOpen(true)}
           className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] px-3 py-2 text-sm font-medium text-[var(--color-text-secondary)] hover:bg-[var(--color-base)] transition-colors"

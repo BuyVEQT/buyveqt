@@ -20,18 +20,18 @@ import DataFreshness from "@/components/ui/DataFreshness";
 import DataUnavailable from "@/components/ui/DataUnavailable";
 import CohortFan from "./CohortFan";
 import { computeCohorts, findUserCohort } from "@/lib/calculators";
+import type { Handoff } from "@/lib/calculator-handoffs";
+import { lookbackDcaToDca } from "@/lib/calculator-handoffs";
 
 type Mode = "lump" | "dca";
 
 interface InvestCalculatorProps {
   history: HistoricalData | null;
   /**
-   * Optional handler that lets the calculator switch the parent
-   * CalculatorTabs to a different tab. Used by the DCA-mode link that
-   * sends a user to the forward-looking DCA calculator when they
-   * realize they wanted projection instead of backtest.
+   * Cross-calc handoff. Used by the DCA-mode signpost that carries the
+   * user's monthly amount + duration into the forward-looking DCA tab.
    */
-  onSelectTab?: (id: string) => void;
+  onHandoff?: (handoff: Handoff) => void;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────
@@ -281,7 +281,7 @@ function ChartTooltip({
 
 // ─── Main Component ───────────────────────────────────────────
 
-export default function InvestCalculator({ history, onSelectTab }: InvestCalculatorProps) {
+export default function InvestCalculator({ history, onHandoff }: InvestCalculatorProps) {
   // Derive date constraints from data
   const earliestDate = history?.data[0]?.date ?? "2019-01-29";
   const latestDate = history?.data[history.data.length - 1]?.date ?? "";
@@ -456,8 +456,9 @@ export default function InvestCalculator({ history, onSelectTab }: InvestCalcula
 
       {/* Backtest-vs-projection signpost — only when in DCA mode, where
           the distinction from the forward-looking DCA tab is easiest to
-          confuse. */}
-      {isDCA && onSelectTab && (
+          confuse. Carries the user's amount + duration into the DCA tab
+          so they don't lose their numbers on the jump. */}
+      {isDCA && onHandoff && (
         <p
           className="text-xs italic"
           style={{ color: "var(--color-text-muted)" }}
@@ -465,7 +466,14 @@ export default function InvestCalculator({ history, onSelectTab }: InvestCalcula
           Backtest against real VEQT history.{" "}
           <button
             type="button"
-            onClick={() => onSelectTab("dca")}
+            onClick={() => {
+              const dur = result && "contributions" in result
+                ? (result as DCAResult).contributions
+                : 240; // 20 years default if result not yet computed
+              onHandoff(
+                lookbackDcaToDca({ amount, durationMonths: dur })
+              );
+            }}
             className="underline hover:text-[var(--color-text-primary)] transition-colors"
           >
             Projecting forward instead? Use the DCA tab &rarr;

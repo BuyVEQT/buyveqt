@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { formatDollars } from "@/lib/chart-utils";
 import { CARD, STAT_CARD } from "@/lib/styles";
 import { useAnimatedNumber } from "./useAnimatedNumber";
@@ -9,15 +9,24 @@ import MonteCarloChart from "./MonteCarloChart";
 import ShareModal from "@/components/ShareModal";
 import { computeTFSARoom } from "@/data/tfsa-limits";
 import type { VolatilityStats } from "@/lib/data/volatility";
+import type { Handoff } from "@/lib/calculator-handoffs";
+import { shelterToFire } from "@/lib/calculator-handoffs";
+import { expandParams } from "@/lib/share-params";
 
 const VEQT_MER = 0.0024;
 const INFLATION_RATE = 0.02;
 
 interface TFSARRSPCalculatorProps {
   volatilityStats: VolatilityStats | null;
+  /** Cross-calc handoff. Renders a "See what this means for FIRE" CTA
+   *  after results when supplied. */
+  onHandoff?: (handoff: Handoff) => void;
 }
 
-export default function TFSARRSPCalculator({ volatilityStats }: TFSARRSPCalculatorProps) {
+export default function TFSARRSPCalculator({
+  volatilityStats,
+  onHandoff,
+}: TFSARRSPCalculatorProps) {
   const [accountType, setAccountType] = useState<"TFSA" | "RRSP">("TFSA");
 
   // Shared inputs
@@ -26,6 +35,29 @@ export default function TFSARRSPCalculator({ volatilityStats }: TFSARRSPCalculat
   const [years, setYears] = useState(25);
   const [returnRate, setReturnRate] = useState(8);
   const [shareOpen, setShareOpen] = useState(false);
+
+  // Read URL params on mount — supports DCA → Shelter handoffs and
+  // share-link landings.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const raw: Record<string, string> = {};
+    new URLSearchParams(window.location.search).forEach((v, k) => {
+      raw[k] = v;
+    });
+    const p = expandParams(raw);
+    if (typeof p.account === "string") {
+      const acct = p.account.toUpperCase();
+      if (acct === "TFSA" || acct === "RRSP") setAccountType(acct);
+    }
+    const sb = typeof p.starting === "string" ? Number(p.starting) : NaN;
+    if (!isNaN(sb) && sb >= 0 && sb <= 500000) setStartingBalance(sb);
+    const an = typeof p.annual === "string" ? Number(p.annual) : NaN;
+    if (!isNaN(an) && an >= 0 && an <= 50000) setAnnualContribution(an);
+    const h = typeof p.horizon === "string" ? Number(p.horizon) : NaN;
+    if (!isNaN(h) && h >= 1 && h <= 40) setYears(Math.round(h));
+    const r = typeof p.rate === "string" ? Number(p.rate) : NaN;
+    if (!isNaN(r) && r >= 1 && r <= 15) setReturnRate(r);
+  }, []);
 
   // Enhancement toggles
   const [showMonteCarlo, setShowMonteCarlo] = useState(false);
@@ -558,8 +590,28 @@ export default function TFSARRSPCalculator({ volatilityStats }: TFSARRSPCalculat
         </div>
       )}
 
-      {/* Share Results */}
-      <div className="flex justify-end">
+      {/* Next-step handoff + Share — Shelter → FIRE is the natural arc
+          ("…and what does that buy me at retirement?"). */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        {onHandoff ? (
+          <button
+            type="button"
+            onClick={() =>
+              onHandoff(
+                shelterToFire({
+                  starting: startingBalance,
+                  annual: annualContribution,
+                  rate: returnRate,
+                })
+              )
+            }
+            className="text-sm italic underline text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
+          >
+            See what this means for FIRE &rarr;
+          </button>
+        ) : (
+          <span />
+        )}
         <button
           onClick={() => setShareOpen(true)}
           className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] px-3 py-2 text-sm font-medium text-[var(--color-text-secondary)] hover:bg-[var(--color-base)] transition-colors"
