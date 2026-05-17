@@ -5,6 +5,7 @@ const yf = new YahooFinance({ suppressNotices: ['ripHistorical', 'yahooSurvey'] 
 
 const QUOTE_TIMEOUT_MS = 8000;
 const HISTORY_TIMEOUT_MS = 10000;
+const SUMMARY_TIMEOUT_MS = 10000;
 
 /**
  * Race a promise against a timeout. The timeout rejects with a descriptive
@@ -119,6 +120,78 @@ export async function getHistoryYahoo(
     };
   } catch (error) {
     console.warn(`[Yahoo] History failed for ${yahooSymbol}:`, error);
+    return null;
+  }
+}
+
+// ─── Fund sector composition ──────────────────────────────────
+
+/**
+ * Sector weight payload from Yahoo's `topHoldings.sectorWeightings`.
+ * Yahoo returns this as an array of single-key objects keyed by a
+ * Morningstar-style sector slug (e.g. `realestate`, `consumer_cyclical`).
+ * We normalize to a flat map of canonical display names → fractional
+ * weights (0..1).
+ */
+const YAHOO_SECTOR_DISPLAY: Record<string, string> = {
+  realestate: 'Real Estate',
+  consumer_cyclical: 'Consumer Discretionary',
+  basic_materials: 'Materials',
+  consumer_defensive: 'Consumer Staples',
+  technology: 'Technology',
+  communication_services: 'Communication Services',
+  financial_services: 'Financials',
+  utilities: 'Utilities',
+  industrials: 'Industrials',
+  energy: 'Energy',
+  healthcare: 'Health Care',
+};
+
+export interface SectorWeights {
+  /** Display name → fractional weight (0..1). */
+  weights: Record<string, number>;
+  source: 'yahoo-finance';
+  fetchedAt: string;
+}
+
+/**
+ * Fetch sector weights for an ETF via Yahoo's quoteSummary. Returns null
+ * on any failure — caller decides whether to fall back to US-equivalent
+ * tickers or hardcoded data.
+ */
+export async function getSectorWeightsYahoo(
+  yahooSymbol: string
+): Promise<SectorWeights | null> {
+  try {
+    const result = await withTimeout(
+      yf.quoteSummary(yahooSymbol, { modules: ['topHoldings'] }),
+      SUMMARY_TIMEOUT_MS,
+      `Yahoo quoteSummary for ${yahooSymbol}`
+    );
+
+    const raw = result?.topHoldings?.sectorWeightings;
+    if (!raw || !Array.isArray(raw) || raw.length === 0) return null;
+
+    const weights: Record<string, number> = {};
+    for (const entry of raw) {
+      // Each entry is a single-key object like { realestate: 0.05 }.
+      const [key, value] = Object.entries(entry as Record<string, unknown>)[0] ?? [];
+      if (typeof key !== 'string') continue;
+      const numeric = typeof value === 'number' ? value : Number(value);
+      if (!Number.isFinite(numeric) || numeric <= 0) continue;
+      const display = YAHOO_SECTOR_DISPLAY[key] ?? key;
+      weights[display] = (weights[display] ?? 0) + numeric;
+    }
+
+    if (Object.keys(weights).length === 0) return null;
+
+    return {
+      weights,
+      source: 'yahoo-finance',
+      fetchedAt: new Date().toISOString(),
+    };
+  } catch (error) {
+    console.warn(`[Yahoo] quoteSummary failed for ${yahooSymbol}:`, error);
     return null;
   }
 }

@@ -3,9 +3,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRegions, type Region } from "@/lib/useRegions";
 import {
+  useSleeveComposition,
+  useSectorReturns,
+} from "@/lib/useSleeveAttribution";
+import {
   REGION_DRILL,
   type RegionDrillReference,
 } from "@/data/region-drilldown";
+import type { SleeveCompositionResponse } from "@/app/api/sleeve-composition/route";
+import type { SectorReturnsResponse } from "@/app/api/sector-returns/route";
 
 const ORDINAL = ["№ 01", "№ 02", "№ 03", "№ 04"];
 // Bars never grow past 45% so the value labels in the empty half don't
@@ -15,6 +21,97 @@ const REGION_ORDER = ["VUN", "VCN", "VIU", "VEE"];
 const DRILL_BY_TICKER = new Map<string, RegionDrillReference>(
   REGION_DRILL.map((d) => [d.ticker, d])
 );
+
+/** Pick the sector-returns map that matches a sleeve's drill scope. */
+function returnsForSleeve(
+  ticker: string,
+  returns: SectorReturnsResponse | null
+): Record<string, number> {
+  if (!returns) return {};
+  switch (ticker) {
+    case "VUN":
+      return returns.usSectors;
+    case "VCN":
+      return returns.caSectors;
+    case "VIU":
+      return returns.intlCountries;
+    case "VEE":
+      return returns.emCountries;
+    default:
+      return {};
+  }
+}
+
+/** Tolerant name match — "Tech" ↔ "Technology", "U.K." ↔ "United Kingdom". */
+function normalizeRowName(s: string): string {
+  return s.toLowerCase().replace(/\W+/g, "");
+}
+
+/** Find today's return for a drill row by matching against the live map. */
+function lookupReturn(
+  rowName: string,
+  liveReturns: Record<string, number>
+): number | null {
+  const target = normalizeRowName(rowName);
+  for (const [key, value] of Object.entries(liveReturns)) {
+    const k = normalizeRowName(key);
+    if (k === target || k.startsWith(target) || target.startsWith(k)) {
+      return value;
+    }
+  }
+  return null;
+}
+
+interface ResolvedRow {
+  name: string;
+  weight: number;
+  pct: number;
+  isLive: boolean;
+}
+
+/**
+ * Resolve the drill rows we'll render for a sleeve, preferring live data
+ * but holding the hardcoded fallback rows when the API is silent. The
+ * `isLive` flag drives whether the row gets a "live" or "reference"
+ * affordance in the UI.
+ */
+function buildDrillRows(
+  ticker: string,
+  composition: SleeveCompositionResponse | null,
+  returns: SectorReturnsResponse | null
+): { rows: ResolvedRow[]; anyLive: boolean } {
+  const liveReturns = returnsForSleeve(ticker, returns);
+  const sleeve = composition?.sleeves[ticker];
+  const fallback = DRILL_BY_TICKER.get(ticker);
+
+  // When we have live composition, use it (weights are integer % already).
+  // Otherwise the hardcoded drill rows are our weights source.
+  const weightSource =
+    sleeve && sleeve.items.length > 0
+      ? sleeve.items
+      : (fallback?.rows ?? []).map((r) => ({ name: r.name, weight: r.weight }));
+
+  const rows: ResolvedRow[] = weightSource.map((item) => {
+    const live = lookupReturn(item.name, liveReturns);
+    if (live !== null) {
+      return { name: item.name, weight: item.weight, pct: live, isLive: true };
+    }
+    // Fall back to the hardcoded illustrative % when the live feed misses
+    // (e.g. a sector we don't have a proxy ETF for).
+    const fallbackRow = fallback?.rows.find(
+      (r) => normalizeRowName(r.name) === normalizeRowName(item.name)
+    );
+    return {
+      name: item.name,
+      weight: item.weight,
+      pct: fallbackRow?.pct ?? 0,
+      isLive: false,
+    };
+  });
+
+  const anyLive = rows.some((r) => r.isLive);
+  return { rows, anyLive };
+}
 
 function pad2(n: number): string {
   return n.toString().padStart(2, "0");
@@ -49,6 +146,8 @@ interface RegionCardProps {
   isLeader: boolean;
   contribScale: number; // max |contribution| across the 4 regions
   drill: RegionDrillReference | null;
+  drillRows: ResolvedRow[];
+  drillAllLive: boolean;
   isMobile: boolean;
 }
 
@@ -86,6 +185,8 @@ function RegionCard({
   isLeader,
   contribScale,
   drill,
+  drillRows,
+  drillAllLive,
   isMobile,
 }: RegionCardProps) {
   // Default-open on every viewport. The accordion behavior is opt-in for users
@@ -108,11 +209,10 @@ function RegionCard({
       : 0;
 
   // Per-row scale: max |pct| within this region's drill rows.
-  const rowAbs = (drill?.rows ?? []).map((r) => Math.abs(r.pct));
+  const rowAbs = drillRows.map((r) => Math.abs(r.pct));
   const rowMax = rowAbs.length > 0 ? Math.max(...rowAbs, 0.01) : 1;
-  const drillLeaderIdx = drill
-    ? leaderIndex(drill.rows.map((r) => r.pct))
-    : -1;
+  const drillLeaderIdx =
+    drillRows.length > 0 ? leaderIndex(drillRows.map((r) => r.pct)) : -1;
 
   return (
     <article
@@ -183,9 +283,12 @@ function RegionCard({
       >
         <h6 className="bs-region__drill-head">
           <span>{drill?.drillLabel ?? "Drilldown"}</span>
-          <em>{drill?.drillNote ?? ""}</em>
+          <em>
+            {drill?.drillNote ?? ""}
+            {drillAllLive ? "" : drillRows.length > 0 ? " · reference" : ""}
+          </em>
         </h6>
-        {(drill?.rows ?? []).map((row, idx) => {
+        {drillRows.map((row, idx) => {
           const w =
             (Math.abs(row.pct) / rowMax) * (MAX_BAR_PCT * 100);
           return (
@@ -210,6 +313,8 @@ function RegionCard({
 
 export default function RegionDrilldown() {
   const { payload, loading } = useRegions();
+  const { payload: composition } = useSleeveComposition();
+  const { payload: sectorReturns } = useSectorReturns();
   const regions: Region[] = payload?.regions ?? [];
 
   // Single matchMedia listener shared across all four cards.
@@ -237,6 +342,20 @@ export default function RegionDrilldown() {
       contribScale: contribs.reduce((m, x) => (Math.abs(x) > m ? Math.abs(x) : m), 0.01),
     };
   }, [regions]);
+
+  // Per-sleeve drill rows — composition (weights) joined to returns.
+  const drillsByTicker = useMemo(() => {
+    const out = new Map<string, { rows: ResolvedRow[]; anyLive: boolean }>();
+    for (const r of ordered) {
+      out.set(r.ticker, buildDrillRows(r.ticker, composition, sectorReturns));
+    }
+    return out;
+  }, [ordered, composition, sectorReturns]);
+
+  const allSleevesLive = ordered.every(
+    (r) => drillsByTicker.get(r.ticker)?.anyLive ?? false
+  );
+  const sectorReturnsFetchedAt = sectorReturns?.fetchedAt ?? null;
 
   if (loading || regions.length === 0) {
     return (
@@ -284,24 +403,49 @@ export default function RegionDrilldown() {
       </header>
 
       <div className="bs-regions__grid">
-        {ordered.map((region, i) => (
-          <RegionCard
-            key={region.ticker}
-            region={region}
-            ordinal={i + 1}
-            isLeader={i === leaderIdx}
-            contribScale={contribScale}
-            drill={DRILL_BY_TICKER.get(region.ticker) ?? null}
-            isMobile={isMobile}
-          />
-        ))}
+        {ordered.map((region, i) => {
+          const drillBundle = drillsByTicker.get(region.ticker) ?? {
+            rows: [] as ResolvedRow[],
+            anyLive: false,
+          };
+          return (
+            <RegionCard
+              key={region.ticker}
+              region={region}
+              ordinal={i + 1}
+              isLeader={i === leaderIdx}
+              contribScale={contribScale}
+              drill={DRILL_BY_TICKER.get(region.ticker) ?? null}
+              drillRows={drillBundle.rows}
+              drillAllLive={drillBundle.anyLive}
+              isMobile={isMobile}
+            />
+          );
+        })}
       </div>
 
       <p className="bs-regions__footnote">
-        Region-level returns and weights are live; sector and country rows
-        below each card are reference allocations from the most recent
-        Vanguard quarterly fact sheet, with daily moves illustrated for
-        scale. Real-time sector attribution will land in a follow-up.
+        Region-level returns and weights are live. Sector and country
+        rows use sector/country index ETFs as proxies for today&rsquo;s
+        move — close to each sleeve&rsquo;s actual basket but not
+        identical. Rows tagged &ldquo;reference&rdquo; are quarterly
+        fact-sheet values where a live proxy isn&rsquo;t available.
+        {sectorReturnsFetchedAt && (
+          <>
+            {" "}
+            <span style={{ opacity: 0.7 }}>
+              Updated{" "}
+              {new Date(sectorReturnsFetchedAt).toLocaleTimeString("en-CA", {
+                hour: "numeric",
+                minute: "2-digit",
+              })}
+              {" "}ET.
+            </span>
+          </>
+        )}
+        {!allSleevesLive && ordered.length > 0 && (
+          <span style={{ opacity: 0.7 }}> Some rows show reference data.</span>
+        )}
       </p>
     </section>
   );

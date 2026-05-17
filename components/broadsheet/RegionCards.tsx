@@ -2,12 +2,38 @@
 
 import Link from "next/link";
 import type { Region } from "@/lib/useRegions";
-import { getComposition } from "@/data/sleeve-composition";
+import { useSleeveComposition } from "@/lib/useSleeveAttribution";
+import {
+  getComposition,
+  type SleeveComposition,
+} from "@/data/sleeve-composition";
 import RegionSparkline from "@/components/broadsheet/RegionSparkline";
 
 interface RegionCardsProps {
   regions: readonly Region[];
   loading: boolean;
+}
+
+/**
+ * Live composition takes precedence over the hardcoded fact-sheet table.
+ * When the API hasn't responded yet (initial paint) or the sleeve fell
+ * back internally, we use the hardcoded values. Either way the consumer
+ * gets a SleeveComposition-shaped object so the render below doesn't
+ * need to branch.
+ */
+function resolveComposition(
+  ticker: string,
+  liveItems: { name: string; weight: number }[] | undefined,
+  liveOther: number | undefined
+): SleeveComposition | null {
+  const cached = getComposition(ticker);
+  if (!liveItems || liveItems.length === 0) return cached;
+  if (!cached) return null;
+  return {
+    ...cached,
+    items: liveItems,
+    other: liveOther ?? 0,
+  };
 }
 
 function formatPct(val: number | null): string {
@@ -42,6 +68,8 @@ function findLeaderTicker(regions: readonly Region[]): string | null {
 }
 
 export default function RegionCards({ regions, loading }: RegionCardsProps) {
+  const { payload: liveComposition } = useSleeveComposition();
+
   if (loading && regions.length === 0) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-8 sm:gap-y-10">
@@ -72,7 +100,12 @@ export default function RegionCards({ regions, loading }: RegionCardsProps) {
       {regions.map((r, idx) => {
         const isPositive = r.changePercent !== null && r.changePercent >= 0;
         const color = isPositive ? "var(--print-green)" : "var(--print-red)";
-        const composition = getComposition(r.ticker);
+        const liveSleeve = liveComposition?.sleeves[r.ticker];
+        const composition = resolveComposition(
+          r.ticker,
+          liveSleeve?.items,
+          liveSleeve?.other
+        );
         const isLeader = r.ticker === leaderTicker;
         const hasHistory = r.history && r.history.length >= 2;
 
