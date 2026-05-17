@@ -975,12 +975,40 @@ body::after {
 }
 [data-broadsheet] .bs-region__drow {
   display: grid;
-  grid-template-columns: minmax(0, 84px) 1fr;
+  grid-template-columns: minmax(0, 84px) 1fr minmax(54px, auto);
   align-items: center;
   gap: 10px;
   padding: 4px 0;
   font-size: 12px;
   line-height: 1.2;
+}
+/* Sector-to-sleeve contribution in percentage points. The third column;
+   smaller and dimmer than the bar's pct number — the reader can do the
+   math themselves (weight × return) but this saves the friction. */
+[data-broadsheet] .bs-region__dcontrib {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+  text-align: right;
+  white-space: nowrap;
+}
+[data-broadsheet] .bs-region__dcontrib.is-up {
+  color: color-mix(in oklab, var(--print-green) 80%, var(--ink) 20%);
+}
+[data-broadsheet] .bs-region__dcontrib.is-dn {
+  color: color-mix(in oklab, var(--print-red) 80%, var(--ink) 20%);
+}
+/* Tiny column-header row above the drill list. Same grid as data rows
+   so the labels align with the columns underneath. */
+[data-broadsheet] .bs-region__drow.bs-region__drow--head {
+  padding: 2px 0 6px;
+  border-bottom: 1px dashed color-mix(in oklab, var(--ink) 12%, transparent);
+  margin-bottom: 2px;
+  font-family: var(--font-sans);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 [data-broadsheet] .bs-region__row-name {
   font-family: var(--font-serif);
