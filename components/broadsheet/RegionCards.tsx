@@ -229,10 +229,19 @@ export default function RegionCards({ regions, loading }: RegionCardsProps) {
             {composition && (
               <div className="mt-auto">
                 <p
-                  className="bs-caption italic text-[11.5px] mb-2.5"
+                  className="bs-caption italic text-[11.5px] mb-2.5 flex items-baseline justify-between gap-2"
                   style={{ color: "var(--ink-soft)" }}
                 >
-                  {composition.breakdownLabel.toLowerCase()}
+                  <span>{composition.breakdownLabel.toLowerCase()}</span>
+                  {liveSleeve?.asOfDate && (
+                    <span
+                      className="text-[10px] not-italic"
+                      style={{ opacity: 0.75 }}
+                      title={`Weights as of ${liveSleeve.asOfDate} (Vanguard factsheet)`}
+                    >
+                      as of {liveSleeve.asOfDate}
+                    </span>
+                  )}
                 </p>
                 <ul className="space-y-[5px]">
                   {composition.items.map((item, itemIdx) => {

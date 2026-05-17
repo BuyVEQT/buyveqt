@@ -148,6 +148,8 @@ interface RegionCardProps {
   drill: RegionDrillReference | null;
   drillRows: ResolvedRow[];
   drillAllLive: boolean;
+  /** "March 31, 2026" when composition came from the Vanguard factsheet. */
+  weightsAsOf: string | null;
   isMobile: boolean;
 }
 
@@ -187,6 +189,7 @@ function RegionCard({
   drill,
   drillRows,
   drillAllLive,
+  weightsAsOf,
   isMobile,
 }: RegionCardProps) {
   // Default-open on every viewport. The accordion behavior is opt-in for users
@@ -285,6 +288,7 @@ function RegionCard({
           <span>{drill?.drillLabel ?? "Drilldown"}</span>
           <em>
             {drill?.drillNote ?? ""}
+            {weightsAsOf ? ` · weights ${weightsAsOf}` : ""}
             {drillAllLive ? "" : drillRows.length > 0 ? " · reference" : ""}
           </em>
         </h6>
@@ -440,6 +444,8 @@ export default function RegionDrilldown() {
             rows: [] as ResolvedRow[],
             anyLive: false,
           };
+          const weightsAsOf =
+            composition?.sleeves[region.ticker]?.asOfDate ?? null;
           return (
             <RegionCard
               key={region.ticker}
@@ -450,6 +456,7 @@ export default function RegionDrilldown() {
               drill={DRILL_BY_TICKER.get(region.ticker) ?? null}
               drillRows={drillBundle.rows}
               drillAllLive={drillBundle.anyLive}
+              weightsAsOf={weightsAsOf}
               isMobile={isMobile}
             />
           );
