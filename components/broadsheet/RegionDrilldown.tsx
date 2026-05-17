@@ -288,9 +288,35 @@ function RegionCard({
             {drillAllLive ? "" : drillRows.length > 0 ? " · reference" : ""}
           </em>
         </h6>
+        {drillRows.length > 0 && (
+          <div className="bs-region__drow bs-region__drow--head" aria-hidden>
+            <span className="bs-region__row-name">
+              <span style={{ opacity: 0.55 }}>Wt · today</span>
+            </span>
+            <span />
+            <span
+              className="bs-region__dcontrib"
+              style={{ opacity: 0.55 }}
+            >
+              To sleeve
+            </span>
+          </div>
+        )}
         {drillRows.map((row, idx) => {
           const w =
             (Math.abs(row.pct) / rowMax) * (MAX_BAR_PCT * 100);
+          // Contribution to this sleeve's daily move (in pp). `weight`
+          // is already an integer %; sector return is in %, so the
+          // weighted contribution is (weight/100 × pct), which yields
+          // pp. e.g. 31% × −1.81% = −0.56pp.
+          const contribution = (row.weight / 100) * row.pct;
+          const contribStr = fmtPp(contribution);
+          const contribClass =
+            Math.abs(contribution) < 0.005
+              ? ""
+              : contribution >= 0
+                ? "is-up"
+                : "is-dn";
           return (
             <div className="bs-region__drow" key={`${row.name}-${idx}`}>
               <span className="bs-region__row-name">
@@ -303,6 +329,12 @@ function RegionCard({
                 isLead={idx === drillLeaderIdx}
                 width={w}
               />
+              <span
+                className={`bs-region__dcontrib ${contribClass}`}
+                title={`${row.weight}% × ${fmtPct(row.pct)} = ${contribStr} to ${region.label ?? region.region}`}
+              >
+                {contribStr}
+              </span>
             </div>
           );
         })}
