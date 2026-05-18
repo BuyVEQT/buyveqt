@@ -123,17 +123,26 @@ export default function DCACalculator({
       </p>
 
       {/* Inputs */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div>
-          <label className="block text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider mb-1.5">
-            Monthly Contribution
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 items-end mb-6">
+        <div data-calc-hero-input>
+          <label className="calc-section-label">
+            Monthly contribution
           </label>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[var(--color-text-muted)]">
+          <div className="relative flex items-baseline gap-2">
+            <span
+              style={{
+                fontFamily: "var(--font-display)",
+                fontWeight: 500,
+                fontSize: "clamp(1.5rem, 3vw, 2rem)",
+                color: "var(--ink-mute)",
+                lineHeight: 1,
+              }}
+            >
               $
             </span>
             <input
               type="number"
+              aria-label="Monthly contribution amount"
               value={monthly}
               onChange={(e) => setMonthly(Number(e.target.value) || 0)}
               onBlur={() => {
@@ -143,7 +152,6 @@ export default function DCACalculator({
               min={50}
               max={10000}
               step={50}
-              className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] py-2 pl-7 pr-3 text-sm font-medium text-[var(--color-text-primary)] focus:border-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand)]"
             />
           </div>
         </div>

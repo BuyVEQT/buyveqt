@@ -8,6 +8,8 @@ import type { RiskMetrics } from "@/lib/risk-metrics";
 import DataFreshness from "@/components/ui/DataFreshness";
 import StaleBanner from "@/components/ui/StaleBanner";
 import TiltBar from "@/components/compare/TiltBar";
+import Card from "@/components/ui/Card";
+import SectionLabel from "@/components/ui/SectionLabel";
 
 interface FundQuote {
   price: number | null;
@@ -199,32 +201,39 @@ export default function StatsTable({ selected }: StatsTableProps) {
   }
 
   return (
-    <section
-      className="border-t-2 border-[var(--ink)] pt-5"
-      aria-labelledby="stats-heading"
-    >
-      <header className="mb-4">
-        <p id="stats-heading" className="bs-stamp mb-1">
-          The Ledger
-        </p>
-        <h2
-          className="bs-display text-[1.25rem] sm:text-[1.5rem] leading-tight"
-          style={{ color: "var(--ink)" }}
-        >
-          <em>Side-by-side</em> on the metrics that decide it
-        </h2>
-      </header>
+    <Card>
+      <SectionLabel>The ledger</SectionLabel>
+      <div
+        className="ed-display-italic"
+        style={{
+          fontSize: "clamp(1.5rem, 2.5vw, 1.875rem)",
+          lineHeight: 1.1,
+          color: "var(--ink)",
+          marginTop: 6,
+          marginBottom: 18,
+        }}
+      >
+        Side-by-side on the metrics.
+      </div>
 
-      <div className="overflow-x-auto -mx-2 sm:mx-0">
-        <table className="w-full text-sm border-collapse min-w-[420px]">
+      <div style={{ overflowX: "auto", margin: "0 -4px" }}>
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            fontFamily: "var(--font-sans)",
+            minWidth: 420,
+          }}
+        >
           <thead>
             <tr>
               <th
-                className="bs-label text-left py-3 px-3 sm:px-4 text-[10.5px]"
+                className="ed-label"
                 style={{
-                  color: "var(--ink-soft)",
-                  borderBottom: "2px solid var(--ink)",
-                  letterSpacing: "0.14em",
+                  textAlign: "left",
+                  padding: "12px 14px",
+                  borderBottom: "1px solid var(--rule-soft)",
+                  color: "var(--ink-mute)",
                 }}
               >
                 Metric
@@ -234,20 +243,34 @@ export default function StatsTable({ selected }: StatsTableProps) {
                 return (
                   <th
                     key={t}
-                    className="text-left py-3 px-3 sm:px-4 align-bottom"
-                    style={{ borderBottom: "2px solid var(--ink)" }}
+                    style={{
+                      textAlign: "left",
+                      padding: "12px 14px",
+                      verticalAlign: "bottom",
+                      borderBottom: "1px solid var(--rule-soft)",
+                    }}
                   >
                     <span
-                      className="bs-display block text-[15px] sm:text-base leading-none"
+                      className="ed-display"
                       style={{
+                        display: "block",
+                        fontSize: 16,
+                        lineHeight: 1,
                         color: isVeqt ? "var(--stamp)" : "var(--ink)",
+                        letterSpacing: "-0.012em",
                       }}
                     >
                       {FUNDS[t]?.shortName ?? t}
                     </span>
                     <span
-                      className="bs-caption italic block mt-1 text-[10.5px]"
-                      style={{ color: "var(--ink-soft)" }}
+                      style={{
+                        display: "block",
+                        marginTop: 4,
+                        fontFamily: "var(--font-serif)",
+                        fontStyle: "italic",
+                        fontSize: 11,
+                        color: "var(--ink-mute)",
+                      }}
                     >
                       {isVeqt ? "house" : FUNDS[t]?.provider ?? ""}
                     </span>
@@ -263,12 +286,17 @@ export default function StatsTable({ selected }: StatsTableProps) {
                 <tr
                   key={row.label}
                   style={{
-                    borderBottom: "1px solid var(--color-border)",
+                    borderBottom: "1px solid var(--rule-soft)",
                   }}
                 >
                   <td
-                    className="bs-caption italic py-3 px-3 sm:px-4 text-[12.5px]"
-                    style={{ color: "var(--ink-soft)" }}
+                    style={{
+                      padding: "14px 14px",
+                      fontFamily: "var(--font-serif)",
+                      fontStyle: "italic",
+                      fontSize: 13,
+                      color: "var(--ink-soft)",
+                    }}
                   >
                     {row.label}
                   </td>
@@ -286,27 +314,42 @@ export default function StatsTable({ selected }: StatsTableProps) {
                     return (
                       <td
                         key={t}
-                        className="bs-numerals py-3 px-3 sm:px-4 tabular-nums text-[13.5px] sm:text-[14px]"
+                        className="ed-numerals"
                         style={{
+                          padding: "14px 14px",
+                          fontFamily: "var(--font-sans)",
+                          fontSize: 14,
+                          fontWeight: 600,
                           color: isBest ? "var(--stamp)" : "var(--ink)",
-                          backgroundColor: isVeqt
+                          background: isVeqt
                             ? "color-mix(in oklab, var(--stamp) 4%, transparent)"
                             : undefined,
                         }}
                       >
                         {skeletalRow ? (
-                          <div className="skeleton h-4 w-14" />
+                          <div className="skeleton" style={{ height: 16, width: 56 }} />
                         ) : row.render ? (
                           row.render(t, quotes[t] ?? null)
                         ) : (
                           <span
                             style={{
-                              borderBottom: isBest
-                                ? "2px solid var(--stamp)"
-                                : undefined,
-                              paddingBottom: isBest ? "1px" : undefined,
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 6,
                             }}
                           >
+                            {isBest && (
+                              <span
+                                aria-hidden
+                                style={{
+                                  width: 7,
+                                  height: 7,
+                                  borderRadius: "50%",
+                                  background: "var(--green)",
+                                  display: "inline-block",
+                                }}
+                              />
+                            )}
                             {value}
                           </span>
                         )}
@@ -320,7 +363,16 @@ export default function StatsTable({ selected }: StatsTableProps) {
         </table>
       </div>
 
-      <div className="mt-4 space-y-1">
+      <div
+        style={{
+          marginTop: 18,
+          paddingTop: 14,
+          borderTop: "1px solid var(--rule-soft)",
+          display: "flex",
+          flexDirection: "column",
+          gap: 6,
+        }}
+      >
         {!loading && lastUpdated ? (
           <DataFreshness source={displaySource} fetchedAt={oldestFetchedAt} />
         ) : (
@@ -332,8 +384,13 @@ export default function StatsTable({ selected }: StatsTableProps) {
           </p>
         )}
         <p
-          className="bs-caption italic text-[11px]"
-          style={{ color: "var(--ink-soft)" }}
+          style={{
+            fontFamily: "var(--font-serif)",
+            fontStyle: "italic",
+            fontSize: 11,
+            color: "var(--ink-mute)",
+            margin: 0,
+          }}
         >
           Fund data verified{" "}
           {new Date(FUND_DATA_LAST_UPDATED + "T00:00:00").toLocaleDateString(
@@ -343,20 +400,25 @@ export default function StatsTable({ selected }: StatsTableProps) {
           . Sources: Vanguard Canada, BlackRock Canada, BMO ETF Centre.
         </p>
         <p
-          className="bs-caption italic text-[11px]"
-          style={{ color: "var(--ink-soft)" }}
+          style={{
+            fontFamily: "var(--font-serif)",
+            fontStyle: "italic",
+            fontSize: 11,
+            color: "var(--ink-mute)",
+            margin: 0,
+          }}
         >
-          Vermilion underscore marks the leader on each row. Drawdown and
-          recovery are measured over each fund&apos;s full available
-          history — younger funds have lived through fewer storms.
+          A green dot marks the leader on each row. Drawdown and recovery
+          are measured over each fund&apos;s full available history —
+          younger funds have lived through fewer storms.
         </p>
       </div>
 
       {hasCachedFund && oldestFetchedAt && (
-        <div className="mt-3">
+        <div style={{ marginTop: 12 }}>
           <StaleBanner fetchedAt={oldestFetchedAt} />
         </div>
       )}
-    </section>
+    </Card>
   );
 }

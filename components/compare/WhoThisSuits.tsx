@@ -1,79 +1,113 @@
 "use client";
 
 import { FUNDS } from "@/data/funds";
+import Card from "@/components/ui/Card";
+import SectionLabel from "@/components/ui/SectionLabel";
 
 interface WhoThisSuitsProps {
   selected: string[];
 }
 
 /**
- * "The Suitability Cards" — re-styled as a numbered Letters-list, the same
- * vocabulary as the home Letters and Community feed. Each fund gets its
- * dispatch number, a display-italic name, the provider as italic caption,
- * and the curated "who this suits" body in the broadsheet body face.
+ * Suitability card — Round 4 D2 version. One numbered row per selected
+ * fund: ordinal number (vermilion if VEQT, ink otherwise), Fraunces
+ * ticker + name, Newsreader-italic issuer/holdings/distributions, body
+ * paragraph from `fund.whoThisSuits`.
  */
 export default function WhoThisSuits({ selected }: WhoThisSuitsProps) {
   return (
-    <section
-      className="border-t-2 border-[var(--ink)] pt-5"
-      aria-labelledby="suits-heading"
-    >
-      <header className="mb-4">
-        <p id="suits-heading" className="bs-stamp mb-1">
-          The Suitability
-        </p>
-        <h2
-          className="bs-display text-[1.25rem] sm:text-[1.5rem] leading-tight"
-          style={{ color: "var(--ink)" }}
-        >
-          <em>Who each fund</em> is for
-        </h2>
-      </header>
+    <Card>
+      <SectionLabel>The suitability</SectionLabel>
+      <div
+        className="ed-display-italic"
+        style={{
+          fontSize: "clamp(1.5rem, 2.5vw, 1.875rem)",
+          lineHeight: 1.1,
+          color: "var(--ink)",
+          marginTop: 6,
+          marginBottom: 22,
+        }}
+      >
+        Who each fund is for.
+      </div>
 
-      <ol className="space-y-0">
+      <ol
+        style={{
+          listStyle: "none",
+          margin: 0,
+          padding: 0,
+          display: "flex",
+          flexDirection: "column",
+          gap: 0,
+        }}
+      >
         {selected.map((ticker, idx) => {
           const fund = FUNDS[ticker];
           if (!fund) return null;
           const isVeqt = ticker === "VEQT.TO";
-          const dispatchNumber = String(idx + 1).padStart(2, "0");
+          const ord = String(idx + 1).padStart(2, "0");
           return (
             <li
               key={ticker}
-              className={`py-5 grid grid-cols-[auto_1fr] gap-x-4 sm:gap-x-6 gap-y-2 items-start ${
-                idx === 0 ? "border-t border-[var(--color-border)]" : "border-t border-[var(--color-border)]"
-              }`}
+              style={{
+                display: "grid",
+                gridTemplateColumns: "auto 1fr",
+                gap: "18px 22px",
+                padding: "20px 0",
+                borderTop:
+                  idx === 0 ? "1px solid var(--rule-soft)" : "1px solid var(--rule-soft)",
+                alignItems: "start",
+              }}
             >
               <span
-                className="bs-display bs-numerals text-2xl sm:text-3xl leading-none pt-1"
+                className="ed-display ed-numerals"
                 style={{
-                  color: isVeqt ? "var(--stamp)" : "var(--ink-soft)",
+                  fontSize: "clamp(1.75rem, 3vw, 2.25rem)",
+                  lineHeight: 1,
+                  paddingTop: 2,
+                  color: isVeqt ? "var(--stamp)" : "var(--ink-mute)",
+                  letterSpacing: "-0.02em",
                 }}
               >
-                {dispatchNumber}
+                {ord}
               </span>
-
-              <div className="min-w-0">
+              <div style={{ minWidth: 0 }}>
                 <h3
-                  className="bs-display text-[1.25rem] sm:text-[1.5rem] leading-[1.15]"
+                  className="ed-display"
                   style={{
+                    fontSize: "clamp(1.25rem, 2vw, 1.5rem)",
+                    lineHeight: 1.15,
                     color: isVeqt ? "var(--stamp)" : "var(--ink)",
+                    letterSpacing: "-0.012em",
+                    margin: 0,
                   }}
                 >
                   {fund.shortName}
                 </h3>
                 <p
-                  className="bs-caption italic mt-1 text-[11.5px]"
-                  style={{ color: "var(--ink-soft)" }}
+                  style={{
+                    fontFamily: "var(--font-serif)",
+                    fontStyle: "italic",
+                    fontSize: 13,
+                    color: "var(--ink-mute)",
+                    margin: "4px 0 0",
+                  }}
                 >
                   {fund.provider}
-                  <span className="opacity-50 mx-2">·</span>
+                  <span style={{ opacity: 0.5, margin: "0 8px" }}>·</span>
                   {fund.numberOfHoldings.toLocaleString("en-CA")} holdings
-                  <span className="opacity-50 mx-2">·</span>
+                  <span style={{ opacity: 0.5, margin: "0 8px" }}>·</span>
                   {fund.distributionFrequency.toLowerCase()} distributions
                 </p>
                 <p
-                  className="bs-body mt-3 text-[14px] leading-[1.55] max-w-[60ch]"
-                  style={{ color: "var(--ink)" }}
+                  className="ed-body"
+                  style={{
+                    marginTop: 12,
+                    fontSize: 14.5,
+                    lineHeight: 1.6,
+                    color: "var(--ink-soft)",
+                    maxWidth: "60ch",
+                  }}
                 >
                   {fund.whoThisSuits}
                 </p>
@@ -82,6 +116,6 @@ export default function WhoThisSuits({ selected }: WhoThisSuitsProps) {
           );
         })}
       </ol>
-    </section>
+    </Card>
   );
 }

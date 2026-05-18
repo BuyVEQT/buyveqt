@@ -1946,14 +1946,212 @@ body::after {
 
   color: var(--ink);
 }
-/* Calculator inputs — ensure visible text + cursor on the cream surface. */
-.calc-shell__body input,
+/* ──────────────────────────────────────────────────────────
+   Calculator chrome — re-theming the existing calculator
+   internals to the editorial D2 aesthetic without rewriting
+   each calc's JSX.
+
+   Scoped to .calc-shell__body so the rules don't leak.
+   ────────────────────────────────────────────────────────── */
+
+/* Default inputs/selects — editorial cream chips with a vermilion
+   focus underline. Removes the rounded form-control look. */
+.calc-shell__body input[type="text"],
+.calc-shell__body input[type="number"],
+.calc-shell__body input[type="date"],
+.calc-shell__body input[type="email"],
 .calc-shell__body select,
 .calc-shell__body textarea {
+  background: var(--paper);
+  border: 1px solid var(--rule-soft);
+  border-radius: 10px;
   color: var(--ink);
-  caret-color: var(--ink);
+  caret-color: var(--stamp);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums lining-nums;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
 }
 .calc-shell__body input::placeholder,
 .calc-shell__body textarea::placeholder {
+  color: var(--ink-faint);
+}
+.calc-shell__body input:focus,
+.calc-shell__body select:focus,
+.calc-shell__body textarea:focus {
+  outline: none;
+  border-color: var(--stamp);
+  background: var(--paper-light);
+  box-shadow: 0 0 0 3px var(--stamp-soft);
+}
+
+/* Hero dollar input — used for each calculator's primary amount.
+   Wrap the `<input>` in a parent with `data-calc-hero-input` (or
+   use the `.calc-hero-input` class on the input itself) to opt in.
+   Renders the big Fraunces dollar pattern from the design ref. */
+.calc-shell__body .calc-hero-input,
+.calc-shell__body [data-calc-hero-input] input {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 2px solid var(--stamp) !important;
+  border-radius: 0 !important;
+  padding: 4px 4px 6px !important;
+  font-family: var(--font-display) !important;
+  font-style: normal;
+  font-weight: 500;
+  font-size: clamp(2.25rem, 5vw, 3.5rem) !important;
+  line-height: 1.05 !important;
+  color: var(--ink) !important;
+  letter-spacing: -0.02em;
+  box-shadow: none !important;
+  width: 100%;
+  max-width: 100%;
+}
+.calc-shell__body .calc-hero-input:focus,
+.calc-shell__body [data-calc-hero-input] input:focus {
+  background: transparent !important;
+  border-color: var(--stamp) !important;
+  box-shadow: 0 1px 0 0 var(--stamp) !important;
+}
+
+/* Sliders — calculator range sliders show up in DCA / Shelter / Exit.
+   Recolor to D2 ink/stamp. */
+.calc-shell__body input[type="range"].calc-slider,
+.calc-shell__body .calc-slider {
+  background: var(--paper-warm);
+}
+.calc-shell__body .calc-slider::-webkit-slider-thumb {
+  background: var(--stamp);
+  border-color: var(--paper-light);
+}
+.calc-shell__body .calc-slider::-moz-range-thumb {
+  background: var(--stamp);
+  border-color: var(--paper-light);
+}
+.calc-shell__body .calc-slider::-moz-range-progress {
+  background: var(--stamp);
+}
+
+/* Buttons — Tailwind utility-classed buttons inside the calcs get an
+   editorial coat of paint. Two flavors: primary (filled vermilion)
+   and ghost (outlined). The selector catches the existing
+   bg-[var(--color-brand)] buttons (primary) and outlined ones via
+   border-[var(--color-border)] (ghost). */
+.calc-shell__body button[class*="bg-[var(--color-brand)]"] {
+  background: var(--ink) !important;
+  color: var(--paper-light) !important;
+  border-radius: 10px !important;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  transition: background 0.15s, transform 0.12s;
+}
+.calc-shell__body button[class*="bg-[var(--color-brand)]"]:hover {
+  background: #2a2520 !important;
+}
+
+/* Result/headline numbers — recharts axes, tabular numerals,
+   and bs-numerals all inherit a clean Fraunces feel for display
+   numbers. */
+.calc-shell__body .recharts-cartesian-axis-tick-value,
+.calc-shell__body .recharts-text {
+  fill: var(--ink-mute) !important;
+  font-family: var(--font-sans);
+}
+.calc-shell__body .recharts-cartesian-grid line,
+.calc-shell__body .recharts-cartesian-axis-line {
+  stroke: var(--rule-soft) !important;
+}
+.calc-shell__body .recharts-tooltip-wrapper {
+  font-family: var(--font-sans);
+}
+
+/* Result tile pattern — the calcs render result blocks with various
+   structures, but most use a div with a label + a big number. Add a
+   marker class `.calc-result-tile` to opt in to the editorial look:
+   paper-warm bg, rounded, big Fraunces value. */
+.calc-shell__body .calc-result-tile {
+  background: var(--paper-warm);
+  border-radius: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--rule-soft);
+}
+.calc-shell__body .calc-result-tile[data-tone="positive"] {
+  background: var(--green-soft);
+  border-color: color-mix(in oklab, var(--green) 30%, transparent);
+}
+.calc-shell__body .calc-result-tile[data-tone="negative"] {
+  background: var(--stamp-soft);
+  border-color: color-mix(in oklab, var(--stamp) 30%, transparent);
+}
+.calc-shell__body .calc-result-tile__label {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
   color: var(--ink-mute);
+}
+.calc-shell__body .calc-result-tile__value {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  margin-top: 6px;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--ink);
+}
+.calc-shell__body .calc-result-tile[data-tone="positive"] .calc-result-tile__value {
+  color: var(--green);
+}
+.calc-shell__body .calc-result-tile[data-tone="negative"] .calc-result-tile__value {
+  color: var(--stamp);
+}
+.calc-shell__body .calc-result-tile__sub {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--ink-mute);
+  margin-top: 4px;
+}
+
+/* Pill toggle row (DRIP on/off, account type, etc.) — wrap in
+   `.calc-pill-row` for the editorial look. */
+.calc-shell__body .calc-pill-row {
+  display: inline-flex;
+  gap: 4px;
+  padding: 3px;
+  background: var(--paper-warm);
+  border-radius: 999px;
+  border: 1px solid var(--rule-soft);
+}
+.calc-shell__body .calc-pill-row > button {
+  appearance: none;
+  background: transparent;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.calc-shell__body .calc-pill-row > button[aria-pressed="true"],
+.calc-shell__body .calc-pill-row > button[data-active="true"] {
+  background: var(--ink);
+  color: var(--paper-light);
+}
+
+/* Section eyebrow inside a calc — Inter SMCP for "Quick scenarios",
+   "Fine print", etc. */
+.calc-shell__body .calc-section-label {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  margin-bottom: 10px;
 }

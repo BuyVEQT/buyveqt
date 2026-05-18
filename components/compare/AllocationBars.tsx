@@ -1,138 +1,197 @@
 "use client";
 
 import { FUNDS } from "@/data/funds";
+import Card from "@/components/ui/Card";
+import SectionLabel from "@/components/ui/SectionLabel";
 
 interface AllocationBarsProps {
   selected: string[];
 }
 
 /**
- * Region opacity ramp — instead of a competing colour palette, we encode
- * regions by ink density. The reader's eye learns the order in 2 seconds:
- *   U.S. — full ink
- *   Canada — vermilion (the stamp)
- *   International — softer ink
- *   Emerging — softer still
- *   Bonds — outlined, hatched
- * This keeps the page firmly inside the broadsheet palette while still
- * letting four-region differences read at a glance.
+ * Round 4 D2 — region color ramp by ink density on cream, plus vermilion
+ * for Canada and amber for International. Reads at a glance without
+ * competing with the page palette. Bonds get a hatch overlay.
  */
 const REGION_STYLE: Record<
   string,
-  {
-    fill: string;
-    opacity: number;
-    hatched?: boolean;
-  }
+  { fill: string; hatched?: boolean }
 > = {
-  "United States": { fill: "var(--ink)", opacity: 1 },
-  Canada: { fill: "var(--stamp)", opacity: 1 },
-  "International Developed": { fill: "var(--ink)", opacity: 0.55 },
-  "Emerging Markets": { fill: "var(--ink)", opacity: 0.3 },
-  Bonds: { fill: "var(--ink)", opacity: 0.18, hatched: true },
+  "United States": { fill: "var(--ink)" },
+  Canada: { fill: "var(--stamp)" },
+  "International Developed": { fill: "var(--amber)" },
+  "Emerging Markets": { fill: "var(--rule)" },
+  Bonds: { fill: "var(--ink-mute)", hatched: true },
 };
 
-const HATCH_PATTERN =
-  "repeating-linear-gradient(45deg, color-mix(in oklab, var(--paper) 45%, transparent) 0 1px, transparent 1px 5px)";
+const HATCH =
+  "repeating-linear-gradient(45deg, color-mix(in oklab, var(--paper) 45%, transparent) 0 1px, transparent 1px 4px)";
 
+function styleFor(region: string) {
+  return REGION_STYLE[region] ?? { fill: "var(--ink-mute)" };
+}
+
+/**
+ * Geography card — Round 4 D2 version. One row per selected fund:
+ * Fraunces name + provider caption | weight chips legend on the right.
+ * Below: a stacked horizontal tilt bar (US/CA/Dev/EM/Bonds) with
+ * inline weight labels inside large segments. Below the rows: a
+ * paper-warm summary chip describing the biggest tilt difference
+ * when exactly two funds are selected.
+ */
 export default function AllocationBars({ selected }: AllocationBarsProps) {
-  const allRegions = new Set<string>();
-  for (const t of selected) {
-    FUNDS[t]?.geographyAllocation.forEach((g) => allRegions.add(g.region));
+  // Compute the biggest single-region delta when 2 funds selected.
+  let summaryLine = "";
+  if (selected.length === 2) {
+    const a = FUNDS[selected[0]];
+    const b = FUNDS[selected[1]];
+    if (a && b) {
+      const aMap = new Map(a.geographyAllocation.map((g) => [g.region, g.weight]));
+      const bMap = new Map(b.geographyAllocation.map((g) => [g.region, g.weight]));
+      const regions = new Set([...aMap.keys(), ...bMap.keys()]);
+      let biggestRegion = "";
+      let biggestDelta = 0;
+      for (const r of regions) {
+        const d = (aMap.get(r) ?? 0) - (bMap.get(r) ?? 0);
+        if (Math.abs(d) > Math.abs(biggestDelta)) {
+          biggestDelta = d;
+          biggestRegion = r;
+        }
+      }
+      if (biggestRegion && Math.abs(biggestDelta) >= 1) {
+        const leader = biggestDelta > 0 ? a.shortName : b.shortName;
+        summaryLine = `${leader} leans ${Math.abs(biggestDelta)} pp heavier on ${biggestRegion}.`;
+      }
+    }
   }
 
   return (
-    <section
-      className="border-t-2 border-[var(--ink)] pt-5"
-      aria-labelledby="alloc-heading"
-    >
-      <header className="mb-5">
-        <p id="alloc-heading" className="bs-stamp mb-1">
-          The Map
-        </p>
-        <h2
-          className="bs-display text-[1.25rem] sm:text-[1.5rem] leading-tight"
-          style={{ color: "var(--ink)" }}
-        >
-          <em>Where each fund</em> places its bets
-        </h2>
-      </header>
+    <Card>
+      <SectionLabel>The geography</SectionLabel>
+      <div
+        className="ed-display-italic"
+        style={{
+          fontSize: "clamp(1.5rem, 2.5vw, 1.875rem)",
+          lineHeight: 1.1,
+          color: "var(--ink)",
+          marginTop: 6,
+          marginBottom: 22,
+        }}
+      >
+        Where the dollars sit.
+      </div>
 
-      <ul className="space-y-5" role="list">
+      <ul
+        style={{
+          listStyle: "none",
+          margin: 0,
+          padding: 0,
+          display: "flex",
+          flexDirection: "column",
+          gap: 18,
+        }}
+      >
         {selected.map((ticker) => {
           const fund = FUNDS[ticker];
           if (!fund) return null;
           const isVeqt = ticker === "VEQT.TO";
           return (
             <li key={ticker}>
-              <div className="flex items-baseline justify-between mb-2">
-                <p
-                  className="bs-display text-[15px]"
-                  style={{
-                    color: isVeqt ? "var(--stamp)" : "var(--ink)",
-                  }}
-                >
-                  {fund.shortName}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "baseline",
+                  gap: 12,
+                  marginBottom: 8,
+                  flexWrap: "wrap",
+                }}
+              >
+                <div>
                   <span
-                    className="bs-caption italic font-normal ml-2"
+                    className="ed-display"
                     style={{
-                      color: "var(--ink-soft)",
-                      fontSize: "12px",
+                      fontSize: 16,
+                      color: isVeqt ? "var(--stamp)" : "var(--ink)",
+                      letterSpacing: "-0.012em",
+                    }}
+                  >
+                    {fund.shortName}
+                  </span>
+                  <span
+                    style={{
+                      fontFamily: "var(--font-serif)",
+                      fontStyle: "italic",
+                      fontSize: 12.5,
+                      color: "var(--ink-mute)",
+                      marginLeft: 10,
                     }}
                   >
                     {fund.provider}
                   </span>
-                </p>
-                <p
-                  className="bs-caption italic text-[11px]"
-                  style={{ color: "var(--ink-soft)" }}
+                </div>
+                <span
+                  className="ed-numerals"
+                  style={{
+                    fontFamily: "var(--font-sans)",
+                    fontSize: 11,
+                    color: "var(--ink-mute)",
+                    letterSpacing: "0.04em",
+                  }}
                 >
                   {fund.equityAllocation}% equity
                   {fund.fixedIncomeAllocation > 0 && (
                     <> · {fund.fixedIncomeAllocation}% bonds</>
                   )}
-                </p>
+                </span>
               </div>
-
               <div
-                className="flex h-7 sm:h-8 overflow-hidden"
-                style={{ border: "1px solid var(--ink)" }}
                 role="img"
                 aria-label={`${fund.shortName} geography breakdown`}
+                style={{
+                  display: "flex",
+                  height: 18,
+                  borderRadius: 4,
+                  overflow: "hidden",
+                  border: "1px solid var(--rule-soft)",
+                }}
               >
                 {fund.geographyAllocation.map((g) => {
-                  const style = REGION_STYLE[g.region] ?? {
-                    fill: "var(--ink)",
-                    opacity: 0.4,
-                  };
-                  const showLabel = g.weight >= 8;
+                  const s = styleFor(g.region);
+                  const showLabel = g.weight >= 10;
                   return (
                     <div
                       key={g.region}
+                      title={`${g.region}: ${g.weight}%`}
                       style={{
                         width: `${g.weight}%`,
-                        backgroundColor: style.fill,
-                        opacity: style.opacity,
+                        background: s.fill,
                         position: "relative",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
                       }}
-                      className="flex items-center justify-center"
-                      title={`${g.region}: ${g.weight}%`}
                     >
-                      {style.hatched && (
+                      {s.hatched && (
                         <span
                           aria-hidden
-                          className="absolute inset-0 pointer-events-none"
-                          style={{ backgroundImage: HATCH_PATTERN }}
+                          style={{
+                            position: "absolute",
+                            inset: 0,
+                            backgroundImage: HATCH,
+                          }}
                         />
                       )}
                       {showLabel && (
                         <span
-                          className="bs-numerals not-italic text-[10.5px] sm:text-[11px] tabular-nums relative z-[1]"
+                          className="ed-numerals"
                           style={{
-                            color:
-                              style.opacity > 0.45
-                                ? "var(--paper)"
-                                : "var(--ink)",
+                            position: "relative",
+                            fontFamily: "var(--font-sans)",
+                            fontSize: 10,
+                            fontWeight: 700,
+                            color: "var(--paper)",
+                            letterSpacing: "0.04em",
                           }}
                         >
                           {g.weight}
@@ -147,42 +206,72 @@ export default function AllocationBars({ selected }: AllocationBarsProps) {
         })}
       </ul>
 
-      {/* Legend */}
-      <div className="mt-5 pt-4 border-t border-[var(--color-border)] flex flex-wrap gap-x-5 gap-y-2">
-        {Array.from(allRegions).map((region) => {
-          const style = REGION_STYLE[region] ?? {
-            fill: "var(--ink)",
-            opacity: 0.4,
-          };
-          return (
+      {summaryLine && (
+        <div
+          style={{
+            marginTop: 22,
+            padding: "12px 16px",
+            background: "var(--paper-warm)",
+            borderRadius: 10,
+            fontFamily: "var(--font-serif)",
+            fontStyle: "italic",
+            fontSize: 13.5,
+            color: "var(--ink-soft)",
+            border: "1px solid var(--rule-soft)",
+          }}
+        >
+          {summaryLine}
+        </div>
+      )}
+
+      {/* Compact legend strip — keys to the bar segments above */}
+      <div
+        style={{
+          marginTop: 18,
+          paddingTop: 14,
+          borderTop: "1px solid var(--rule-soft)",
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "8px 18px",
+          fontFamily: "var(--font-sans)",
+          fontSize: 11,
+          color: "var(--ink-mute)",
+        }}
+      >
+        {Object.entries(REGION_STYLE).map(([region, s]) => (
+          <span
+            key={region}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+            }}
+          >
             <span
-              key={region}
-              className="bs-caption italic flex items-center gap-2 text-[12px]"
-              style={{ color: "var(--ink-soft)" }}
+              aria-hidden
+              style={{
+                width: 10,
+                height: 10,
+                background: s.fill,
+                borderRadius: 2,
+                position: "relative",
+                overflow: "hidden",
+              }}
             >
-              <span
-                aria-hidden
-                className="inline-block w-4 h-3 relative"
-                style={{
-                  backgroundColor: style.fill,
-                  opacity: style.opacity,
-                  border: "1px solid var(--ink)",
-                }}
-              >
-                {style.hatched && (
-                  <span
-                    className="absolute inset-0 pointer-events-none"
-                    style={{ backgroundImage: HATCH_PATTERN }}
-                  />
-                )}
-              </span>
-              <span className="not-italic" style={{ color: "var(--ink)" }}>
-                {region}
-              </span>
+              {s.hatched && (
+                <span
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    backgroundImage: HATCH,
+                  }}
+                />
+              )}
             </span>
-          );
-        })}
+            <span style={{ color: "var(--ink-soft)" }}>{region}</span>
+          </span>
+        ))}
       </div>
-    </section>
+    </Card>
   );
 }

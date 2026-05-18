@@ -2,53 +2,95 @@
 
 import { useState } from "react";
 import { COMPARE_FAQ } from "@/data/faq";
+import Card from "@/components/ui/Card";
+import SectionLabel from "@/components/ui/SectionLabel";
 
+/**
+ * Compare FAQ — Round 4 D2 version. Accordion list with the first item
+ * open by default. Vermilion-tinted question on open, ink question
+ * closed. Plus caret rotates 45° to an X on open.
+ */
 export default function FAQSection() {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section
-      className="border-t-2 border-[var(--ink)] pt-5"
-      aria-labelledby="faq-heading"
-    >
-      <header className="mb-4">
-        <p id="faq-heading" className="bs-stamp mb-1">
-          Reader Mail
-        </p>
-        <h2
-          className="bs-display text-[1.25rem] sm:text-[1.5rem] leading-tight"
-          style={{ color: "var(--ink)" }}
-        >
-          <em>Common questions,</em> straight answers
-        </h2>
-      </header>
+    <Card>
+      <SectionLabel>The questions</SectionLabel>
+      <div
+        className="ed-display-italic"
+        style={{
+          fontSize: "clamp(1.5rem, 2.5vw, 1.875rem)",
+          lineHeight: 1.1,
+          color: "var(--ink)",
+          marginTop: 6,
+          marginBottom: 18,
+        }}
+      >
+        Frequently asked.
+      </div>
 
-      <ul className="space-y-0" role="list">
+      <ul
+        role="list"
+        style={{
+          listStyle: "none",
+          margin: 0,
+          padding: 0,
+        }}
+      >
         {COMPARE_FAQ.map((item, i) => {
           const isOpen = openIndex === i;
           return (
             <li
               key={i}
-              className="border-t border-[var(--color-border)] last:border-b last:border-[var(--color-border)]"
+              style={{
+                borderTop: "1px solid var(--rule-soft)",
+                borderBottom:
+                  i === COMPARE_FAQ.length - 1
+                    ? "1px solid var(--rule-soft)"
+                    : "none",
+              }}
             >
               <button
+                type="button"
                 onClick={() => setOpenIndex(isOpen ? null : i)}
-                className="w-full flex items-start justify-between gap-3 py-4 text-left group cursor-pointer"
                 aria-expanded={isOpen}
+                style={{
+                  appearance: "none",
+                  background: "transparent",
+                  border: "none",
+                  width: "100%",
+                  display: "flex",
+                  alignItems: "flex-start",
+                  justifyContent: "space-between",
+                  gap: 12,
+                  padding: "18px 0",
+                  textAlign: "left",
+                  cursor: "pointer",
+                  color: "inherit",
+                  fontFamily: "inherit",
+                }}
               >
                 <span
-                  className="bs-display text-[16px] sm:text-[17px] leading-snug pr-2"
+                  className="ed-display"
                   style={{
+                    fontSize: "clamp(1rem, 1.6vw, 1.125rem)",
+                    lineHeight: 1.3,
                     color: isOpen ? "var(--stamp)" : "var(--ink)",
+                    letterSpacing: "-0.01em",
+                    paddingRight: 8,
                   }}
                 >
-                  &ldquo;{item.question}&rdquo;
+                  {item.question}
                 </span>
                 <span
                   aria-hidden
-                  className="bs-display bs-numerals text-[1.25rem] leading-none shrink-0 transition-transform"
+                  className="ed-display ed-numerals"
                   style={{
-                    color: "var(--ink-soft)",
+                    fontSize: 22,
+                    lineHeight: 1,
+                    color: "var(--ink-mute)",
+                    flexShrink: 0,
+                    transition: "transform 0.2s",
                     transform: isOpen ? "rotate(45deg)" : "rotate(0deg)",
                   }}
                 >
@@ -56,16 +98,26 @@ export default function FAQSection() {
                 </span>
               </button>
               <div
-                className={`grid transition-all duration-200 ease-in-out ${
-                  isOpen
-                    ? "grid-rows-[1fr] opacity-100"
-                    : "grid-rows-[0fr] opacity-0"
-                }`}
+                style={{
+                  display: "grid",
+                  gridTemplateRows: isOpen ? "1fr" : "0fr",
+                  opacity: isOpen ? 1 : 0,
+                  transition:
+                    "grid-template-rows 0.25s ease, opacity 0.25s ease",
+                }}
               >
-                <div className="overflow-hidden">
+                <div style={{ overflow: "hidden" }}>
                   <p
-                    className="bs-body pb-5 pr-8 text-[14px] leading-[1.6] max-w-[68ch]"
-                    style={{ color: "var(--ink)" }}
+                    className="ed-body"
+                    style={{
+                      paddingBottom: 20,
+                      paddingRight: 32,
+                      fontSize: 14.5,
+                      lineHeight: 1.6,
+                      color: "var(--ink-soft)",
+                      maxWidth: "68ch",
+                      margin: 0,
+                    }}
                   >
                     {item.answer}
                   </p>
@@ -75,6 +127,6 @@ export default function FAQSection() {
           );
         })}
       </ul>
-    </section>
+    </Card>
   );
 }

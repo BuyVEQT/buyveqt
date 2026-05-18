@@ -255,14 +255,25 @@ export default function FIRECalculator({ volatilityStats, onPin }: FIRECalculato
         </div>
 
         {/* Annual Expenses */}
-        <div>
-          <label className="block text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider mb-1.5">
-            Annual Expenses in Retirement
+        <div data-calc-hero-input>
+          <label className="calc-section-label">
+            Annual expenses in retirement
           </label>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[var(--color-text-muted)]">$</span>
+          <div className="relative flex items-baseline gap-2">
+            <span
+              style={{
+                fontFamily: "var(--font-display)",
+                fontWeight: 500,
+                fontSize: "clamp(1.5rem, 3vw, 2rem)",
+                color: "var(--ink-mute)",
+                lineHeight: 1,
+              }}
+            >
+              $
+            </span>
             <input
               type="number"
+              aria-label="Annual expenses in retirement"
               value={annualExpenses}
               onChange={(e) => setAnnualExpenses(Number(e.target.value) || 0)}
               onBlur={() => {
@@ -272,7 +283,6 @@ export default function FIRECalculator({ volatilityStats, onPin }: FIRECalculato
               min={10000}
               max={500000}
               step={1000}
-              className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] py-2 pl-7 pr-3 text-sm font-medium text-[var(--color-text-primary)] focus:border-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand)]"
             />
           </div>
         </div>

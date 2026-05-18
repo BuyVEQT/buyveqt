@@ -399,15 +399,26 @@ export default function TFSARRSPCalculator({
       )}
 
       {/* ─── Shared Inputs ───────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-        <div>
-          <label className="block text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider mb-1.5">
-            Starting Balance
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-end mb-6">
+        <div data-calc-hero-input>
+          <label className="calc-section-label">
+            Starting balance
           </label>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[var(--color-text-muted)]">$</span>
+          <div className="relative flex items-baseline gap-2">
+            <span
+              style={{
+                fontFamily: "var(--font-display)",
+                fontWeight: 500,
+                fontSize: "clamp(1.5rem, 3vw, 2rem)",
+                color: "var(--ink-mute)",
+                lineHeight: 1,
+              }}
+            >
+              $
+            </span>
             <input
               type="number"
+              aria-label="Starting balance"
               value={startingBalance}
               onChange={(e) => setStartingBalance(Number(e.target.value) || 0)}
               onBlur={() => {
@@ -417,19 +428,29 @@ export default function TFSARRSPCalculator({
               min={0}
               max={500000}
               step={1000}
-              className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] py-2 pl-7 pr-3 text-sm font-medium text-[var(--color-text-primary)] focus:border-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand)]"
             />
           </div>
         </div>
 
-        <div>
-          <label className="block text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider mb-1.5">
-            Annual Contribution
+        <div data-calc-hero-input>
+          <label className="calc-section-label">
+            Annual contribution
           </label>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[var(--color-text-muted)]">$</span>
+          <div className="relative flex items-baseline gap-2">
+            <span
+              style={{
+                fontFamily: "var(--font-display)",
+                fontWeight: 500,
+                fontSize: "clamp(1.5rem, 3vw, 2rem)",
+                color: "var(--ink-mute)",
+                lineHeight: 1,
+              }}
+            >
+              $
+            </span>
             <input
               type="number"
+              aria-label="Annual contribution"
               value={annualContribution}
               onChange={(e) => setAnnualContribution(Number(e.target.value) || 0)}
               onBlur={() => {
@@ -439,7 +460,6 @@ export default function TFSARRSPCalculator({
               min={0}
               max={50000}
               step={500}
-              className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] py-2 pl-7 pr-3 text-sm font-medium text-[var(--color-text-primary)] focus:border-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand)]"
             />
           </div>
           {accountType === "RRSP" && (
