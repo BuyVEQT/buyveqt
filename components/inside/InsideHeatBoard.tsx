@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Card from "@/components/ui/Card";
 import SectionLabel from "@/components/ui/SectionLabel";
 import { useVeqtData } from "@/lib/useVeqtData";
@@ -66,10 +66,25 @@ function summarize(returns: ClassifiedReturn[]): SummaryStats {
  */
 export default function InsideHeatBoard() {
   const { data, loading } = useVeqtData("ALL");
+  const router = useRouter();
+  const pathname = usePathname();
   const params = useSearchParams();
   const dateParam = params.get("date");
   const [range, setRange] = useState<Range>("90D");
   const anchorRef = useRef<HTMLDivElement>(null);
+
+  // Clicking a cell updates ?date=YYYY-MM-DD so the highlight follows
+  // selection and each cell becomes a shareable URL. Replace (not push)
+  // so we don't pollute history. scroll:false because the section is
+  // already in view.
+  const handleCellClick = useCallback(
+    (date: string) => {
+      const sp = new URLSearchParams(window.location.search);
+      sp.set("date", date);
+      router.replace(`${pathname}?${sp.toString()}#heatmap`, { scroll: false });
+    },
+    [pathname, router]
+  );
 
   // Scroll to anchor on first paint if it's `#heatmap`.
   useEffect(() => {
@@ -208,6 +223,7 @@ export default function InsideHeatBoard() {
             history={sliced}
             size="hero"
             todayIndex={focusDate ? sliced.findIndex((r) => r.date === focusDate) : todayIdx}
+            onCellClick={handleCellClick}
           />
         )}
       </div>
