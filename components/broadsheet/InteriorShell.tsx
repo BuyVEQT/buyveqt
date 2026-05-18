@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import Masthead from "@/components/broadsheet/Masthead";
 import Colophon from "@/components/broadsheet/Colophon";
 
 interface InteriorShellProps {
@@ -11,10 +10,10 @@ interface InteriorShellProps {
 }
 
 /**
- * Interior-page shell. Wraps non-home pages in the broadsheet chrome:
- *   - data-broadsheet attribute so typography + palette tokens flip to paper+ink
- *   - compressed Masthead (single layout for home + interior)
- *   - Colophon footer
+ * Interior-page shell for unmigrated routes. Wraps page content in the
+ * broadsheet styling (cream paper, ink typography) plus the editorial
+ * Colophon footer. Round 4 retired the per-page Masthead — the global
+ * DesktopNav/TopBar in app/layout.tsx now handles nav for every route.
  */
 export default function InteriorShell({
   maxWidth = "max-w-[1200px]",
@@ -27,8 +26,7 @@ export default function InteriorShell({
       className="min-h-screen relative overflow-x-hidden"
       style={{ backgroundColor: "var(--paper)" }}
     >
-      <div className={`mx-auto ${maxWidth} ${padding} relative`}>
-        <Masthead />
+      <div className={`mx-auto ${maxWidth} ${padding} relative pt-8`}>
         <main className="relative">{children}</main>
         <Colophon />
       </div>

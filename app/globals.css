@@ -29,19 +29,28 @@
   --color-chart-fill: rgba(26, 54, 93, 0.06);
   --color-accent: #a67c2e;
 
-  --font-sans: var(--font-outfit, "Outfit"), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-sans: var(--font-inter, var(--font-outfit, "Inter")), ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-serif: var(--font-newsreader, "Newsreader"), "Georgia", "Times New Roman", serif;
   --font-display: var(--font-fraunces, "Fraunces"), "Playfair Display", "Georgia", serif;
 
   /* Broadsheet ink + paper palette */
   --ink: #0f0d0a;
   --ink-soft: #2a2520;
+  --ink-mute: #5b5147;
+  --ink-faint: #8a7f6a;
   --paper: #f6efdc;
   --paper-deep: #ede3ca;
+  --paper-light: #fbf6e6;
+  --paper-warm: #f0e9d0;
   --rule: #b8a66e;
+  --rule-soft: rgba(184, 166, 110, 0.55);
   --stamp: #8a1c1c;
+  --stamp-soft: rgba(138, 28, 28, 0.12);
   --print-green: #1d5431;
   --print-red: #8a1c1c;
+  --green: #1d5431;
+  --green-soft: rgba(29, 84, 49, 0.12);
+  --amber: #8a6c1c;
 }
 
 /* ── Light mode — explicit overrides for reliability ──────── */
@@ -89,6 +98,25 @@
   --color-chart-line: #6ea8e6;
   --color-chart-fill: rgba(110, 168, 230, 0.08);
   --color-accent: #d4a94e;
+
+  /* Round 4: editorial tokens in dark mode.
+     Mirror the [data-broadsheet] inversion so cards on a dark page bg
+     still feel papery-but-darker, and the dark band remains pure ink. */
+  --ink: #ebe2cc;
+  --ink-soft: #c9c0a8;
+  --ink-mute: #948b76;
+  --ink-faint: #6e6b78;
+  --paper: #0a0a0d;
+  --paper-deep: #141318;
+  --paper-light: #14161f;
+  --paper-warm: #1a1d28;
+  --rule: #735f3c;
+  --rule-soft: rgba(115, 95, 60, 0.45);
+  --stamp: #e0665e;
+  --stamp-soft: rgba(224, 102, 94, 0.18);
+  --green: #5ec989;
+  --green-soft: rgba(94, 201, 137, 0.14);
+  --amber: #d4a94e;
 }
 
 /* ── Base ──────────────────────────────────────────────────── */
@@ -1450,4 +1478,106 @@ body::after {
     --bs-hm-cell-h: 16px;
     --bs-hm-gap: 2px;
   }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ROUND 4 — Editorial dashboard utilities (ed-*).
+   Global scope (not [data-broadsheet]-nested) because the new D2
+   pages live outside the broadsheet wrapper.
+══════════════════════════════════════════════════════════════ */
+
+.ed-display {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -0.022em;
+  line-height: 1.02;
+}
+
+.ed-display-italic {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  letter-spacing: -0.018em;
+  line-height: 1.05;
+}
+
+.ed-body {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+
+.ed-label {
+  font-family: var(--font-sans);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+
+.ed-stamp {
+  font-family: var(--font-sans);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--stamp);
+}
+
+.ed-numerals {
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum", "lnum";
+}
+
+/* Lede: drop-cap on first character of a single paragraph. Pair with the
+   <Lede> primitive (which wraps a <p>) or apply directly to any <p>. */
+.ed-lede {
+  overflow: hidden;
+}
+.ed-lede::first-letter {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 4em;
+  line-height: 0.85;
+  float: left;
+  padding: 0.06em 0.16em 0 0;
+  margin-top: 0.04em;
+  color: var(--ink);
+  shape-outside: margin-box;
+}
+@media (max-width: 640px) {
+  .ed-lede::first-letter {
+    font-size: 3.4em;
+  }
+}
+
+/* SeverityRing entrance: marker arcs from 0 to z on first render. */
+@keyframes ed-ring-marker {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(var(--ed-ring-angle, 0deg)); }
+}
+
+.ed-ring-marker {
+  animation: ed-ring-marker 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform-origin: var(--ed-ring-origin, 50% 50%);
+}
+
+/* Scroll-snap row used by RegionCarousel and MatchupPresets. */
+.ed-snap-row {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px;
+}
+.ed-snap-row::-webkit-scrollbar { display: none; }
+.ed-snap-row > * { scroll-snap-align: start; flex-shrink: 0; }
+
+/* Safe-area helper for the mobile TabBar. */
+.ed-safe-bottom {
+  padding-bottom: max(24px, env(safe-area-inset-bottom));
 }
