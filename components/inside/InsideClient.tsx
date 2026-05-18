@@ -1,8 +1,10 @@
 "use client";
 
+import { Suspense } from "react";
 import InsideHero from "./InsideHero";
 import InsideStats from "./InsideStats";
 import InsideRegionGrid from "./InsideRegionGrid";
+import InsideHeatBoard from "./InsideHeatBoard";
 import InsideHoldings from "./InsideHoldings";
 import InsideMethodology from "./InsideMethodology";
 
@@ -27,6 +29,13 @@ export default function InsideClient() {
         <InsideHero />
         <InsideStats />
         <InsideRegionGrid />
+
+        {/* The deep heatmap. Wrapped in Suspense because useSearchParams
+            bails static prerendering otherwise; the rest of the page
+            renders without waiting. */}
+        <Suspense fallback={null}>
+          <InsideHeatBoard />
+        </Suspense>
 
         <div className="inside-two-up">
           <InsideHoldings />

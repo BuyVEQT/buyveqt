@@ -15,9 +15,11 @@ interface HeroPriceCardProps {
 const RANGES: ChartPeriod[] = ["1M", "3M", "1Y", "5Y", "ALL"];
 
 /**
- * The hero card on /. Big Fraunces price + change pill + sparkline + range
- * tabs. Background paper-light, rounded 22px. Sparkline auto-scales over
- * the active period's window from useVeqtData.
+ * The hero card on /. Big Fraunces price + change pill + 52w hi/lo +
+ * prev-close caption + rich sparkline + range tabs. The sparkline
+ * supports hover scrub (date + price readout), gradient area fill,
+ * year tick rhythm (visible on multi-year ranges), and min/max markers
+ * with inline value labels.
  */
 export default function HeroPriceCard({
   data,
@@ -33,34 +35,46 @@ export default function HeroPriceCard({
   const pctFmt = quote
     ? `${up ? "↑" : "↓"} ${up ? "+" : "−"}${Math.abs(quote.changePercent).toFixed(2)}%`
     : "—";
+  // Year ticks are useful only on long ranges.
+  const showYearTicks = period === "ALL" || period === "5Y" || period === "3Y";
+  // Min/max markers crowd short ranges; show on 3M+.
+  const showExtrema = period !== "1M";
 
   return (
     <Card padding={0}>
       <div style={{ padding: "26px 24px 22px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            gap: 12,
+            flexWrap: "wrap",
+          }}
+        >
           <div className="ed-label" style={{ color: "var(--ink-mute)" }}>
-            VEQT.TO · Vanguard All‑Equity ETF
+            VEQT.TO · Vanguard All‑Equity ETF · TSX
           </div>
-          <button
-            type="button"
-            disabled
-            title="Watchlist — coming soon"
-            style={{
-              background: "transparent",
-              border: "1px solid var(--rule-soft)",
-              padding: "5px 10px",
-              borderRadius: 10,
-              fontSize: 11,
-              fontWeight: 600,
-              letterSpacing: "0.04em",
-              color: "var(--ink-soft)",
-              cursor: "not-allowed",
-              opacity: 0.85,
-              fontFamily: "var(--font-sans)",
-            }}
-          >
-            ★ Watch
-          </button>
+          {quote && quote.fiftyTwoWeekHigh > 0 && quote.fiftyTwoWeekLow > 0 && (
+            <div
+              className="ed-numerals"
+              style={{
+                fontFamily: "var(--font-sans)",
+                fontSize: 11,
+                color: "var(--ink-mute)",
+                letterSpacing: "0.04em",
+              }}
+            >
+              52w&nbsp;hi&nbsp;
+              <span style={{ color: "var(--ink-soft)", fontWeight: 600 }}>
+                ${quote.fiftyTwoWeekHigh.toFixed(2)}
+              </span>{" "}
+              · lo&nbsp;
+              <span style={{ color: "var(--ink-soft)", fontWeight: 600 }}>
+                ${quote.fiftyTwoWeekLow.toFixed(2)}
+              </span>
+            </div>
+          )}
         </div>
 
         <div
@@ -73,10 +87,25 @@ export default function HeroPriceCard({
             marginTop: 14,
           }}
         >
-          {loading && !quote ? <span className="skeleton" style={{ display: "inline-block", width: "4ch", height: "1em" }} /> : priceFmt}
+          {loading && !quote ? (
+            <span
+              className="skeleton"
+              style={{ display: "inline-block", width: "4ch", height: "1em" }}
+            />
+          ) : (
+            priceFmt
+          )}
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 12, flexWrap: "wrap" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            marginTop: 12,
+            flexWrap: "wrap",
+          }}
+        >
           {quote ? (
             <>
               <Pill tone={up ? "up" : "down"} style={{ fontSize: 13, padding: "4px 12px" }}>
@@ -91,6 +120,9 @@ export default function HeroPriceCard({
                 }}
               >
                 {up ? "+" : "−"}${changeAbs} today
+                {quote.previousClose > 0 && (
+                  <> · vs. ${quote.previousClose.toFixed(2)} prev</>
+                )}
               </span>
             </>
           ) : (
@@ -98,20 +130,30 @@ export default function HeroPriceCard({
           )}
         </div>
 
-        <div style={{ marginTop: 22, position: "relative", width: "100%" }}>
+        <div
+          style={{
+            marginTop: 28,
+            position: "relative",
+            width: "100%",
+            color: "var(--ink)",
+          }}
+        >
           {history.length >= 2 ? (
             <Sparkline
               data={history}
               width={920}
-              height={92}
+              height={108}
               stroke="var(--ink)"
-              fill="color-mix(in oklab, var(--ink) 6%, transparent)"
+              gradient
+              dot
               strokeWidth={1.6}
-              style={{ width: "100%", height: 92 }}
+              showExtrema={showExtrema}
+              yearTicks={showYearTicks}
+              interactive
               ariaLabel={`VEQT price chart, ${period} period`}
             />
           ) : (
-            <div className="skeleton" style={{ height: 92, width: "100%", borderRadius: 8 }} />
+            <div className="skeleton" style={{ height: 108, width: "100%", borderRadius: 8 }} />
           )}
         </div>
 
@@ -120,7 +162,7 @@ export default function HeroPriceCard({
             display: "grid",
             gridTemplateColumns: `repeat(${RANGES.length}, 1fr)`,
             gap: 6,
-            marginTop: 16,
+            marginTop: 28,
           }}
         >
           {RANGES.map((p) => {

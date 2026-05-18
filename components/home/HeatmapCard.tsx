@@ -106,6 +106,7 @@ export default function HeatmapCard({ history, loading }: HeatmapCardProps) {
             cell={cell}
             gap={mobile ? 2 : 4}
             todayIndex={entries.length - 1}
+            linkPrefix="/inside-veqt?date="
             ariaLabel={`Last 90 sessions: ${upCount} up days, ${downCount} down days`}
           />
         )}
@@ -132,10 +133,11 @@ export default function HeatmapCard({ history, loading }: HeatmapCardProps) {
             fontSize: 13,
           }}
         >
-          Tap any cell for that day&apos;s story
+          Hover any cell for the day&apos;s number, tap to see it in
+          context.
         </span>
         <span style={{ color: "var(--stamp)", fontWeight: 700 }} aria-hidden>
-          →
+          The session board →
         </span>
       </Link>
     </Card>
