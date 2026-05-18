@@ -38,6 +38,13 @@ import { AssetLocationOptimizer } from "@/components/mdx/AssetLocationOptimizer"
 import { BobTimeline } from "@/components/mdx/BobTimeline";
 import { MissedDaysChart } from "@/components/mdx/MissedDaysChart";
 import { SPIVAFunnel } from "@/components/mdx/SPIVAFunnel";
+import { OwnershipLoop } from "@/components/mdx/OwnershipLoop";
+import { HoldingsUniverse } from "@/components/mdx/HoldingsUniverse";
+import { PerformanceBattle } from "@/components/mdx/PerformanceBattle";
+import { WeightingComparison } from "@/components/mdx/WeightingComparison";
+import { PioneerTimeline } from "@/components/mdx/PioneerTimeline";
+import { VanguardEffectV2 } from "@/components/mdx/VanguardEffectV2";
+import { VerdictCard } from "@/components/mdx/VerdictCard";
 
 function slugify(text: string): string {
   return text
@@ -81,6 +88,13 @@ const mdxComponents = {
   BobTimeline,
   MissedDaysChart,
   SPIVAFunnel,
+  OwnershipLoop,
+  HoldingsUniverse,
+  PerformanceBattle,
+  WeightingComparison,
+  PioneerTimeline,
+  VanguardEffectV2,
+  VerdictCard,
   h2: HeadingTwo,
 };
 
