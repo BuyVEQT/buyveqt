@@ -1,510 +1,149 @@
 "use client";
 
-import { useMemo, useState, type ReactNode } from "react";
-import Link from "next/link";
+import { useMemo } from "react";
 import { useVeqtData } from "@/lib/useVeqtData";
-import { COMPARISON_DATA } from "@/lib/constants";
-import RegionCards from "@/components/broadsheet/RegionCards";
-import Colophon from "@/components/broadsheet/Colophon";
-import TiltBar from "@/components/broadsheet/TiltBar";
-import SeverityMeter from "@/components/broadsheet/SeverityMeter";
-import VolatilityHeatmap from "@/components/broadsheet/VolatilityHeatmap";
-import { classifyReturns } from "@/lib/volatility";
-import HeroSparkline from "@/components/broadsheet/HeroSparkline";
-import { useRegions } from "@/lib/useRegions";
-import { computeLeadHeadline } from "@/lib/lead-headline";
+import { useRegions, type Region } from "@/lib/useRegions";
 import { computeSeverity } from "@/lib/severity";
-import { pickFurtherReading } from "@/lib/edition-recommends";
 
-function formatCAD(n: number, digits = 0): string {
-  return n.toLocaleString("en-CA", {
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits,
+import HeroPriceCard from "./HeroPriceCard";
+import WeatherCard from "./WeatherCard";
+import RegionCarousel from "./RegionCarousel";
+import RegionGrid from "./RegionGrid";
+import HeatmapCard from "./HeatmapCard";
+import InceptionBand from "./InceptionBand";
+import ArticleStrip from "./ArticleStrip";
+
+const REGION_ORDER = ["VUN", "VCN", "VIU", "VEE"];
+
+function leaderIndex(regions: readonly Region[]): number {
+  if (regions.length === 0) return -1;
+  let best = -1;
+  let bestAbs = -Infinity;
+  regions.forEach((r, i) => {
+    const c = r.contribution;
+    if (c === null || c === undefined || !Number.isFinite(c)) return;
+    const abs = Math.abs(c);
+    if (abs > bestAbs) {
+      bestAbs = abs;
+      best = i;
+    }
   });
+  return best;
 }
 
 /**
- * Course One — the home page reading order. Hardcoded inline so the
- * home page can pick its own three articles independent of the
- * `/learn` syllabus. Step 2 maps to `veqt-vs-diy-portfolio` because
- * that article is the canonical "why one fund and not five"
- * argument; step 3 to `veqt-is-down` because the most-likely
- * panicked landing is the most useful first read.
+ * Round 4 home — dashboard-shaped layout against the new D2 system.
+ *
+ *  HeroPriceCard  →  WeatherCard
+ *  RegionCarousel (mobile) / RegionGrid (desktop)
+ *  HeatmapCard  →  InceptionBand
+ *  ArticleStrip
+ *
+ * Two `useVeqtData` calls: one keyed to the period pill (hero sparkline)
+ * and one pinned to "ALL" (severity + heatmap classification + inception
+ * calc — all need the full distribution to mean anything).
  */
-const COURSE_1 = [
-  {
-    step: 1,
-    slug: "what-is-veqt",
-    title: "What VEQT actually is",
-    excerpt:
-      "Twelve thousand stocks in one ticker, run by Vanguard for a quarter-percent. The structural argument before any of the trading talk.",
-  },
-  {
-    step: 2,
-    slug: "veqt-vs-diy-portfolio",
-    title: "Why one fund and hold forever",
-    excerpt:
-      "The five-ETF DIY portfolio is the same equity exposure plus a quarterly chore. Here is the math on what that chore costs.",
-  },
-  {
-    step: 3,
-    slug: "veqt-is-down",
-    title: "What to do when it's down",
-    excerpt:
-      "Drawdowns are the price of equity returns. A short script for the days when your inbox tells you to sell.",
-  },
-];
-
-/**
- * Regional tilt for the home compare table. Weights are approximate Q1 2026
- * factsheet figures (Vanguard / iShares / BMO) — they are the published
- * holdings of each fund's underlying regional ETFs, normalized to sum to 1.
- * Update these when fresh factsheets are filed; the component on /compare
- * uses live data, but the home strip is a snapshot.
- */
-const TILTS: Record<string, { us: number; ca: number; dev: number; em: number }> = {
-  VEQT: { us: 0.43, ca: 0.32, dev: 0.18, em: 0.07 },
-  XEQT: { us: 0.46, ca: 0.26, dev: 0.22, em: 0.06 },
-  ZEQT: { us: 0.43, ca: 0.26, dev: 0.24, em: 0.07 },
-};
-
-interface HomeClientProps {
-  /** The "From the subreddit" section, server-rendered with prefetched
-   *  Reddit data so headlines paint with the rest of the page instead of
-   *  popping in after hydration. */
-  lettersSlot: ReactNode;
-}
-
-export default function HomeClient({ lettersSlot }: HomeClientProps) {
-  // Pull since-inception history once — the lead, the severity meter, the
-  // heatmap, and the inception calculator all need it. Fetching the ALL
-  // window from the start avoids a redundant 1Y round-trip on first paint.
-  const { data, loading } = useVeqtData("ALL");
-  const quote = data?.quote ?? null;
-  const isPositive = (quote?.changePercent ?? 0) >= 0;
-
-  const [investment, setInvestment] = useState(10_000);
-  const fullHistory = data?.historical ?? [];
-  const currentPrice = quote?.price ?? 0;
-
-  // Live sleeve data — shared between the lead headline and RegionCards.
+export default function HomeClient() {
+  const hero = useVeqtData("1M");
+  const full = useVeqtData("ALL");
   const { payload: regionsPayload, loading: regionsLoading } = useRegions();
-  const regions = regionsPayload?.regions ?? [];
 
-  // One-sentence editorial headline driven by the VEQT move + leading region.
-  const leadCopy = useMemo(
-    () => computeLeadHeadline(quote?.changePercent, regions),
-    [quote?.changePercent, regions]
-  );
+  const orderedRegions = useMemo<Region[]>(() => {
+    const rs = regionsPayload?.regions ?? [];
+    return [...rs].sort(
+      (a, b) =>
+        REGION_ORDER.indexOf(a.ticker) - REGION_ORDER.indexOf(b.ticker)
+    );
+  }, [regionsPayload]);
 
-  const severity = useMemo(
-    () => computeSeverity(fullHistory, quote?.changePercent),
-    [fullHistory, quote?.changePercent]
-  );
+  const leaderIdx = useMemo(() => leaderIndex(orderedRegions), [orderedRegions]);
 
-  // Per-day "Further reading" for the SeverityMeter — picked from a pool
-  // matched to the day's character (zone × direction) and rotated
-  // deterministically by the latest close date.
-  const furtherReading = useMemo(() => {
-    if (!severity) return undefined;
-    const latestDate =
-      fullHistory.length > 0
-        ? fullHistory[fullHistory.length - 1].date
-        : new Date().toISOString().slice(0, 10);
-    return pickFurtherReading({ reading: severity, dateKey: latestDate });
-  }, [severity, fullHistory]);
-
-  // 90-day heatmap data — computed from the same historical series.
-  // ClassifiedReturn is structurally compatible with VolatilityHeatmapEntry
-  // (date / pct / severity), so we pass the slice directly.
-  const heatmapHistory = useMemo(() => {
-    if (fullHistory.length < 2) return [];
-    return classifyReturns(fullHistory).returns.slice(-90);
-  }, [fullHistory]);
-
-  const inceptionPrice = fullHistory[0]?.close ?? 0;
-  const calcResult =
-    inceptionPrice > 0 && currentPrice > 0
-      ? (investment / inceptionPrice) * currentPrice
-      : null;
-  const calcReturn =
-    calcResult !== null && investment > 0
-      ? ((calcResult - investment) / investment) * 100
-      : null;
+  const severity = useMemo(() => {
+    if (!full.data?.quote || !full.data.historical) return null;
+    return computeSeverity(full.data.historical, full.data.quote.changePercent);
+  }, [full.data]);
 
   return (
-    <div
-      data-broadsheet
-      className="min-h-screen relative overflow-x-hidden"
-      style={{ backgroundColor: "var(--paper)" }}
+    <main
+      style={{
+        background: "var(--paper)",
+        minHeight: "100dvh",
+        color: "var(--ink)",
+      }}
     >
-      <div className="mx-auto max-w-[1200px] px-5 sm:px-8 lg:px-12 relative pt-6">
-        {/* Masthead retired in Round 4 — global DesktopNav/TopBar in app/layout.tsx
-            owns the nav. The home rebuild (M2) replaces this whole client with a
-            dashboard-shaped page. */}
+      <div className="home-stack">
+        <HeroPriceCard
+          data={hero.data}
+          loading={hero.loading}
+          period={hero.period}
+          onPeriodChange={hero.setPeriod}
+        />
 
-        {/* ─────────────────────── THE LEAD ─────────────────────── */}
-        <section className="py-7 sm:py-10 lg:py-12 bs-enter">
-          <div className="max-w-[52rem]">
-            {/* Price block + since-inception arc. Price anchors the left;
-                the arc sits to its right on desktop and drops below it on
-                narrower screens so neither element has to compress. */}
-            <div className="flex items-end justify-between gap-x-8 gap-y-5 flex-wrap">
-              <div className="flex items-baseline gap-x-4 gap-y-2 flex-wrap">
-                <p className="bs-display bs-numerals text-[3.25rem] sm:text-[4.5rem] lg:text-[5.5rem] leading-[0.88] text-[var(--ink)]">
-                  {loading || !quote ? "—" : `$${quote.price.toFixed(2)}`}
-                </p>
-                {!loading && quote && (
-                  <p
-                    className="bs-numerals text-lg sm:text-xl lg:text-2xl"
-                    style={{
-                      color: isPositive
-                        ? "var(--print-green)"
-                        : "var(--print-red)",
-                    }}
-                  >
-                    {isPositive ? "▲" : "▼"} {isPositive ? "+" : "−"}$
-                    {Math.abs(quote.change).toFixed(2)}
-                    <span className="opacity-70 ml-1.5">
-                      ({isPositive ? "+" : ""}
-                      {quote.changePercent.toFixed(2)}%)
-                    </span>
-                  </p>
-                )}
-              </div>
+        <WeatherCard reading={severity} loading={full.loading && !severity} />
 
-              {fullHistory && fullHistory.length >= 2 && (
-                <HeroSparkline points={fullHistory} />
-              )}
-            </div>
+        <div className="region-mobile">
+          <RegionCarousel regions={orderedRegions} leaderIndex={leaderIdx} />
+        </div>
+        <div className="region-desktop">
+          <RegionGrid regions={regionsLoading ? [] : orderedRegions} leaderIndex={leaderIdx} />
+        </div>
 
-            {/* Single-sentence headline derived from real data */}
-            <h2
-              className="bs-display-italic text-[1.375rem] sm:text-[1.625rem] lg:text-[2rem] leading-[1.1] mt-5 text-[var(--ink)] max-w-[30ch]"
-            >
-              {leadCopy.headline}
-            </h2>
+        <div className="two-up">
+          <HeatmapCard
+            history={full.data?.historical ?? []}
+            loading={full.loading && (full.data?.historical?.length ?? 0) === 0}
+          />
+          <InceptionBand
+            history={full.data?.historical ?? []}
+            quote={full.data?.quote ?? null}
+            loading={full.loading}
+          />
+        </div>
 
-            {/* ── How unusual is today? — the behavioral anchor ── */}
-            <SeverityMeter
-              reading={severity}
-              loading={loading}
-              furtherReading={furtherReading}
-            />
-          </div>
-        </section>
-
-        {/* ─────────────────────── 90-DAY HEATMAP ─────────────────────── */}
-        {heatmapHistory.length > 0 && (
-          <section className="pb-6 sm:pb-8 bs-enter">
-            <Link
-              href="/inside-veqt#heatmap"
-              className="bs-heatmap-link"
-              aria-label="Open the full 90-day session board on Inside VEQT"
-            >
-              <div className="bs-heatmap-link__cta">
-                <span>Ninety sessions of weather</span>
-                <span>
-                  See the full board{" "}
-                  <span className="bs-heatmap-link__cta-arrow" aria-hidden>
-                    →
-                  </span>
-                </span>
-              </div>
-              <VolatilityHeatmap
-                history={heatmapHistory}
-                size="compact"
-                todayIndex={heatmapHistory.length - 1}
-                interactiveCells={false}
-              />
-            </Link>
-          </section>
-        )}
-
-        {/* ─────────────────────── THE REGIONS ─────────────────────── */}
-        <section className="py-8 sm:py-12 bs-enter">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 mb-8">
-            <div className="lg:col-span-5">
-              <p className="bs-stamp mb-2">Regional contribution</p>
-              <h3 className="bs-display text-3xl sm:text-4xl lg:text-[2.75rem] leading-[1]">
-                <span className="block">Where today&apos;s move</span>{" "}
-                <span className="block">came from.</span>
-              </h3>
-            </div>
-            <p className="lg:col-span-7 bs-body">
-              VEQT holds four Vanguard index ETFs — one per major equity
-              region. Each card shows how that sleeve moved today and what it
-              contributed to the fund. Rebalancing happens automatically
-              inside the fund; your job is not to sell.
-            </p>
-          </div>
-
-          <RegionCards regions={regions} loading={regionsLoading} />
-        </section>
-
-        {/* ─────────────────────── FROM THE SUBREDDIT ─────────────────────── */}
-        <section className="py-8 sm:py-12 bs-enter">
-          {lettersSlot}
-        </section>
-
-        {/* ─────────────────── INCEPTION CALCULATOR ─────────────────── */}
-        <section className="py-8 sm:py-12 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 bs-enter">
-          <div className="lg:col-span-5 order-2 lg:order-1">
-            <table className="w-full bs-numerals">
-              <tbody>
-                <tr className="border-t border-[var(--ink)]">
-                  <td className="py-3 bs-label">At inception</td>
-                  <td className="py-3 text-right text-lg">
-                    ${formatCAD(investment)}
-                  </td>
-                </tr>
-                <tr className="border-t border-[var(--color-border)]">
-                  <td className="py-3 bs-label">Today</td>
-                  <td className="py-3 text-right text-2xl font-semibold">
-                    {calcResult !== null
-                      ? `$${formatCAD(calcResult, 0)}`
-                      : "—"}
-                  </td>
-                </tr>
-                <tr className="border-t border-[var(--color-border)]">
-                  <td className="py-3 bs-label">Return</td>
-                  <td
-                    className="py-3 text-right text-lg"
-                    style={{
-                      color:
-                        calcReturn !== null && calcReturn >= 0
-                          ? "var(--print-green)"
-                          : "var(--print-red)",
-                    }}
-                  >
-                    {calcReturn !== null
-                      ? `${calcReturn >= 0 ? "+" : ""}${calcReturn.toFixed(1)}%`
-                      : "—"}
-                  </td>
-                </tr>
-                <tr className="border-t border-b border-[var(--ink)]">
-                  <td className="py-3 bs-label">Since</td>
-                  <td className="py-3 text-right text-lg">Jan 2019</td>
-                </tr>
-              </tbody>
-            </table>
-            <p className="bs-caption mt-4">
-              Price return only. Excludes reinvested distributions, which
-              would add several percentage points. Past performance is a
-              terrible predictor of future performance.
-            </p>
-          </div>
-
-          <div className="lg:col-span-7 order-1 lg:order-2">
-            <p className="bs-stamp mb-2">Inception calculator</p>
-            <h3 className="bs-display text-3xl sm:text-4xl lg:text-[2.75rem] leading-[1]">
-              If you&apos;d bought{" "}
-              <span className="inline-flex items-baseline gap-1 text-[var(--ink)]">
-                <span className="text-xl sm:text-2xl">$</span>
-                <input
-                  type="number"
-                  min={100}
-                  step={100}
-                  value={investment}
-                  onChange={(e) => {
-                    const v = parseInt(e.target.value, 10);
-                    if (!isNaN(v) && v > 0) setInvestment(v);
-                  }}
-                  className="bg-transparent border-b-2 border-[var(--ink)] outline-none w-[5.5ch] text-center tabular-nums focus:border-[var(--stamp)] transition-colors"
-                  aria-label="Investment amount"
-                />
-              </span>{" "}
-              of VEQT at launch.
-            </h3>
-            <p className="bs-body mt-5 max-w-lg">
-              Edit the number — the math updates as you type. The sidebar
-              keeps score.
-            </p>
-            <Link
-              href="/calculators"
-              className="bs-label mt-4 inline-block hover:text-[var(--stamp)] transition-colors"
-            >
-              More calculators, drawdowns, reinvested-dividend math &rarr;
-            </Link>
-          </div>
-        </section>
-
-        {/* ─────────────────────── COMPARISON TABLE ─────────────────────── */}
-        <section className="py-8 sm:py-12 bs-enter">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 mb-6">
-            <div className="lg:col-span-5">
-              <p className="bs-stamp mb-2">Head to head</p>
-              <h3 className="bs-display text-3xl sm:text-4xl lg:text-[2.75rem] leading-[1]">
-                <span className="block">VEQT vs.</span>{" "}
-                <span className="block">the field.</span>
-              </h3>
-            </div>
-            <p className="lg:col-span-7 bs-body">
-              Three ETFs, one job: own the world. The differences between
-              them are smaller than Reddit will have you believe, but they
-              are not zero. Vanguard leans Canadian; iShares leans American;
-              BMO is the youngest of the three.
-            </p>
-          </div>
-
-          <table className="w-full bs-numerals border-t border-b border-[var(--ink)]">
-            <thead>
-              <tr>
-                <th className="bs-label text-left py-3 hidden sm:table-cell"></th>
-                <th className="bs-label text-left py-3">Ticker</th>
-                <th className="bs-label text-left py-3">MER</th>
-                <th className="bs-label text-left py-3">AUM</th>
-                <th className="bs-label text-left py-3 hidden sm:table-cell">Holdings</th>
-                <th className="bs-label text-left py-3 hidden sm:table-cell">Tilt</th>
-                <th className="bs-label text-left py-3">Inception</th>
-              </tr>
-            </thead>
-            <tbody>
-              {COMPARISON_DATA.etfs.map((etf, idx) => (
-                <tr
-                  key={etf.ticker}
-                  className={
-                    idx === 0
-                      ? "border-t-2 border-[var(--ink)]"
-                      : "border-t border-[var(--color-border)]"
-                  }
-                >
-                  <td className="py-4 font-serif italic hidden sm:table-cell">{etf.name}</td>
-                  <td className="py-4 font-mono text-sm tracking-wider">
-                    <span className="sm:hidden font-serif italic text-[var(--ink-soft)] text-xs block mb-1 tracking-normal">{etf.name}</span>
-                    {etf.ticker}
-                    {etf.ticker === "VEQT" && (
-                      <span
-                        className="ml-2 inline-block align-middle"
-                        style={{
-                          fontFamily: "var(--font-sans)",
-                          fontWeight: 700,
-                          fontSize: "9px",
-                          letterSpacing: "0.14em",
-                          textTransform: "uppercase",
-                          color: "var(--stamp)",
-                          padding: "2px 6px 1px",
-                          border: "1px solid var(--stamp)",
-                          borderRadius: "1px",
-                          lineHeight: 1.1,
-                        }}
-                      >
-                        Most holdings
-                      </span>
-                    )}
-                    {/* Mobile-only mini tilt bar — the desktop column is
-                        hidden below sm, so this surfaces the same data
-                        directly under the ticker on phones. */}
-                    {TILTS[etf.ticker] && (
-                      <span className="sm:hidden block mt-2 max-w-[160px]">
-                        <TiltBar
-                          weights={TILTS[etf.ticker]}
-                          label={`${etf.ticker} regional tilt`}
-                        />
-                      </span>
-                    )}
-                  </td>
-                  <td className="py-4 tabular-nums">{etf.mer}</td>
-                  <td className="py-4 tabular-nums">{etf.aum}</td>
-                  <td className="py-4 tabular-nums hidden sm:table-cell">{etf.holdings}</td>
-                  <td className="py-4 hidden sm:table-cell">
-                    {TILTS[etf.ticker] && (
-                      <TiltBar
-                        weights={TILTS[etf.ticker]}
-                        label={`${etf.ticker} regional tilt`}
-                      />
-                    )}
-                  </td>
-                  <td className="py-4 tabular-nums">{etf.inception}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {/* Tilt legend — small caps, sans, ink-mute. Visible on every
-              breakpoint now that mobile rows render mini tilt bars under
-              the ticker. */}
-          <p
-            className="bs-label mt-3 flex flex-wrap items-center gap-x-4 gap-y-1"
-            style={{ color: "var(--ink-mute)" }}
-          >
-            <span className="inline-flex items-center gap-1.5">
-              <span
-                aria-hidden
-                className="inline-block w-2.5 h-2.5"
-                style={{ backgroundColor: "var(--stamp)" }}
-              />
-              US
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <span
-                aria-hidden
-                className="inline-block w-2.5 h-2.5"
-                style={{ backgroundColor: "var(--ink)" }}
-              />
-              Canada
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <span
-                aria-hidden
-                className="inline-block w-2.5 h-2.5"
-                style={{ backgroundColor: "var(--ink-mute)" }}
-              />
-              Dev. ex-US
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <span
-                aria-hidden
-                className="inline-block w-2.5 h-2.5"
-                style={{ backgroundColor: "var(--rule)" }}
-              />
-              Emerging
-            </span>
-          </p>
-          <p className="bs-caption mt-4 text-right">
-            <Link href="/compare" className="bs-link">
-              Full head-to-head &rarr;
-            </Link>
-          </p>
-        </section>
-
-        {/* ─────────────────── LEARN DISPATCHES ─────────────────── */}
-        <section className="py-8 sm:py-12 bs-enter">
-          <div className="mb-8">
-            <p className="bs-stamp mb-2">Course One</p>
-            <h3 className="bs-display text-3xl sm:text-4xl lg:text-[2.75rem] leading-[1]">
-              A reading order, in three parts.
-            </h3>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12">
-            {COURSE_1.map((entry) => (
-              <article key={entry.slug} className="flex flex-col">
-                <p className="bs-label mb-2">Step {entry.step}</p>
-                <Link href={`/learn/${entry.slug}`} className="group block">
-                  <h4 className="bs-display text-[1.5rem] sm:text-[1.75rem] leading-[1.08] group-hover:text-[var(--stamp)] transition-colors">
-                    {entry.title}
-                  </h4>
-                </Link>
-                <p className="bs-body mt-3 flex-1 text-[0.9375rem] leading-[1.5]">
-                  {entry.excerpt}
-                </p>
-                <Link
-                  href={`/learn/${entry.slug}`}
-                  className="bs-label mt-4 inline-flex items-center hover:text-[var(--stamp)] transition-colors"
-                >
-                  Read it &rarr;
-                </Link>
-              </article>
-            ))}
-          </div>
-          <p className="bs-caption mt-8 text-right">
-            <Link href="/learn" className="bs-link">
-              Twenty more articles in the archive &rarr;
-            </Link>
-          </p>
-        </section>
-
-        <Colophon />
+        <ArticleStrip />
       </div>
-    </div>
+
+      <style jsx>{`
+        .home-stack {
+          display: flex;
+          flex-direction: column;
+          gap: 22px;
+          max-width: 1400px;
+          margin: 0 auto;
+          padding: 20px 14px 40px;
+        }
+        .region-mobile {
+          display: block;
+          /* Carousel escapes the page padding so cards can scroll flush to
+             the viewport edges on small screens. */
+          margin-left: -14px;
+          margin-right: -14px;
+        }
+        .region-desktop {
+          display: none;
+        }
+        .two-up {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 22px;
+        }
+
+        @media (min-width: 1024px) {
+          .home-stack {
+            gap: 28px;
+            padding: 32px 26px 48px;
+          }
+          .region-mobile {
+            display: none;
+          }
+          .region-desktop {
+            display: block;
+          }
+          .two-up {
+            grid-template-columns: 7fr 5fr;
+          }
+        }
+      `}</style>
+    </main>
   );
 }
