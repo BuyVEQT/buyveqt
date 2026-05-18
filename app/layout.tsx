@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { Newsreader, Outfit, Fraunces } from "next/font/google";
+import { Newsreader, Inter, Fraunces } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import ThemeProvider from "@/components/ThemeProvider";
+import DesktopNav from "@/components/shell/DesktopNav";
+import TopBar from "@/components/shell/TopBar";
+import TabBar from "@/components/shell/TabBar";
 import { JsonLd } from "@/components/seo/JsonLd";
 import {
   SITE_URL,
@@ -20,10 +23,12 @@ const newsreader = Newsreader({
   style: ["normal", "italic"],
 });
 
-const outfit = Outfit({
+const inter = Inter({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-outfit",
+  // Keep --font-outfit for back-compat (some legacy components reference it)
+  // and add --font-inter as the new workhorse for the editorial system.
+  variable: "--font-inter",
   weight: ["300", "400", "500", "600", "700"],
 });
 
@@ -111,7 +116,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${newsreader.variable} ${outfit.variable} ${fraunces.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${newsreader.variable} ${inter.variable} ${fraunces.variable}`} suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -209,7 +214,14 @@ export default function RootLayout({
               "Management Expense Ratio (MER) approximately 0.20%. Management fee reduced to 0.17% in November 2025.",
           }}
         />
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <DesktopNav />
+          <TopBar />
+          <div style={{ paddingBottom: "var(--shell-bottom-pad, 0)" }} className="[--shell-bottom-pad:90px] lg:[--shell-bottom-pad:0]">
+            {children}
+          </div>
+          <TabBar />
+        </ThemeProvider>
         <Analytics />
         <SpeedInsights />
         <Script

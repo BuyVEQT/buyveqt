@@ -4,7 +4,6 @@ import { useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useVeqtData } from "@/lib/useVeqtData";
 import { COMPARISON_DATA } from "@/lib/constants";
-import Masthead from "@/components/broadsheet/Masthead";
 import RegionCards from "@/components/broadsheet/RegionCards";
 import Colophon from "@/components/broadsheet/Colophon";
 import TiltBar from "@/components/broadsheet/TiltBar";
@@ -139,8 +138,10 @@ export default function HomeClient({ lettersSlot }: HomeClientProps) {
       className="min-h-screen relative overflow-x-hidden"
       style={{ backgroundColor: "var(--paper)" }}
     >
-      <div className="mx-auto max-w-[1200px] px-5 sm:px-8 lg:px-12 relative">
-        <Masthead />
+      <div className="mx-auto max-w-[1200px] px-5 sm:px-8 lg:px-12 relative pt-6">
+        {/* Masthead retired in Round 4 — global DesktopNav/TopBar in app/layout.tsx
+            owns the nav. The home rebuild (M2) replaces this whole client with a
+            dashboard-shaped page. */}
 
         {/* ─────────────────────── THE LEAD ─────────────────────── */}
         <section className="py-7 sm:py-10 lg:py-12 bs-enter">
