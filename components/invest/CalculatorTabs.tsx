@@ -133,7 +133,7 @@ function CalculatorTabsInner({ history, volatilityStats }: CalculatorTabsProps) 
     <div>
       {/* ── Pill row ── */}
       <div
-        className="reckoner-pills"
+        className="calc-pills"
         role="tablist"
         aria-label="Calculator sections"
       >
@@ -146,17 +146,17 @@ function CalculatorTabsInner({ history, volatilityStats }: CalculatorTabsProps) 
               aria-selected={isActive}
               onClick={() => setActiveTab(tab.id)}
               title={tab.sub}
-              className="reckoner-pill"
+              className="calc-pill"
               data-active={isActive ? "true" : "false"}
             >
               <span
-                className="reckoner-pill__icon"
+                className="calc-pill__icon"
                 data-active={isActive ? "true" : "false"}
                 aria-hidden
               >
                 {tab.icon}
               </span>
-              <span className="reckoner-pill__copy">
+              <span className="calc-pill__copy">
                 <span
                   className="ed-label"
                   style={{
@@ -168,7 +168,7 @@ function CalculatorTabsInner({ history, volatilityStats }: CalculatorTabsProps) 
                   {tab.label}
                 </span>
                 <span
-                  className="ed-display-italic reckoner-pill__name"
+                  className="ed-display-italic calc-pill__name"
                   style={{
                     color: isActive ? "var(--paper)" : "var(--ink)",
                   }}
@@ -233,7 +233,7 @@ export default function CalculatorTabs({ history, volatilityStats }: CalculatorT
     <Suspense
       fallback={
         <div
-          className="reckoner-pills"
+          className="calc-pills"
           aria-hidden
           style={{ pointerEvents: "none" }}
         >

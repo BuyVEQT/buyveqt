@@ -2,11 +2,10 @@ import SectionLabel from "@/components/ui/SectionLabel";
 import Lede from "@/components/ui/Lede";
 
 /**
- * The Reckoner — `/calculators` hero. Section label + italic display
- * h1 + drop-cap lede. Mirrors the editorial rhythm of /, /learn,
- * /compare, and /inside-veqt.
+ * /calculators hero. Section label + italic display h1 + drop-cap lede.
+ * Mirrors the editorial rhythm of /, /learn, /compare, /inside-veqt.
  */
-export default function ReckonerHero() {
+export default function CalculatorsHero() {
   return (
     <header
       style={{
@@ -15,10 +14,10 @@ export default function ReckonerHero() {
         gap: 20,
         padding: "8px 0 4px",
       }}
-      className="reckoner-hero"
+      className="calc-hero"
     >
       <div>
-        <SectionLabel>Five reckonings on one fund</SectionLabel>
+        <SectionLabel>Five calculators on one fund</SectionLabel>
         <h1
           className="ed-display-italic"
           style={{
@@ -28,7 +27,7 @@ export default function ReckonerHero() {
             color: "var(--ink)",
           }}
         >
-          The Reckoner.
+          The Math.
         </h1>
       </div>
       <Lede style={{ fontSize: "1.125rem", maxWidth: "46ch" }}>

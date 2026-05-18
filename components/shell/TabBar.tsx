@@ -40,18 +40,12 @@ export default function TabBar() {
 
   return (
     <nav
-      className="lg:hidden ed-safe-bottom"
+      className="shell-tabbar ed-safe-bottom"
       aria-label="Primary"
       style={{
-        position: "fixed",
-        bottom: 0,
-        left: 0,
-        right: 0,
-        zIndex: 40,
         background: "var(--paper-light)",
         borderTop: "1px solid var(--rule-soft)",
         paddingTop: 10,
-        display: "grid",
         gridTemplateColumns: "repeat(5, 1fr)",
         textAlign: "center",
         fontFamily: "var(--font-sans)",

@@ -2,8 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { useTheme } from "@/components/ThemeProvider";
 import LiveTickerPill from "./LiveTickerPill";
 
 type NavId = "today" | "inside" | "compare" | "learn" | "calc" | "comm";
@@ -23,6 +21,12 @@ const NAV: NavLink[] = [
   { id: "comm", label: "Community", href: "/community" },
 ];
 
+const SECONDARY = [
+  { label: "Distributions", href: "/distributions" },
+  { label: "Weekly", href: "/weekly" },
+  { label: "Methodology", href: "/methodology" },
+];
+
 function activeFromPath(pathname: string): NavId | null {
   if (pathname === "/") return "today";
   if (pathname.startsWith("/inside-veqt")) return "inside";
@@ -34,14 +38,17 @@ function activeFromPath(pathname: string): NavId | null {
 }
 
 /**
- * Desktop sticky nav. Logo + nav links | centered live ticker | search + ★ Watch.
- * Shown above lg breakpoint; mobile uses TopBar + TabBar.
+ * Desktop sticky nav. ONE navigation surface on desktop:
+ *   logo + primary nav | centered live ticker | small secondary text-links.
+ *
+ * The Round 4 polish dropped the ☰ overflow + Search + ★ Watch decorative
+ * buttons. Secondary links surface here as small text instead of behind
+ * a hamburger so desktop users don't see three competing nav controls
+ * (the mobile TopBar + TabBar are hidden via the .shell-* CSS classes).
  */
 export default function DesktopNav() {
   const pathname = usePathname() ?? "/";
   const active = activeFromPath(pathname);
-  const { theme, toggleTheme } = useTheme();
-  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <nav
@@ -112,130 +119,31 @@ export default function DesktopNav() {
           <LiveTickerPill />
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <button
-            type="button"
-            aria-label="Search"
-            disabled
-            title="Search — coming soon"
-            style={{
-              background: "transparent",
-              color: "var(--ink-soft)",
-              padding: "8px 14px",
-              borderRadius: 10,
-              border: "1px solid var(--rule-soft)",
-              fontFamily: "var(--font-sans)",
-              fontSize: 13,
-              fontWeight: 600,
-              cursor: "not-allowed",
-              opacity: 0.7,
-            }}
-          >
-            Search
-          </button>
-          <button
-            type="button"
-            aria-label="Watchlist"
-            disabled
-            title="Watchlist — coming soon"
-            style={{
-              background: "var(--ink)",
-              color: "var(--paper-light)",
-              padding: "8px 16px",
-              borderRadius: 10,
-              border: "none",
-              fontFamily: "var(--font-sans)",
-              fontSize: 13,
-              fontWeight: 600,
-              cursor: "not-allowed",
-              opacity: 0.85,
-            }}
-          >
-            ★ Watch
-          </button>
-          <button
-            type="button"
-            onClick={() => setMenuOpen((v) => !v)}
-            aria-label="More"
-            aria-expanded={menuOpen}
-            style={{
-              appearance: "none",
-              background: "transparent",
-              border: "1px solid var(--rule-soft)",
-              borderRadius: 10,
-              padding: "8px 12px",
-              fontSize: 14,
-              lineHeight: 1,
-              color: "var(--ink-soft)",
-              cursor: "pointer",
-            }}
-          >
-            ☰
-          </button>
-        </div>
-      </div>
-
-      {menuOpen && (
         <div
           style={{
-            position: "absolute",
-            top: "100%",
-            right: 32,
-            background: "var(--paper-light)",
-            border: "1px solid var(--rule-soft)",
-            borderRadius: 12,
-            padding: "10px 12px",
             display: "flex",
-            flexDirection: "column",
-            gap: 4,
-            minWidth: 200,
-            boxShadow: "0 12px 30px rgba(15,13,10,0.10)",
+            alignItems: "center",
+            gap: 18,
+            fontFamily: "var(--font-sans)",
+            fontSize: 12,
+            color: "var(--ink-mute)",
           }}
         >
-          <button
-            type="button"
-            onClick={() => {
-              toggleTheme();
-              setMenuOpen(false);
-            }}
-            style={{
-              appearance: "none",
-              background: "transparent",
-              border: 0,
-              padding: "8px 10px",
-              fontFamily: "var(--font-sans)",
-              fontSize: 13,
-              fontWeight: 500,
-              color: "var(--ink)",
-              cursor: "pointer",
-              textAlign: "left",
-              borderRadius: 6,
-            }}
-          >
-            Theme: {theme === "dark" ? "Dark" : "Light"} (toggle)
-          </button>
-          <Link href="/distributions" onClick={() => setMenuOpen(false)} style={menuLink()}>
-            Distributions
-          </Link>
-          <Link href="/weekly" onClick={() => setMenuOpen(false)} style={menuLink()}>
-            Weekly
-          </Link>
-          <Link href="/methodology" onClick={() => setMenuOpen(false)} style={menuLink()}>
-            Methodology
-          </Link>
+          {SECONDARY.map((l) => (
+            <Link
+              key={l.href}
+              href={l.href}
+              style={{
+                color: "var(--ink-mute)",
+                textDecoration: "none",
+                transition: "color 0.15s",
+              }}
+            >
+              {l.label}
+            </Link>
+          ))}
         </div>
-      )}
+      </div>
     </nav>
   );
-}
-
-function menuLink(): React.CSSProperties {
-  return {
-    fontFamily: "var(--font-sans)",
-    fontSize: 13,
-    color: "var(--ink)",
-    textDecoration: "none",
-    padding: "8px 10px",
-    borderRadius: 6,
-  };
 }

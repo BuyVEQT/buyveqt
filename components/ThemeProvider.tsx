@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { createContext, useContext, useEffect } from "react";
 
 type Theme = "light" | "dark";
 
@@ -18,42 +18,27 @@ export function useTheme() {
 
 const STORAGE_KEY = "buyveqt:theme";
 
-function getInitialTheme(): Theme {
-  if (typeof window === "undefined") return "light";
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored === "dark" || stored === "light") return stored;
-  return window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
-}
-
+/**
+ * Round 4 polish: dark mode is disabled. ThemeProvider is reduced to a
+ * stub that always reports "light" and clears any stale localStorage
+ * value from prior sessions so the auto-detect bootstrap script (also
+ * removed) can't re-activate dark on a reload.
+ *
+ * Kept mounted + exported so call sites don't break and we can flip
+ * dark back on later without rewiring.
+ */
 export default function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(getInitialTheme);
-
-  // Sync attribute + localStorage whenever theme changes
   useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-    localStorage.setItem(STORAGE_KEY, theme);
-  }, [theme]);
-
-  // Listen for system preference changes when user hasn't explicitly chosen
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const handler = (e: MediaQueryListEvent) => {
-      if (!localStorage.getItem(STORAGE_KEY)) {
-        setTheme(e.matches ? "dark" : "light");
-      }
-    };
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-
-  const toggleTheme = useCallback(() => {
-    setTheme((prev) => (prev === "light" ? "dark" : "light"));
+    document.documentElement.dataset.theme = "light";
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // ignore — private browsing or storage disabled
+    }
   }, []);
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme: "light", toggleTheme: () => {} }}>
       {children}
     </ThemeContext.Provider>
   );

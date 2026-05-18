@@ -3,7 +3,6 @@
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useCallback } from "react";
 import Link from "next/link";
-import { useTheme } from "@/components/ThemeProvider";
 import LiveTickerPill from "./LiveTickerPill";
 
 interface RouteChrome {
@@ -27,7 +26,7 @@ function chromeForPath(pathname: string): RouteChrome {
   if (pathname.startsWith("/learn/")) return { title: "Article", kicker: "Learn · Read" };
   if (pathname.startsWith("/learn")) return { title: "Learn", kicker: "Read" };
   if (pathname.startsWith("/calculators"))
-    return { title: "The Reckoner", kicker: "Tools" };
+    return { title: "Calculators", kicker: "Tools" };
   if (pathname.startsWith("/community"))
     return { title: "Community", kicker: "Letters" };
   if (pathname.startsWith("/distributions"))
@@ -49,7 +48,6 @@ export default function TopBar() {
   const router = useRouter();
   const pathname = usePathname() ?? "/";
   const chrome = chromeForPath(pathname);
-  const { theme, toggleTheme } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleBack = useCallback(() => {
@@ -65,17 +63,13 @@ export default function TopBar() {
   return (
     <>
       <div
-        className="lg:hidden"
+        className="shell-topbar"
         style={{
-          position: "sticky",
-          top: 0,
-          zIndex: 40,
           background: "color-mix(in oklab, var(--paper) 94%, transparent)",
           backdropFilter: "blur(10px)",
           WebkitBackdropFilter: "blur(10px)",
           borderBottom: "1px solid var(--rule-soft)",
           padding: "12px 16px",
-          display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
           gap: 12,
@@ -176,10 +170,9 @@ export default function TopBar() {
 
       {menuOpen && (
         <div
-          className="lg:hidden"
+          className="shell-topbar-drawer"
           role="dialog"
           aria-modal="true"
-          style={{ position: "fixed", inset: 0, zIndex: 50 }}
         >
           <div
             onClick={() => setMenuOpen(false)}
@@ -225,28 +218,6 @@ export default function TopBar() {
             <Link href="/methodology" onClick={() => setMenuOpen(false)} style={menuLink()}>
               Methodology
             </Link>
-            <div style={{ marginTop: "auto", borderTop: "1px solid var(--rule-soft)", paddingTop: 14 }}>
-              <button
-                type="button"
-                onClick={toggleTheme}
-                style={{
-                  appearance: "none",
-                  background: "transparent",
-                  border: "1px solid var(--rule-soft)",
-                  borderRadius: 10,
-                  padding: "10px 14px",
-                  fontFamily: "var(--font-sans)",
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: "var(--ink-soft)",
-                  cursor: "pointer",
-                  width: "100%",
-                  textAlign: "left",
-                }}
-              >
-                Theme: {theme === "dark" ? "Dark" : "Light"} (toggle)
-              </button>
-            </div>
           </div>
         </div>
       )}

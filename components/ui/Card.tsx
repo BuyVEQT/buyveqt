@@ -27,8 +27,11 @@ export default function Card({
     <div
       className={className}
       style={{
-        background: dark ? "var(--ink)" : "var(--paper-light)",
-        color: dark ? "var(--paper)" : "var(--ink)",
+        // The dark band is a discipline color — must remain pure ink + paper
+        // regardless of theme. Using var(--ink)/var(--paper) breaks because
+        // those tokens swap in dark mode, turning the band cream.
+        background: dark ? "#0f0d0a" : "var(--paper-light)",
+        color: dark ? "#f6efdc" : "var(--ink)",
         border: dark ? "none" : "1px solid var(--rule-soft)",
         borderRadius: radius,
         padding,

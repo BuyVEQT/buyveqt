@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Region } from "@/lib/useRegions";
 import Sparkline from "@/components/charts/Sparkline";
 
@@ -45,9 +46,19 @@ export default function RegionCard({ region, leader = false, width }: RegionCard
   const stripe = REGION_STRIPE[region.ticker] ?? "var(--rule)";
 
   return (
-    <article
+    <Link
+      href={`/inside-veqt#${region.ticker}`}
+      aria-label={`${displayName} sleeve detail on Inside VEQT`}
+      className="home-region-card"
       style={{
         width,
+        textDecoration: "none",
+        color: "inherit",
+        display: "block",
+      }}
+    >
+    <article
+      style={{
         background: "var(--paper-light)",
         border: "1px solid var(--rule-soft)",
         borderRadius: 18,
@@ -57,6 +68,8 @@ export default function RegionCard({ region, leader = false, width }: RegionCard
         display: "flex",
         flexDirection: "column",
         gap: 6,
+        transition: "transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease",
+        cursor: "pointer",
       }}
     >
       <div
@@ -138,5 +151,6 @@ export default function RegionCard({ region, leader = false, width }: RegionCard
         </div>
       )}
     </article>
+    </Link>
   );
 }

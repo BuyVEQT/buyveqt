@@ -53,6 +53,17 @@ export default function WeatherCard({ reading, loading }: WeatherCardProps) {
     ? (reading.todayChangePercent >= 0 ? 1 : -1) * reading.sigmaRatio
     : 0;
   const label = reading?.zone === "Typical" ? "Calm" : reading?.zone ?? "—";
+  // Route the CTA to a real explainer based on today's direction.
+  // Down day → behavioral piece on drawdowns. Up day → structural piece on
+  // why equity markets rise. Both exist in content/learn.
+  const ctaHref =
+    reading && reading.todayChangePercent < 0
+      ? "/learn/veqt-is-down"
+      : "/learn/why-stocks-go-up";
+  const ctaLabel =
+    reading && reading.todayChangePercent < 0
+      ? "Read · what to do when it's down"
+      : "Read · why stock markets go up";
 
   return (
     <Card>
@@ -91,7 +102,7 @@ export default function WeatherCard({ reading, loading }: WeatherCardProps) {
             {blurb(reading)}
           </p>
           <Link
-            href="/learn/severity-explained"
+            href={ctaHref}
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -111,7 +122,7 @@ export default function WeatherCard({ reading, loading }: WeatherCardProps) {
               maxWidth: 360,
             }}
           >
-            <span>Read · what does &ldquo;unusual&rdquo; mean?</span>
+            <span>{ctaLabel}</span>
             <span aria-hidden style={{ color: "var(--stamp)" }}>→</span>
           </Link>
         </div>

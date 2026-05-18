@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import CalculatorTabs from "@/components/invest/CalculatorTabs";
-import ReckonerHero from "@/components/invest/ReckonerHero";
+import CalculatorsHero from "@/components/invest/CalculatorsHero";
 import Card from "@/components/ui/Card";
 import SectionLabel from "@/components/ui/SectionLabel";
 import { getDailyHistory } from "@/lib/data";
@@ -49,14 +49,14 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 
   if (!tab || !hasResult) {
     return {
-      title: "The Reckoner — VEQT Calculators",
+      title: "The Math — VEQT Calculators",
       description:
-        "Five reckonings on the boring fund: lookback, drip, yield, shelter, exit. Free VEQT calculators for Canadian investors.",
+        "Five calculators on the boring fund: lookback, drip, yield, shelter, exit. Free VEQT calculators for Canadian investors.",
       alternates: { canonical: canonicalUrl("/calculators") },
       openGraph: {
-        title: "The Reckoner — VEQT Calculators",
+        title: "The Math — VEQT Calculators",
         description:
-          "Lookback, drip, yield, shelter, exit. Five reckonings on Vanguard's boring all-equity fund.",
+          "Lookback, drip, yield, shelter, exit. Five calculators on Vanguard's boring all-equity fund.",
         url: canonicalUrl("/calculators"),
       },
     };
@@ -188,7 +188,7 @@ export default async function CalculatorsPage() {
           }}
         />
 
-        <ReckonerHero />
+        <CalculatorsHero />
 
         <section aria-labelledby="calculators-heading">
           <h2 id="calculators-heading" className="sr-only">
@@ -216,7 +216,7 @@ export default async function CalculatorsPage() {
             }}
           >
             <p style={{ margin: 0 }}>
-              These reckoners use simplified assumptions for illustration.
+              These calculators use simplified assumptions for illustration.
               They don&apos;t account for fees, taxes, inflation, or the
               full shape of market volatility — only the bones of the math.
             </p>

@@ -61,6 +61,7 @@ export default function InsideRegionDetail({
 
   return (
     <article
+      id={region.ticker}
       style={{
         background: "var(--paper-light)",
         border: "1px solid var(--rule-soft)",
@@ -68,6 +69,7 @@ export default function InsideRegionDetail({
         padding: "22px 22px",
         position: "relative",
         overflow: "hidden",
+        scrollMarginTop: 96,
       }}
     >
       <div

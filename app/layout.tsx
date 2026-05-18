@@ -116,13 +116,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${newsreader.variable} ${inter.variable} ${fraunces.variable}`} suppressHydrationWarning>
+    <html lang="en" data-theme="light" className={`${newsreader.variable} ${inter.variable} ${fraunces.variable}`} suppressHydrationWarning>
       <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){var t=localStorage.getItem('buyveqt:theme');if(!t)t=matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';document.documentElement.dataset.theme=t})()`,
-          }}
-        />
+        {/* Dark mode disabled for the Round 4 polish pass. Light is the only
+            supported theme until we audit dark-mode contrast across all D2
+            pages. ThemeProvider stays mounted (no-op) so the architecture
+            remains in place for a later re-enable. */}
       </head>
       <body className="min-h-screen bg-[var(--color-base)] text-[var(--color-text-primary)]">
         <JsonLd
