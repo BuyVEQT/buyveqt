@@ -2,30 +2,47 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import type { ArticleFrontmatter } from "@/lib/articles";
 
-const CATEGORY_FILTERS = [
+interface FilterRailProps {
+  /** Articles list — used to compute the count next to each category chip. */
+  articles: ArticleFrontmatter[];
+}
+
+const CATEGORY_FILTERS: { key: string; label: string }[] = [
   { key: "all", label: "All" },
   { key: "beginner", label: "Basics" },
   { key: "comparison", label: "Comparisons" },
   { key: "tax-strategy", label: "Tax & Accounts" },
   { key: "veqt-deep-dive", label: "Deep Dive" },
-] as const;
+  { key: "opinion", label: "Opinion" },
+];
 
 const DIFFICULTY_FILTERS = [
-  { key: "all", label: "All levels" },
+  { key: "all", label: "Any" },
   { key: "beginner", label: "Beginner" },
   { key: "intermediate", label: "Intermediate" },
   { key: "advanced", label: "Advanced" },
-] as const;
+];
 
 const TIME_FILTERS = [
-  { key: "all", label: "Any length" },
-  { key: "quick", label: "Quick (<8m)" },
-  { key: "standard", label: "Standard (8–11m)" },
-  { key: "long", label: "Long (12m+)" },
-] as const;
+  { key: "all", label: "Any" },
+  { key: "quick", label: "Quick <8m" },
+  { key: "standard", label: "Standard 8–11m" },
+  { key: "long", label: "Long 12m+" },
+];
 
-export default function FilterRail() {
+/**
+ * Round 4 v2 filter rail. Sticky under the global nav. Two rows on
+ * desktop, one row + "Filters" toggle on mobile.
+ *
+ *   Row 1: category chips (with counts), search input on the right.
+ *   Row 2: Level · Time · Our Take · Clear.
+ *
+ * All state is in the URL (?cat=&diff=&time=&take=1&q=&tag=) so
+ * filtered views are shareable.
+ */
+export default function FilterRail({ articles }: FilterRailProps) {
   const router = useRouter();
   const params = useSearchParams();
   const [moreOpen, setMoreOpen] = useState(false);
@@ -40,45 +57,48 @@ export default function FilterRail() {
   function update(changes: Record<string, string | null>) {
     const next = new URLSearchParams(params.toString());
     for (const [k, v] of Object.entries(changes)) {
-      if (v === null || v === "all" || v === "") {
-        next.delete(k);
-      } else {
-        next.set(k, v);
-      }
+      if (v === null || v === "all" || v === "") next.delete(k);
+      else next.set(k, v);
     }
-    router.replace(`/learn?${next.toString()}`, { scroll: false });
+    const qs = next.toString();
+    router.replace(qs ? `/learn?${qs}` : "/learn", { scroll: false });
   }
-
-  const hasFilters = cat !== "all" || diff !== "all" || time !== "all" || take || !!search || !!tag;
 
   function clearAll() {
     router.replace("/learn", { scroll: false });
     setMoreOpen(false);
   }
 
+  const hasFilters =
+    cat !== "all" || diff !== "all" || time !== "all" || take || !!search || !!tag;
+
+  const catCount = (key: string) =>
+    key === "all" ? articles.length : articles.filter((a) => a.category === key).length;
+
   return (
-    <div className="sticky top-0 z-20 -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 py-3 bg-[var(--paper)]/95 backdrop-blur-[6px] border-b border-[var(--color-border)]">
+    <div className="learn-filter-rail" role="region" aria-label="Filter dispatches">
       {/* Row 1: category chips + search */}
-      <div className="flex items-center gap-3 sm:gap-5">
+      <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
         <nav
-          className="flex-1 flex items-center gap-4 sm:gap-6 overflow-x-auto hide-scrollbar bs-label"
+          className="learn-filter-rail__cats"
           aria-label="Filter by category"
+          style={{ flex: 1, minWidth: 0 }}
         >
-          {CATEGORY_FILTERS.map((f) => {
-            const active = cat === f.key && !tag;
+          {CATEGORY_FILTERS.map((c) => {
+            const n = catCount(c.key);
+            // Hide chips for empty categories (except "all").
+            if (c.key !== "all" && n === 0) return null;
+            const active = cat === c.key && !tag;
             return (
               <button
-                key={f.key}
+                key={c.key}
                 type="button"
-                onClick={() => update({ cat: f.key, tag: null })}
-                className="shrink-0 whitespace-nowrap transition-colors"
-                style={{
-                  color: active ? "var(--stamp)" : "var(--ink-soft)",
-                  textDecoration: active ? "underline" : "none",
-                  textUnderlineOffset: "4px",
-                }}
+                onClick={() => update({ cat: c.key, tag: null })}
+                className="learn-filter-rail__cat"
+                data-active={active ? "true" : "false"}
               >
-                {f.label}
+                {c.label}
+                <span className="learn-filter-rail__cat-n">{n}</span>
               </button>
             );
           })}
@@ -86,133 +106,127 @@ export default function FilterRail() {
             <button
               type="button"
               onClick={() => update({ tag: null })}
-              className="shrink-0 whitespace-nowrap transition-colors"
-              style={{
-                color: "var(--stamp)",
-                textDecoration: "underline",
-                textUnderlineOffset: "4px",
-              }}
+              className="learn-filter-rail__cat"
+              data-active="true"
+              style={{ textTransform: "none", letterSpacing: 0 }}
             >
               #{tag} ×
             </button>
           )}
         </nav>
 
-        <div className="flex items-center gap-3 shrink-0">
-          {/* Mobile "More filters" toggle */}
-          <button
-            type="button"
-            onClick={() => setMoreOpen((o) => !o)}
-            className="sm:hidden bs-label transition-colors"
-            style={{ color: moreOpen ? "var(--stamp)" : "var(--ink-soft)" }}
-            aria-expanded={moreOpen}
-          >
-            {moreOpen ? "Less" : "Filters"}
-          </button>
-
-          <label className="w-40 sm:w-56">
-            <span className="sr-only">Search</span>
-            <input
-              type="search"
-              value={search}
-              onChange={(e) => update({ q: e.target.value })}
-              placeholder="Search…"
-              className="w-full bg-transparent border-b border-[var(--ink)]/40 focus:border-[var(--stamp)] outline-none text-sm py-1"
-              style={{ color: "var(--ink)", fontFamily: "var(--font-serif)" }}
-            />
-          </label>
-        </div>
+        {/* Mobile: Filters toggle. Desktop: search is in row 2 already. */}
+        <button
+          type="button"
+          onClick={() => setMoreOpen((v) => !v)}
+          aria-expanded={moreOpen}
+          className="learn-filter-rail__opt"
+          style={{
+            display: "block",
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: "0.16em",
+            textTransform: "uppercase",
+            color: moreOpen ? "var(--stamp)" : "var(--ink-soft)",
+          }}
+        >
+          {moreOpen ? "Less" : "Filters"}
+        </button>
       </div>
 
-      {/* Row 2: difficulty, time, Our Take — always visible on desktop, collapsed on mobile */}
+      {/* Row 2: difficulty + time + take + search */}
       <div
-        className={[
-          "mt-2 flex flex-wrap items-center gap-x-6 gap-y-2 bs-label",
-          moreOpen ? "flex" : "hidden sm:flex",
-        ].join(" ")}
+        className="learn-filter-rail__row2"
+        style={{ display: moreOpen ? "flex" : undefined }}
+        data-open={moreOpen ? "true" : "false"}
       >
-        {/* Difficulty */}
-        <div className="flex items-center gap-3">
-          <span style={{ color: "var(--ink-soft)", fontSize: "11px" }}>Level:</span>
-          {DIFFICULTY_FILTERS.map((f) => {
-            const active = diff === f.key;
-            return (
-              <button
-                key={f.key}
-                type="button"
-                onClick={() => update({ diff: f.key })}
-                className="shrink-0 whitespace-nowrap transition-colors"
-                style={{
-                  color: active ? "var(--stamp)" : "var(--ink-soft)",
-                  textDecoration: active ? "underline" : "none",
-                  textUnderlineOffset: "4px",
-                }}
-              >
-                {f.label}
-              </button>
-            );
-          })}
+        <div className="learn-filter-rail__group">
+          <span className="learn-filter-rail__group-label">Level:</span>
+          {DIFFICULTY_FILTERS.map((f) => (
+            <button
+              key={f.key}
+              type="button"
+              onClick={() => update({ diff: f.key })}
+              className="learn-filter-rail__opt"
+              data-active={diff === f.key ? "true" : "false"}
+            >
+              {f.label}
+            </button>
+          ))}
         </div>
-
-        {/* Divider */}
-        <span className="opacity-30" style={{ color: "var(--ink-soft)" }}>|</span>
-
-        {/* Time */}
-        <div className="flex items-center gap-3">
-          <span style={{ color: "var(--ink-soft)", fontSize: "11px" }}>Time:</span>
-          {TIME_FILTERS.map((f) => {
-            const active = time === f.key;
-            return (
-              <button
-                key={f.key}
-                type="button"
-                onClick={() => update({ time: f.key })}
-                className="shrink-0 whitespace-nowrap transition-colors"
-                style={{
-                  color: active ? "var(--stamp)" : "var(--ink-soft)",
-                  textDecoration: active ? "underline" : "none",
-                  textUnderlineOffset: "4px",
-                }}
-              >
-                {f.label}
-              </button>
-            );
-          })}
+        <span className="learn-filter-rail__divider">|</span>
+        <div className="learn-filter-rail__group">
+          <span className="learn-filter-rail__group-label">Time:</span>
+          {TIME_FILTERS.map((f) => (
+            <button
+              key={f.key}
+              type="button"
+              onClick={() => update({ time: f.key })}
+              className="learn-filter-rail__opt"
+              data-active={time === f.key ? "true" : "false"}
+            >
+              {f.label}
+            </button>
+          ))}
         </div>
-
-        {/* Divider */}
-        <span className="opacity-30" style={{ color: "var(--ink-soft)" }}>|</span>
-
-        {/* Our Take toggle */}
+        <span className="learn-filter-rail__divider">|</span>
         <button
           type="button"
           onClick={() => update({ take: take ? null : "1" })}
-          className="shrink-0 whitespace-nowrap bs-stamp transition-colors"
+          className="learn-filter-rail__opt"
+          data-active={take ? "true" : "false"}
           style={{
-            fontSize: "11px",
-            color: take ? "var(--stamp)" : "var(--ink-soft)",
-            textDecoration: take ? "underline" : "none",
-            textUnderlineOffset: "4px",
+            color: take ? "var(--stamp)" : "var(--ink-mute)",
+            textTransform: "uppercase",
+            letterSpacing: "0.16em",
+            fontSize: 11,
+            fontWeight: 700,
           }}
         >
-          {take ? "✓ Our Take" : "Our Take"}
+          {take ? "☑ Our Take only" : "☐ Our Take only"}
         </button>
 
-        {/* Clear all */}
         {hasFilters && (
           <>
-            <span className="opacity-30" style={{ color: "var(--ink-soft)" }}>|</span>
+            <span className="learn-filter-rail__divider">|</span>
             <button
               type="button"
               onClick={clearAll}
-              className="bs-label transition-colors"
-              style={{ color: "var(--ink-soft)", fontSize: "11px" }}
+              className="learn-filter-rail__opt"
+              style={{
+                color: "var(--ink-mute)",
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: "0.16em",
+                textTransform: "uppercase",
+              }}
             >
               Clear all
             </button>
           </>
         )}
+
+        <label className="learn-filter-rail__search">
+          <span className="learn-filter-rail__search-icon" aria-hidden>
+            ⌕
+          </span>
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => update({ q: e.target.value })}
+            placeholder={`Search ${articles.length} dispatches…`}
+            aria-label="Search dispatches"
+          />
+        </label>
       </div>
+
+      <style jsx>{`
+        @media (max-width: 1023px) {
+          [data-open="false"] {
+            display: none;
+          }
+        }
+      `}</style>
     </div>
   );
 }

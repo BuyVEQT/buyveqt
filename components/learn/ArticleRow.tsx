@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import type { ArticleFrontmatter } from "@/lib/articles";
 import { isInteractive } from "@/lib/interactive-slugs";
 
 interface ArticleRowProps {
   article: ArticleFrontmatter;
+  /** Compact variant — used in "Read next" / related strips. */
+  compact?: boolean;
 }
 
 const DIFFICULTY_LABEL: Record<string, string> = {
@@ -15,21 +17,33 @@ const DIFFICULTY_LABEL: Record<string, string> = {
   advanced: "Advanced",
 };
 
-export default function ArticleRow({ article }: ArticleRowProps) {
+/**
+ * Round 4 v2 article row. The main visual atom of /learn — used in the
+ * grouped category sections, the filtered list, and the "Read next"
+ * related strip.
+ *
+ * Variants:
+ *  - editorial (frontmatter.isEditorial): vermilion left-rule + "Our Take"
+ *    stamp eyebrow, body slightly indented.
+ *  - interactive (slug in INTERACTIVE_SLUGS): small outlined "Tool" badge
+ *    next to the title.
+ *  - default: bare row with a top hairline.
+ *
+ * Tags are clickable buttons that navigate to /learn?tag=X for filtering.
+ */
+export default function ArticleRow({ article, compact = false }: ArticleRowProps) {
   const router = useRouter();
-  const params = useSearchParams();
   const interactive = isInteractive(article.slug);
   const editorial = article.isEditorial === true;
-
-  const variant: "editorial" | "interactive" | "default" = editorial
-    ? "editorial"
-    : interactive
-    ? "interactive"
-    : "default";
-
+  const diffLabel =
+    article.difficulty && article.difficulty !== "beginner"
+      ? DIFFICULTY_LABEL[article.difficulty]
+      : null;
   const tags = (article.tags ?? []).slice(0, 3);
 
-  function handleTagClick(tag: string) {
+  function handleTagClick(e: React.MouseEvent, tag: string) {
+    e.preventDefault();
+    e.stopPropagation();
     const next = new URLSearchParams();
     next.set("tag", tag);
     router.replace(`/learn?${next.toString()}`, { scroll: false });
@@ -37,96 +51,144 @@ export default function ArticleRow({ article }: ArticleRowProps) {
 
   return (
     <li
-      className={
-        variant === "editorial" ? "border-l-2 ml-3 pl-3" : undefined
-      }
-      style={
-        variant === "editorial" ? { borderColor: "var(--stamp)" } : undefined
-      }
+      className="learn-row"
+      data-variant={editorial ? "editorial" : "default"}
+      data-compact={compact ? "true" : "false"}
     >
-      <div className="py-4 sm:py-5 border-t border-[var(--color-border)]">
-        {variant === "editorial" && (
-          <p
-            className="bs-stamp mb-1"
-            style={{ fontSize: "10px", color: "var(--stamp)" }}
-          >
-            Our Take
-          </p>
-        )}
-        <Link
-          href={`/learn/${article.slug}`}
-          className="group block"
+      {editorial && (
+        <div
+          className="ed-label"
+          style={{ color: "var(--stamp)", marginBottom: 6 }}
         >
-          <div className="min-w-0">
-            <div className="flex items-start justify-between gap-3">
+          Our Take
+        </div>
+      )}
+      <Link
+        href={`/learn/${article.slug}`}
+        className="learn-row__link"
+        aria-label={article.title}
+      >
+        <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 12 }}>
+          <div style={{ minWidth: 0 }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "baseline",
+                gap: 10,
+                flexWrap: "wrap",
+              }}
+            >
               <h3
-                className="bs-display text-[1.125rem] sm:text-[1.375rem] leading-[1.2] group-hover:text-[var(--stamp)] transition-colors"
-                style={{ color: "var(--ink)" }}
+                className="ed-display"
+                style={{
+                  fontSize: compact ? 17 : "clamp(1.0625rem, 1.8vw, 1.25rem)",
+                  lineHeight: 1.2,
+                  letterSpacing: "-0.012em",
+                  color: "var(--ink)",
+                  margin: 0,
+                  fontWeight: 500,
+                }}
               >
                 {article.title}
               </h3>
               {interactive && (
                 <span
-                  className="bs-stamp shrink-0 mt-0.5"
+                  className="ed-label"
                   style={{
-                    fontSize: "9px",
                     color: "var(--stamp)",
                     border: "1px solid var(--stamp)",
-                    padding: "1px 4px",
-                    lineHeight: "1.4",
+                    padding: "2px 6px 1px",
+                    borderRadius: 3,
+                    flexShrink: 0,
                     whiteSpace: "nowrap",
+                    fontSize: 9,
                   }}
                 >
                   Tool
                 </span>
               )}
             </div>
-            <p
-              className="bs-caption mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1"
-              style={{ color: "var(--ink-soft)" }}
+            <div
+              className="ed-label"
+              style={{
+                marginTop: 6,
+                color: "var(--ink-mute)",
+                letterSpacing: "0.04em",
+                display: "flex",
+                gap: 10,
+                alignItems: "center",
+                flexWrap: "wrap",
+                textTransform: "none",
+                fontSize: 11,
+                fontWeight: 500,
+              }}
             >
               <span>{article.readingTime}</span>
-              {article.difficulty && article.difficulty !== "beginner" && (
+              {diffLabel && (
                 <>
-                  <span className="opacity-40">·</span>
-                  <span>{DIFFICULTY_LABEL[article.difficulty]}</span>
+                  <span style={{ opacity: 0.4 }}>·</span>
+                  <span>{diffLabel}</span>
                 </>
               )}
-            </p>
-            {(article.excerpt || article.description) && (
+            </div>
+            {!compact && (article.excerpt || article.description) && (
               <p
-                className="bs-body text-[0.95rem] mt-2 leading-[1.45] max-w-[60ch]"
-                style={{ color: "var(--ink)" }}
+                style={{
+                  fontFamily: "var(--font-serif)",
+                  fontSize: 14.5,
+                  lineHeight: 1.5,
+                  color: "var(--ink-soft)",
+                  marginTop: 8,
+                  marginBottom: 0,
+                  maxWidth: "52ch",
+                }}
               >
                 {article.excerpt || article.description}
               </p>
             )}
           </div>
-        </Link>
-        {tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-2">
-            {tags.map((tag) => (
-              <button
-                key={tag}
-                type="button"
-                onClick={() => handleTagClick(tag)}
-                className="bs-caption"
-                style={{
-                  color: "var(--ink-soft)",
-                  fontSize: "11px",
-                  border: "1px solid var(--color-border)",
-                  padding: "1px 6px",
-                  borderRadius: "2px",
-                  background: "transparent",
-                  cursor: "pointer",
-                }}
-              >
-                {tag}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+          <span
+            aria-hidden
+            style={{
+              color: "var(--ink-mute)",
+              fontSize: 18,
+              alignSelf: "center",
+            }}
+          >
+            ›
+          </span>
+        </div>
+      </Link>
+      {!compact && tags.length > 0 && (
+        <div
+          style={{
+            marginTop: 10,
+            display: "flex",
+            gap: 6,
+            flexWrap: "wrap",
+          }}
+        >
+          {tags.map((tag) => (
+            <button
+              key={tag}
+              type="button"
+              onClick={(e) => handleTagClick(e, tag)}
+              style={{
+                fontSize: 10.5,
+                color: "var(--ink-mute)",
+                fontFamily: "var(--font-sans)",
+                border: "1px solid var(--rule-soft)",
+                background: "transparent",
+                padding: "2px 7px",
+                borderRadius: 2,
+                cursor: "pointer",
+              }}
+            >
+              #{tag}
+            </button>
+          ))}
+        </div>
+      )}
     </li>
   );
 }

@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import SectionLabel from "@/components/ui/SectionLabel";
 
 interface MarginalContentsProps {
-  /** Optional verdict card rendered above the TOC (or null). */
+  /** Optional verdict callout rendered above the TOC (or null). */
   verdict?: React.ReactNode;
+  /** Article tags rendered in their own card at the bottom. */
+  tags?: string[];
 }
 
 interface Heading {
@@ -21,12 +24,18 @@ function slugify(text: string): string {
 }
 
 /**
- * Desktop reader sidecar (xl+). Renders the verdict callout (when
- * provided) and a sticky TOC built from in-body h2s. The in-view h2
- * gets a 2px vermilion left-border. Hidden below lg via the parent
- * grid; this component itself just renders.
+ * Round 4 v2 — desktop reader sidecar (xl+). Three stacked cards:
+ *   1. <VerdictCallout> (Card dark) — shown when the article is editorial.
+ *   2. "Article contents" TOC — h2 anchors, active one gets vermilion left rule.
+ *   3. "Tags" card — clickable #pills → /learn?tag=X.
+ *
+ * Hidden below lg via the parent grid (article-sidecar { display: none; }).
  */
-export default function MarginalContents({ verdict }: MarginalContentsProps) {
+export default function MarginalContents({
+  verdict,
+  tags = [],
+}: MarginalContentsProps) {
+  const router = useRouter();
   const [headings, setHeadings] = useState<Heading[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -46,26 +55,26 @@ export default function MarginalContents({ verdict }: MarginalContentsProps) {
     setHeadings(found);
     if (found.length > 0) setActiveId(found[0].id);
 
-    // Observe each h2 to highlight the in-view one.
     const observer = new IntersectionObserver(
       (entries) => {
         const visible = entries
           .filter((e) => e.isIntersecting)
           .map((e) => e.target.id);
-        if (visible.length > 0) {
-          setActiveId(visible[0]);
-        }
+        if (visible.length > 0) setActiveId(visible[0]);
       },
-      {
-        rootMargin: "-20% 0px -65% 0px",
-        threshold: [0, 0.5, 1],
-      }
+      { rootMargin: "-20% 0px -65% 0px", threshold: [0, 0.5, 1] }
     );
     nodes.forEach((n) => observer.observe(n));
     return () => observer.disconnect();
   }, []);
 
-  if (!verdict && headings.length === 0) return null;
+  const cleanTags = tags.filter(Boolean).slice(0, 8);
+  const hasAnything = !!verdict || headings.length > 0 || cleanTags.length > 0;
+  if (!hasAnything) return null;
+
+  function goToTag(t: string) {
+    router.push(`/learn?tag=${encodeURIComponent(t)}`);
+  }
 
   return (
     <aside
@@ -79,6 +88,7 @@ export default function MarginalContents({ verdict }: MarginalContentsProps) {
       }}
     >
       {verdict}
+
       {headings.length > 0 && (
         <div
           style={{
@@ -89,7 +99,7 @@ export default function MarginalContents({ verdict }: MarginalContentsProps) {
           }}
         >
           <SectionLabel>Article contents</SectionLabel>
-          <div
+          <nav
             style={{
               marginTop: 14,
               display: "flex",
@@ -121,6 +131,55 @@ export default function MarginalContents({ verdict }: MarginalContentsProps) {
                 </a>
               );
             })}
+          </nav>
+        </div>
+      )}
+
+      {cleanTags.length > 0 && (
+        <div
+          style={{
+            padding: "14px 18px",
+            border: "1px solid var(--rule-soft)",
+            borderRadius: 14,
+          }}
+        >
+          <SectionLabel>Tags</SectionLabel>
+          <div
+            style={{
+              marginTop: 10,
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 6,
+            }}
+          >
+            {cleanTags.map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => goToTag(t)}
+                style={{
+                  fontSize: 11,
+                  color: "var(--ink-mute)",
+                  fontFamily: "var(--font-sans)",
+                  border: "1px solid var(--rule-soft)",
+                  padding: "2px 8px",
+                  borderRadius: 2,
+                  background: "transparent",
+                  cursor: "pointer",
+                  transition: "color 0.15s, border-color 0.15s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = "var(--stamp)";
+                  e.currentTarget.style.borderColor = "var(--stamp)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = "var(--ink-mute)";
+                  e.currentTarget.style.borderColor = "var(--rule-soft)";
+                }}
+              >
+                #{t}
+              </button>
+            ))}
           </div>
         </div>
       )}

@@ -1,49 +1,124 @@
 import Link from "next/link";
 import type { ArticleFrontmatter } from "@/lib/articles";
 import { EDITORS_PICKS } from "@/lib/editors-picks";
+import { isInteractive } from "@/lib/interactive-slugs";
+import SectionHead from "@/components/ui/SectionHead";
 
 interface EditorsPicksProps {
   articles: ArticleFrontmatter[];
 }
 
+/**
+ * "Editor's picks" 3-up card row, shown only when no filters are
+ * active on /learn. Cards: time + optional Tool badge eyebrow,
+ * Fraunces title, Newsreader italic blurb.
+ */
 export default function EditorsPicks({ articles }: EditorsPicksProps) {
-  const picks = EDITORS_PICKS.map((slug) =>
-    articles.find((a) => a.slug === slug)
-  ).filter((a): a is ArticleFrontmatter => !!a);
+  const picks = EDITORS_PICKS
+    .map((slug) => articles.find((a) => a.slug === slug))
+    .filter((a): a is ArticleFrontmatter => !!a);
 
   if (picks.length === 0) return null;
 
   return (
-    <section className="mt-2 mb-8 sm:mb-10">
-      <p className="bs-stamp mb-4">Editor&rsquo;s Picks</p>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {picks.map((article) => (
-          <Link
-            key={article.slug}
-            href={`/learn/${article.slug}`}
-            className="group flex flex-col p-4 border border-[var(--color-border)] hover:border-[var(--stamp)] transition-colors"
-            style={{ background: "var(--paper)" }}
-          >
-            <h3
-              className="bs-display text-[1.0625rem] sm:text-[1.125rem] leading-[1.1] mb-2 group-hover:text-[var(--stamp)] transition-colors"
-              style={{ color: "var(--ink)" }}
+    <section style={{ paddingTop: 4 }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "baseline",
+          marginBottom: 16,
+          flexWrap: "wrap",
+          gap: 8,
+        }}
+      >
+        <SectionHead
+          kicker="Editor's picks"
+          title="Three to start with."
+          size="lg"
+        />
+        <span
+          style={{
+            fontFamily: "var(--font-serif)",
+            fontStyle: "italic",
+            fontSize: 14,
+            color: "var(--ink-mute)",
+          }}
+        >
+          If you only read three things this month.
+        </span>
+      </div>
+
+      <div className="learn-picks-grid">
+        {picks.map((a) => {
+          const tool = isInteractive(a.slug);
+          return (
+            <Link
+              key={a.slug}
+              href={`/learn/${a.slug}`}
+              style={{
+                display: "block",
+                padding: "18px 18px 16px",
+                background: "var(--paper-light)",
+                border: "1px solid var(--rule-soft)",
+                borderRadius: 12,
+                textDecoration: "none",
+                color: "inherit",
+                transition: "background 0.15s, transform 0.12s",
+              }}
             >
-              {article.title}
-            </h3>
-            <p
-              className="bs-body text-[0.875rem] leading-[1.45] mb-3 flex-1"
-              style={{ color: "var(--ink-soft)" }}
-            >
-              {article.excerpt || article.description}
-            </p>
-            <p
-              className="bs-label text-[0.75rem] mt-auto"
-              style={{ color: "var(--ink-soft)" }}
-            >
-              {article.readingTime} &nbsp;&rarr;
-            </p>
-          </Link>
-        ))}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: 10,
+                }}
+              >
+                <span className="ed-label" style={{ color: "var(--ink-mute)" }}>
+                  {a.readingTime}
+                </span>
+                {tool && (
+                  <span
+                    className="ed-label"
+                    style={{
+                      color: "var(--stamp)",
+                      border: "1px solid var(--stamp)",
+                      padding: "2px 6px",
+                      borderRadius: 3,
+                      fontSize: 9,
+                    }}
+                  >
+                    Tool
+                  </span>
+                )}
+              </div>
+              <div
+                className="ed-display"
+                style={{
+                  fontSize: 18,
+                  lineHeight: 1.2,
+                  letterSpacing: "-0.012em",
+                  color: "var(--ink)",
+                }}
+              >
+                {a.title}
+              </div>
+              <div
+                style={{
+                  fontFamily: "var(--font-serif)",
+                  fontStyle: "italic",
+                  fontSize: 13,
+                  lineHeight: 1.5,
+                  color: "var(--ink-soft)",
+                  marginTop: 8,
+                }}
+              >
+                {a.excerpt || a.description}
+              </div>
+            </Link>
+          );
+        })}
       </div>
     </section>
   );

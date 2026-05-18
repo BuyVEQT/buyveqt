@@ -1,6 +1,6 @@
-import Link from "next/link";
-import SectionLabel from "@/components/ui/SectionLabel";
 import { getAllArticles, type ArticleFrontmatter } from "@/lib/articles";
+import SectionLabel from "@/components/ui/SectionLabel";
+import ArticleRow from "./ArticleRow";
 
 interface RelatedArticlesProps {
   /** Current article's slug — excluded from the pick list. */
@@ -12,9 +12,11 @@ interface RelatedArticlesProps {
 }
 
 /**
- * "Read next" strip at the bottom of the article reader. Two compact
- * cards picked from explicit relatedSlugs first, then same-category,
- * then anything. Pure server component.
+ * Round 4 v2 — "Also worth reading" strip at the bottom of the
+ * article reader. Two compact ArticleRows picked from:
+ *   1. explicit relatedSlugs (front-matter),
+ *   2. same-category articles,
+ *   3. anything (last-resort fill).
  */
 export default function RelatedArticles({
   currentSlug,
@@ -50,70 +52,13 @@ export default function RelatedArticles({
   if (picks.length === 0) return null;
 
   return (
-    <section
-      style={{
-        marginTop: 40,
-        paddingTop: 24,
-        borderTop: "1px solid var(--rule-soft)",
-      }}
-    >
-      <SectionLabel style={{ marginBottom: 14 }}>Read next</SectionLabel>
-      <div className="related-grid">
+    <section style={{ marginTop: 40, paddingTop: 20, borderTop: "1px solid var(--rule-soft)" }}>
+      <SectionLabel style={{ marginBottom: 6 }}>Also worth reading</SectionLabel>
+      <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
         {picks.map((a) => (
-          <Link
-            key={a.slug}
-            href={`/learn/${a.slug}`}
-            className="related-card"
-          >
-            <div
-              style={{
-                display: "flex",
-                gap: 8,
-                alignItems: "center",
-                marginBottom: 6,
-              }}
-            >
-              <span
-                style={{
-                  fontSize: 9,
-                  fontWeight: 700,
-                  letterSpacing: "0.22em",
-                  textTransform: "uppercase",
-                  color: "var(--ink-mute)",
-                }}
-              >
-                {a.readingTime}
-              </span>
-            </div>
-            <div
-              style={{
-                fontFamily: "var(--font-display)",
-                fontWeight: 500,
-                fontSize: 18,
-                lineHeight: 1.2,
-                color: "var(--ink)",
-                letterSpacing: "-0.012em",
-              }}
-            >
-              {a.title}
-            </div>
-            {(a.excerpt || a.description) && (
-              <div
-                style={{
-                  fontFamily: "var(--font-serif)",
-                  fontSize: 13.5,
-                  lineHeight: 1.5,
-                  color: "var(--ink-soft)",
-                  marginTop: 6,
-                }}
-              >
-                {a.excerpt || a.description}
-              </div>
-            )}
-          </Link>
+          <ArticleRow key={a.slug} article={a} compact />
         ))}
-      </div>
-
+      </ul>
     </section>
   );
 }

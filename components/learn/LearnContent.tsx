@@ -8,6 +8,7 @@ import ArticleRow from "./ArticleRow";
 import FilterRail from "./FilterRail";
 import PathsGrid from "./PathsGrid";
 import EditorsPicks from "./EditorsPicks";
+import NewsletterCard from "./NewsletterCard";
 
 interface LearnContentProps {
   articles: ArticleFrontmatter[];
@@ -20,21 +21,41 @@ type CategoryKey =
   | "veqt-deep-dive"
   | "opinion";
 
-const CATEGORY_HEADINGS: Partial<Record<CategoryKey, string>> = {
-  beginner: "The Basics",
-  comparison: "Head-to-Head",
-  "tax-strategy": "Tax & Accounts",
-  "veqt-deep-dive": "The Deep Dive",
-  opinion: "Opinion",
+const CATEGORY_HEADINGS: Record<
+  CategoryKey,
+  { title: string; italic?: string; blurb: string }
+> = {
+  beginner: {
+    title: "The Basics",
+    blurb: "Core concepts every VEQT investor should know.",
+  },
+  comparison: {
+    title: "Head-to-Head",
+    blurb: "Side-by-side breakdowns against the field.",
+  },
+  "tax-strategy": {
+    title: "Tax & Accounts",
+    blurb: "TFSAs, RRSPs, FHSAs, withdrawals — making the account work.",
+  },
+  "veqt-deep-dive": {
+    title: "The Deep Dive",
+    blurb: "Mechanics: distributions, currency risk, home bias, costs.",
+  },
+  opinion: {
+    title: "Opinion",
+    italic: "Opinion",
+    blurb: "Our takes on covered calls, forex, and other distractions.",
+  },
 };
 
-const CATEGORY_BLURB: Partial<Record<CategoryKey, string>> = {
-  beginner: "Core concepts every VEQT investor should know.",
-  comparison: "Side-by-side breakdowns against the field.",
-  "tax-strategy": "TFSAs, RRSPs, FHSAs, withdrawals — making the account work.",
-  "veqt-deep-dive": "Mechanics: distributions, currency risk, home bias, costs.",
-  opinion: "Our takes on covered calls, forex, and other distractions.",
-};
+/** Order matters — these run top-down on the default index. */
+const CATEGORY_ORDER: CategoryKey[] = [
+  "beginner",
+  "comparison",
+  "tax-strategy",
+  "veqt-deep-dive",
+  "opinion",
+];
 
 function readingMinutes(s: string): number {
   const m = s.match(/(\d+)/);
@@ -48,6 +69,13 @@ function timeBucket(s: string): "quick" | "standard" | "long" {
   return "long";
 }
 
+/**
+ * Round 4 v2 Learn index content. Composes:
+ *  - FilterRail (sticky, URL-driven)
+ *  - EditorsPicks + PathsGrid (default state only)
+ *  - Grouped sections by category (default) OR filtered list (filters on)
+ *  - NewsletterCard at the bottom
+ */
 export default function LearnContent({ articles }: LearnContentProps) {
   const params = useSearchParams();
 
@@ -58,7 +86,8 @@ export default function LearnContent({ articles }: LearnContentProps) {
   const search = params.get("q") ?? "";
   const tag = params.get("tag") ?? null;
 
-  const isDefault = !cat && !diff && !time && !take && !search && !tag;
+  const isDefault =
+    !cat && !diff && !time && !take && !search.trim() && !tag;
 
   const filtered = useMemo(() => {
     let pool = articles;
@@ -70,7 +99,7 @@ export default function LearnContent({ articles }: LearnContentProps) {
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       pool = pool.filter((a) => {
-        const haystack = [
+        const hay = [
           a.title,
           a.description,
           a.excerpt ?? "",
@@ -78,72 +107,42 @@ export default function LearnContent({ articles }: LearnContentProps) {
         ]
           .join(" ")
           .toLowerCase();
-        return haystack.includes(q);
+        return hay.includes(q);
       });
     }
     return pool;
   }, [articles, cat, diff, time, take, search, tag]);
 
-  // Grouped view: shown only in default state (no filters active)
-  const grouped = useMemo(() => {
-    const buckets: Record<string, ArticleFrontmatter[]> = {};
-    for (const a of filtered) {
-      const key = a.category ?? "beginner";
-      if (!buckets[key]) buckets[key] = [];
-      buckets[key].push(a);
-    }
-    return buckets;
-  }, [filtered]);
-
-  const showGrouped = isDefault;
-
   return (
     <>
-      <FilterRail />
+      <FilterRail articles={articles} />
 
-      {/* Editor's Picks — only in default state */}
-      {isDefault && <EditorsPicks articles={articles} />}
+      {isDefault && (
+        <>
+          <EditorsPicks articles={articles} />
+          <PathsGrid />
+        </>
+      )}
 
-      {/* Paths grid — only in default state */}
-      {isDefault && <PathsGrid articles={articles} />}
-
-      {/* Main content */}
-      {showGrouped ? (
-        <div className="mt-4 space-y-12 sm:space-y-16">
-          {(
-            [
-              "beginner",
-              "comparison",
-              "tax-strategy",
-              "veqt-deep-dive",
-            ] as CategoryKey[]
-          ).map((catKey) => {
-            const entries = grouped[catKey] ?? [];
-            if (entries.length === 0) return null;
+      {isDefault ? (
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          {CATEGORY_ORDER.map((catKey) => {
+            const items = articles.filter((a) => a.category === catKey);
+            if (items.length === 0) return null;
+            const heading = CATEGORY_HEADINGS[catKey];
             return (
-              <section key={catKey}>
-                <div className="flex items-baseline justify-between gap-4 mb-2">
-                  <h2
-                    className="bs-display text-[1.75rem] sm:text-[2rem]"
-                    style={{ color: "var(--ink)" }}
-                  >
-                    {CATEGORY_HEADINGS[catKey]}
+              <section key={catKey} className="learn-category-section">
+                <div className="learn-category-section__head">
+                  <h2 className={`learn-category-section__h2 ${catKey === "opinion" ? "learn-category-section__h2--italic" : ""}`}>
+                    {heading.title}
                   </h2>
-                  <p
-                    className="bs-label tabular-nums"
-                    style={{ color: "var(--ink-soft)" }}
-                  >
-                    {entries.length} dispatches
-                  </p>
+                  <span className="learn-category-section__count">
+                    {items.length} dispatches
+                  </span>
                 </div>
-                <p
-                  className="bs-caption italic mb-2"
-                  style={{ color: "var(--ink-soft)" }}
-                >
-                  {CATEGORY_BLURB[catKey]}
-                </p>
-                <ul>
-                  {entries.map((article) => (
+                <p className="learn-category-section__blurb">{heading.blurb}</p>
+                <ul className="learn-category-section__list">
+                  {items.map((article) => (
                     <ArticleRow key={article.slug} article={article} />
                   ))}
                 </ul>
@@ -152,19 +151,33 @@ export default function LearnContent({ articles }: LearnContentProps) {
           })}
         </div>
       ) : (
-        <div className="mt-8 sm:mt-10">
+        <div style={{ marginTop: 24 }}>
           {filtered.length === 0 ? (
             <p
-              className="bs-body italic py-12 text-center"
-              style={{ color: "var(--ink-soft)" }}
+              style={{
+                fontFamily: "var(--font-serif)",
+                fontStyle: "italic",
+                padding: "48px 0",
+                textAlign: "center",
+                color: "var(--ink-mute)",
+              }}
             >
               No dispatches match that.{" "}
-              <Link href="/learn" className="bs-link underline">
+              <Link
+                href="/learn"
+                style={{ color: "var(--stamp)", textDecoration: "underline" }}
+              >
                 Clear filters.
               </Link>
             </p>
           ) : (
-            <ul>
+            <ul
+              style={{
+                listStyle: "none",
+                margin: 0,
+                padding: 0,
+              }}
+            >
               {filtered.map((article) => (
                 <ArticleRow key={article.slug} article={article} />
               ))}
@@ -172,6 +185,10 @@ export default function LearnContent({ articles }: LearnContentProps) {
           )}
         </div>
       )}
+
+      <div style={{ marginTop: 48 }}>
+        <NewsletterCard />
+      </div>
     </>
   );
 }

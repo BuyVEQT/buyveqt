@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getArticleBySlug, getAllSlugs } from "@/lib/articles";
+import { getArticleBySlug, getAllSlugs, getAdjacentArticles } from "@/lib/articles";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { buildBreadcrumbSchema, canonicalUrl, SITE_NAME } from "@/lib/seo-config";
 import ArticleHeader from "@/components/learn/ArticleHeader";
@@ -8,6 +8,10 @@ import ArticleBody from "@/components/learn/ArticleBody";
 import VerdictCallout from "@/components/learn/VerdictCallout";
 import MarginalContents from "@/components/learn/MarginalContents";
 import RelatedArticles from "@/components/learn/RelatedArticles";
+import ReadingProgress from "@/components/learn/ReadingProgress";
+import NextDispatch from "@/components/learn/NextDispatch";
+import NewsletterCard from "@/components/learn/NewsletterCard";
+import SeverityMeterAuto from "@/components/broadsheet/SeverityMeterAuto";
 import Lede from "@/components/ui/Lede";
 
 export function generateStaticParams() {
@@ -47,22 +51,13 @@ export async function generateMetadata({
   };
 }
 
-/** Same five-chip mapping as ArticleList — keeps the kicker on the
- *  reader page consistent with how it was labelled in the index list. */
-function chipLabel(category?: string): string {
-  switch (category) {
-    case "comparison":
-      return "Compare";
-    case "opinion":
-      return "Behavior";
-    case "veqt-deep-dive":
-      return "Mechanics";
-    case "tax-strategy":
-    case "beginner":
-    default:
-      return "How-to";
-  }
-}
+const CATEGORY_LABEL: Record<string, string> = {
+  beginner: "The Basics",
+  comparison: "Head-to-Head",
+  "tax-strategy": "Tax & Accounts",
+  "veqt-deep-dive": "The Deep Dive",
+  opinion: "Opinion",
+};
 
 export default async function LearnArticlePage({
   params,
@@ -77,21 +72,14 @@ export default async function LearnArticlePage({
   }
 
   const { frontmatter, content } = article;
-  const categoryLabel = `Learn · ${chipLabel(frontmatter.category)}`;
+  const { next, previous } = getAdjacentArticles(slug);
+  const categoryLabel = `Learn · ${CATEGORY_LABEL[frontmatter.category ?? "beginner"] ?? "The Archive"}`;
 
-  // Editorial verdict shown in the sidecar (and inline on mobile). We
-  // derive a short italic headline from the article's excerpt — falls
-  // back to a tasteful default if unset.
-  const verdictHeadline = frontmatter.isEditorial
-    ? "Our verdict, in one line."
-    : null;
-
-  const verdictBody = frontmatter.isEditorial
-    ? frontmatter.excerpt ?? frontmatter.description
-    : null;
-
+  // Verdict in the sidecar (desktop) + inline (mobile). Only when isEditorial.
   const verdict = frontmatter.isEditorial ? (
-    <VerdictCallout headline={verdictHeadline}>{verdictBody}</VerdictCallout>
+    <VerdictCallout headline="Our verdict, in one line.">
+      {frontmatter.excerpt ?? frontmatter.description}
+    </VerdictCallout>
   ) : null;
 
   return (
@@ -102,6 +90,8 @@ export default async function LearnArticlePage({
         minHeight: "100dvh",
       }}
     >
+      <ReadingProgress />
+
       <JsonLd
         data={buildBreadcrumbSchema([
           { name: "Home", path: "/" },
@@ -139,7 +129,14 @@ export default async function LearnArticlePage({
 
         <div className="article-grid">
           <div>
-            <Lede style={{ fontSize: 18, lineHeight: 1.65, marginBottom: 22 }}>
+            {/* Inline severity reading on the panic-landing article. */}
+            {slug === "veqt-is-down" && (
+              <div style={{ marginTop: 24, marginBottom: 8 }}>
+                <SeverityMeterAuto compact />
+              </div>
+            )}
+
+            <Lede style={{ fontSize: 18, lineHeight: 1.65, marginTop: 28, marginBottom: 22 }}>
               {frontmatter.excerpt || frontmatter.description}
             </Lede>
             <ArticleBody content={content} />
@@ -150,6 +147,8 @@ export default async function LearnArticlePage({
               {verdict}
             </div>
 
+            <NextDispatch next={next} previous={previous} />
+
             <RelatedArticles
               currentSlug={slug}
               relatedSlugs={frontmatter.relatedSlugs}
@@ -157,8 +156,12 @@ export default async function LearnArticlePage({
             />
           </div>
           <div className="article-sidecar">
-            <MarginalContents verdict={verdict} />
+            <MarginalContents verdict={verdict} tags={frontmatter.tags ?? []} />
           </div>
+        </div>
+
+        <div style={{ marginTop: 56 }}>
+          <NewsletterCard compact />
         </div>
       </div>
 

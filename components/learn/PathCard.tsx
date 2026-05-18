@@ -1,80 +1,110 @@
 import Link from "next/link";
 import type { LearnPath } from "@/lib/learn-paths-data";
-import type { ArticleFrontmatter } from "@/lib/articles";
-
-const PREVIEW_COUNT = 3;
 
 interface PathCardProps {
   path: LearnPath;
-  articles: ArticleFrontmatter[];
+  icon: string;
+  accent?: boolean;
+  big?: boolean;
 }
 
-export default function PathCard({ path, articles }: PathCardProps) {
-  const pathArticles = path.slugs
-    .map((slug) => articles.find((a) => a.slug === slug))
-    .filter((a): a is ArticleFrontmatter => !!a);
-
-  const preview = pathArticles.slice(0, PREVIEW_COUNT);
-  const totalCount = pathArticles.length;
-  const hasMore = totalCount > PREVIEW_COUNT;
+/**
+ * Round 4 v2 path card. Six in the grid:
+ *  - icon tile (paper-warm on light, soft cream on dark)
+ *  - "N parts" small-caps eyebrow
+ *  - Fraunces title
+ *  - Newsreader italic blurb
+ *
+ * `accent` (used only on the "My VEQT is down" path) flips the card to
+ * the dark band styling so the most-urgent path reads prominently.
+ */
+export default function PathCard({ path, icon, accent = false, big = false }: PathCardProps) {
+  const bg = accent ? "#0f0d0a" : "var(--paper-light)";
+  const fg = accent ? "#f6efdc" : "var(--ink)";
+  const subFg = accent ? "rgba(246,239,220,0.75)" : "var(--ink-soft)";
+  const eyebrowFg = accent ? "rgba(246,239,220,0.55)" : "var(--ink-mute)";
+  const iconBg = accent ? "rgba(246,239,220,0.10)" : "var(--paper-warm)";
+  const iconFg = accent ? "#f6efdc" : "var(--stamp)";
+  const border = accent ? "none" : "1px solid var(--rule-soft)";
 
   return (
-    <div
-      className="flex flex-col p-5 border border-[var(--color-border)] hover:border-[var(--stamp)] transition-colors"
-      style={{ background: "var(--paper)" }}
+    <Link
+      href={`/learn/path/${path.id}`}
+      style={{
+        display: "block",
+        padding: big ? "20px 22px 22px" : "16px 18px",
+        background: bg,
+        color: fg,
+        border,
+        borderRadius: 14,
+        position: "relative",
+        overflow: "hidden",
+        textDecoration: "none",
+        cursor: "pointer",
+        transition: "transform 0.18s ease",
+      }}
     >
-      <h3
-        className="bs-display text-[1.25rem] sm:text-[1.5rem] leading-[1.1] mb-1"
-        style={{ color: "var(--ink)" }}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          marginBottom: 10,
+        }}
+      >
+        <span
+          aria-hidden
+          style={{
+            width: 30,
+            height: 30,
+            borderRadius: 8,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: iconBg,
+            color: iconFg,
+            fontFamily: "var(--font-display)",
+            fontSize: 18,
+          }}
+        >
+          {icon}
+        </span>
+        <span
+          style={{
+            fontFamily: "var(--font-sans)",
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing: "0.22em",
+            textTransform: "uppercase",
+            color: eyebrowFg,
+          }}
+        >
+          {path.slugs.length} parts
+        </span>
+      </div>
+      <div
+        className="ed-display"
+        style={{
+          fontSize: big ? 22 : 18,
+          lineHeight: 1.15,
+          letterSpacing: "-0.012em",
+          color: fg,
+        }}
       >
         {path.title}
-      </h3>
-      <p
-        className="bs-body italic text-[0.9rem] mb-4"
-        style={{ color: "var(--ink-soft)" }}
+      </div>
+      <div
+        style={{
+          fontFamily: "var(--font-serif)",
+          fontStyle: "italic",
+          fontSize: 13,
+          lineHeight: 1.5,
+          marginTop: 6,
+          color: subFg,
+        }}
       >
         {path.description}
-      </p>
-      <ul className="flex flex-col gap-2 mt-auto">
-        {preview.map((article, i) => (
-          <li key={article.slug}>
-            <Link
-              href={`/learn/${article.slug}`}
-              className="group flex items-baseline justify-between gap-3 py-1 border-t border-[var(--color-border)]"
-            >
-              <span
-                className="bs-body text-[0.875rem] leading-[1.35] group-hover:text-[var(--stamp)] transition-colors"
-                style={{ color: "var(--ink)" }}
-              >
-                <span
-                  className="bs-numerals tabular-nums mr-2"
-                  style={{ color: "var(--ink-soft)", fontSize: "11px" }}
-                >
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                {article.title}
-              </span>
-              <span
-                className="bs-caption shrink-0"
-                style={{ color: "var(--ink-soft)", fontSize: "11px" }}
-              >
-                {article.readingTime}
-              </span>
-            </Link>
-          </li>
-        ))}
-      </ul>
-      {hasMore && (
-        <div className="mt-3 pt-3 border-t border-[var(--color-border)]">
-          <Link
-            href={`/learn/path/${path.id}`}
-            className="bs-link text-[0.8125rem] hover:text-[var(--stamp)] transition-colors"
-            style={{ color: "var(--ink-soft)" }}
-          >
-            View full path ({totalCount} articles) &rarr;
-          </Link>
-        </div>
-      )}
-    </div>
+      </div>
+    </Link>
   );
 }

@@ -1,28 +1,64 @@
-import type { ArticleFrontmatter } from "@/lib/articles";
 import { LEARN_PATHS } from "@/lib/learn-paths-data";
+import SectionHead from "@/components/ui/SectionHead";
 import PathCard from "./PathCard";
 
-interface PathsGridProps {
-  articles: ArticleFrontmatter[];
-}
+/**
+ * Per the design ref: small icon glyphs per path, "down" gets the
+ * accent (dark card) so the most urgent path reads prominently.
+ */
+const PATH_ICON: Record<string, string> = {
+  new: "◐",
+  comparing: "⇋",
+  accounts: "☂",
+  down: "↓",
+  withdrawal: "Ω",
+  essays: "✒",
+};
 
-export default function PathsGrid({ articles }: PathsGridProps) {
+const ACCENT_PATHS = new Set(["down"]);
+
+/**
+ * 6-card path grid, shown only in the default (no-filter) state on
+ * /learn. 2-col on tablet, 3-col on desktop.
+ */
+export default function PathsGrid() {
   return (
-    <section className="mt-8 sm:mt-12 mb-10 sm:mb-14">
-      <div className="flex items-baseline gap-4 mb-5">
-        <h2
-          className="bs-display text-[1.5rem] sm:text-[1.875rem]"
-          style={{ color: "var(--ink)" }}
+    <section style={{ paddingTop: 12 }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "baseline",
+          marginBottom: 16,
+          flexWrap: "wrap",
+          gap: 8,
+        }}
+      >
+        <SectionHead
+          kicker="Find your path"
+          title="Six ways in."
+          size="lg"
+        />
+        <span
+          style={{
+            fontFamily: "var(--font-serif)",
+            fontStyle: "italic",
+            fontSize: 14,
+            color: "var(--ink-mute)",
+          }}
         >
-          Find your path.
-        </h2>
-        <p className="bs-caption italic" style={{ color: "var(--ink-soft)" }}>
-          Six ways in — choose the one that fits where you are.
-        </p>
+          Choose the one that fits where you are.
+        </span>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {LEARN_PATHS.map((path) => (
-          <PathCard key={path.id} path={path} articles={articles} />
+      <div className="learn-paths-grid">
+        {LEARN_PATHS.map((p) => (
+          <PathCard
+            key={p.id}
+            path={p}
+            icon={PATH_ICON[p.id] ?? "•"}
+            accent={ACCENT_PATHS.has(p.id)}
+            big
+          />
         ))}
       </div>
     </section>

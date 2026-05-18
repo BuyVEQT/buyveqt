@@ -1,15 +1,14 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { getAllArticles, type ArticleFrontmatter } from "@/lib/articles";
+import { getAllArticles } from "@/lib/articles";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { buildBreadcrumbSchema, canonicalUrl } from "@/lib/seo-config";
 import LearnHero from "@/components/learn/LearnHero";
-import CourseHero from "@/components/learn/CourseHero";
-import ArticleList from "@/components/learn/ArticleList";
+import LearnContent from "@/components/learn/LearnContent";
 
 export function generateMetadata(): Metadata {
   const count = getAllArticles().length;
-  const description = `${count} articles on VEQT, Canadian ETFs, tax-advantaged accounts, and building a passive portfolio. Written in plain English for real investors.`;
+  const description = `${count} dispatches on VEQT, Canadian ETFs, tax-advantaged accounts, and building a passive portfolio. Written in plain English for real investors.`;
   return {
     title: "Learn — VEQT & Canadian Passive Investing",
     description,
@@ -23,27 +22,14 @@ export function generateMetadata(): Metadata {
   };
 }
 
-/** Course One reading order — three foundational articles. The article
- *  cards in the dark hero link out to these slugs (validated below by
- *  filtering against the real article list). */
-const COURSE_ONE_SLUGS = [
-  "what-is-veqt",
-  "veqt-vs-diy-portfolio",
-  "veqt-is-down",
-];
-
+/**
+ * Round 4 v2 — /learn index. Composition lives in <LearnContent>:
+ * sticky filter rail, Editor's Picks, 6 reading paths, then grouped
+ * category sections (or filtered list when filters are active),
+ * with the newsletter card at the bottom.
+ */
 export default function LearnPage() {
-  const all = getAllArticles();
-
-  // Resolve the course-one slugs to real articles (skip silently if any
-  // ever goes missing — the hero just shrinks).
-  const courseSteps: ArticleFrontmatter[] = COURSE_ONE_SLUGS
-    .map((slug) => all.find((a) => a.slug === slug))
-    .filter((a): a is ArticleFrontmatter => !!a);
-
-  // Everything not in course one becomes the archive list.
-  const courseSet = new Set(courseSteps.map((a) => a.slug));
-  const archive = all.filter((a) => !courseSet.has(a.slug));
+  const articles = getAllArticles();
 
   return (
     <main
@@ -61,29 +47,27 @@ export default function LearnPage() {
       />
 
       <div className="learn-stack">
-        <LearnHero articleCount={all.length} />
-        <CourseHero steps={courseSteps} />
+        <LearnHero articleCount={articles.length} />
 
-        <section>
-          <Suspense fallback={null}>
-            <ArticleList articles={archive} />
-          </Suspense>
-        </section>
+        {/* LearnContent reads URL params via useSearchParams; needs Suspense. */}
+        <Suspense fallback={null}>
+          <LearnContent articles={articles} />
+        </Suspense>
       </div>
 
       <style>{`
         .learn-stack {
           display: flex;
           flex-direction: column;
-          gap: 26px;
+          gap: 32px;
           max-width: 1280px;
           margin: 0 auto;
-          padding: 20px 16px 56px;
+          padding: 20px 16px 16px;
         }
         @media (min-width: 1024px) {
           .learn-stack {
-            gap: 36px;
-            padding: 40px 40px 72px;
+            gap: 40px;
+            padding: 40px 40px 16px;
           }
         }
       `}</style>
