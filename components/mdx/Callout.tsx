@@ -19,7 +19,7 @@ const config: Record<
   },
   warning: {
     label: "Watch out",
-    borderColor: "#d97706",
+    borderColor: "var(--color-chart-orange)",
     bg: "rgba(217, 119, 6, 0.06)",
     icon: "\u26A0\uFE0F",
   },

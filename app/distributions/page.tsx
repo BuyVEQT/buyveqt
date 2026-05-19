@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     "VEQT pays one distribution a year, every late December — and it's grown every year since 2019. The full ledger, the next payout window, and what your stake pays.",
   alternates: { canonical: canonicalUrl("/distributions") },
   openGraph: {
-    title: "The Annual — VEQT Distribution History",
+    title: "The Annual — VEQT Distribution History & Income",
     description:
       "Every VEQT distribution since 2019 — what it paid, how it's grown, and what your stake earns.",
     url: canonicalUrl("/distributions"),

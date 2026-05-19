@@ -19,12 +19,12 @@ interface PathCardProps {
  * the dark band styling so the most-urgent path reads prominently.
  */
 export default function PathCard({ path, icon, accent = false, big = false }: PathCardProps) {
-  const bg = accent ? "#0f0d0a" : "var(--paper-light)";
-  const fg = accent ? "#f6efdc" : "var(--ink)";
+  const bg = accent ? "var(--band-ink)" : "var(--paper-light)";
+  const fg = accent ? "var(--band-paper)" : "var(--ink)";
   const subFg = accent ? "rgba(246,239,220,0.75)" : "var(--ink-soft)";
   const eyebrowFg = accent ? "rgba(246,239,220,0.55)" : "var(--ink-mute)";
   const iconBg = accent ? "rgba(246,239,220,0.10)" : "var(--paper-warm)";
-  const iconFg = accent ? "#f6efdc" : "var(--stamp)";
+  const iconFg = accent ? "var(--band-paper)" : "var(--stamp)";
   const border = accent ? "none" : "1px solid var(--rule-soft)";
 
   return (

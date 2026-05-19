@@ -19,7 +19,7 @@ import {
 
 const STRATEGIES = [
   { key: "veqt", label: "VEQT (Global Index)", rate: 0.085, color: "var(--color-positive)" },
-  { key: "dividend", label: "Dividend ETF", rate: 0.068, color: "#d97706" },
+  { key: "dividend", label: "Dividend ETF", rate: 0.068, color: "var(--color-chart-orange)" },
   { key: "covered", label: "Covered Call ETF", rate: 0.052, color: "var(--color-negative)" },
 ] as const;
 
@@ -179,8 +179,8 @@ export function CoveredCallGrowthChart() {
           <Area
             type="monotone"
             dataKey="dividend"
-            stroke="#d97706"
-            fill="#d97706"
+            stroke="var(--color-chart-orange)"
+            fill="var(--color-chart-orange)"
             fillOpacity={0.08}
             strokeWidth={1.5}
             dot={false}

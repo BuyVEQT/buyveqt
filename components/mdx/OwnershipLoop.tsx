@@ -370,8 +370,8 @@ export function OwnershipLoop({ compact }: OwnershipLoopProps = {}) {
         style={{
           marginTop: -1,
           padding: mobile ? "22px 22px 24px" : "28px 32px",
-          background: "#0f0d0a",
-          color: "#f6efdc",
+          background: "var(--band-ink)",
+          color: "var(--band-paper)",
           display: "grid",
           gridTemplateColumns: mobile ? "1fr" : "minmax(0, 1fr) minmax(0, 2fr)",
           gap: mobile ? 12 : 22,
@@ -402,7 +402,7 @@ export function OwnershipLoop({ compact }: OwnershipLoopProps = {}) {
               marginTop: 6,
               marginBottom: 0,
               letterSpacing: "-0.015em",
-              color: "#f6efdc",
+              color: "var(--band-paper)",
             }}
           >
             One company has<br />one master.

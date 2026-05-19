@@ -28,10 +28,11 @@ export default function Card({
       className={className}
       style={{
         // The dark band is a discipline color — must remain pure ink + paper
-        // regardless of theme. Using var(--ink)/var(--paper) breaks because
-        // those tokens swap in dark mode, turning the band cream.
-        background: dark ? "#0f0d0a" : "var(--paper-light)",
-        color: dark ? "#f6efdc" : "var(--ink)",
+        // regardless of theme. We use --band-ink/--band-paper (declared only
+        // in :root, no dark-mode override) so the band stays ink-on-cream
+        // even after dark mode is re-enabled.
+        background: dark ? "var(--band-ink)" : "var(--paper-light)",
+        color: dark ? "var(--band-paper)" : "var(--ink)",
         border: dark ? "none" : "1px solid var(--rule-soft)",
         borderRadius: radius,
         padding,

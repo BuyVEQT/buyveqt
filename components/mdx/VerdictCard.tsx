@@ -23,11 +23,11 @@ export function VerdictCard({
   const proseOverrides: CSSProperties = {
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     ...({
-      "--ink": "#f6efdc",
+      "--ink": "var(--band-paper)",
       "--ink-soft": "rgba(246, 239, 220, 0.86)",
       "--ink-mute": "rgba(246, 239, 220, 0.6)",
       "--color-text-secondary": "rgba(246, 239, 220, 0.86)",
-      "--color-text-primary": "#f6efdc",
+      "--color-text-primary": "var(--band-paper)",
       "--color-text-muted": "rgba(246, 239, 220, 0.6)",
       "--color-brand": "var(--stamp)",
       "--color-brand-dark": "var(--stamp)",
@@ -50,7 +50,7 @@ export function VerdictCard({
               fontWeight: 700,
               letterSpacing: "0.22em",
               textTransform: "uppercase",
-              color: "#f6efdc",
+              color: "var(--band-paper)",
               borderRadius: 3,
             }}
           >
@@ -63,7 +63,7 @@ export function VerdictCard({
               fontStyle: "italic",
               fontSize: "clamp(2rem, 5vw, 3rem)",
               lineHeight: 1.05,
-              color: "#f6efdc",
+              color: "var(--band-paper)",
               letterSpacing: "-0.022em",
               maxWidth: "18ch",
               margin: 0,

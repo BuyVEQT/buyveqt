@@ -51,6 +51,23 @@
   --green: #1d5431;
   --green-soft: rgba(29, 84, 49, 0.12);
   --amber: #8a6c1c;
+
+  /* ── Theme-invariant "dark band" tokens ────────────────────
+   * `--ink` and `--paper` swap in dark mode (ink becomes cream).
+   * The editorial "dark band" motif (verdict cards, dark headers,
+   * newsletter strip, calculator hat) must stay ink-on-cream
+   * regardless of theme. These two tokens are intentionally NOT
+   * overridden in [data-theme="dark"] so they remain stable.
+   * Source values mirror the light-mode --ink and --paper.        */
+  --band-ink: #0f0d0a;
+  --band-paper: #f6efdc;
+
+  /* ── Editorial chart accents ────────────────────────────────
+   * Used across MDX charts and callouts for the "data orange"
+   * highlight role. Standalone token so future palette tweaks
+   * don't require find-replace of #d97706 across 10+ files.   */
+  --color-chart-orange: #d97706;
+  --color-chart-orange-soft: rgba(217, 119, 6, 0.12);
 }
 
 /* ── Light mode — explicit overrides for reliability ──────── */
@@ -77,7 +94,20 @@
   --color-accent: #a67c2e;
 }
 
-/* ── Dark mode ─────────────────────────────────────────────── */
+/* ── Dark mode ─────────────────────────────────────────────── *
+ * INTENTIONALLY RETAINED — currently inert.
+ *
+ * Round 4 polish ships light-only (see the `data-theme="light"` lock
+ * in app/layout.tsx). This block is preserved as the source of truth
+ * for the eventual dark-mode re-enable, after the D2 contrast audit.
+ * The architecture (ThemeProvider, var() tokens) stays in place; only
+ * the runtime selector is pinned. Do not delete without coordinating
+ * with the dark-mode reactivation work.
+ *
+ * Note: --band-ink and --band-paper are intentionally NOT overridden
+ * here — the dark-band motif must stay ink-on-cream regardless of
+ * theme. See the :root block above.
+ * ───────────────────────────────────────────────────────────── */
 
 [data-theme="dark"] {
   --color-base: #0c0e18;

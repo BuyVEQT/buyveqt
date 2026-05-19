@@ -4,8 +4,8 @@ const MAX_VALUE = 71750;
 
 const SCENARIOS = [
   { label: "Fully invested", value: 71750, return: "10.4%", color: "var(--color-positive)" },
-  { label: "Missed 10 best days", value: 32871, return: "6.1%", color: "#d97706" },
-  { label: "Missed 20 best days", value: 19100, return: "~3.3%", color: "#d97706" },
+  { label: "Missed 10 best days", value: 32871, return: "6.1%", color: "var(--color-chart-orange)" },
+  { label: "Missed 20 best days", value: 19100, return: "~3.3%", color: "var(--color-chart-orange)" },
   { label: "Missed 30 best days", value: 11600, return: "~0.7%", color: "var(--color-negative)" },
   { label: "Missed 40 best days", value: 7400, return: "~-1.5%", color: "var(--color-negative)" },
 ] as const;

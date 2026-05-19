@@ -58,7 +58,7 @@ export default function NewsletterCard({ compact = false }: NewsletterCardProps)
             fontSize: 20,
             lineHeight: 1.15,
             marginTop: 10,
-            color: "#f6efdc",
+            color: "var(--band-paper)",
           }}
         >
           Get next Sunday&apos;s dispatch.
@@ -77,7 +77,7 @@ export default function NewsletterCard({ compact = false }: NewsletterCardProps)
               border: "none",
               padding: "10px 14px",
               borderRadius: 10,
-              color: "#f6efdc",
+              color: "var(--band-paper)",
               fontFamily: "var(--font-sans)",
               fontSize: 13,
               outline: "none",
@@ -88,7 +88,7 @@ export default function NewsletterCard({ compact = false }: NewsletterCardProps)
             disabled={status === "loading" || status === "ok"}
             style={{
               background: status === "ok" ? "var(--green)" : "var(--stamp)",
-              color: "#f6efdc",
+              color: "var(--band-paper)",
               border: "none",
               padding: "10px 16px",
               borderRadius: 10,
@@ -131,7 +131,7 @@ export default function NewsletterCard({ compact = false }: NewsletterCardProps)
               fontSize: "clamp(1.75rem, 3.5vw, 2.25rem)",
               lineHeight: 1.1,
               marginTop: 12,
-              color: "#f6efdc",
+              color: "var(--band-paper)",
               letterSpacing: "-0.018em",
             }}
           >
@@ -177,7 +177,7 @@ export default function NewsletterCard({ compact = false }: NewsletterCardProps)
                 border: "none",
                 padding: "12px 16px",
                 borderRadius: 10,
-                color: "#f6efdc",
+                color: "var(--band-paper)",
                 fontFamily: "var(--font-sans)",
                 fontSize: 14,
                 outline: "none",
@@ -188,7 +188,7 @@ export default function NewsletterCard({ compact = false }: NewsletterCardProps)
               disabled={status === "loading" || status === "ok"}
               style={{
                 background: status === "ok" ? "var(--green)" : "var(--stamp)",
-                color: "#f6efdc",
+                color: "var(--band-paper)",
                 border: "none",
                 padding: "12px 22px",
                 borderRadius: 10,

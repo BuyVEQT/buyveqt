@@ -57,7 +57,7 @@ const VEQT_BADGE: Record<
   },
   partial: {
     label: "Partially suitable",
-    className: "bg-[rgba(217,119,6,0.08)] text-[#d97706]",
+    className: "bg-[var(--color-chart-orange-soft)] text-[var(--color-chart-orange)]",
   },
   good: {
     label: "Good fit",

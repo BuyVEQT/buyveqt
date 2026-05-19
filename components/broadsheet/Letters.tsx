@@ -88,7 +88,7 @@ export default function Letters({ initialPayload = null }: LettersProps = {}) {
             "Canadians hold each other accountable at "
           )}
           <a
-            href="https://reddit.com/r/JustBuyVEQT"
+            href="https://www.reddit.com/r/JustBuyVEQT/"
             target="_blank"
             rel="noopener noreferrer"
             className="bs-link"
@@ -112,7 +112,7 @@ export default function Letters({ initialPayload = null }: LettersProps = {}) {
         <p className="bs-body italic text-[var(--ink-soft)]">
           Nothing fresh on the feed.{" "}
           <a
-            href="https://reddit.com/r/JustBuyVEQT"
+            href="https://www.reddit.com/r/JustBuyVEQT/"
             target="_blank"
             rel="noopener noreferrer"
             className="bs-link"
@@ -178,7 +178,7 @@ export default function Letters({ initialPayload = null }: LettersProps = {}) {
 
       <p className="bs-caption mt-8 text-right">
         <a
-          href="https://reddit.com/r/JustBuyVEQT"
+          href="https://www.reddit.com/r/JustBuyVEQT/"
           target="_blank"
           rel="noopener noreferrer"
           className="bs-link"

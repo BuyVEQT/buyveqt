@@ -154,8 +154,8 @@ export default function ArticleHeader({
                 fontWeight: 700,
                 letterSpacing: "0.22em",
                 textTransform: "uppercase",
-                color: "#f6efdc",
-                background: "#0f0d0a",
+                color: "var(--band-paper)",
+                background: "var(--band-ink)",
                 padding: "3px 8px",
                 borderRadius: 3,
               }}
