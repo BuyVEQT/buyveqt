@@ -41,8 +41,8 @@ export function HoldingsUniverse({ compact }: HoldingsUniverseProps = {}) {
   }, [total, cols, stride, owned]);
 
   return (
-    <div ref={ref} className="flagship-bleed my-10" style={{ fontFamily: "var(--font-sans)" }}>
-      <div style={{ marginBottom: 24 }}>
+    <div ref={ref} className="flagship-bleed" style={{ fontFamily: "var(--font-sans)" }}>
+      <div style={{ marginBottom: mobile ? 14 : 22 }}>
         <p className="ed-label" style={{ margin: 0 }}>
           The Holdings Universe · one dot, one company
         </p>
@@ -51,10 +51,10 @@ export function HoldingsUniverse({ compact }: HoldingsUniverseProps = {}) {
             fontFamily: "var(--font-display)",
             fontWeight: 500,
             fontStyle: "italic",
-            fontSize: mobile ? "clamp(22px, 6vw, 26px)" : "clamp(28px, 3.4vw, 34px)",
-            lineHeight: 1.05,
+            fontSize: mobile ? "clamp(20px, 5vw, 22px)" : "clamp(28px, 3.4vw, 34px)",
+            lineHeight: 1.1,
             letterSpacing: "-0.018em",
-            margin: "10px 0 0",
+            margin: "8px 0 0",
             color: "var(--ink)",
           }}
         >
@@ -66,7 +66,7 @@ export function HoldingsUniverse({ compact }: HoldingsUniverseProps = {}) {
         style={{
           background: "var(--paper-light)",
           border: "1px solid var(--ink)",
-          padding: mobile ? "22px 20px 22px" : "30px 30px 26px",
+          padding: mobile ? "16px 16px 16px" : "30px 30px 26px",
         }}
       >
         <svg
@@ -92,20 +92,20 @@ export function HoldingsUniverse({ compact }: HoldingsUniverseProps = {}) {
 
         <div
           style={{
-            marginTop: 22,
+            marginTop: mobile ? 14 : 22,
             display: "grid",
             gridTemplateColumns: mobile ? "1fr 1fr" : "repeat(3, 1fr)",
-            gap: mobile ? 14 : 22,
+            gap: mobile ? 12 : 22,
           }}
         >
           <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
             <span
               style={{
-                width: 14,
-                height: 14,
+                width: 12,
+                height: 12,
                 background: "var(--ink)",
                 opacity: 0.78,
-                marginTop: 6,
+                marginTop: 5,
                 flexShrink: 0,
               }}
             />
@@ -114,7 +114,7 @@ export function HoldingsUniverse({ compact }: HoldingsUniverseProps = {}) {
                 style={{
                   fontFamily: "var(--font-display)",
                   fontWeight: 500,
-                  fontSize: 20,
+                  fontSize: 18,
                   lineHeight: 1.1,
                   color: "var(--ink)",
                   fontVariantNumeric: "tabular-nums",
@@ -126,7 +126,7 @@ export function HoldingsUniverse({ compact }: HoldingsUniverseProps = {}) {
                 style={{
                   fontFamily: "var(--font-serif)",
                   fontStyle: "italic",
-                  fontSize: 13.5,
+                  fontSize: 12.5,
                   color: "var(--ink-mute)",
                   marginTop: 2,
                 }}
@@ -139,10 +139,10 @@ export function HoldingsUniverse({ compact }: HoldingsUniverseProps = {}) {
           <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
             <span
               style={{
-                width: 14,
-                height: 14,
+                width: 12,
+                height: 12,
                 background: "var(--stamp)",
-                marginTop: 6,
+                marginTop: 5,
                 flexShrink: 0,
               }}
             />
@@ -151,7 +151,7 @@ export function HoldingsUniverse({ compact }: HoldingsUniverseProps = {}) {
                 style={{
                   fontFamily: "var(--font-display)",
                   fontWeight: 500,
-                  fontSize: 20,
+                  fontSize: 18,
                   lineHeight: 1.1,
                   color: "var(--stamp)",
                   fontVariantNumeric: "tabular-nums",
@@ -163,7 +163,7 @@ export function HoldingsUniverse({ compact }: HoldingsUniverseProps = {}) {
                 style={{
                   fontFamily: "var(--font-serif)",
                   fontStyle: "italic",
-                  fontSize: 13.5,
+                  fontSize: 12.5,
                   color: "var(--ink-mute)",
                   marginTop: 2,
                 }}
@@ -180,7 +180,7 @@ export function HoldingsUniverse({ compact }: HoldingsUniverseProps = {}) {
                   fontFamily: "var(--font-display)",
                   fontWeight: 500,
                   fontStyle: "italic",
-                  fontSize: 20,
+                  fontSize: 18,
                   lineHeight: 1.1,
                   color: "var(--ink)",
                 }}
@@ -191,7 +191,7 @@ export function HoldingsUniverse({ compact }: HoldingsUniverseProps = {}) {
                 style={{
                   fontFamily: "var(--font-serif)",
                   fontStyle: "italic",
-                  fontSize: 13.5,
+                  fontSize: 13,
                   color: "var(--ink-mute)",
                   marginTop: 2,
                 }}
@@ -207,10 +207,10 @@ export function HoldingsUniverse({ compact }: HoldingsUniverseProps = {}) {
         style={{
           fontFamily: "var(--font-serif)",
           fontStyle: "italic",
-          fontSize: 15,
-          lineHeight: 1.6,
+          fontSize: mobile ? 14 : 15,
+          lineHeight: 1.55,
           color: "var(--ink-mute)",
-          marginTop: 18,
+          marginTop: mobile ? 10 : 16,
           marginBottom: 0,
           maxWidth: "64ch",
         }}

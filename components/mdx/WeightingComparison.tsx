@@ -108,10 +108,7 @@ function Legend({ slices }: { slices: Slice[] }) {
       }}
     >
       {slices.map((s) => (
-        <div
-          key={s.name}
-          style={{ display: "contents" }}
-        >
+        <div key={s.name} style={{ display: "contents" }}>
           <span
             style={{
               width: 9,
@@ -162,11 +159,12 @@ export function WeightingComparison({ compact }: WeightingComparisonProps = {}) 
   const { ref, width } = useContainerWidth<HTMLDivElement>();
   const auto = width > 0 && width < COMPACT_THRESHOLD;
   const mobile = compact ?? auto;
-  const donutSize = mobile ? 68 : 82;
+  const donutSize = mobile ? 56 : 82;
+  const panelPad = mobile ? "18px 16px 20px" : "32px 32px";
 
   return (
-    <div ref={ref} className="flagship-bleed my-10" style={{ fontFamily: "var(--font-sans)" }}>
-      <div style={{ marginBottom: 24 }}>
+    <div ref={ref} className="flagship-bleed" style={{ fontFamily: "var(--font-sans)" }}>
+      <div style={{ marginBottom: mobile ? 14 : 22 }}>
         <p className="ed-label" style={{ margin: 0 }}>
           Two ways to slice the world
         </p>
@@ -175,10 +173,10 @@ export function WeightingComparison({ compact }: WeightingComparisonProps = {}) 
             fontFamily: "var(--font-display)",
             fontWeight: 500,
             fontStyle: "italic",
-            fontSize: mobile ? "clamp(22px, 6vw, 26px)" : "clamp(28px, 3.4vw, 34px)",
-            lineHeight: 1.05,
+            fontSize: mobile ? "clamp(20px, 5vw, 22px)" : "clamp(28px, 3.4vw, 34px)",
+            lineHeight: 1.1,
             letterSpacing: "-0.018em",
-            margin: "10px 0 0",
+            margin: "8px 0 0",
             color: "var(--ink)",
           }}
         >
@@ -197,7 +195,7 @@ export function WeightingComparison({ compact }: WeightingComparisonProps = {}) 
       >
         <div
           style={{
-            padding: mobile ? "28px 22px" : "32px 32px",
+            padding: panelPad,
             borderRight: mobile ? "none" : "1px solid var(--ink)",
             borderBottom: mobile ? "1px solid var(--ink)" : "none",
             position: "relative",
@@ -217,7 +215,7 @@ export function WeightingComparison({ compact }: WeightingComparisonProps = {}) 
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 22,
+              gap: mobile ? 14 : 22,
               flexWrap: "wrap",
             }}
           >
@@ -227,10 +225,10 @@ export function WeightingComparison({ compact }: WeightingComparisonProps = {}) 
           <p
             style={{
               fontFamily: "var(--font-serif)",
-              fontSize: 15.5,
-              lineHeight: 1.6,
+              fontSize: mobile ? 14.5 : 15.5,
+              lineHeight: 1.55,
               color: "var(--ink-soft)",
-              marginTop: 20,
+              marginTop: mobile ? 14 : 20,
               marginBottom: 0,
             }}
           >
@@ -251,7 +249,7 @@ export function WeightingComparison({ compact }: WeightingComparisonProps = {}) 
 
         <div
           style={{
-            padding: mobile ? "28px 22px" : "32px 32px",
+            padding: panelPad,
             background: "color-mix(in oklab, var(--ink) 4%, transparent)",
           }}
         >
@@ -259,7 +257,7 @@ export function WeightingComparison({ compact }: WeightingComparisonProps = {}) 
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 22,
+              gap: mobile ? 14 : 22,
               flexWrap: "wrap",
             }}
           >
@@ -269,10 +267,10 @@ export function WeightingComparison({ compact }: WeightingComparisonProps = {}) 
           <p
             style={{
               fontFamily: "var(--font-serif)",
-              fontSize: 15.5,
-              lineHeight: 1.6,
+              fontSize: mobile ? 14.5 : 15.5,
+              lineHeight: 1.55,
               color: "var(--ink-soft)",
-              marginTop: 20,
+              marginTop: mobile ? 14 : 20,
               marginBottom: 0,
             }}
           >

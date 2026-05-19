@@ -23,11 +23,11 @@ export function VerdictCard({
   const proseOverrides: CSSProperties = {
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     ...({
-      "--ink": "var(--band-paper)",
+      "--ink": "#f6efdc",
       "--ink-soft": "rgba(246, 239, 220, 0.86)",
       "--ink-mute": "rgba(246, 239, 220, 0.6)",
       "--color-text-secondary": "rgba(246, 239, 220, 0.86)",
-      "--color-text-primary": "var(--band-paper)",
+      "--color-text-primary": "#f6efdc",
       "--color-text-muted": "rgba(246, 239, 220, 0.6)",
       "--color-brand": "var(--stamp)",
       "--color-brand-dark": "var(--stamp)",
@@ -36,13 +36,13 @@ export function VerdictCard({
   };
 
   return (
-    <div className="flagship-bleed my-12">
+    <div className="flagship-bleed">
       <Card dark padding={0}>
-        <div style={{ padding: "clamp(28px, 4vw, 44px) clamp(24px, 4vw, 44px)" }}>
+        <div style={{ padding: "clamp(20px, 4vw, 44px) clamp(18px, 4vw, 44px)" }}>
           <span
             style={{
               display: "inline-block",
-              marginBottom: 18,
+              marginBottom: 14,
               padding: "5px 12px",
               background: "var(--stamp)",
               fontFamily: "var(--font-sans)",
@@ -50,7 +50,7 @@ export function VerdictCard({
               fontWeight: 700,
               letterSpacing: "0.22em",
               textTransform: "uppercase",
-              color: "var(--band-paper)",
+              color: "#f6efdc",
               borderRadius: 3,
             }}
           >
@@ -61,9 +61,9 @@ export function VerdictCard({
               fontFamily: "var(--font-display)",
               fontWeight: 500,
               fontStyle: "italic",
-              fontSize: "clamp(2rem, 5vw, 3rem)",
+              fontSize: "clamp(1.625rem, 5vw, 3rem)",
               lineHeight: 1.05,
-              color: "var(--band-paper)",
+              color: "#f6efdc",
               letterSpacing: "-0.022em",
               maxWidth: "18ch",
               margin: 0,
@@ -76,10 +76,10 @@ export function VerdictCard({
             className="verdict-prose"
             style={{
               ...proseOverrides,
-              marginTop: 22,
+              marginTop: 16,
               fontFamily: "var(--font-serif)",
-              fontSize: "clamp(1rem, 1.6vw, 1.1875rem)",
-              lineHeight: 1.65,
+              fontSize: "clamp(0.9375rem, 1.6vw, 1.1875rem)",
+              lineHeight: 1.6,
               maxWidth: "62ch",
             }}
           >
