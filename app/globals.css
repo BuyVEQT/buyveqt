@@ -1842,19 +1842,27 @@ body::after {
   border-collapse: collapse;
   margin: 1.25rem 0;
   font-size: 14px;
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Flagship widgets bleed out of the 32rem prose cap on desktop, taking
    the full grid-column width. Mobile keeps the cap so widgets stay
-   aligned with the article body. */
+   aligned with the article body — and uses tighter top/bottom margins
+   so the article scans cleanly without long widget walls. */
 .flagship-bleed {
   width: 100%;
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 @media (min-width: 1024px) {
   .flagship-bleed {
     width: calc(100% + var(--bleed-x, 96px));
     margin-left: calc(var(--bleed-x, 96px) * -0.5);
     margin-right: calc(var(--bleed-x, 96px) * -0.5);
+    margin-top: 2.5rem;
+    margin-bottom: 2.5rem;
   }
 }
 .learn-article th,

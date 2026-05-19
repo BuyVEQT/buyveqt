@@ -13,9 +13,12 @@ export function OwnershipLoop({ compact }: OwnershipLoopProps = {}) {
   const auto = width > 0 && width < COMPACT_THRESHOLD;
   const mobile = compact ?? auto;
 
+  const panelPad = mobile ? "20px 18px 22px" : "32px 30px 34px";
+  const svgH = mobile ? 200 : 300;
+
   return (
-    <div ref={ref} className="flagship-bleed my-10" style={{ fontFamily: "var(--font-sans)" }}>
-      <div style={{ marginBottom: 24 }}>
+    <div ref={ref} className="flagship-bleed" style={{ fontFamily: "var(--font-sans)" }}>
+      <div style={{ marginBottom: mobile ? 14 : 22 }}>
         <p className="ed-label" style={{ margin: 0 }}>
           The Ownership Loop · who answers to whom
         </p>
@@ -24,10 +27,10 @@ export function OwnershipLoop({ compact }: OwnershipLoopProps = {}) {
             fontFamily: "var(--font-display)",
             fontWeight: 500,
             fontStyle: "italic",
-            fontSize: mobile ? "clamp(22px, 6vw, 26px)" : "clamp(28px, 3.4vw, 34px)",
-            lineHeight: 1.05,
+            fontSize: mobile ? "clamp(20px, 5vw, 22px)" : "clamp(28px, 3.4vw, 34px)",
+            lineHeight: 1.1,
             letterSpacing: "-0.018em",
-            margin: "10px 0 0",
+            margin: "8px 0 0",
             color: "var(--ink)",
           }}
         >
@@ -47,7 +50,7 @@ export function OwnershipLoop({ compact }: OwnershipLoopProps = {}) {
         {/* Vanguard panel */}
         <div
           style={{
-            padding: mobile ? "28px 22px 30px" : "32px 30px 34px",
+            padding: panelPad,
             borderRight: mobile ? "none" : "1px solid var(--ink)",
             borderBottom: mobile ? "1px solid var(--ink)" : "none",
             position: "relative",
@@ -68,14 +71,14 @@ export function OwnershipLoop({ compact }: OwnershipLoopProps = {}) {
               display: "flex",
               alignItems: "baseline",
               gap: 10,
-              marginBottom: 6,
+              marginBottom: 4,
             }}
           >
             <span
               style={{
                 fontFamily: "var(--font-display)",
                 fontWeight: 500,
-                fontSize: 28,
+                fontSize: mobile ? 22 : 28,
                 letterSpacing: "-0.01em",
                 color: "var(--ink)",
               }}
@@ -102,9 +105,9 @@ export function OwnershipLoop({ compact }: OwnershipLoopProps = {}) {
             style={{
               fontFamily: "var(--font-serif)",
               fontStyle: "italic",
-              fontSize: 15,
+              fontSize: 14,
               color: "var(--ink-mute)",
-              margin: "0 0 22px",
+              margin: `0 0 ${mobile ? 14 : 22}px`,
               lineHeight: 1.4,
             }}
           >
@@ -114,7 +117,7 @@ export function OwnershipLoop({ compact }: OwnershipLoopProps = {}) {
           <div
             style={{
               position: "relative",
-              height: mobile ? 260 : 300,
+              height: svgH,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -124,6 +127,7 @@ export function OwnershipLoop({ compact }: OwnershipLoopProps = {}) {
               width="100%"
               height="100%"
               viewBox="0 0 360 280"
+              preserveAspectRatio="xMidYMid meet"
               role="img"
               aria-label="Vanguard ownership loop: investor pays fee to fund, fund pays manager, manager returns ownership to investors."
               style={{ position: "absolute", inset: 0 }}
@@ -212,10 +216,10 @@ export function OwnershipLoop({ compact }: OwnershipLoopProps = {}) {
           <p
             style={{
               fontFamily: "var(--font-serif)",
-              fontSize: 15.5,
-              lineHeight: 1.6,
+              fontSize: mobile ? 14.5 : 15.5,
+              lineHeight: 1.55,
               color: "var(--ink-soft)",
-              marginTop: 16,
+              marginTop: mobile ? 10 : 16,
               marginBottom: 0,
             }}
           >
@@ -232,17 +236,17 @@ export function OwnershipLoop({ compact }: OwnershipLoopProps = {}) {
         {/* BlackRock panel */}
         <div
           style={{
-            padding: mobile ? "28px 22px 30px" : "32px 30px 34px",
+            padding: panelPad,
             position: "relative",
             background: "color-mix(in oklab, var(--ink) 4%, transparent)",
           }}
         >
-          <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 6 }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 4 }}>
             <span
               style={{
                 fontFamily: "var(--font-display)",
                 fontWeight: 500,
-                fontSize: 28,
+                fontSize: mobile ? 22 : 28,
                 letterSpacing: "-0.01em",
                 color: "var(--ink)",
               }}
@@ -269,20 +273,21 @@ export function OwnershipLoop({ compact }: OwnershipLoopProps = {}) {
             style={{
               fontFamily: "var(--font-serif)",
               fontStyle: "italic",
-              fontSize: 15,
+              fontSize: 14,
               color: "var(--ink-mute)",
-              margin: "0 0 22px",
+              margin: `0 0 ${mobile ? 14 : 22}px`,
               lineHeight: 1.4,
             }}
           >
             Publicly traded. $12T under management. Two masters.
           </p>
 
-          <div style={{ position: "relative", height: mobile ? 260 : 300 }}>
+          <div style={{ position: "relative", height: svgH }}>
             <svg
               width="100%"
               height="100%"
               viewBox="0 0 360 280"
+              preserveAspectRatio="xMidYMid meet"
               role="img"
               aria-label="BlackRock outflow: investor pays fee to fund, fund pays manager, profits flow up and out to outside shareholders."
               style={{ position: "absolute", inset: 0 }}
@@ -351,10 +356,10 @@ export function OwnershipLoop({ compact }: OwnershipLoopProps = {}) {
           <p
             style={{
               fontFamily: "var(--font-serif)",
-              fontSize: 15.5,
-              lineHeight: 1.6,
+              fontSize: mobile ? 14.5 : 15.5,
+              lineHeight: 1.55,
               color: "var(--ink-soft)",
-              marginTop: 16,
+              marginTop: mobile ? 10 : 16,
               marginBottom: 0,
             }}
           >
@@ -369,12 +374,12 @@ export function OwnershipLoop({ compact }: OwnershipLoopProps = {}) {
       <div
         style={{
           marginTop: -1,
-          padding: mobile ? "22px 22px 24px" : "28px 32px",
-          background: "var(--band-ink)",
-          color: "var(--band-paper)",
+          padding: mobile ? "18px 18px 20px" : "28px 32px",
+          background: "#0f0d0a",
+          color: "#f6efdc",
           display: "grid",
           gridTemplateColumns: mobile ? "1fr" : "minmax(0, 1fr) minmax(0, 2fr)",
-          gap: mobile ? 12 : 22,
+          gap: mobile ? 10 : 22,
           alignItems: "center",
         }}
       >
@@ -397,22 +402,22 @@ export function OwnershipLoop({ compact }: OwnershipLoopProps = {}) {
               fontFamily: "var(--font-display)",
               fontWeight: 500,
               fontStyle: "italic",
-              fontSize: mobile ? 22 : 26,
+              fontSize: mobile ? 20 : 26,
               lineHeight: 1.12,
               marginTop: 6,
               marginBottom: 0,
               letterSpacing: "-0.015em",
-              color: "var(--band-paper)",
+              color: "#f6efdc",
             }}
           >
-            One company has<br />one master.
+            One company has one master.
           </p>
         </div>
         <p
           style={{
             fontFamily: "var(--font-serif)",
-            fontSize: 15.5,
-            lineHeight: 1.6,
+            fontSize: mobile ? 14.5 : 15.5,
+            lineHeight: 1.55,
             color: "rgba(246,239,220,0.86)",
             margin: 0,
           }}
@@ -420,8 +425,8 @@ export function OwnershipLoop({ compact }: OwnershipLoopProps = {}) {
           When Vanguard cuts a fee, its owners get the savings — because its
           owners are the investors. When BlackRock cuts a fee, BLK shares
           take the hit. That&rsquo;s not a moral failing on BlackRock&rsquo;s
-          part. It&rsquo;s just a different architecture. And over thirty
-          years, the architecture is what compounds.
+          part. It&rsquo;s a different architecture — and over thirty years,
+          the architecture is what compounds.
         </p>
       </div>
     </div>

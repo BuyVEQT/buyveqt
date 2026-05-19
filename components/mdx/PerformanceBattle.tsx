@@ -100,12 +100,12 @@ export function PerformanceBattle({ compact }: PerformanceBattleProps = {}) {
     };
   }, []);
 
-  const chartH = mobile ? 240 : 320;
+  const chartH = mobile ? 180 : 320;
   const chartW = mobile ? 360 : 760;
-  const padL = mobile ? 56 : 68;
-  const padR = mobile ? 86 : 96;
-  const padT = 24;
-  const padB = 34;
+  const padL = mobile ? 50 : 68;
+  const padR = mobile ? 80 : 96;
+  const padT = mobile ? 16 : 24;
+  const padB = mobile ? 26 : 34;
   const innerW = chartW - padL - padR;
   const innerH = chartH;
 
@@ -152,8 +152,8 @@ export function PerformanceBattle({ compact }: PerformanceBattleProps = {}) {
     `$${Math.round(10000 * v).toLocaleString("en-CA")}`;
 
   return (
-    <div ref={ref} className="flagship-bleed my-10" style={{ fontFamily: "var(--font-sans)" }}>
-      <div style={{ marginBottom: 24 }}>
+    <div ref={ref} className="flagship-bleed" style={{ fontFamily: "var(--font-sans)" }}>
+      <div style={{ marginBottom: mobile ? 14 : 22 }}>
         <p className="ed-label" style={{ margin: 0 }}>
           Five-year battle · $10,000 invested
         </p>
@@ -162,10 +162,10 @@ export function PerformanceBattle({ compact }: PerformanceBattleProps = {}) {
             fontFamily: "var(--font-display)",
             fontWeight: 500,
             fontStyle: "italic",
-            fontSize: mobile ? "clamp(22px, 6vw, 26px)" : "clamp(28px, 3.4vw, 34px)",
-            lineHeight: 1.05,
+            fontSize: mobile ? "clamp(20px, 5vw, 22px)" : "clamp(28px, 3.4vw, 34px)",
+            lineHeight: 1.1,
             letterSpacing: "-0.018em",
-            margin: "10px 0 0",
+            margin: "8px 0 0",
             color: "var(--ink)",
           }}
         >
@@ -177,7 +177,7 @@ export function PerformanceBattle({ compact }: PerformanceBattleProps = {}) {
         style={{
           background: PAPER_LIGHT,
           border: "1px solid var(--ink)",
-          padding: mobile ? "24px 18px" : "30px 32px",
+          padding: mobile ? "16px 14px 18px" : "30px 32px",
         }}
       >
         {loading ? (
@@ -312,12 +312,12 @@ export function PerformanceBattle({ compact }: PerformanceBattleProps = {}) {
 
         <div
           style={{
-            marginTop: 12,
-            paddingTop: 22,
+            marginTop: mobile ? 6 : 12,
+            paddingTop: mobile ? 14 : 22,
             borderTop: `1px solid ${RULE_SOFT}`,
             display: "grid",
             gridTemplateColumns: mobile ? "1fr 1fr" : "repeat(4, 1fr)",
-            gap: mobile ? 16 : 18,
+            gap: mobile ? 12 : 18,
           }}
         >
           {[
@@ -327,15 +327,15 @@ export function PerformanceBattle({ compact }: PerformanceBattleProps = {}) {
             { l: "Correlation", v: "0.99", tone: INK, sub: "they’re twins" },
           ].map((s) => (
             <div key={s.l}>
-              <div className="ed-label" style={{ fontSize: 10, margin: 0 }}>
+              <div className="ed-label" style={{ fontSize: 9.5, margin: 0 }}>
                 {s.l}
               </div>
               <div
                 style={{
                   fontFamily: "var(--font-display)",
                   fontWeight: 500,
-                  fontSize: mobile ? 22 : 28,
-                  marginTop: 6,
+                  fontSize: mobile ? 20 : 28,
+                  marginTop: 4,
                   color: s.tone,
                   fontVariantNumeric: "tabular-nums",
                   letterSpacing: "-0.012em",
@@ -349,9 +349,9 @@ export function PerformanceBattle({ compact }: PerformanceBattleProps = {}) {
                   style={{
                     fontFamily: "var(--font-serif)",
                     fontStyle: "italic",
-                    fontSize: 12.5,
+                    fontSize: 12,
                     color: INK_MUTE,
-                    marginTop: 4,
+                    marginTop: 2,
                   }}
                 >
                   {s.sub}
@@ -366,10 +366,10 @@ export function PerformanceBattle({ compact }: PerformanceBattleProps = {}) {
         style={{
           fontFamily: "var(--font-serif)",
           fontStyle: "italic",
-          fontSize: 15,
-          lineHeight: 1.6,
+          fontSize: mobile ? 14 : 15,
+          lineHeight: 1.55,
           color: INK_MUTE,
-          marginTop: 18,
+          marginTop: mobile ? 10 : 16,
           marginBottom: 0,
           maxWidth: "64ch",
         }}
