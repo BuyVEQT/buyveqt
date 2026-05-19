@@ -72,6 +72,25 @@ export default function HomeClient() {
       }}
     >
       <div className="home-stack">
+        {/* Visually hidden h1 — the dashboard layout has no natural display
+            headline, but search engines and screen readers need a top-level
+            heading to identify the page. */}
+        <h1
+          style={{
+            position: "absolute",
+            width: 1,
+            height: 1,
+            padding: 0,
+            margin: -1,
+            overflow: "hidden",
+            clip: "rect(0, 0, 0, 0)",
+            whiteSpace: "nowrap",
+            borderWidth: 0,
+          }}
+        >
+          BuyVEQT — VEQT.TO live price, regional sleeves, and weather signal for Canadian passive investors.
+        </h1>
+
         <HeroPriceCard
           data={hero.data}
           loading={hero.loading}

@@ -1,7 +1,7 @@
 "use client";
 
 const PERIODS = [
-  { label: "1 Year", underperform: 55, color: "#d97706" },
+  { label: "1 Year", underperform: 55, color: "var(--color-chart-orange)" },
   { label: "10 Years", underperform: 67, color: "var(--color-negative)" },
   { label: "15 Years", underperform: 76, color: "var(--color-negative)" },
   { label: "Global (15Y)", underperform: 92.5, color: "var(--color-negative)" },

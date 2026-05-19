@@ -145,7 +145,7 @@ BuyVEQT is a community-built, unofficial informational resource. It is not affil
 **Live data sources**: Yahoo Finance (primary), Alpha Vantage (backup)
 **Static data**: Manually compiled from official fund documents and regulatory filings
 **Site**: https://www.buyveqt.ca
-**Community**: https://reddit.com/r/JustBuyVEQT
+**Community**: https://www.reddit.com/r/JustBuyVEQT/
 
 ---
 

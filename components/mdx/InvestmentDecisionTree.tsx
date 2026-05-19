@@ -239,10 +239,10 @@ export function InvestmentDecisionTree() {
       text: "text-[var(--color-positive)]",
     },
     warning: {
-      border: "border-[#d97706]",
-      bg: "bg-[rgba(217,119,6,0.04)]",
-      badge: "bg-[#d97706] text-white",
-      text: "text-[#d97706]",
+      border: "border-[var(--color-chart-orange)]",
+      bg: "bg-[var(--color-chart-orange-soft)]",
+      badge: "bg-[var(--color-chart-orange)] text-white",
+      text: "text-[var(--color-chart-orange)]",
     },
   };
 

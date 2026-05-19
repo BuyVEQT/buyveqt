@@ -46,8 +46,8 @@ export default function CalculatorShell({
       {/* Dark editorial header strip */}
       <header
         style={{
-          background: "#0f0d0a",
-          color: "#f6efdc",
+          background: "var(--band-ink)",
+          color: "var(--band-paper)",
           padding: "22px 24px 20px",
           display: "flex",
           alignItems: "flex-start",
@@ -67,7 +67,7 @@ export default function CalculatorShell({
             fontFamily: "var(--font-display)",
             fontWeight: 500,
             fontSize: 22,
-            color: "#f6efdc",
+            color: "var(--band-paper)",
             flexShrink: 0,
           }}
         >
@@ -85,7 +85,7 @@ export default function CalculatorShell({
             style={{
               fontSize: "clamp(1.5rem, 3vw, 2rem)",
               lineHeight: 1.1,
-              color: "#f6efdc",
+              color: "var(--band-paper)",
               marginTop: 4,
             }}
           >
