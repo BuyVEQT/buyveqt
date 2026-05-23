@@ -1423,7 +1423,11 @@ body::after {
 }
 
 .bs-heatmap__tip {
-  position: absolute;
+  /* position: fixed (viewport-relative) so the tooltip can escape the
+   * overflow-x:auto scroll container that wraps the heatmap. The old
+   * absolute positioning extended the wrapper's content box on right-edge
+   * cells and triggered phantom horizontal scrollbars. */
+  position: fixed;
   z-index: 10;
   background: var(--ink);
   color: var(--paper);

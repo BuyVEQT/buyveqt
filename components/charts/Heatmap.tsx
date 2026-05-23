@@ -97,11 +97,17 @@ export default function Heatmap({
     if (!showTip) return;
     const wrap = wrapRef.current;
     if (!wrap) return;
-    const rect = wrap.getBoundingClientRect();
+    const wrapRect = wrap.getBoundingClientRect();
+    const cellRect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     setTip({
       index,
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
+      // Center horizontally over the cell (not the cursor) so the tooltip
+      // doesn't slide around as the pointer drifts within a single cell.
+      x: cellRect.left - wrapRect.left + cellRect.width / 2,
+      // Anchor at the top of the cell; the tooltip transform offsets it
+      // above. Anchoring on the cursor instead lets the tooltip overlap
+      // the cell when the cursor is near the cell's bottom edge.
+      y: cellRect.top - wrapRect.top,
     });
   }
 
@@ -166,7 +172,8 @@ export default function Heatmap({
                   setTip({
                     index: i,
                     x: rect.left - wrapRect.left + rect.width / 2,
-                    y: rect.top - wrapRect.top + rect.height,
+                    // Anchor at top of cell — the tooltip transform offsets above it.
+                    y: rect.top - wrapRect.top,
                   });
                 }}
                 onBlur={handleLeave}
@@ -193,7 +200,10 @@ export default function Heatmap({
             position: "absolute",
             left: tip.x,
             top: tip.y,
-            transform: "translate(-50%, 8px)",
+            // Anchor above the cursor (calc(-100% - …)) so the pointer arrow
+            // doesn't sit on top of the tooltip text. 14px clears the typical
+            // arrow cursor on macOS/Windows without leaving a visible gap.
+            transform: "translate(-50%, calc(-100% - 14px))",
             background: "var(--ink)",
             color: "var(--paper-light)",
             padding: "6px 10px",
