@@ -1,36 +1,7 @@
-import Link from "next/link";
 import Card from "@/components/ui/Card";
 import Pill from "@/components/ui/Pill";
 import SectionHead from "@/components/ui/SectionHead";
 import { VEQT_TOP_HOLDINGS, type Holding } from "@/data/holdings";
-
-interface HoldingWithToday extends Holding {
-  /** Optional same-day percent change. Color-coded green/stamp. */
-  todayPct?: number;
-}
-
-/**
- * Daily moves aren't in the static holdings file. Use representative values
- * from the design comp so the column reads non-empty until a real daily-NAV
- * diff exists. Negative values demonstrate the color-coded behaviour.
- */
-const TODAY_OVERRIDES: Record<string, number> = {
-  AAPL: 1.12,
-  MSFT: 0.78,
-  NVDA: 2.41,
-  AMZN: 0.42,
-  RY: 0.31,
-  TD: 0.05,
-  GOOGL: 0.18,
-  META: 0.34,
-  AVGO: 0.92,
-  TSLA: -1.45,
-  SHOP: -1.04,
-  "BRK.B": 0.21,
-  JPM: 0.18,
-  ENB: -0.22,
-  BNS: -0.08,
-};
 
 const SECTOR_BY_TICKER: Record<string, string> = {
   AAPL: "Tech",
@@ -50,20 +21,13 @@ const SECTOR_BY_TICKER: Record<string, string> = {
   BNS: "Banks",
 };
 
-function fmtPct(n: number, digits = 2): string {
-  if (!Number.isFinite(n)) return "—";
-  const sign = n > 0 ? "+" : n < 0 ? "−" : "";
-  return `${sign}${Math.abs(n).toFixed(digits)}%`;
-}
-
 function HoldingRow({
   holding,
   index,
 }: {
-  holding: HoldingWithToday;
+  holding: Holding;
   index: number;
 }) {
-  const today = holding.todayPct ?? 0;
   const sector = SECTOR_BY_TICKER[holding.ticker] ?? "—";
   const stripedBg =
     index % 2 === 0 ? "var(--paper-warm)" : "transparent";
@@ -116,23 +80,11 @@ function HoldingRow({
       >
         {holding.weight.toFixed(2)}%
       </div>
-      <div
-        className="ed-numerals"
-        style={{
-          textAlign: "right",
-          fontWeight: 600,
-          color: today >= 0 ? "var(--green)" : "var(--stamp)",
-          fontSize: 13,
-          fontFamily: "var(--font-sans)",
-        }}
-      >
-        {fmtPct(today)}
-      </div>
 
       <style jsx>{`
         :global(.inside-holdings-row) {
           display: grid;
-          grid-template-columns: 1fr 60px 64px;
+          grid-template-columns: 1fr 64px;
           padding: 12px 14px;
           align-items: center;
           gap: 8px;
@@ -148,7 +100,7 @@ function HoldingRow({
         }
         @media (min-width: 768px) {
           :global(.inside-holdings-row) {
-            grid-template-columns: 1fr 100px 80px 80px;
+            grid-template-columns: 1fr 100px 80px;
           }
           :global(.inside-holdings-row__sector) {
             display: block;
@@ -160,16 +112,13 @@ function HoldingRow({
 }
 
 export default function InsideHoldings() {
-  const rows: HoldingWithToday[] = VEQT_TOP_HOLDINGS.slice(0, 10).map((h) => ({
-    ...h,
-    todayPct: TODAY_OVERRIDES[h.ticker] ?? 0,
-  }));
+  const rows = VEQT_TOP_HOLDINGS.slice(0, 10);
 
   return (
     <Card padding={0}>
       <div
         style={{
-          padding: "20px 18px 14px",
+          padding: "20px 18px 18px",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "baseline",
@@ -206,37 +155,18 @@ export default function InsideHoldings() {
           Sector
         </span>
         <span style={{ textAlign: "right" }}>Weight</span>
-        <span style={{ textAlign: "right" }}>Today</span>
       </div>
 
-      <div style={{ padding: "0 4px" }}>
+      <div style={{ padding: "0 4px 14px" }}>
         {rows.map((h, i) => (
           <HoldingRow key={h.ticker} holding={h} index={i} />
         ))}
       </div>
 
-      <Link
-        href="/inside-veqt/holdings"
-        style={{
-          display: "block",
-          padding: "14px 18px 18px",
-          textAlign: "right",
-          fontFamily: "var(--font-sans)",
-          fontSize: 11,
-          fontWeight: 700,
-          letterSpacing: "0.18em",
-          textTransform: "uppercase",
-          color: "var(--stamp)",
-          textDecoration: "none",
-        }}
-      >
-        See all 13,712 →
-      </Link>
-
       <style jsx>{`
         .inside-holdings__head {
           display: grid;
-          grid-template-columns: 1fr 60px 64px;
+          grid-template-columns: 1fr 64px;
           gap: 8px;
           font-family: var(--font-sans);
           font-size: 9.5px;
@@ -249,7 +179,7 @@ export default function InsideHoldings() {
         }
         @media (min-width: 768px) {
           .inside-holdings__head {
-            grid-template-columns: 1fr 100px 80px 80px;
+            grid-template-columns: 1fr 100px 80px;
           }
           .inside-holdings__head .inside-holdings__sector {
             display: block;
