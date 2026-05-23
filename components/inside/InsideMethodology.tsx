@@ -28,8 +28,7 @@ export default function InsideMethodology() {
       >
         Holdings are pulled from Vanguard Canada&rsquo;s daily NAV file, then
         attributed back to sleeves by region. Sector tags follow the GICS
-        classification. Daily moves are price-only and do not include the
-        distributions that VEQT pays quarterly.
+        classification.
       </p>
       <div style={{ display: "flex", gap: 18, flexWrap: "wrap" }}>
         <Link
