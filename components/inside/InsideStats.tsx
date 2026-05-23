@@ -2,7 +2,6 @@
 
 import type { CSSProperties, ReactNode } from "react";
 import Card from "@/components/ui/Card";
-import { useVeqtData } from "@/lib/useVeqtData";
 
 interface StatTileProps {
   label: string;
@@ -80,21 +79,14 @@ function StatTile({
 }
 
 /**
- * Single zero-padded Card with 5 (desktop) / 3 (mobile) stat tiles, divided
- * by hairlines. Holdings / AUM / MER show on every screen; Yield + Inception
- * only on desktop.
+ * Single zero-padded Card with 4 (desktop) / 3 (mobile) stat tiles, divided
+ * by hairlines. Holdings / AUM / MER show on every screen; Inception only
+ * on desktop.
  *
  * MER value cites the effective post-Nov-2025 rate; the tooltip carries the
  * full MER_FOOTNOTE so curious readers can see the methodology.
  */
 export default function InsideStats() {
-  const { data } = useVeqtData("1Y");
-  const yieldVal = data?.quote?.dividendYield;
-  const yieldDisplay =
-    typeof yieldVal === "number" && Number.isFinite(yieldVal)
-      ? `${yieldVal.toFixed(2)}%`
-      : "1.43%";
-
   return (
     <Card padding={0}>
       <div style={{ display: "flex" }}>
@@ -106,12 +98,6 @@ export default function InsideStats() {
           sub="reduced Nov 2025"
           title="Vanguard reduced VEQT's management fee from 0.22% to 0.17% in November 2025. The official MER (which includes operating expenses and taxes) is still reported as 0.24% pending fiscal year-end recalculation."
           noDivider={false}
-        />
-        <StatTile
-          label="Yield"
-          value={yieldDisplay}
-          sub="trailing 12mo"
-          desktopOnly
         />
         <StatTile
           label="Inception"
