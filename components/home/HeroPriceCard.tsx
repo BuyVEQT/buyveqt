@@ -202,11 +202,24 @@ export default function HeroPriceCard({
               yearTicks={showYearTicks}
               referencePrice={periodStats?.startClose ?? null}
               interactive
+              dragSelect
               ariaLabel={`VEQT price chart, ${period} period`}
             />
           ) : (
             <div className="skeleton" style={{ height: 108, width: "100%", borderRadius: 8 }} />
           )}
+        </div>
+        <div
+          style={{
+            marginTop: 8,
+            fontFamily: "var(--font-serif)",
+            fontStyle: "italic",
+            fontSize: 12,
+            color: "var(--ink-mute)",
+            textAlign: "right",
+          }}
+        >
+          Drag any two points on the chart to compare →
         </div>
 
         {/* Period stats strip — three quiet metrics scoped to the selected
