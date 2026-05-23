@@ -31,6 +31,12 @@ interface SparklineProps {
    * `data`. Needs `date` on each point. Adds rhythm to multi-year views.
    */
   yearTicks?: boolean;
+  /**
+   * Draw a faint dashed horizontal line at this price. Used by the hero to
+   * mark "where the selected period started" so the chart visually communicates
+   * above/below the period's starting price.
+   */
+  referencePrice?: number | null;
   /** Show hover scrubber (line + dot + readout). Client-only. */
   interactive?: boolean;
   className?: string;
@@ -72,6 +78,7 @@ export default function Sparkline({
   strokeWidth = 1.4,
   showExtrema = false,
   yearTicks = false,
+  referencePrice = null,
   interactive = false,
   className = "",
   style,
@@ -205,6 +212,25 @@ export default function Sparkline({
             opacity={0.12}
           />
         ))}
+
+        {/* Period-start reference line — drawn behind the line+area so the
+            data still reads as the foreground. Clamped to the chart's value
+            range; if the reference is outside the range we just skip it. */}
+        {referencePrice !== null &&
+          referencePrice >= min &&
+          referencePrice <= max && (
+            <line
+              x1={0}
+              x2={width}
+              y1={yAt(referencePrice)}
+              y2={yAt(referencePrice)}
+              stroke="currentColor"
+              strokeWidth={0.8}
+              strokeDasharray="3 4"
+              opacity={0.28}
+              vectorEffect="non-scaling-stroke"
+            />
+          )}
 
         {/* Area */}
         {gradient ? (
