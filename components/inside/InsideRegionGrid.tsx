@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import SectionHead from "@/components/ui/SectionHead";
 import { useRegions, type Region } from "@/lib/useRegions";
 import {
@@ -108,6 +108,22 @@ export default function InsideRegionGrid() {
     return out;
   }, [ordered, composition, sectorReturns]);
 
+  // Home page region cards deep-link to `/inside-veqt#VUN` etc. The browser's
+  // native hash-scroll happens before the regions hook has resolved, so the
+  // target div doesn't exist at that moment. Once `ordered` is populated and
+  // the DOM has the anchor target, re-apply the hash scroll once.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (ordered.length === 0) return;
+    const hash = window.location.hash.replace(/^#/, "");
+    if (!hash) return;
+    if (!REGION_ORDER.includes(hash)) return;
+    const el = document.getElementById(hash);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [ordered]);
+
   return (
     <section>
       <div
@@ -150,11 +166,19 @@ export default function InsideRegionGrid() {
       ) : (
         <div className="inside-region-grid">
           {ordered.map((region) => (
-            <InsideRegionDetail
+            // Anchor target so the home page's RegionCards can deep-link to
+            // `/inside-veqt#VUN` (etc.) and the user lands on the right region.
+            // scrollMarginTop clears the sticky mobile TopBar.
+            <div
               key={region.ticker}
-              region={region}
-              sectors={sectorsByTicker.get(region.ticker) ?? []}
-            />
+              id={region.ticker}
+              style={{ scrollMarginTop: 80 }}
+            >
+              <InsideRegionDetail
+                region={region}
+                sectors={sectorsByTicker.get(region.ticker) ?? []}
+              />
+            </div>
           ))}
         </div>
       )}

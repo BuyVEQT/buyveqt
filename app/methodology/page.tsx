@@ -18,6 +18,8 @@ export const metadata: Metadata = {
 };
 
 interface Note {
+  /** Anchor id so other pages can deep-link, e.g. `/methodology#sources`. */
+  id: string;
   title: string;
   body: React.ReactNode;
 }
@@ -36,6 +38,7 @@ interface Note {
 export default function MethodologyPage() {
   const notes: Note[] = [
     {
+      id: "about",
       title: "About this site",
       body: (
         <>
@@ -54,6 +57,8 @@ export default function MethodologyPage() {
       ),
     },
     {
+      // Linked from inside-veqt's methodology card as "Sources →".
+      id: "sources",
       title: "Where the prices come from",
       body: (
         <>
@@ -86,6 +91,7 @@ export default function MethodologyPage() {
       ),
     },
     {
+      id: "refresh-cadence",
       title: "How often it refreshes",
       body: (
         <>
@@ -112,6 +118,7 @@ export default function MethodologyPage() {
       ),
     },
     {
+      id: "charts",
       title: "How the charts read",
       body: (
         <>
@@ -129,6 +136,7 @@ export default function MethodologyPage() {
       ),
     },
     {
+      id: "manual-data",
       title: "What's manual",
       body: (
         <>
@@ -156,6 +164,7 @@ export default function MethodologyPage() {
       ),
     },
     {
+      id: "distributions",
       title: "Distributions",
       body: (
         <>
@@ -173,6 +182,7 @@ export default function MethodologyPage() {
       ),
     },
     {
+      id: "editorial",
       title: "Editorial content",
       body: (
         <>
@@ -194,6 +204,7 @@ export default function MethodologyPage() {
       ),
     },
     {
+      id: "corrections",
       title: "Corrections & contributions",
       body: (
         <>
@@ -252,7 +263,12 @@ export default function MethodologyPage() {
           const dispatchNumber = String(idx + 1).padStart(2, "0");
           return (
             <li
-              key={note.title}
+              key={note.id}
+              id={note.id}
+              // scrollMarginTop clears the sticky mobile TopBar (~56px) and
+              // gives a small visual buffer so the anchor target doesn't sit
+              // flush against the chrome.
+              style={{ scrollMarginTop: 80 }}
               className="py-7 sm:py-8 grid grid-cols-[auto_1fr] gap-x-5 sm:gap-x-8 border-b border-[var(--color-border)]"
             >
               <span

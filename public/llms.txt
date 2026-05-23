@@ -37,8 +37,7 @@
 - Multi-fund comparison tool: https://www.buyveqt.ca/compare
 
 ### Calculators
-- Historical return calculator ("If You Invested"): https://www.buyveqt.ca/invest
-- DCA, dividend income, TFSA/RRSP calculators: https://www.buyveqt.ca/calculators
+- All calculators (historical return "If You Invested", DCA, dividend income, TFSA/RRSP): https://www.buyveqt.ca/calculators
 
 ### Distributions
 - Full distribution history since 2019: https://www.buyveqt.ca/distributions
