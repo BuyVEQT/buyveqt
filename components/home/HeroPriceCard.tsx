@@ -1,6 +1,7 @@
 "use client";
 
-import type { VeqtApiResponse, ChartPeriod } from "@/lib/types";
+import { useMemo } from "react";
+import type { VeqtApiResponse, ChartPeriod, HistoricalDataPoint } from "@/lib/types";
 import Card from "@/components/ui/Card";
 import Pill from "@/components/ui/Pill";
 import Sparkline from "@/components/charts/Sparkline";
@@ -13,6 +14,53 @@ interface HeroPriceCardProps {
 }
 
 const RANGES: ChartPeriod[] = ["1M", "3M", "1Y", "5Y", "ALL"];
+
+const PERIOD_LABEL: Record<ChartPeriod, string> = {
+  "1M": "1 month",
+  "3M": "3 months",
+  "6M": "6 months",
+  YTD: "YTD",
+  "1Y": "1 year",
+  "3Y": "3 years",
+  "5Y": "5 years",
+  ALL: "since inception",
+};
+
+interface PeriodStats {
+  startClose: number;
+  endClose: number;
+  high: number;
+  low: number;
+  /** Compounded period return as a percent, e.g. +2.41 */
+  returnPct: number;
+  /** Mean of |daily close-to-close % moves| over the period. */
+  typicalDailyPct: number;
+}
+
+function computePeriodStats(history: readonly HistoricalDataPoint[]): PeriodStats | null {
+  if (history.length < 2) return null;
+  const startClose = history[0].close;
+  const endClose = history[history.length - 1].close;
+  let high = -Infinity;
+  let low = Infinity;
+  let absSum = 0;
+  let absCount = 0;
+  for (let i = 0; i < history.length; i++) {
+    const c = history[i].close;
+    if (c > high) high = c;
+    if (c < low) low = c;
+    if (i > 0) {
+      const prev = history[i - 1].close;
+      if (prev > 0) {
+        absSum += Math.abs((c - prev) / prev) * 100;
+        absCount += 1;
+      }
+    }
+  }
+  const returnPct = startClose > 0 ? ((endClose - startClose) / startClose) * 100 : 0;
+  const typicalDailyPct = absCount > 0 ? absSum / absCount : 0;
+  return { startClose, endClose, high, low, returnPct, typicalDailyPct };
+}
 
 /**
  * The hero card on /. Big Fraunces price + change pill + 52w hi/lo +
@@ -39,6 +87,9 @@ export default function HeroPriceCard({
   const showYearTicks = period === "ALL" || period === "5Y" || period === "3Y";
   // Min/max markers crowd short ranges; show on 3M+.
   const showExtrema = period !== "1M";
+
+  const periodStats = useMemo(() => computePeriodStats(history), [history]);
+  const periodUp = (periodStats?.returnPct ?? 0) >= 0;
 
   return (
     <Card padding={0}>
@@ -149,6 +200,7 @@ export default function HeroPriceCard({
               strokeWidth={1.6}
               showExtrema={showExtrema}
               yearTicks={showYearTicks}
+              referencePrice={periodStats?.startClose ?? null}
               interactive
               ariaLabel={`VEQT price chart, ${period} period`}
             />
@@ -156,6 +208,109 @@ export default function HeroPriceCard({
             <div className="skeleton" style={{ height: 108, width: "100%", borderRadius: 8 }} />
           )}
         </div>
+
+        {/* Period stats strip — three quiet metrics scoped to the selected
+            range. Sits below the chart so it reads as the chart's caption,
+            not as a competing headline. Updates when the user clicks tabs. */}
+        {periodStats && (
+          <div className="hero-period-stats">
+            <div className="hero-period-stat">
+              <div className="ed-label" style={{ color: "var(--ink-mute)" }}>
+                {period} return
+              </div>
+              <div
+                className="ed-numerals"
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontWeight: 500,
+                  fontSize: 22,
+                  lineHeight: 1.05,
+                  marginTop: 6,
+                  color: periodUp ? "var(--green)" : "var(--stamp)",
+                  letterSpacing: "-0.01em",
+                }}
+              >
+                {periodUp ? "+" : "−"}
+                {Math.abs(periodStats.returnPct).toFixed(2)}%
+              </div>
+              <div
+                style={{
+                  fontFamily: "var(--font-serif)",
+                  fontStyle: "italic",
+                  fontSize: 12,
+                  color: "var(--ink-mute)",
+                  marginTop: 2,
+                }}
+              >
+                {PERIOD_LABEL[period]}
+              </div>
+            </div>
+
+            <div className="hero-period-stat">
+              <div className="ed-label" style={{ color: "var(--ink-mute)" }}>
+                Range
+              </div>
+              <div
+                className="ed-numerals"
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontWeight: 500,
+                  fontSize: 22,
+                  lineHeight: 1.05,
+                  marginTop: 6,
+                  color: "var(--ink)",
+                  letterSpacing: "-0.01em",
+                }}
+              >
+                ${periodStats.low.toFixed(2)}
+                <span style={{ color: "var(--ink-mute)", margin: "0 4px" }}>–</span>
+                ${periodStats.high.toFixed(2)}
+              </div>
+              <div
+                style={{
+                  fontFamily: "var(--font-serif)",
+                  fontStyle: "italic",
+                  fontSize: 12,
+                  color: "var(--ink-mute)",
+                  marginTop: 2,
+                }}
+              >
+                low to high
+              </div>
+            </div>
+
+            <div className="hero-period-stat">
+              <div className="ed-label" style={{ color: "var(--ink-mute)" }}>
+                Typical day
+              </div>
+              <div
+                className="ed-numerals"
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontWeight: 500,
+                  fontSize: 22,
+                  lineHeight: 1.05,
+                  marginTop: 6,
+                  color: "var(--ink)",
+                  letterSpacing: "-0.01em",
+                }}
+              >
+                ±{periodStats.typicalDailyPct.toFixed(2)}%
+              </div>
+              <div
+                style={{
+                  fontFamily: "var(--font-serif)",
+                  fontStyle: "italic",
+                  fontSize: 12,
+                  color: "var(--ink-mute)",
+                  marginTop: 2,
+                }}
+              >
+                avg close-to-close move
+              </div>
+            </div>
+          </div>
+        )}
 
         <div
           style={{
@@ -194,6 +349,25 @@ export default function HeroPriceCard({
           })}
         </div>
       </div>
+
+      <style jsx>{`
+        .hero-period-stats {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 14px 20px;
+          margin-top: 22px;
+          padding-top: 18px;
+          border-top: 1px solid var(--rule-soft);
+        }
+        @media (min-width: 560px) {
+          .hero-period-stats {
+            grid-template-columns: repeat(3, 1fr);
+          }
+        }
+        .hero-period-stat {
+          min-width: 0;
+        }
+      `}</style>
     </Card>
   );
 }
