@@ -163,7 +163,6 @@ export default function VolatilityHeatmap({
   interactiveCells = true,
 }: VolatilityHeatmapProps) {
   const router = useRouter();
-  const wrapRef = useRef<HTMLDivElement | null>(null);
   const cellRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const [tip, setTip] = useState<TipState | null>(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -207,12 +206,22 @@ export default function VolatilityHeatmap({
         const cellRect = (
           cellRefs.current[index] as HTMLElement | undefined
         )?.getBoundingClientRect();
-        const wrap = wrapRef.current?.getBoundingClientRect();
-        if (cellRect && wrap) {
+        if (cellRect) {
+          // Viewport coords — the tooltip is position: fixed (see globals.css)
+          // so it escapes the heatmap's overflow-x:auto scroll container.
+          // Pinned variant uses translateX(-50%), so clamp against half-width.
+          const PAD = 12;
+          const TIP_MAX_W = 260;
+          const TIP_EST_H = 130;
+          const minX = PAD + TIP_MAX_W / 2;
+          const maxX = window.innerWidth - PAD - TIP_MAX_W / 2;
+          const maxY = window.innerHeight - TIP_EST_H - PAD;
+          const desiredX = cellRect.left + cellRect.width / 2;
+          const desiredY = cellRect.top + cellRect.height + 6;
           setTip({
             index,
-            x: cellRect.left - wrap.left + cellRect.width / 2,
-            y: cellRect.top - wrap.top + cellRect.height + 6,
+            x: Math.max(minX, Math.min(desiredX, maxX)),
+            y: Math.min(desiredY, maxY),
           });
         }
         if (dismissTimer.current) window.clearTimeout(dismissTimer.current);
@@ -246,13 +255,20 @@ export default function VolatilityHeatmap({
     index: number
   ) {
     if (e.pointerType !== "mouse") return; // touch handled in handleCellClick
-    const wrap = wrapRef.current;
-    if (!wrap) return;
-    const rect = wrap.getBoundingClientRect();
+    // Viewport coords — tooltip is position: fixed (see globals.css). Clamp
+    // to keep the tooltip on-screen near the viewport edges. Constants below
+    // mirror the CSS: translateX(-12px), max-width 260px. Estimated tip
+    // height of 130px covers the dispatch-link variant.
+    const PAD = 12;
+    const TIP_MAX_W = 260;
+    const TIP_EST_H = 130;
+    const minX = PAD + 12; // 12 cancels translateX(-12px) shift
+    const maxX = window.innerWidth - TIP_MAX_W - PAD + 12;
+    const maxY = window.innerHeight - TIP_EST_H - PAD;
     setTip({
       index,
-      x: e.clientX - rect.left + 4,
-      y: e.clientY - rect.top + 4,
+      x: Math.max(minX, Math.min(e.clientX + 4, maxX)),
+      y: Math.min(e.clientY + 4, maxY),
     });
   }
 
@@ -267,7 +283,6 @@ export default function VolatilityHeatmap({
   return (
     <div
       className={`bs-heatmap bs-heatmap--${size}`}
-      ref={wrapRef}
       onPointerLeave={handlePointerLeave}
     >
       <div
