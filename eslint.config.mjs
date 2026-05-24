@@ -24,9 +24,6 @@ const eslintConfig = [
       "**/*.snapshot.json",
       // Standalone Cloudflare Worker — has its own toolchain
       "workers/**",
-      // Dead code, scheduled for removal in the audit cleanup PR.
-      // Keeping it ignored so lint stays green until the file is deleted.
-      "components/inside-veqt/**",
     ],
   },
   {
