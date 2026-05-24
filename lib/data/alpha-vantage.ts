@@ -89,12 +89,20 @@ export async function getQuoteAV(avSymbol: string): Promise<QuoteData> {
   // Derive display symbol: VEQT.TRT → VEQT
   const displaySymbol = avSymbol.replace(/\.TRT$/, '');
 
+  // GLOBAL_QUOTE exposes the day high/low + previous close inline.
+  // 52w high/low + dividendYield require separate AV endpoints; 0 here
+  // is filled in by Yahoo on the fallback path or by the cache.
+  // marketCap isn't in GLOBAL_QUOTE at all.
   return {
     symbol: displaySymbol,
     price: parseFloat(q['05. price']),
     change: parseFloat(q['09. change']),
     changePercent: parseFloat((q['10. change percent'] || '0').replace('%', '')),
+    previousClose: parseFloat(q['08. previous close'] || '0'),
+    dayHigh: parseFloat(q['03. high'] || '0'),
+    dayLow: parseFloat(q['04. low'] || '0'),
     volume: parseInt(q['06. volume'], 10),
+    marketCap: 0,
     latestTradingDay: q['07. latest trading day'],
     fiftyTwoWeekHigh: 0,
     fiftyTwoWeekLow: 0,
