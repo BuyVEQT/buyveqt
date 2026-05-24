@@ -147,7 +147,7 @@ export function OwnershipDiagram() {
       </div>
 
       <figcaption className="text-center text-xs text-[var(--color-text-muted)] mt-4">
-        Vanguard's investors own the company. BlackRock's investors share it with Wall Street.
+        Vanguard&rsquo;s investors own the company. BlackRock&rsquo;s investors share it with Wall Street.
       </figcaption>
     </figure>
   );

@@ -103,6 +103,20 @@ export default function CohortFan({
   );
   const median = useMemo(() => medianPath(cohorts), [cohorts]);
 
+  // Computed BEFORE the early return so React Hooks are called in the same
+  // order every render. The `headline` is rendered only on the success path
+  // but the cost of computing it for the empty-state case is trivial.
+  const headline = useMemo(() => {
+    if (!userCohort) return "Pick a start date to see your cohort.";
+    const value = fmtCAD(userCohort.finalValue);
+    const startedHuman = fmtMonthHuman(userCohort.startMonth);
+    if (mode === "lumpsum") {
+      return `You started in ${startedHuman}. ${fmtCAD(amount)} is now ${value}.`;
+    }
+    const dur = durationMonths ?? userCohort.path.length;
+    return `You started in ${startedHuman}. ${fmtCAD(amount)}/month for ${dur} months grew to ${value}.`;
+  }, [mode, userCohort, amount, durationMonths]);
+
   if (cohorts.length === 0) {
     return (
       <p
@@ -127,17 +141,6 @@ export default function CohortFan({
     userValue !== null && totalCohorts > 1
       ? Math.round((userRank / (totalCohorts - 1)) * 100)
       : null;
-
-  const headline = useMemo(() => {
-    if (!userCohort) return "Pick a start date to see your cohort.";
-    const value = fmtCAD(userCohort.finalValue);
-    const startedHuman = fmtMonthHuman(userCohort.startMonth);
-    if (mode === "lumpsum") {
-      return `You started in ${startedHuman}. ${fmtCAD(amount)} is now ${value}.`;
-    }
-    const dur = durationMonths ?? userCohort.path.length;
-    return `You started in ${startedHuman}. ${fmtCAD(amount)}/month for ${dur} months grew to ${value}.`;
-  }, [mode, userCohort, amount, durationMonths]);
 
   // Y-axis ticks (4 evenly spaced)
   const yTicks = [

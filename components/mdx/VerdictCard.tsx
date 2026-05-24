@@ -21,7 +21,7 @@ export function VerdictCard({
   children,
 }: VerdictCardProps) {
   const proseOverrides: CSSProperties = {
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+     
     ...({
       "--ink": "#f6efdc",
       "--ink-soft": "rgba(246, 239, 220, 0.86)",

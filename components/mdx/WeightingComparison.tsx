@@ -38,7 +38,15 @@ function Donut({
   const cx = size;
   const cy = size;
   const r = size * 0.74;
-  let acc = -90;
+  // Pre-compute cumulative angles so the JSX map() doesn't reassign a
+  // closure-captured accumulator (which React's compiler rule
+  // `react-hooks/immutability` flags as impure).
+  const angles: number[] = [];
+  let running = -90;
+  for (const s of slices) {
+    angles.push(running);
+    running += (s.pct / 100) * 360;
+  }
   return (
     <svg
       width={size * 2}
@@ -47,10 +55,9 @@ function Donut({
       style={{ flexShrink: 0 }}
       aria-hidden
     >
-      {slices.map((s) => {
-        const start = acc;
-        const end = acc + (s.pct / 100) * 360;
-        acc = end;
+      {slices.map((s, i) => {
+        const start = angles[i];
+        const end = i + 1 < angles.length ? angles[i + 1] : running;
         const sa = (start * Math.PI) / 180;
         const ea = (end * Math.PI) / 180;
         const x1 = cx + r * Math.cos(sa);

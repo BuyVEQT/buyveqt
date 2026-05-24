@@ -16,7 +16,7 @@ export default function GlobalError({ error, reset }: ErrorProps) {
   // Log to the console in dev. In prod, Vercel + Sentry (if added later)
   // would pick up uncaught errors directly; this is just a breadcrumb.
   useEffect(() => {
-    // eslint-disable-next-line no-console
+     
     console.error("[GlobalError]", error);
   }, [error]);
 
