@@ -31,7 +31,7 @@ export default function HeatmapCard({ history, loading }: HeatmapCardProps) {
     return () => mq.removeEventListener("change", apply);
   }, []);
 
-  const { entries, upCount, downCount, fromLabel, toLabel } = useMemo(() => {
+  const { entries, upCount, downCount, fromLabel, toLabel, todayLabel, todayPct } = useMemo(() => {
     const { returns } = classifyReturns([...history]);
     const slice = returns.slice(-90);
     let u = 0;
@@ -47,12 +47,23 @@ export default function HeatmapCard({ history, loading }: HeatmapCardProps) {
         day: "numeric",
       }).format(new Date(`${iso}T12:00:00`));
     };
+    const fmtWeekday = (iso?: string): string => {
+      if (!iso) return "";
+      return new Intl.DateTimeFormat("en-CA", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+      }).format(new Date(`${iso}T12:00:00`));
+    };
+    const today = slice[slice.length - 1];
     return {
       entries: slice,
       upCount: u,
       downCount: d,
       fromLabel: fmt(slice[0]?.date),
-      toLabel: fmt(slice[slice.length - 1]?.date),
+      toLabel: fmt(today?.date),
+      todayLabel: today ? fmtWeekday(today.date) : "",
+      todayPct: today?.pct ?? null,
     };
   }, [history]);
 
@@ -172,6 +183,40 @@ export default function HeatmapCard({ history, loading }: HeatmapCardProps) {
         >
           <span>{fromLabel}</span>
           <span>{toLabel} · today</span>
+        </div>
+      )}
+
+      {/* Today call-out — small italic line that names today's session and
+          its move, anchored to the right edge so it reads as "the cell on
+          the right is this date / this number". */}
+      {!loading && todayLabel && todayPct !== null && (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            alignItems: "baseline",
+            gap: 8,
+            marginTop: 6,
+            fontFamily: "var(--font-serif)",
+            fontStyle: "italic",
+            fontSize: 13,
+            color: "var(--ink-soft)",
+          }}
+        >
+          <span>Today &middot; {todayLabel}</span>
+          <span
+            className="tabular-nums"
+            style={{
+              fontFamily: "var(--font-sans)",
+              fontStyle: "normal",
+              fontSize: 12,
+              fontWeight: 700,
+              color: todayPct >= 0 ? "var(--ink)" : "var(--stamp)",
+            }}
+          >
+            {todayPct >= 0 ? "▲" : "▼"} {todayPct >= 0 ? "+" : ""}
+            {todayPct.toFixed(2)}%
+          </span>
         </div>
       )}
 
