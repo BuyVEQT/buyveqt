@@ -74,20 +74,23 @@ export async function GET(request: Request) {
   let isFallback: boolean;
 
   if (quoteData) {
-    // We have real data
+    // We have real data. previousClose / dayHigh / dayLow / marketCap come
+    // straight from Yahoo (or AV's GLOBAL_QUOTE for the first three); they
+    // were hardcoded to 0 in an earlier iteration, which silently disabled
+    // the HeroPriceCard's intraday-range and prev-close captions.
     quote = {
       price: quoteData.price,
-      previousClose: 0,
+      previousClose: quoteData.previousClose,
       change: quoteData.change,
       changePercent: quoteData.changePercent,
-      dayHigh: 0,
-      dayLow: 0,
+      dayHigh: quoteData.dayHigh,
+      dayLow: quoteData.dayLow,
       fiftyTwoWeekHigh: quoteData.fiftyTwoWeekHigh,
       fiftyTwoWeekLow: quoteData.fiftyTwoWeekLow,
       dividendYield: quoteData.dividendYield,
       ytdReturn: null,
       volume: quoteData.volume,
-      marketCap: 0,
+      marketCap: quoteData.marketCap,
       currency: "CAD",
       exchange: "TSX",
       lastUpdated: quoteData.fetchedAt,

@@ -41,7 +41,11 @@ export async function getQuoteYahoo(
       price: result.regularMarketPrice,
       change: result.regularMarketChange ?? 0,
       changePercent: result.regularMarketChangePercent ?? 0,
+      previousClose: result.regularMarketPreviousClose ?? 0,
+      dayHigh: result.regularMarketDayHigh ?? 0,
+      dayLow: result.regularMarketDayLow ?? 0,
       volume: result.regularMarketVolume ?? 0,
+      marketCap: result.marketCap ?? 0,
       latestTradingDay: result.regularMarketTime
         ? new Date(result.regularMarketTime).toISOString().split('T')[0]
         : new Date().toISOString().split('T')[0],

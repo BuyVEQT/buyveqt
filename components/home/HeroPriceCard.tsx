@@ -171,6 +171,14 @@ export default function HeroPriceCard({
                 }}
               >
                 {up ? "+" : "−"}${changeAbs} today
+                {quote.dayHigh > 0 && quote.dayLow > 0 && (
+                  <>
+                    {" · "}
+                    <span className="tabular-nums">
+                      ${quote.dayLow.toFixed(2)}–${quote.dayHigh.toFixed(2)}
+                    </span>
+                  </>
+                )}
                 {quote.previousClose > 0 && (
                   <> · vs. ${quote.previousClose.toFixed(2)} prev</>
                 )}
