@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import InsideClient from "@/components/inside/InsideClient";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { buildBreadcrumbSchema, canonicalUrl } from "@/lib/seo-config";
+import {
+  buildBreadcrumbSchema,
+  buildInvestmentFundSchema,
+  canonicalUrl,
+} from "@/lib/seo-config";
 
 export const metadata: Metadata = {
   title: "Inside VEQT — Holdings, Sectors & Geographic Allocation",
@@ -25,6 +29,10 @@ export default function InsideVeqtPage() {
           { name: "Inside VEQT", path: "/inside-veqt" },
         ])}
       />
+      {/* InvestmentFund schema lives here (and on the home page) because this
+          page directly describes the fund's structure. Previously mounted
+          site-wide via the root layout, which Google treats as decorative. */}
+      <JsonLd data={buildInvestmentFundSchema()} />
       <InsideClient />
     </>
   );
