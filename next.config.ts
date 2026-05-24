@@ -12,6 +12,16 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
+        // /invest was renamed to /calculators. Next redirects preserve
+        // query strings by default, so /invest?tab=historical&amount=10000
+        // still lands on /calculators with the same params. Replaces the
+        // page-level redirect at app/invest/page.tsx; the early 308 from
+        // next.config skips a server round-trip per request.
+        source: "/invest",
+        destination: "/calculators",
+        permanent: true,
+      },
+      {
         source: "/learn/why-we-choose-veqt-over-xeqt",
         destination: "/learn/veqt-vs-xeqt",
         permanent: true,
