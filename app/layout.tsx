@@ -15,11 +15,23 @@ import {
   SITE_DESCRIPTION,
 } from "@/lib/seo-config";
 
+// Font weights below are tuned to what the codebase actually renders.
+// Total payload was 27 font files (2×4 + 5 + 2×6); now 13. Each `weight × style`
+// combination is a separate file fetch on first paint.
+//
+// Newsreader (body serif): paragraph text + italic emphasis only.
+//   Used: 400, 400 italic, 500, 500 italic. Bolder body text uses Inter.
+// Inter (sans / labels / UI): never below 500 — labels are uppercase
+//   bold, buttons are 600, numerals are 600/700.
+// Fraunces (display): headlines + display numerals + the broadsheet
+//   italic. Bold weight is 700; 800/900 is OG-image only (no next/font
+//   needed). 600 was specified but never rendered (no font-weight:600
+//   on --font-display selectors).
 const newsreader = Newsreader({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-newsreader",
-  weight: ["300", "400", "500", "600"],
+  weight: ["400", "500"],
   style: ["normal", "italic"],
 });
 
@@ -29,14 +41,14 @@ const inter = Inter({
   // Keep --font-outfit for back-compat (some legacy components reference it)
   // and add --font-inter as the new workhorse for the editorial system.
   variable: "--font-inter",
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["500", "600", "700"],
 });
 
 const fraunces = Fraunces({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-fraunces",
-  weight: ["300", "400", "500", "600", "700", "900"],
+  weight: ["400", "500", "700"],
   style: ["normal", "italic"],
 });
 
