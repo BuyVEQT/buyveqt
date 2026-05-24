@@ -105,6 +105,12 @@ export default function Sparkline({
   const [selection, setSelection] = useState<{ aIdx: number; bIdx: number } | null>(null);
   const DRAG_THRESHOLD_PX = 4;
 
+  // Keyboard scrubber: an index that moves with ← →. Distinct from the mouse
+  // hover state so a keyboard user can park the cursor on a date and then use
+  // Shift+← / Shift+→ to grow a selection from there. Set to the last
+  // available index on first arrow press; cleared on Escape.
+  const [keyboardIdx, setKeyboardIdx] = useState<number | null>(null);
+
   // Clear the selection when the data window changes (e.g. range tab swap).
   // Indices in `selection` would point at the wrong dates otherwise.
   useEffect(() => {
@@ -213,9 +219,16 @@ export default function Sparkline({
   const selColor = selUp ? "var(--green)" : "var(--stamp)";
 
   // Hide the hover scrubber whenever a drag/selection is active.
+  // Keyboard-driven scrubber (↑/↓ unused, ← → step the index, Home/End jump
+  // to extremes) takes precedence over the mouse hover so a keyboard user
+  // can park the cursor and read off any date.
   let hoverIdx: number | null = null;
-  if (hoverX !== null && data.length >= 2 && !activeSelection) {
-    hoverIdx = pxToIdx(hoverX);
+  if (!activeSelection) {
+    if (keyboardIdx !== null) {
+      hoverIdx = keyboardIdx;
+    } else if (hoverX !== null && data.length >= 2) {
+      hoverIdx = pxToIdx(hoverX);
+    }
   }
   const hoverPoint = hoverIdx !== null ? data[hoverIdx] : null;
   const hoverPx = hoverIdx !== null ? xAt(hoverIdx) : 0;
@@ -240,11 +253,93 @@ export default function Sparkline({
           // Prevents touch drag on the chart from scrolling the page while
           // the user is sweeping out a selection. Only when dragSelect is on.
           touchAction: dragSelect ? "none" : undefined,
+          // Match the focus-ring with the brand stamp colour without
+          // overriding the default tab semantics.
+          outlineOffset: 2,
         }}
-        role="img"
+        // When drag-select is on, the chart becomes a focusable widget so
+        // keyboard users can scrub with ← / → and grow a selection with
+        // Shift+ ← / → . Without dragSelect the SVG stays non-interactive.
+        tabIndex={interactive && dragSelect ? 0 : undefined}
+        role={interactive && dragSelect ? "application" : "img"}
         aria-label={
-          ariaLabel ??
-          `Sparkline, ${data.length} points, ${closes[0].toFixed(2)} to ${last.close.toFixed(2)}`
+          // Always append the keyboard-control hint when the chart accepts
+          // arrow-key navigation so screen-reader users know what to do.
+          // The fallback string covers callers that didn't supply ariaLabel.
+          (
+            ariaLabel ??
+            `Sparkline, ${data.length} points, ${closes[0].toFixed(2)} to ${last.close.toFixed(2)}`
+          ) +
+          (interactive && dragSelect
+            ? ". Use arrow keys to scrub, Shift+arrow to extend a selection, Escape to clear."
+            : "")
+        }
+        onBlur={
+          interactive && dragSelect
+            ? () => {
+                // Keep the keyboard-set scrubber visible after blur so the
+                // user can re-focus and continue. Escape is the explicit
+                // dismiss. (Mouse hover state is already cleared by
+                // onPointerLeave.)
+              }
+            : undefined
+        }
+        onKeyDown={
+          interactive && dragSelect
+            ? (e) => {
+                if (data.length < 2) return;
+                const lastIdx = data.length - 1;
+                const cursor = keyboardIdx ?? lastIdx;
+                let nextCursor = cursor;
+                let consumed = true;
+                let extend = e.shiftKey;
+                switch (e.key) {
+                  case "ArrowLeft":
+                    nextCursor = Math.max(0, cursor - 1);
+                    break;
+                  case "ArrowRight":
+                    nextCursor = Math.min(lastIdx, cursor + 1);
+                    break;
+                  case "Home":
+                    nextCursor = 0;
+                    break;
+                  case "End":
+                    nextCursor = lastIdx;
+                    break;
+                  case "PageUp":
+                    nextCursor = Math.max(0, cursor - 10);
+                    break;
+                  case "PageDown":
+                    nextCursor = Math.min(lastIdx, cursor + 10);
+                    break;
+                  case "Escape":
+                    setSelection(null);
+                    setKeyboardIdx(null);
+                    extend = false;
+                    nextCursor = cursor;
+                    break;
+                  default:
+                    consumed = false;
+                }
+                if (!consumed) return;
+                e.preventDefault();
+                if (e.key === "Escape") return;
+                setKeyboardIdx(nextCursor);
+                setHoverX(null); // keyboard wins; reset stale mouse pos
+                if (extend) {
+                  // Selection anchor stays put (selection?.aIdx or current
+                  // cursor on first extension). Endpoint moves with the
+                  // new keyboard cursor.
+                  const anchor = selection ? selection.aIdx : cursor;
+                  setSelection({ aIdx: anchor, bIdx: nextCursor });
+                } else if (selection) {
+                  // Plain arrow (no shift) without an existing selection: do
+                  // nothing extra. With an existing selection: clear it so
+                  // the user can re-scrub freely.
+                  setSelection(null);
+                }
+              }
+            : undefined
         }
         onPointerDown={
           interactive && dragSelect
