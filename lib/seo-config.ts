@@ -48,7 +48,7 @@ export function buildFaqSchema() {
         name: 'What is VEQT?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: "VEQT (Vanguard All-Equity ETF Portfolio) is a single-ticket ETF that provides instant exposure to approximately 13,700 stocks across 50 countries. It holds 4 underlying Vanguard index ETFs covering the US (~43%), Canada (~31%), international developed (~18%), and emerging markets (~7%). It is designed for long-term Canadian passive investors.",
+          text: "VEQT (Vanguard All-Equity ETF Portfolio) is a single-ticket ETF that provides instant exposure to 13,726 stocks across 50 countries (April 30, 2026). It holds 4 underlying Vanguard index ETFs covering the US (~44.5%), Canada (~30.6%), international developed (~17.7%), and emerging markets (~7.2%). It is designed for long-term Canadian passive investors.",
         },
       },
       {

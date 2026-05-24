@@ -90,8 +90,8 @@ export default function InsideStats() {
   return (
     <Card padding={0}>
       <div style={{ display: "flex" }}>
-        <StatTile label="Holdings" value="13,712" sub="across 4 ETFs" />
-        <StatTile label="AUM" value="$12.2B" sub="Vanguard Canada" />
+        <StatTile label="Holdings" value="13,726" sub="across 4 ETFs" />
+        <StatTile label="AUM" value="$13.4B" sub="Vanguard Canada" />
         <StatTile
           label="MER (effective)"
           value="~0.20%"
@@ -101,7 +101,7 @@ export default function InsideStats() {
         />
         <StatTile
           label="Inception"
-          value="Jan 30, 2019"
+          value="Jan 29, 2019"
           sub="7+ years"
           desktopOnly
           noDivider

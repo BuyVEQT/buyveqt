@@ -8,9 +8,9 @@
 
 - **Full name**: Vanguard All-Equity ETF Portfolio
 - **Ticker**: VEQT.TO (Toronto Stock Exchange)
-- **MER**: ~0.20% (management fee reduced to 0.17% in Nov 2025; official MER pending fiscal year-end recalculation)
-- **AUM**: ~$12.2B CAD
-- **Holdings**: ~13,700 stocks across ~50 countries
+- **MER**: ~0.20% effective (official MER 0.24% as of the April 30 2026 factsheet; management fee was reduced to 0.17% in Nov 2025 and the official MER is awaiting fiscal-year-end recalculation)
+- **AUM**: ~$13.4B CAD (as of April 30, 2026)
+- **Holdings**: 13,726 stocks across ~50 countries (as of April 30, 2026)
 - **Inception**: January 29, 2019
 - **Distribution frequency**: Annual (late December)
 - **Asset allocation**: 100% equity (no bonds)
