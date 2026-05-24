@@ -27,14 +27,14 @@ export default function PathDetail({ path, articles }: PathDetailProps) {
       >
         <Link
           href="/"
-          className="bs-link hover:text-[var(--stamp)] transition-colors"
+          className="bs-link"
         >
           Home
         </Link>
         <span aria-hidden="true">&middot;</span>
         <Link
           href="/learn"
-          className="bs-link hover:text-[var(--stamp)] transition-colors"
+          className="bs-link"
         >
           Learn
         </Link>
@@ -77,7 +77,7 @@ export default function PathDetail({ path, articles }: PathDetailProps) {
                   </span>
                   <div className="min-w-0">
                     <h2
-                      className="bs-body font-medium text-[1rem] leading-[1.3] group-hover:text-[var(--stamp)] transition-colors"
+                      className="bs-body font-medium text-[1rem] leading-[1.3] group-hover:underline group-hover:decoration-2 group-hover:underline-offset-4 transition-[text-decoration]"
                       style={{ color: "var(--ink)" }}
                     >
                       {article.title}
@@ -109,7 +109,7 @@ export default function PathDetail({ path, articles }: PathDetailProps) {
         <div className="mb-12 pb-8 border-b border-[var(--color-border)]">
           <Link
             href={`/learn/${firstArticle.slug}`}
-            className="bs-link inline-flex items-center gap-2 text-[1rem] font-medium hover:text-[var(--stamp)] transition-colors"
+            className="bs-link inline-flex items-center gap-2 text-[1rem] font-medium"
             style={{ color: "var(--ink)" }}
           >
             Start the path &rarr;
@@ -134,7 +134,7 @@ export default function PathDetail({ path, articles }: PathDetailProps) {
                   className="group flex items-baseline justify-between gap-4 py-2 border-t border-[var(--color-border)]"
                 >
                   <span
-                    className="bs-body text-[0.9375rem] group-hover:text-[var(--stamp)] transition-colors"
+                    className="bs-body text-[0.9375rem] group-hover:underline group-hover:decoration-2 group-hover:underline-offset-4 transition-[text-decoration]"
                     style={{ color: "var(--ink)" }}
                   >
                     {p.title}
