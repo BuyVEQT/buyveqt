@@ -80,7 +80,7 @@ export default function DispatchTOC() {
                     {String(indices.get(item.id)).padStart(2, "0")}
                   </span>
                   <span
-                    className="transition-colors group-hover:text-[var(--stamp)]"
+                    className="transition-[text-decoration] group-hover:underline group-hover:decoration-2 group-hover:underline-offset-4"
                     style={{
                       fontWeight: isActive ? 500 : 400,
                     }}

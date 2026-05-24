@@ -113,7 +113,7 @@ export default function WeeklyIndexPage() {
                       {range}
                     </p>
                     <h3
-                      className="bs-display text-[1.25rem] sm:text-[1.5rem] leading-[1.15] group-hover:text-[var(--stamp)] transition-colors"
+                      className="bs-display text-[1.25rem] sm:text-[1.5rem] leading-[1.15] group-hover:underline group-hover:decoration-2 group-hover:underline-offset-4 transition-[text-decoration]"
                       style={{ color: "var(--ink)" }}
                     >
                       {recap.title}

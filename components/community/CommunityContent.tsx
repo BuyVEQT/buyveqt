@@ -208,7 +208,7 @@ export default function CommunityContent({
                 rel="noopener noreferrer"
                 className="group block min-w-0"
               >
-                <h3 className="bs-display text-xl sm:text-[1.625rem] leading-[1.18] text-[var(--ink)] group-hover:text-[var(--stamp)] transition-colors">
+                <h3 className="bs-display text-xl sm:text-[1.625rem] leading-[1.18] text-[var(--ink)] group-hover:underline group-hover:decoration-2 group-hover:underline-offset-4 transition-[text-decoration]">
                   &ldquo;{post.title}&rdquo;
                 </h3>
                 <p className="bs-caption mt-2 flex items-center gap-x-2 gap-y-1 flex-wrap">
