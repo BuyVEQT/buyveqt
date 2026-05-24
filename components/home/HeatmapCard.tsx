@@ -7,6 +7,7 @@ import { classifyReturns } from "@/lib/volatility";
 import Card from "@/components/ui/Card";
 import SectionLabel from "@/components/ui/SectionLabel";
 import Heatmap from "@/components/charts/Heatmap";
+import HeatmapLegend from "@/components/charts/HeatmapLegend";
 
 interface HeatmapCardProps {
   history: readonly HistoricalDataPoint[];
@@ -30,7 +31,7 @@ export default function HeatmapCard({ history, loading }: HeatmapCardProps) {
     return () => mq.removeEventListener("change", apply);
   }, []);
 
-  const { entries, upCount, downCount } = useMemo(() => {
+  const { entries, upCount, downCount, fromLabel, toLabel } = useMemo(() => {
     const { returns } = classifyReturns([...history]);
     const slice = returns.slice(-90);
     let u = 0;
@@ -39,7 +40,20 @@ export default function HeatmapCard({ history, loading }: HeatmapCardProps) {
       if (r.pct > 0) u += 1;
       else if (r.pct < 0) d += 1;
     }
-    return { entries: slice, upCount: u, downCount: d };
+    const fmt = (iso?: string): string => {
+      if (!iso) return "";
+      return new Intl.DateTimeFormat("en-CA", {
+        month: "short",
+        day: "numeric",
+      }).format(new Date(`${iso}T12:00:00`));
+    };
+    return {
+      entries: slice,
+      upCount: u,
+      downCount: d,
+      fromLabel: fmt(slice[0]?.date),
+      toLabel: fmt(slice[slice.length - 1]?.date),
+    };
   }, [history]);
 
   const cols = mobile ? 10 : 15;
@@ -74,10 +88,36 @@ export default function HeatmapCard({ history, loading }: HeatmapCardProps) {
           }}
         >
           <span>
-            <span style={{ color: "var(--green)" }}>●</span> {upCount} up
+            {/* Up day swatch — ink at the same intensity the heatmap uses
+                for a moderate up day, matching the body of the grid. */}
+            <span
+              style={{
+                display: "inline-block",
+                width: 10,
+                height: 10,
+                background: "color-mix(in oklab, var(--ink) 65%, transparent)",
+                borderRadius: 2,
+                marginRight: 4,
+                verticalAlign: "middle",
+              }}
+              aria-hidden
+            />
+            {upCount} up
           </span>
           <span>
-            <span style={{ color: "var(--stamp)" }}>●</span> {downCount} down
+            <span
+              style={{
+                display: "inline-block",
+                width: 10,
+                height: 10,
+                background: "color-mix(in oklab, var(--stamp) 65%, var(--paper))",
+                borderRadius: 2,
+                marginRight: 4,
+                verticalAlign: "middle",
+              }}
+              aria-hidden
+            />
+            {downCount} down
           </span>
         </div>
       </div>
@@ -111,6 +151,33 @@ export default function HeatmapCard({ history, loading }: HeatmapCardProps) {
           />
         )}
       </div>
+
+      {/* Date range caption — anchors the leftmost cell to a calendar
+          date and the rightmost to "today", so the timeline reads
+          left-to-right without hovering every cell. */}
+      {!loading && entries.length > 0 && (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginTop: 10,
+            fontFamily: "var(--font-sans)",
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing: "0.16em",
+            textTransform: "uppercase",
+            color: "var(--ink-mute)",
+          }}
+          aria-hidden
+        >
+          <span>{fromLabel}</span>
+          <span>{toLabel} · today</span>
+        </div>
+      )}
+
+      {/* Color legend — gradient bar mapping intensity to daily return.
+          Matches the cell palette: vermilion for down, ink for up. */}
+      <HeatmapLegend />
 
       <Link
         href="/inside-veqt#heatmap"

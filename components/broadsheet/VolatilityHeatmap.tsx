@@ -103,8 +103,15 @@ function buildCells(
   history: VolatilityHeatmapEntry[],
   todayIndex: number,
   rows: 5 | 7
-): { cells: BuiltCell[]; cols: number } {
-  if (history.length === 0) return { cells: [], cols: 0 };
+): {
+  cells: BuiltCell[];
+  cols: number;
+  /** For each column, the short month label ('Jan', 'Feb', …) — but only
+   *  populated on the column where a new month starts. Empty string on
+   *  every other column. Used by the X-axis month-marker row. */
+  columnMonths: string[];
+} {
+  if (history.length === 0) return { cells: [], cols: 0, columnMonths: [] };
   const sorted = [...history].sort((a, b) => a.date.localeCompare(b.date));
   const todayDate = todayIndex >= 0 ? history[todayIndex]?.date : null;
   const byDate = new Map<string, VolatilityHeatmapEntry>();
@@ -121,7 +128,22 @@ function buildCells(
   const lastMs = last.getTime();
 
   const cells: BuiltCell[] = [];
+  const columnMonths: string[] = [];
+  let prevMonth = -1;
   for (let c = 0; c < weekSpan; c++) {
+    // Use the Wednesday (middle of the week) to attribute the column to a
+    // month so weeks straddling a month boundary don't flip back and forth.
+    const weekMid = addDays(startMonday, c * 7 + 2);
+    const month = weekMid.getMonth();
+    if (month !== prevMonth) {
+      columnMonths.push(
+        new Intl.DateTimeFormat("en-CA", { month: "short" }).format(weekMid)
+      );
+      prevMonth = month;
+    } else {
+      columnMonths.push("");
+    }
+
     for (let r = 0; r < rows; r++) {
       const dayOffset = c * 7 + r;
       const cellDate = addDays(startMonday, dayOffset);
@@ -146,8 +168,11 @@ function buildCells(
       }
     }
   }
-  return { cells, cols: weekSpan };
+  return { cells, cols: weekSpan, columnMonths };
 }
+
+const DOW_LABELS_DESKTOP = ["M", "T", "W", "T", "F"] as const;
+const DOW_LABELS_MOBILE = ["M", "T", "W", "T", "F", "S", "S"] as const;
 
 interface TipState {
   index: number;
@@ -183,10 +208,11 @@ export default function VolatilityHeatmap({
   }, []);
 
   const rows: 5 | 7 = isMobile ? 7 : 5;
-  const { cells, cols } = useMemo(
+  const { cells, cols, columnMonths } = useMemo(
     () => buildCells(history, todayIndex, rows),
     [history, todayIndex, rows]
   );
+  const dowLabels = isMobile ? DOW_LABELS_MOBILE : DOW_LABELS_DESKTOP;
 
   // When the underlying grid changes (resize transposes rows, range slice
   // swaps history, or 5-min refresh appends today), any pinned tooltip's
@@ -285,13 +311,42 @@ export default function VolatilityHeatmap({
       className={`bs-heatmap bs-heatmap--${size}`}
       onPointerLeave={handlePointerLeave}
     >
-      <div
-        className="bs-heatmap__grid"
-        style={{
-          gridTemplateColumns: `repeat(${cols}, 1fr)`,
-          gridTemplateRows: `repeat(${rows}, var(--bs-hm-cell-h))`,
-        }}
-      >
+      {/* Month-marker row sits above the grid; the day-of-week column sits
+          to the left. Both use the same gap + cell metrics so labels line
+          up perfectly with the cells they describe. */}
+      <div className="bs-heatmap__axes">
+        <span className="bs-heatmap__axes-corner" aria-hidden />
+        <div
+          className="bs-heatmap__months"
+          style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}
+          aria-hidden
+        >
+          {columnMonths.map((m, i) => (
+            <span key={`m-${i}`} className="bs-heatmap__month-label">
+              {m}
+            </span>
+          ))}
+        </div>
+      </div>
+      <div className="bs-heatmap__body">
+        <div
+          className="bs-heatmap__dow"
+          style={{ gridTemplateRows: `repeat(${rows}, var(--bs-hm-cell-h))` }}
+          aria-hidden
+        >
+          {dowLabels.map((d, i) => (
+            <span key={`d-${i}`} className="bs-heatmap__dow-label">
+              {d}
+            </span>
+          ))}
+        </div>
+        <div
+          className="bs-heatmap__grid"
+          style={{
+            gridTemplateColumns: `repeat(${cols}, 1fr)`,
+            gridTemplateRows: `repeat(${rows}, var(--bs-hm-cell-h))`,
+          }}
+        >
         {cells.map((cell, i) => {
           // Stable key per grid slot. When a cell at index i changes kind
           // (e.g. range slice swaps a placeholder for a real session), the
@@ -338,6 +393,7 @@ export default function VolatilityHeatmap({
             />
           );
         })}
+        </div>
       </div>
 
       {tip && tipEntry && (
