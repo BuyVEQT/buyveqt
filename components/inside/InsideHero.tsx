@@ -14,12 +14,13 @@ const REGION_TO_KEY: Record<string, keyof TiltWeights> = {
   VEE: "em",
 };
 
-/** Fallback tilt — VEQT factsheet weights, used when the live feed is silent. */
+/** Fallback tilt — VEQT factsheet weights (April 30, 2026), used when the
+ *  live feed is silent. */
 const FALLBACK_TILT: TiltWeights = {
-  us: 0.43,
-  ca: 0.31,
-  dev: 0.18,
-  em: 0.07,
+  us: 0.445,
+  ca: 0.306,
+  dev: 0.177,
+  em: 0.072,
 };
 
 /**

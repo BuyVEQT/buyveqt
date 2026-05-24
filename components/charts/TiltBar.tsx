@@ -12,7 +12,7 @@ interface TiltBarProps {
   weights: TiltWeights;
   /** Height in px. Default 12. */
   height?: number;
-  /** Render the "US 43% · CA 31% · Dev 18% · EM 7%" summary line below. */
+  /** Render the "US 45% · CA 31% · Dev 18% · EM 7%" summary line below. */
   showLabels?: boolean;
   className?: string;
   style?: CSSProperties;

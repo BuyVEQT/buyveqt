@@ -1,10 +1,13 @@
 import type { VeqtQuote } from "./types";
 
+// Sleeve weights from the April 30, 2026 Vanguard VEQT factsheet.
+// `data/funds.ts` is the canonical source for /inside-veqt; this one is
+// used by /api/regions which returns the live data.
 export const UNDERLYING_ETFS = [
-  { ticker: "VUN", name: "US Total Market", region: "US", weight: 43 },
-  { ticker: "VCN", name: "Canada All Cap", region: "Canada", weight: 31 },
-  { ticker: "VIU", name: "Developed ex-NA", region: "International", weight: 18 },
-  { ticker: "VEE", name: "Emerging Markets", region: "Emerging Markets", weight: 7 },
+  { ticker: "VUN", name: "US Total Market", region: "US", weight: 44.5 },
+  { ticker: "VCN", name: "Canada All Cap", region: "Canada", weight: 30.6 },
+  { ticker: "VIU", name: "Developed ex-NA", region: "International", weight: 17.7 },
+  { ticker: "VEE", name: "Emerging Markets", region: "Emerging Markets", weight: 7.2 },
 ];
 
 /**
