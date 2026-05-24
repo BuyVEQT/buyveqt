@@ -82,15 +82,23 @@ export default function Heatmap({
   const W = cols * cell + (cols - 1) * gap;
   const H = rows * cell + (rows - 1) * gap;
 
+  // Palette aligned with /inside-veqt's VolatilityHeatmap so both boards
+  // read as one coherent system: ink for up days, vermilion for down. The
+  // intensity curve matches `shade(pct)` over there.
   const color = (pct: number) => {
-    if (pct >= 0.8) return "var(--green)";
-    if (pct >= 0.3) return "color-mix(in oklab, var(--green) 65%, var(--paper))";
-    if (pct >= 0.05) return "color-mix(in oklab, var(--green) 30%, var(--paper))";
-    if (pct > -0.05)
+    if (Math.abs(pct) < 0.05) {
       return tone === "paper" ? "var(--paper-deep)" : "rgba(255,255,255,0.06)";
-    if (pct > -0.3) return "color-mix(in oklab, var(--stamp) 30%, var(--paper))";
-    if (pct > -0.8) return "color-mix(in oklab, var(--stamp) 65%, var(--paper))";
-    return "var(--stamp)";
+    }
+    const abs = Math.abs(pct);
+    let intensity: number;
+    if (abs < 0.6) intensity = 0.05 + abs * 0.05;
+    else if (abs < 1.2) intensity = 0.16 + (abs - 0.6) * 0.16;
+    else if (abs < 2.0) intensity = 0.32 + (abs - 1.2) * 0.18;
+    else intensity = 0.6 + Math.min(0.25, (abs - 2.0) * 0.15);
+    const p = Math.round(intensity * 100);
+    return pct >= 0
+      ? `color-mix(in oklab, var(--ink) ${p}%, transparent)`
+      : `color-mix(in oklab, var(--stamp) ${p}%, var(--paper))`;
   };
 
   function handleEnter(e: React.PointerEvent<HTMLElement>, index: number) {

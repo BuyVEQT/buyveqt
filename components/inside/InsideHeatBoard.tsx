@@ -7,6 +7,7 @@ import SectionLabel from "@/components/ui/SectionLabel";
 import { useVeqtData } from "@/lib/useVeqtData";
 import { classifyReturns, type ClassifiedReturn } from "@/lib/volatility";
 import VolatilityHeatmap from "@/components/broadsheet/VolatilityHeatmap";
+import HeatmapLegend from "@/components/charts/HeatmapLegend";
 
 type Range = "30D" | "90D" | "YTD" | "1Y";
 const RANGES: Range[] = ["30D", "90D", "YTD", "1Y"];
@@ -226,6 +227,7 @@ export default function InsideHeatBoard() {
             onCellClick={handleCellClick}
           />
         )}
+        {!loading && sliced.length > 0 && <HeatmapLegend />}
       </div>
 
       <p
@@ -239,10 +241,10 @@ export default function InsideHeatBoard() {
           maxWidth: "64ch",
         }}
       >
-        Each cell is one trading day. Darker greens = stronger up days,
-        darker reds = stronger down days. Hover for the date and return;
-        tap on mobile to pin, tap again to follow through to the day&apos;s
-        dispatch if there is one.
+        Each cell is one trading day. Darker ink = stronger up days,
+        darker vermilion = stronger down days. Hover for the date and
+        return; tap on mobile to pin, tap again to follow through to the
+        day&apos;s dispatch if there is one.
       </p>
 
       <style jsx>{`
