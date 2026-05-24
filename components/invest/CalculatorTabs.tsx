@@ -1,14 +1,45 @@
 "use client";
 
 import { useState, useEffect, useCallback, Suspense } from "react";
+import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
-import InvestCalculator from "./InvestCalculator";
-import DCACalculator from "@/components/calculators/DCACalculator";
-import DividendCalculator from "@/components/calculators/DividendCalculator";
-import TFSARRSPCalculator from "@/components/calculators/TFSARRSPCalculator";
-import FIRECalculator from "@/components/calculators/FIRECalculator";
 import CalculatorShell from "./CalculatorShell";
 import PinnedScenariosBar from "./PinnedScenariosBar";
+
+// Each calculator pulls in recharts (~200KB gz). Only one tab is active
+// at a time — dynamic-import keeps the inactive ones out of the initial
+// bundle. ssr:false because the calculators are stateful + client-only
+// (sliders, localStorage scenario pins, etc.).
+const CHART_SKELETON_STYLE = { minHeight: 360 } as const;
+function ChartSkeleton() {
+  return (
+    <div
+      className="skeleton"
+      style={{ ...CHART_SKELETON_STYLE, borderRadius: 12, width: "100%" }}
+      aria-label="Loading calculator…"
+    />
+  );
+}
+const InvestCalculator = dynamic(() => import("./InvestCalculator"), {
+  ssr: false,
+  loading: ChartSkeleton,
+});
+const DCACalculator = dynamic(
+  () => import("@/components/calculators/DCACalculator"),
+  { ssr: false, loading: ChartSkeleton }
+);
+const DividendCalculator = dynamic(
+  () => import("@/components/calculators/DividendCalculator"),
+  { ssr: false, loading: ChartSkeleton }
+);
+const TFSARRSPCalculator = dynamic(
+  () => import("@/components/calculators/TFSARRSPCalculator"),
+  { ssr: false, loading: ChartSkeleton }
+);
+const FIRECalculator = dynamic(
+  () => import("@/components/calculators/FIRECalculator"),
+  { ssr: false, loading: ChartSkeleton }
+);
 import type { HistoricalData } from "@/lib/data/types";
 import type { VolatilityStats } from "@/lib/data/volatility";
 import { inferTab } from "@/lib/share-params";
