@@ -122,6 +122,13 @@ export const metadata: Metadata = {
   },
 };
 
+// Pairs with app/manifest.ts. The theme-color meta is what sets the URL bar
+// tint on Android Chrome and the Add-to-Home-Screen splash; manifest carries
+// the same value for installed PWAs.
+export const viewport: import("next").Viewport = {
+  themeColor: "#c8102e",
+};
+
 export default function RootLayout({
   children,
 }: {
