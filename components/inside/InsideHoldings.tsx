@@ -139,7 +139,7 @@ export default function InsideHoldings() {
             color: "var(--ink-mute)",
           }}
         >
-          Of 13,712. The rest round to under one percent each.
+          Of 13,726. The rest round to under one percent each.
         </span>
       </div>
 

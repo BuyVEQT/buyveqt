@@ -39,7 +39,7 @@ export const VERDICTS: ComparisonVerdict[] = [
         label: "Fund size (AUM)",
         winner: "XEQT",
         explanation:
-          "XEQT has surpassed VEQT in assets under management (~$14.7B vs ~$12.2B). Both are highly liquid with tight bid-ask spreads.",
+          "XEQT remains larger than VEQT in assets under management (~$14.7B vs ~$13.4B). Both are highly liquid with tight bid-ask spreads.",
       },
       {
         label: "Simplicity",
@@ -99,7 +99,7 @@ export const VERDICTS: ComparisonVerdict[] = [
         label: "Fund size and liquidity",
         winner: "VEQT",
         explanation:
-          "VEQT has ~$12.2B in AUM vs ZEQT's ~$591M, which means better liquidity and tighter bid-ask spreads.",
+          "VEQT has ~$13.4B in AUM vs ZEQT's ~$591M, which means better liquidity and tighter bid-ask spreads.",
       },
       {
         label: "MER",

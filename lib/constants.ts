@@ -22,7 +22,7 @@ export const FALLBACK_QUOTE: VeqtQuote = {
   dayLow: 52.95,
   fiftyTwoWeekHigh: 53.91,
   fiftyTwoWeekLow: 43.53,
-  dividendYield: 1.43,
+  dividendYield: 1.8, // factsheet 2026-04-30: equity yield 1.8%
   ytdReturn: null,
   volume: 0,
   marketCap: 0,
