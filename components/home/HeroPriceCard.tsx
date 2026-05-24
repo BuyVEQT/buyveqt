@@ -227,7 +227,7 @@ export default function HeroPriceCard({
             textAlign: "right",
           }}
         >
-          Drag any two points on the chart to compare →
+          Drag two points (or Tab + Shift +←→) to compare →
         </div>
 
         {/* Period stats strip — three quiet metrics scoped to the selected
