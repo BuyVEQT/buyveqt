@@ -1,17 +1,33 @@
 "use client";
 
 import { useState, useEffect, useCallback, Suspense } from "react";
+import dynamic from "next/dynamic";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import CompareHero from "./CompareHero";
 import MatchupPresets from "./MatchupPresets";
 import FundPicker from "./FundPicker";
-import PerformanceChart, { type ComparePeriod } from "./PerformanceChart";
+import type { ComparePeriod } from "./PerformanceChart";
 import CompareGap from "./CompareGap";
 import StatsTable from "./StatsTable";
 import Verdict from "./Verdict";
 import AllocationBars from "./AllocationBars";
 import WhoThisSuits from "./WhoThisSuits";
 import FAQSection from "./FAQSection";
+
+// recharts is ~200KB gz — keep it out of the initial /compare bundle.
+// The chart sits below the fold-ish content (hero + picker + stats table),
+// so a brief loading state is fine. ssr:false because recharts measures
+// container width on mount.
+const PerformanceChart = dynamic(() => import("./PerformanceChart"), {
+  ssr: false,
+  loading: () => (
+    <div
+      className="skeleton"
+      style={{ minHeight: 320, borderRadius: 12, width: "100%" }}
+      aria-label="Loading performance chart…"
+    />
+  ),
+});
 
 interface CompareContentProps {
   initialFunds?: string[];
