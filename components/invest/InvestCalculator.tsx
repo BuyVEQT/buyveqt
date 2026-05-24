@@ -415,11 +415,13 @@ export default function InvestCalculator({ history, onHandoff, onPin }: InvestCa
     }
   }, [result, mode]);
 
+  // useState called BEFORE the conditional early return so Hooks are
+  // called in the same order every render (rules-of-hooks).
+  const [shareOpen, setShareOpen] = useState(false);
+
   if (!history) {
     return <DataUnavailable type="chart" message="Historical data is temporarily unavailable. Please try again later." />;
   }
-
-  const [shareOpen, setShareOpen] = useState(false);
 
   const isPositive = result ? result.totalReturn >= 0 : true;
   const isDCA = mode === "dca";
