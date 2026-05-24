@@ -1,6 +1,36 @@
 @import "tailwindcss";
 
-/* ── Editorial Finance Design System ────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════════════════
+ *  BuyVEQT — global stylesheet
+ *
+ *  Single-file by design today. ~2,500 lines is large but the run-time cost
+ *  is ~30KB gzipped, and the contributor cost of file-splitting (broken
+ *  Tailwind v4 token resolution, lost grep paths, regression risk across
+ *  every page) outweighs the maintenance win at current scale.
+ *
+ *  Find any section with the labels below:
+ *
+ *    01  @theme tokens + dark-mode overrides              line ~5
+ *    02  Base + grain overlay + skeleton + animations     line ~150
+ *    03  Chart atmosphere + scrollbar + spatial breaks    line ~290
+ *    04  MDX typography (.mdx-*)                          line ~338
+ *    05  Calculator sliders                               line ~445
+ *    06  Broadsheet system (.bs-*)                        line ~497
+ *    07  Inside VEQT system (.inside-*)                   line ~749
+ *    08  Volatility heatmap (.bs-heatmap*)                line ~1149
+ *    09  Editorial primitives (lede, ring, snap-row)      line ~1517
+ *    10  Home region cards + home/dispatch                line ~1619
+ *    11  Article reader (.learn-article)                  line ~1755
+ *    12  Calculators surface + inputs + result tiles      line ~1886
+ *    13  Filter rail + editor's-picks + path grids        line ~2215
+ *
+ *  Tip: every "/* ══════" rule below is a section break visible in the
+ *  outline view of most editors.
+ * ════════════════════════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════════════════════════════════════
+ * 01 — Theme tokens + dark-mode overrides
+ * ════════════════════════════════════════════════════════════════════════ */
 
 @theme inline {
   /* Light — warm cream paper.
