@@ -199,3 +199,147 @@ export async function getSectorWeightsYahoo(
     return null;
   }
 }
+
+// ─── Fund-level info (AUM, MER, holdings count, top underlyings) ───
+
+export interface FundUnderlying {
+  /** Symbol as Yahoo reports it (e.g. "VUN.TO"). */
+  symbol: string;
+  /** Display name from Yahoo. */
+  name: string;
+  /** 0..1 fractional weight. */
+  weight: number;
+}
+
+export interface FundInfo {
+  symbol: string;
+  /** Net assets in CAD, in raw units (e.g. 13_439_000_000). */
+  netAssets: number | null;
+  /** Annual report expense ratio (decimal — 0.0024 = 0.24%). */
+  expenseRatio: number | null;
+  /** Trailing annual dividend yield as a percent (e.g. 1.8 means 1.8%). */
+  trailingDividendYield: number | null;
+  /** Number of holdings if Yahoo reports it on this fund profile. */
+  holdingCount: number | null;
+  /** Top holdings — for a fund-of-funds like VEQT this is the four
+   *  underlying Vanguard ETFs with their weights. */
+  topHoldings: FundUnderlying[];
+  /** Sector weights normalized via getSectorWeightsYahoo's display map. */
+  sectorWeights: Record<string, number>;
+  source: 'yahoo-finance';
+  fetchedAt: string;
+}
+
+/**
+ * Fund-level facts via Yahoo's quoteSummary. Pulls four modules in one
+ * call:
+ *   - summaryDetail (trailingAnnualDividendYield, fiftyTwoWeek* …)
+ *   - defaultKeyStatistics (netAssets, totalAssets — depending on fund)
+ *   - topHoldings (sectorWeightings, holdings)
+ *   - fundProfile (feesExpensesInvestment.annualReportExpenseRatio)
+ *
+ * Returns null on any failure. Caller falls back to cache, then to the
+ * static snapshot in data/funds.ts.
+ */
+export async function getFundInfoYahoo(
+  yahooSymbol: string
+): Promise<FundInfo | null> {
+  try {
+    const result = await withTimeout(
+      yf.quoteSummary(yahooSymbol, {
+        modules: [
+          'summaryDetail',
+          'defaultKeyStatistics',
+          'topHoldings',
+          'fundProfile',
+        ],
+      }),
+      SUMMARY_TIMEOUT_MS,
+      `Yahoo quoteSummary[fundInfo] for ${yahooSymbol}`
+    );
+
+    // Net assets — `defaultKeyStatistics.netAssets` is the most reliable for
+    // ETFs; `summaryDetail.totalAssets` is a sometimes-present fallback.
+    const stats = (result?.defaultKeyStatistics ?? {}) as Record<string, unknown>;
+    const summary = (result?.summaryDetail ?? {}) as Record<string, unknown>;
+    const netAssetsRaw =
+      (typeof stats.netAssets === 'number' && stats.netAssets) ||
+      (typeof stats.totalAssets === 'number' && stats.totalAssets) ||
+      (typeof summary.totalAssets === 'number' && summary.totalAssets) ||
+      null;
+
+    // MER — Yahoo nests this under fundProfile.feesExpensesInvestment.
+    const fund = result?.fundProfile as
+      | { feesExpensesInvestment?: { annualReportExpenseRatio?: number } }
+      | undefined;
+    const expenseRatio =
+      typeof fund?.feesExpensesInvestment?.annualReportExpenseRatio === 'number'
+        ? fund.feesExpensesInvestment.annualReportExpenseRatio
+        : null;
+
+    // Dividend yield — `summaryDetail.trailingAnnualDividendYield` is the
+    // safest single source. Yahoo returns it as a fraction (0.018 = 1.8%).
+    const trailingDivRaw = summary.trailingAnnualDividendYield;
+    const trailingDividendYield =
+      typeof trailingDivRaw === 'number' && Number.isFinite(trailingDivRaw)
+        ? trailingDivRaw * 100
+        : null;
+
+    // Top holdings — for a fund-of-funds this returns the underlying funds.
+    const topRaw = (result?.topHoldings as
+      | { holdings?: Array<Record<string, unknown>>; holdingsTurnover?: number }
+      | undefined)?.holdings ?? [];
+    const topHoldings: FundUnderlying[] = topRaw
+      .map((h) => {
+        const symbol =
+          typeof h.symbol === 'string'
+            ? h.symbol
+            : typeof h.symbolName === 'string'
+              ? (h.symbolName as string)
+              : '';
+        const name =
+          typeof h.holdingName === 'string'
+            ? (h.holdingName as string)
+            : '';
+        const weightRaw = h.holdingPercent ?? h.holdingPercentRaw;
+        const weight =
+          typeof weightRaw === 'number' && Number.isFinite(weightRaw)
+            ? weightRaw
+            : 0;
+        if (!symbol && !name) return null;
+        return { symbol, name, weight };
+      })
+      .filter((h): h is FundUnderlying => h !== null);
+
+    // Sector weights — reuse the same normalization as getSectorWeightsYahoo.
+    const sectorRaw = (result?.topHoldings as
+      | { sectorWeightings?: Array<Record<string, unknown>> }
+      | undefined)?.sectorWeightings ?? [];
+    const sectorWeights: Record<string, number> = {};
+    for (const entry of sectorRaw) {
+      const [key, value] = Object.entries(entry)[0] ?? [];
+      if (typeof key !== 'string') continue;
+      const numeric = typeof value === 'number' ? value : Number(value);
+      if (!Number.isFinite(numeric) || numeric <= 0) continue;
+      const display = YAHOO_SECTOR_DISPLAY[key] ?? key;
+      sectorWeights[display] = (sectorWeights[display] ?? 0) + numeric;
+    }
+
+    // Holdings count — Yahoo doesn't expose a stock count on the topHoldings
+    // module. Leave null and let the caller fall back to the snapshot.
+    return {
+      symbol: yahooSymbol,
+      netAssets: netAssetsRaw,
+      expenseRatio,
+      trailingDividendYield,
+      holdingCount: null,
+      topHoldings,
+      sectorWeights,
+      source: 'yahoo-finance',
+      fetchedAt: new Date().toISOString(),
+    };
+  } catch (error) {
+    console.warn(`[Yahoo] fund info failed for ${yahooSymbol}:`, error);
+    return null;
+  }
+}
