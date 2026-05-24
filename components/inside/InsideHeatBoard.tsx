@@ -103,6 +103,7 @@ export default function InsideHeatBoard() {
   const sliced = useMemo(() => sliceByRange(allReturns, range), [allReturns, range]);
   const stats = useMemo(() => summarize(sliced), [sliced]);
   const todayIdx = sliced.length - 1;
+  const todayEntry = todayIdx >= 0 ? sliced[todayIdx] : null;
 
   // If the user arrived via ?date=, focus that day's range — promote to a
   // window large enough to include it. We don't change `range` so the user
@@ -203,10 +204,52 @@ export default function InsideHeatBoard() {
         />
       </div>
 
+      {/* Today call-out — a small italic caption above the heatmap that
+          names today and its move. The ring on the cell stays as-is;
+          this is the "what session am I looking for" label. */}
+      {todayEntry && (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "baseline",
+            gap: 12,
+            marginTop: 18,
+            fontFamily: "var(--font-serif)",
+            fontStyle: "italic",
+            fontSize: 13,
+            color: "var(--ink-soft)",
+          }}
+        >
+          <span>
+            Today &middot;{" "}
+            {new Intl.DateTimeFormat("en-CA", {
+              weekday: "short",
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            }).format(new Date(`${todayEntry.date}T12:00:00`))}
+          </span>
+          <span
+            className="tabular-nums"
+            style={{
+              fontFamily: "var(--font-sans)",
+              fontStyle: "normal",
+              fontSize: 12.5,
+              fontWeight: 700,
+              color: todayEntry.pct >= 0 ? "var(--ink)" : "var(--stamp)",
+            }}
+          >
+            {todayEntry.pct >= 0 ? "▲" : "▼"} {todayEntry.pct >= 0 ? "+" : ""}
+            {todayEntry.pct.toFixed(2)}%
+          </span>
+        </div>
+      )}
+
       {/* Heatmap */}
       <div
         style={{
-          marginTop: 22,
+          marginTop: 6,
           padding: 12,
           background: "var(--paper)",
           borderRadius: 14,

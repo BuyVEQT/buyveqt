@@ -154,11 +154,19 @@ export default function Heatmap({
             width: cell,
             height: cell,
             background: color(d.pct),
-            outline: isToday ? "1.5px solid var(--ink)" : "none",
+            // Today gets a doubled-stroke ring (paper inset + ink outside) so
+            // it's distinguishable in a sea of 90 cells. The shadow draws
+            // outside the cell so the data fill stays untouched.
+            outline: isToday ? "1.5px solid var(--paper-light)" : "none",
             outlineOffset: "-1.5px",
+            boxShadow: isToday
+              ? "0 0 0 2px var(--ink)"
+              : "none",
             boxSizing: "border-box",
             display: "block",
             transition: "transform 0.12s ease",
+            zIndex: isToday ? 1 : undefined,
+            position: isToday ? "relative" : undefined,
           };
           const aria = d.date ? `${d.date}: ${fmtPct(d.pct)}` : fmtPct(d.pct);
 
