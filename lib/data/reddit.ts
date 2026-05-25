@@ -14,6 +14,14 @@ export interface RedditPost {
 export interface SubredditStats {
   subscribers: number;
   activeUsers: number | null;
+  /** Posts in the last 24 hours. Derived client-/page-side from `hotPosts`
+   *  when the Reddit about endpoint doesn't surface it. */
+  postsToday?: number;
+  /** New subscribers in the last 7 days. Reddit's about endpoint doesn't
+   *  expose this; left optional and hidden when unavailable. */
+  newSubscribersThisWeek?: number;
+  /** Average comment count across the active feed (proxy for engagement). */
+  avgComments?: number;
 }
 
 const SUBREDDIT = 'JustBuyVEQT';

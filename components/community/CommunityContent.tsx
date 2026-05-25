@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import type { RedditPost, SubredditStats } from "@/lib/data/reddit";
+import FeaturedPost from "./FeaturedPost";
 
 type TabId = "trending" | "top";
 
@@ -26,23 +27,27 @@ function formatAgo(iso: string): string {
 
 function formatScore(n: number): string {
   if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
-  return n.toLocaleString();
+  return n.toLocaleString("en-CA");
 }
 
 interface CommunityContentProps {
   hotPosts: RedditPost[];
   topPosts: RedditPost[];
+  /** Stats are surfaced upstairs in the hero now — passed only so the
+   *  client-fallback effect can refresh them when the server data is stale. */
   stats: SubredditStats | null;
 }
 
 /**
- * The forum's post list — a broadsheet take on Reddit's feed.
+ * V2 community feed.
  *
- * Tabs read as section dispatches ("This Week" / "All Time") rather than
- * pill buttons. Each post is a numbered entry with a display-italic title
- * and a caption strip carrying the meta — author, time, score, replies,
- * flair — using the same typographic vocabulary as the home page's
- * "Letters" section so the two surfaces feel like one publication.
+ *  - Tighter tabs row (Trending / All Time) — no more duplicate live-activity
+ *    strip, those numbers live in `<CommunityHero>` upstairs
+ *  - "New dispatch every 30 minutes" caption right-aligned with the tabs
+ *  - First post → `<FeaturedPost>` (large editorial card with vermilion stripe)
+ *  - Remaining posts → existing numbered row pattern, kept nearly as-is
+ *
+ * The "Take part" footer CTA was extracted into `<CommunityCTA>`.
  */
 export default function CommunityContent({
   hotPosts: serverHot,
@@ -54,13 +59,11 @@ export default function CommunityContent({
     trending: serverHot,
     top: serverTop,
   });
-  const [clientStats, setClientStats] = useState<SubredditStats | null>(
-    serverStats
-  );
+  const [, setClientStats] = useState<SubredditStats | null>(serverStats);
   const [loading, setLoading] = useState(false);
 
-  // Client-side refresh when server data is empty OR missing scores
-  // (ISR cache may have stale RSS data without scores/comments).
+  // Client-side refresh when server data is empty OR missing scores (ISR cache
+  // may have stale RSS data without scores/comments).
   const serverEmpty = serverHot.length === 0 && serverTop.length === 0;
   const serverMissingScores =
     !serverEmpty && [...serverHot, ...serverTop].every((p) => p.score === 0);
@@ -99,188 +102,128 @@ export default function CommunityContent({
 
   const posts = clientFeeds[activeTab];
   const hasScores = posts.some((p) => p.score > 0);
+  const featured = posts[0];
+  const rest = posts.slice(1);
 
   return (
-    <section className="bs-enter pb-12">
-      {/* ── Tab dispatch + live activity strip ─────────────────── */}
-      <div className="border-t-2 border-[var(--ink)] pt-4 sm:pt-5 flex flex-wrap items-end justify-between gap-x-8 gap-y-3 mb-6 sm:mb-8">
-        <div className="flex items-end gap-x-7 sm:gap-x-9">
+    <section className="cm-feed bs-enter">
+      {/* Tabs row */}
+      <div className="cm-feed__head">
+        <div className="cm-feed__tabs">
           {TABS.map((tab) => {
             const active = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
+                type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className="group text-left"
                 aria-pressed={active}
+                className={`cm-feed__tab ${active ? "is-active" : ""}`}
               >
-                <span
-                  className="bs-stamp block"
-                  style={{
-                    color: active ? "var(--stamp)" : "var(--ink-soft)",
-                    borderBottom: active
-                      ? "2px solid var(--stamp)"
-                      : "2px solid transparent",
-                    paddingBottom: "3px",
-                    transition: "color 120ms",
-                  }}
-                >
-                  {tab.label}
-                </span>
-                <span
-                  className="bs-caption italic block mt-0.5 text-[11.5px]"
-                  style={{
-                    color: active ? "var(--ink)" : "var(--ink-soft)",
-                    opacity: active ? 1 : 0.7,
-                  }}
-                >
+                <span className="ed-stamp cm-feed__tab-label">{tab.label}</span>
+                <span className="ed-caption cm-feed__tab-sub">
                   {tab.sublabel}
                 </span>
               </button>
             );
           })}
         </div>
-
-        {clientStats && (
-          <p
-            className="bs-caption italic text-[12px] flex flex-wrap items-center gap-x-2.5 gap-y-1"
-            style={{ color: "var(--ink-soft)" }}
-          >
-            <span>
-              <span className="bs-numerals not-italic text-[var(--ink)]">
-                {clientStats.subscribers.toLocaleString("en-CA")}
-              </span>{" "}
-              members
-            </span>
-            {clientStats.activeUsers !== null && clientStats.activeUsers > 0 && (
-              <>
-                <span className="opacity-50">·</span>
-                <span>
-                  <span className="bs-numerals not-italic text-[var(--ink)]">
-                    {clientStats.activeUsers.toLocaleString("en-CA")}
-                  </span>{" "}
-                  online now
-                </span>
-              </>
-            )}
-            <span className="opacity-50">·</span>
-            <span className="text-[10.5px]" style={{ letterSpacing: "0.06em" }}>
-              dispatch every 30m
-            </span>
-          </p>
-        )}
+        <span className="ed-caption cm-feed__refresh">
+          New dispatch every 30 minutes
+        </span>
       </div>
+      <div className="rule-thick" />
 
-      {/* ── Post list ──────────────────────────────────────────── */}
       {loading ? (
-        <ol className="space-y-0">
+        <ol className="cm-feed__list cm-feed__list--skeleton">
           {Array.from({ length: 6 }).map((_, i) => (
-            <li
-              key={i}
-              className={`py-5 grid grid-cols-[auto_1fr] gap-5 sm:gap-7 ${
-                i === 0 ? "border-t-2" : "border-t"
-              } border-[var(--ink)]`}
-            >
-              <div className="skeleton h-7 w-8" />
-              <div className="space-y-2">
-                <div className="skeleton h-5 w-3/4" />
-                <div className="skeleton h-3 w-1/2" />
+            <li key={i} className="cm-feed__row">
+              <div className="skeleton cm-feed__skel-num" />
+              <div className="cm-feed__skel-body">
+                <div className="skeleton cm-feed__skel-title" />
+                <div className="skeleton cm-feed__skel-meta" />
               </div>
             </li>
           ))}
         </ol>
       ) : posts.length > 0 ? (
-        <ol className="space-y-0">
-          {posts.map((post, idx) => (
-            <li
-              key={post.id}
-              className={`py-5 grid grid-cols-[auto_1fr_auto] gap-x-5 sm:gap-x-7 gap-y-2 items-start ${
-                idx === 0 ? "border-t-2" : "border-t"
-              } border-[var(--ink)]`}
-            >
-              <span className="bs-display bs-numerals text-2xl sm:text-3xl text-[var(--ink-soft)] leading-none pt-1">
-                {String(idx + 1).padStart(2, "0")}
-              </span>
+        <>
+          {/* Featured post */}
+          {featured && <FeaturedPost post={featured} showScore={hasScores} />}
 
-              <a
-                href={post.permalink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group block min-w-0"
-              >
-                <h3 className="bs-display text-xl sm:text-[1.625rem] leading-[1.18] text-[var(--ink)] group-hover:underline group-hover:decoration-2 group-hover:underline-offset-4 transition-[text-decoration]">
-                  &ldquo;{post.title}&rdquo;
-                </h3>
-                <p className="bs-caption mt-2 flex items-center gap-x-2 gap-y-1 flex-wrap">
-                  <span>&mdash; u/{post.author}</span>
-                  <span className="opacity-40">·</span>
-                  <span>{formatAgo(post.createdAt)}</span>
-                  {post.commentCount > 0 && (
-                    <>
-                      <span className="opacity-40">·</span>
-                      <span className="bs-numerals">
-                        {post.commentCount} {post.commentCount === 1 ? "reply" : "replies"}
-                      </span>
-                    </>
-                  )}
-                  {post.flair && (
-                    <>
-                      <span className="opacity-40">·</span>
-                      <span
-                        className="italic"
-                        style={{ color: "var(--stamp)" }}
-                      >
-                        {post.flair}
-                      </span>
-                    </>
-                  )}
-                </p>
-              </a>
+          {/* Numbered list — starts at 02 since featured is 01 */}
+          <ol className="cm-feed__list">
+            {rest.map((post, i) => (
+              <li key={post.id} className="cm-feed__row">
+                <span className="ed-display ed-numerals cm-feed__num">
+                  {String(i + 2).padStart(2, "0")}
+                </span>
 
-              {/* Score column — only when we have real upvote data.
-                  Sits on the right like a vote tally on a printed ballot. */}
-              {hasScores && (
-                <div
-                  className="text-right shrink-0 pt-1"
-                  style={{ minWidth: "3.25rem" }}
+                <a
+                  href={post.permalink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="cm-feed__link"
                 >
-                  <p
-                    className="bs-display bs-numerals text-[1.5rem] sm:text-[1.75rem] leading-none tabular-nums"
-                    style={{
-                      color:
-                        post.score >= 100
-                          ? "var(--stamp)"
-                          : "var(--ink)",
-                    }}
-                  >
-                    {formatScore(post.score)}
+                  <h3 className="ed-display cm-feed__title">
+                    &ldquo;{post.title}&rdquo;
+                  </h3>
+                  <p className="cm-feed__meta">
+                    <span>— u/{post.author}</span>
+                    <span className="cm-feed__sep">·</span>
+                    <span>{formatAgo(post.createdAt)}</span>
+                    {post.commentCount > 0 && (
+                      <>
+                        <span className="cm-feed__sep">·</span>
+                        <span className="ed-numerals">
+                          {post.commentCount}{" "}
+                          {post.commentCount === 1 ? "reply" : "replies"}
+                        </span>
+                      </>
+                    )}
+                    {post.flair && (
+                      <>
+                        <span className="cm-feed__sep">·</span>
+                        <span className="cm-feed__flair">{post.flair}</span>
+                      </>
+                    )}
                   </p>
-                  <p
-                    className="bs-caption italic text-[10.5px] mt-1"
-                    style={{
-                      color: "var(--ink-soft)",
-                      letterSpacing: "0.06em",
-                    }}
-                  >
-                    upvotes
-                  </p>
-                </div>
-              )}
-            </li>
-          ))}
-        </ol>
+                </a>
+
+                {hasScores && (
+                  <div className="cm-feed__score">
+                    <span
+                      className="ed-display ed-numerals cm-feed__score-num"
+                      style={{
+                        color:
+                          post.score >= 100 ? "var(--stamp)" : "var(--ink)",
+                      }}
+                    >
+                      {formatScore(post.score)}
+                    </span>
+                    <span className="ed-caption cm-feed__score-cap">
+                      upvotes
+                    </span>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ol>
+        </>
       ) : (
         /* Empty state — quietly redirect to the source */
-        <div className="border-t-2 border-[var(--ink)] py-12 text-center">
-          <p className="bs-body italic" style={{ color: "var(--ink-soft)" }}>
+        <div className="cm-feed__empty">
+          <p
+            className="ed-body italic"
+            style={{ color: "var(--ink-soft)" }}
+          >
             Couldn&apos;t pull the wire from Reddit just now.
           </p>
-          <p className="bs-caption mt-4">
+          <p className="ed-caption cm-feed__empty-link">
             <a
               href="https://www.reddit.com/r/JustBuyVEQT/"
               target="_blank"
               rel="noopener noreferrer"
-              className="bs-link"
             >
               Visit r/JustBuyVEQT directly &rarr;
             </a>
@@ -288,55 +231,181 @@ export default function CommunityContent({
         </div>
       )}
 
-      {/* ── Footer CTA strip ───────────────────────────────────── */}
-      <div className="mt-10 sm:mt-12 pt-6 border-t-2 border-[var(--ink)] grid grid-cols-1 sm:grid-cols-12 gap-6 sm:gap-10">
-        <div className="sm:col-span-7">
-          <p className="bs-stamp mb-2">Take part</p>
-          <h3 className="bs-display text-2xl sm:text-3xl leading-[1.05]">
-            <span className="block">Got a question, a milestone,</span>{" "}
-            <em className="block">or a panic to share?</em>
-          </h3>
-          <p
-            className="bs-body mt-3 max-w-[44ch] text-[15px]"
-            style={{ color: "var(--ink-soft)" }}
-          >
-            The subreddit is where holders talk to each other unsupervised.
-            Bring your real numbers; bring your bad takes; you&apos;ll get
-            honesty back.
-          </p>
-        </div>
-
-        <div className="sm:col-span-5 flex flex-col gap-3 items-start sm:items-end justify-end">
-          <a
-            href="https://www.reddit.com/r/JustBuyVEQT/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bs-stamp inline-flex items-center group"
-            style={{
-              color: "var(--paper)",
-              backgroundColor: "var(--stamp)",
-              padding: "10px 16px 9px",
-              letterSpacing: "0.16em",
-            }}
-          >
-            <span>Open r/JustBuyVEQT</span>
-            <span
-              aria-hidden
-              className="ml-2 transition-transform group-hover:translate-x-0.5"
-            >
-              &rarr;
-            </span>
-          </a>
-          <a
-            href="https://www.reddit.com/r/JustBuyVEQT/submit"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bs-link bs-label"
-          >
-            Start a new thread &rarr;
-          </a>
-        </div>
-      </div>
+      <style jsx>{`
+        .cm-feed {
+          padding: 30px 0 12px;
+        }
+        .cm-feed__head {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-end;
+          gap: 24px;
+          margin-bottom: 16px;
+          flex-wrap: wrap;
+        }
+        .cm-feed__tabs {
+          display: flex;
+          gap: 28px;
+        }
+        .cm-feed__tab {
+          appearance: none;
+          background: transparent;
+          border: 0;
+          padding: 0 0 4px;
+          text-align: left;
+          cursor: pointer;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          border-bottom: 2px solid transparent;
+          transition: border-color 0.18s;
+        }
+        .cm-feed__tab.is-active {
+          border-bottom-color: var(--stamp);
+        }
+        .cm-feed__tab-label {
+          color: var(--ink-soft);
+          transition: color 0.18s;
+        }
+        .cm-feed__tab.is-active .cm-feed__tab-label {
+          color: var(--stamp);
+        }
+        .cm-feed__tab-sub {
+          font-family: var(--font-serif);
+          font-style: italic;
+          color: var(--ink-mute);
+          font-size: 11.5px;
+        }
+        .cm-feed__refresh {
+          font-family: var(--font-serif);
+          font-style: italic;
+          font-size: 11.5px;
+          color: var(--ink-mute);
+        }
+        .cm-feed__list {
+          list-style: none;
+          margin: 0;
+          padding: 0;
+        }
+        .cm-feed__row {
+          display: grid;
+          grid-template-columns: auto 1fr auto;
+          gap: 20px;
+          padding: 20px 0;
+          border-top: 1px solid var(--rule-soft);
+          align-items: start;
+        }
+        .cm-feed__row:last-child {
+          border-bottom: 1px solid var(--rule-soft);
+        }
+        .cm-feed__num {
+          font-size: clamp(1.4rem, 2vw, 1.8rem);
+          line-height: 1;
+          color: var(--ink-mute);
+          padding-top: 2px;
+        }
+        .cm-feed__link {
+          min-width: 0;
+          text-decoration: none;
+          color: inherit;
+          display: block;
+        }
+        .cm-feed__title {
+          font-size: clamp(1.1rem, 1.8vw, 1.4rem);
+          line-height: 1.2;
+          letter-spacing: -0.012em;
+          color: var(--ink);
+          margin: 0;
+          font-weight: 500;
+        }
+        .cm-feed__link:hover .cm-feed__title {
+          text-decoration: underline;
+          text-decoration-thickness: 1.5px;
+          text-underline-offset: 4px;
+        }
+        .cm-feed__meta {
+          margin-top: 8px;
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+          align-items: baseline;
+          font-family: var(--font-serif);
+          font-style: italic;
+          font-size: 13px;
+          color: var(--ink-mute);
+        }
+        .cm-feed__sep {
+          opacity: 0.4;
+        }
+        .cm-feed__flair {
+          color: var(--stamp);
+          font-style: italic;
+        }
+        .cm-feed__score {
+          text-align: right;
+          min-width: 60px;
+        }
+        .cm-feed__score-num {
+          font-size: clamp(1.3rem, 1.8vw, 1.6rem);
+          line-height: 1;
+          letter-spacing: -0.015em;
+        }
+        .cm-feed__score-cap {
+          margin-top: 4px;
+          font-family: var(--font-serif);
+          font-style: italic;
+          display: block;
+          font-size: 10.5px;
+          color: var(--ink-mute);
+          letter-spacing: 0.04em;
+        }
+        @media (max-width: 560px) {
+          .cm-feed__row {
+            grid-template-columns: auto 1fr;
+          }
+          .cm-feed__score {
+            grid-column: 2;
+            text-align: left;
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            min-width: 0;
+            margin-top: 4px;
+          }
+          .cm-feed__score-cap {
+            margin-top: 0;
+          }
+        }
+        .cm-feed__skel-num {
+          height: 28px;
+          width: 32px;
+        }
+        .cm-feed__skel-body {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        .cm-feed__skel-title {
+          height: 20px;
+          width: 75%;
+        }
+        .cm-feed__skel-meta {
+          height: 12px;
+          width: 50%;
+        }
+        .cm-feed__empty {
+          padding: 48px 0;
+          text-align: center;
+        }
+        .cm-feed__empty-link {
+          margin-top: 16px;
+        }
+        .cm-feed__empty-link :global(a) {
+          color: var(--stamp);
+          text-decoration: underline;
+          text-underline-offset: 3px;
+        }
+      `}</style>
     </section>
   );
 }
