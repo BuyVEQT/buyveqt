@@ -3,15 +3,21 @@
 
 export interface LearnPath {
   id: string;
-  title: string;       // user-facing path name
+  /**
+   * Question-style framing surfaced as the V2 path-card eyebrow.
+   * Example: "I'm new to this." Falls back to `title` if absent.
+   */
+  question?: string;
+  title: string; // user-facing path name
   description: string; // 1-sentence hook
-  slugs: string[];     // 4-6 article slugs in reading order
+  slugs: string[]; // 4-6 article slugs in reading order
 }
 
 export const LEARN_PATHS: LearnPath[] = [
   {
     id: "new",
-    title: "I'm new to this",
+    question: "I'm new to this.",
+    title: "Start here.",
     description: "From 'what's an ETF' to your first share, in five steps.",
     slugs: [
       "veqt-decision-flowchart",
@@ -23,7 +29,8 @@ export const LEARN_PATHS: LearnPath[] = [
   },
   {
     id: "comparing",
-    title: "I'm comparing alternatives",
+    question: "I'm comparing alternatives.",
+    title: "Pick a fight.",
     description: "VEQT against XEQT, VFV, VGRO, DIY, robos, and cash.",
     slugs: [
       "veqt-vs-xeqt",
@@ -36,7 +43,8 @@ export const LEARN_PATHS: LearnPath[] = [
   },
   {
     id: "accounts",
-    title: "I'm optimizing my accounts",
+    question: "I'm optimizing my accounts.",
+    title: "Make the account work.",
     description: "TFSA, RRSP, FHSA, asset location, automation.",
     slugs: [
       "veqt-tfsa-rrsp-taxable",
@@ -48,7 +56,8 @@ export const LEARN_PATHS: LearnPath[] = [
   },
   {
     id: "down",
-    title: "My VEQT is down",
+    question: "My VEQT is down.",
+    title: "Read this first.",
     description: "Read this before you do anything.",
     slugs: [
       "veqt-is-down",
@@ -60,8 +69,10 @@ export const LEARN_PATHS: LearnPath[] = [
   },
   {
     id: "withdrawal",
-    title: "I'm planning withdrawal",
-    description: "Spending VEQT in retirement: order, taxes, sequence risk.",
+    question: "I'm planning withdrawal.",
+    title: "Spend it well.",
+    description:
+      "Spending VEQT in retirement: order, taxes, sequence risk.",
     slugs: [
       "veqt-withdrawal-strategy",
       "veqt-tfsa-rrsp-taxable",
@@ -72,8 +83,10 @@ export const LEARN_PATHS: LearnPath[] = [
   },
   {
     id: "essays",
-    title: "Our Take — long-form essays",
-    description: "Strong opinions on covered calls, forex, currency, and home bias.",
+    question: "I want the long-form takes.",
+    title: "Our Take — essays.",
+    description:
+      "Strong opinions on covered calls, forex, currency, and home bias.",
     slugs: [
       "covered-call-dividend-trap",
       "forex-vs-veqt",
