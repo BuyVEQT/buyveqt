@@ -3,9 +3,8 @@
 import { useState, useEffect, useCallback, Suspense } from "react";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import CompareHero from "./CompareHero";
-import MatchupPresets from "./MatchupPresets";
-import FundPicker from "./FundPicker";
+import CompareSetup from "./CompareSetup";
+import FaceoffBanner from "./FaceoffBanner";
 import type { ComparePeriod } from "./PerformanceChart";
 import CompareGap from "./CompareGap";
 import StatsTable from "./StatsTable";
@@ -13,11 +12,10 @@ import Verdict from "./Verdict";
 import AllocationBars from "./AllocationBars";
 import WhoThisSuits from "./WhoThisSuits";
 import FAQSection from "./FAQSection";
+import Scorecard from "./Scorecard";
 
-// recharts is ~200KB gz — keep it out of the initial /compare bundle.
-// The chart sits below the fold-ish content (hero + picker + stats table),
-// so a brief loading state is fine. ssr:false because recharts measures
-// container width on mount.
+// Custom SVG chart — no recharts. Still lazy-loaded because it fetches data
+// on mount and lives below-the-fold. ssr:false because it uses mouse events.
 const PerformanceChart = dynamic(() => import("./PerformanceChart"), {
   ssr: false,
   loading: () => (
@@ -51,15 +49,16 @@ function parsePeriodParam(raw: string | null): ComparePeriod | null {
 }
 
 /**
- * Round 4 Compare page assembly. Stacks per `12-compare.md` spec:
- *   Hero → MatchupPresets → FundPicker
- *   → 2-up (PerformanceChart | CompareGap-when-2)
- *   → StatsTable
- *   → 2-up (GeographyCard | Verdict)
- *   → 2-up (Suitability | FAQ)
+ * V2 Compare page assembly:
+ *   CompareSetup (collapsed hero + presets + picker)
+ *   FaceoffBanner (when 2 funds)
+ *   2-up: PerformanceChart | CompareGap-when-2
+ *   StatsTable
+ *   2-up: AllocationBars | Verdict
+ *   Scorecard (when 2 funds)
+ *   2-up: WhoThisSuits | FAQSection
  *
- * URL state: ?funds=VEQT.TO,XEQT.TO&period=1Y — both encoded on change,
- * so the page is shareable.
+ * URL state: ?funds=VEQT.TO,XEQT.TO&period=1Y — both encoded on change.
  */
 function CompareContentInner({ initialFunds }: CompareContentProps) {
   const router = useRouter();
@@ -93,7 +92,7 @@ function CompareContentInner({ initialFunds }: CompareContentProps) {
     );
   }, []);
 
-  // Presets always replace selection; VEQT stays pinned at slot 0 by convention.
+  // Presets always replace selection; VEQT stays pinned at slot 0.
   const handlePreset = useCallback((funds: string[]) => {
     setSelected(funds);
   }, []);
@@ -123,10 +122,15 @@ function CompareContentInner({ initialFunds }: CompareContentProps) {
         }}
         className="compare-stack"
       >
-        <CompareHero />
+        <CompareSetup
+          selected={selected}
+          onPreset={handlePreset}
+          onToggle={handleToggle}
+        />
 
-        <MatchupPresets selected={selected} onSelect={handlePreset} />
-        <FundPicker selected={selected} onToggle={handleToggle} />
+        {selected.length === 2 && (
+          <FaceoffBanner selected={selected} />
+        )}
 
         <div className="compare-row" style={twoUp}>
           <PerformanceChart
@@ -145,6 +149,10 @@ function CompareContentInner({ initialFunds }: CompareContentProps) {
           <AllocationBars selected={selected} />
           <Verdict selected={selected} />
         </div>
+
+        {selected.length === 2 && (
+          <Scorecard selected={selected} />
+        )}
 
         <div className="compare-row" style={twoUp}>
           <WhoThisSuits selected={selected} />
