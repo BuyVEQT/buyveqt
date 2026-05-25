@@ -1,3 +1,5 @@
+"use client";
+
 interface NewsletterCardProps {
   /**
    * Tightens padding and font sizes for inline use below an article body.

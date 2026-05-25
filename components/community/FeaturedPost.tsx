@@ -1,3 +1,5 @@
+"use client";
+
 import type { RedditPost } from "@/lib/data/reddit";
 
 function formatAgo(iso: string): string {
