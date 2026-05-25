@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import type { ArticleFrontmatter } from "@/lib/articles";
 import { EDITORS_PICKS } from "@/lib/editors-picks";

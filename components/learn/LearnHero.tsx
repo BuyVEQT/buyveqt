@@ -1,3 +1,5 @@
+"use client";
+
 interface LearnHeroProps {
   /** Number of articles in the library, surfaced in the eyebrow + lede. */
   articleCount: number;

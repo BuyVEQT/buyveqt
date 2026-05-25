@@ -1,3 +1,5 @@
+"use client";
+
 import { LEARN_PATHS } from "@/lib/learn-paths-data";
 import type { ArticleFrontmatter } from "@/lib/articles";
 import PathCard from "./PathCard";
