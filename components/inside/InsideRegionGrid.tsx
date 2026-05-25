@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
-import SectionHead from "@/components/ui/SectionHead";
 import { useRegions, type Region } from "@/lib/useRegions";
 import {
   useSleeveComposition,
   useSectorReturns,
+  useSleeveTopHoldings,
 } from "@/lib/useSleeveAttribution";
 import type { SleeveCompositionResponse } from "@/app/api/sleeve-composition/route";
 import type { SectorReturnsResponse } from "@/app/api/sector-returns/route";
@@ -70,21 +70,17 @@ function buildSleeveSectors(
   const liveReturns = returnsForSleeve(ticker, returns);
   const sleeve = composition?.sleeves[ticker];
 
-  // Live composition exists — pair items with live returns when available.
   if (sleeve && sleeve.items.length > 0) {
     const live: SectorRow[] = sleeve.items
       .slice(0, 4)
       .map((item) => {
         const pct = lookupReturn(item.name, liveReturns);
-        return pct === null
-          ? null
-          : { name: item.name, pct };
+        return pct === null ? null : { name: item.name, pct };
       })
       .filter((r): r is SectorRow => r !== null);
     if (live.length > 0) return live;
   }
 
-  // Fallback: static snapshot from Q1 2026 design.
   return SLEEVE_SECTOR_SNAPSHOT_2026_Q1[ticker] ?? [];
 }
 
@@ -92,6 +88,7 @@ export default function InsideRegionGrid() {
   const { payload: regionsPayload, loading: regionsLoading } = useRegions();
   const { payload: composition } = useSleeveComposition();
   const { payload: sectorReturns } = useSectorReturns();
+  const topHoldingsByTicker = useSleeveTopHoldings();
 
   const ordered = useMemo<Region[]>(() => {
     const rs = regionsPayload?.regions ?? [];
@@ -108,10 +105,8 @@ export default function InsideRegionGrid() {
     return out;
   }, [ordered, composition, sectorReturns]);
 
-  // Home page region cards deep-link to `/inside-veqt#VUN` etc. The browser's
-  // native hash-scroll happens before the regions hook has resolved, so the
-  // target div doesn't exist at that moment. Once `ordered` is populated and
-  // the DOM has the anchor target, re-apply the hash scroll once.
+  // Home page region cards deep-link to `/inside-veqt#VUN` etc. Re-apply
+  // hash scroll once `ordered` is populated and the DOM has the anchor target.
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (ordered.length === 0) return;
@@ -125,72 +120,78 @@ export default function InsideRegionGrid() {
   }, [ordered]);
 
   return (
-    <section>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "baseline",
-          padding: "0 4px 16px",
-          gap: 12,
-          flexWrap: "wrap",
-        }}
-      >
-        <SectionHead
-          kicker="Today's sleeves"
-          title="By region, by sector."
-          size="md"
-        />
-        <span
-          style={{
-            fontFamily: "var(--font-serif)",
-            fontStyle: "italic",
-            fontSize: 13,
-            color: "var(--ink-mute)",
-          }}
-        >
-          Sparkline shows the sleeve&rsquo;s last ninety sessions.
-        </span>
+    <section className="ird-grid-section">
+      {/* V2 section header: ed-stamp kicker + ed-display h2 with italic em */}
+      <div className="ird-grid-section__head">
+        <div>
+          <div className="ed-stamp">Today&rsquo;s sleeves</div>
+          <h2 className="ed-display ird-grid-section__h2">
+            By region,{" "}
+            <em style={{ fontStyle: "italic", fontWeight: 500 }}>by sector.</em>
+          </h2>
+        </div>
+        <p className="ed-caption ird-grid-section__deck">
+          Four self-contained dossiers — what each sleeve holds, how it moved
+          today, and which sectors carried it.
+        </p>
       </div>
 
+      <div className="rule-thick" />
+
       {regionsLoading && ordered.length === 0 ? (
-        <div className="inside-region-grid">
+        <div className="ird-grid">
           {[0, 1, 2, 3].map((i) => (
             <div
               key={i}
               className="skeleton"
-              style={{ height: 280, borderRadius: 18 }}
+              style={{ height: 380, borderRadius: 18 }}
             />
           ))}
         </div>
       ) : (
-        <div className="inside-region-grid">
+        <div className="ird-grid">
           {ordered.map((region) => (
-            // Anchor target so the home page's RegionCards can deep-link to
-            // `/inside-veqt#VUN` (etc.) and the user lands on the right region.
-            // scrollMarginTop clears the sticky mobile TopBar.
-            <div
+            <InsideRegionDetail
               key={region.ticker}
-              id={region.ticker}
-              style={{ scrollMarginTop: 80 }}
-            >
-              <InsideRegionDetail
-                region={region}
-                sectors={sectorsByTicker.get(region.ticker) ?? []}
-              />
-            </div>
+              region={region}
+              sectors={sectorsByTicker.get(region.ticker) ?? []}
+              topHoldings={topHoldingsByTicker.get(region.ticker) ?? []}
+            />
           ))}
         </div>
       )}
 
       <style jsx>{`
-        .inside-region-grid {
+        .ird-grid-section {
+          padding: 30px 0 14px;
+        }
+        .ird-grid-section__head {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-end;
+          gap: 24px;
+          margin-bottom: 16px;
+          flex-wrap: wrap;
+        }
+        .ird-grid-section__h2 {
+          font-size: clamp(2rem, 3.4vw, 2.5rem);
+          line-height: 1.05;
+          letter-spacing: -0.02em;
+          margin: 6px 0 0;
+        }
+        .ird-grid-section__deck {
+          flex: 0 1 380px;
+          max-width: 380px;
+          font-size: 13px;
+        }
+        .ird-grid {
           display: grid;
           grid-template-columns: 1fr;
-          gap: 14px;
+          gap: var(--gap, 14px);
+          margin-top: 18px;
         }
-        @media (min-width: 1024px) {
-          .inside-region-grid {
+        @media (min-width: 980px) {
+          .ird-grid {
             grid-template-columns: 1fr 1fr;
             gap: 18px;
           }

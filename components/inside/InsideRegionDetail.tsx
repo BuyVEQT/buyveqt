@@ -1,5 +1,7 @@
 import type { Region } from "@/lib/useRegions";
+import type { HoldingMini } from "@/lib/sleeve-top-holdings";
 import Sparkline from "@/components/charts/Sparkline";
+import SleeveHoldings from "./SleeveHoldings";
 
 interface SectorRow {
   name: string;
@@ -10,11 +12,14 @@ interface SectorRow {
 interface InsideRegionDetailProps {
   region: Region;
   sectors: SectorRow[];
+  /** Top-3 holdings for this sleeve. */
+  topHoldings: HoldingMini[];
 }
 
+/** Stripe color per sleeve — matches GEO_TONE in GeographyPanel. */
 const REGION_STRIPE: Record<string, string> = {
-  VUN: "var(--stamp)",
-  VCN: "var(--ink)",
+  VUN: "var(--ink)",
+  VCN: "var(--stamp)",
   VIU: "var(--amber)",
   VEE: "var(--rule)",
 };
@@ -39,17 +44,18 @@ function fmtPp(n: number): string {
 }
 
 /**
- * Big sleeve card with a left color stripe, ticker · weight eyebrow, italic
- * name, large color-coded change%, contribution pp, sleeve sparkline, then
- * the center-axis sector contribution bars (D1 borrowing — 50% midline,
- * fills left for negative and right for positive). Used by InsideRegionGrid.
+ * V2 region dossier card.
  *
- * Always expanded — no accordion. The grid composes four of these for the
- * four sleeves.
+ * Stripe (4px) · ticker badge · italic name · big change% · contribution pp
+ * · sparkline · top-3 holdings list · sector contribution bars · CTA row.
+ *
+ * Uses `display: flex; flex-direction: column` so the CTA can sit at the
+ * bottom with `margin-top: auto`.
  */
 export default function InsideRegionDetail({
   region,
   sectors,
+  topHoldings,
 }: InsideRegionDetailProps) {
   const pct = region.changePercent ?? 0;
   const contrib = region.contribution ?? 0;
@@ -60,200 +66,240 @@ export default function InsideRegionDetail({
     REGION_DISPLAY_NAME[region.ticker] ?? region.fullName ?? region.label;
 
   return (
-    <article
-      id={region.ticker}
-      style={{
-        background: "var(--paper-light)",
-        border: "1px solid var(--rule-soft)",
-        borderRadius: 18,
-        padding: "22px 22px",
-        position: "relative",
-        overflow: "hidden",
-        scrollMarginTop: 96,
-      }}
-    >
-      <div
-        aria-hidden
-        style={{
-          position: "absolute",
-          left: 0,
-          top: 0,
-          bottom: 0,
-          width: 3,
-          background: stripe,
-        }}
-      />
+    <article id={region.ticker} className="ird">
+      {/* Left-edge color stripe — 4px wide per v2 spec */}
+      <div className="ird__stripe" style={{ background: stripe }} aria-hidden />
 
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "baseline",
-          gap: 12,
-        }}
-      >
-        <div style={{ minWidth: 0 }}>
+      <header className="ird__head">
+        <div className="ird__head-left">
           <div className="ed-label" style={{ color: "var(--ink-mute)" }}>
-            {region.ticker} · {region.weight}% of fund
+            {region.ticker} · {region.weight.toFixed(1)}% of fund
           </div>
-          <div
-            className="ed-display-italic"
-            style={{
-              fontSize: 26,
-              lineHeight: 1.05,
-              marginTop: 6,
-              color: "var(--ink)",
-            }}
-          >
-            {displayName}
-          </div>
+          <h3 className="ed-display-italic ird__name">{displayName}</h3>
         </div>
-        <div style={{ textAlign: "right", flexShrink: 0 }}>
+        <div className="ird__head-right">
           <div
-            className="ed-numerals"
-            style={{
-              fontFamily: "var(--font-display)",
-              fontWeight: 500,
-              fontSize: 36,
-              lineHeight: 1,
-              color: tone,
-            }}
+            className="ed-display ed-numerals ird__pct"
+            style={{ color: tone }}
           >
             {fmtPct(pct)}
           </div>
-          <div
-            className="ed-label ed-numerals"
-            style={{ marginTop: 6, color: "var(--ink-mute)" }}
-          >
+          <div className="ed-label ird__pp" style={{ color: "var(--ink-mute)" }}>
             {fmtPp(contrib)}
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Sparkline */}
       {region.history && region.history.length >= 2 && (
-        <div style={{ marginTop: 14, width: "100%" }}>
+        <div className="ird__spark">
           <Sparkline
             data={region.history}
-            width={300}
-            height={36}
-            stroke="var(--ink)"
-            fill="color-mix(in oklab, var(--ink) 5%, transparent)"
+            width={520}
+            height={40}
+            stroke={tone}
+            fill={`color-mix(in oklab, ${tone} 7%, transparent)`}
             strokeWidth={1.4}
             dot={false}
-            style={{ width: "100%", height: 36 }}
-            ariaLabel={`${region.ticker} 90-day price chart`}
+            style={{ width: "100%", height: 40 }}
+            ariaLabel={`${region.ticker} 90-day price`}
           />
         </div>
       )}
 
-      {/* Sectors */}
-      <div
-        style={{
-          marginTop: 16,
-          paddingTop: 14,
-          borderTop: "1px solid var(--rule-soft)",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginBottom: 8,
-            gap: 12,
-          }}
-        >
-          <span className="ed-label" style={{ color: "var(--ink-mute)" }}>
-            Sector contribution
-          </span>
-          <span
-            style={{
-              fontFamily: "var(--font-serif)",
-              fontStyle: "italic",
-              fontSize: 11,
-              color: "var(--ink-mute)",
-            }}
-          >
-            today only
-          </span>
-        </div>
+      {/* Top-3 holdings list */}
+      <SleeveHoldings holdings={topHoldings} ticker={region.ticker} />
 
-        {sectors.slice(0, 4).map((s) => {
-          const sUp = s.pct >= 0;
-          const w = Math.min(50, Math.abs(s.pct) * 50);
-          return (
-            <div
-              key={s.name}
-              style={{
-                display: "grid",
-                gridTemplateColumns: "92px 1fr 62px",
-                alignItems: "center",
-                gap: 10,
-                padding: "5px 0",
-                fontSize: 12.5,
-                fontFamily: "var(--font-sans)",
-                color: "var(--ink-soft)",
-              }}
-            >
-              <span
-                style={{
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {s.name}
-              </span>
-              <div
-                style={{
-                  position: "relative",
-                  height: 4,
-                  background: "color-mix(in oklab, var(--ink) 8%, transparent)",
-                  borderRadius: 2,
-                  overflow: "hidden",
-                }}
-              >
-                {/* center axis */}
-                <div
-                  aria-hidden
-                  style={{
-                    position: "absolute",
-                    left: "50%",
-                    top: -2,
-                    bottom: -2,
-                    width: 1,
-                    background: "var(--ink)",
-                    opacity: 0.5,
-                  }}
-                />
-                {/* fill — right of midline when positive, left when negative */}
-                <div
-                  aria-hidden
-                  style={{
-                    position: "absolute",
-                    top: 0,
-                    bottom: 0,
-                    width: `${w}%`,
-                    background: sUp ? "var(--green)" : "var(--stamp)",
-                    ...(sUp ? { left: "50%" } : { right: "50%" }),
-                  }}
-                />
-              </div>
-              <span
-                className="ed-numerals"
-                style={{
-                  textAlign: "right",
-                  fontSize: 11.5,
-                  fontWeight: 600,
-                  color: sUp ? "var(--green)" : "var(--stamp)",
-                }}
-              >
-                {fmtPct(s.pct, 2)}
-              </span>
-            </div>
-          );
-        })}
+      {/* Sector contribution bars */}
+      <div className="ird-sectors">
+        <div className="ird-sectors__head">
+          <span className="ed-label">Sector contribution</span>
+          <span className="ird-sectors__today">today only</span>
+        </div>
+        <ul className="ird-sectors__list">
+          {sectors.slice(0, 4).map((s) => {
+            const sUp = s.pct >= 0;
+            // bar fills max 50% from midline; 1.0% absolute fills the whole half
+            const w = Math.min(50, Math.abs(s.pct) * 50);
+            return (
+              <li key={s.name} className="ird-sectors__row">
+                <span className="ird-sectors__name">{s.name}</span>
+                <div className="ird-sectors__track" aria-hidden>
+                  <span className="ird-sectors__axis" />
+                  <span
+                    className="ird-sectors__fill"
+                    style={{
+                      width: `${w}%`,
+                      background: sUp ? "var(--green)" : "var(--stamp)",
+                      ...(sUp ? { left: "50%" } : { right: "50%" }),
+                    }}
+                  />
+                </div>
+                <span
+                  className="ed-numerals ird-sectors__pct"
+                  style={{ color: sUp ? "var(--green)" : "var(--stamp)" }}
+                >
+                  {fmtPct(s.pct)}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
       </div>
+
+      {/* CTA — sits at the bottom via margin-top: auto on the flex column */}
+      <a href={`#${region.ticker}-all`} className="ird__cta">
+        <span>
+          See all <strong style={{ fontWeight: 700 }}>{region.ticker}</strong>{" "}
+          holdings
+        </span>
+        <span style={{ color: "var(--stamp)" }} aria-hidden>
+          →
+        </span>
+      </a>
+
+      <style jsx>{`
+        .ird {
+          position: relative;
+          background: var(--paper-light);
+          border: 1px solid var(--rule-soft);
+          border-radius: var(--radius, 18px);
+          padding: 22px 24px 20px;
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          scroll-margin-top: 80px;
+        }
+        .ird__stripe {
+          position: absolute;
+          left: 0;
+          top: 0;
+          bottom: 0;
+          width: 4px;
+        }
+        .ird__head {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-end;
+          gap: 14px;
+          flex-wrap: wrap;
+        }
+        .ird__head-left {
+          min-width: 0;
+        }
+        .ird__name {
+          margin: 6px 0 0;
+          font-size: clamp(1.6rem, 2.6vw, 2.2rem);
+          line-height: 1.05;
+          color: var(--ink);
+        }
+        .ird__head-right {
+          text-align: right;
+          flex-shrink: 0;
+        }
+        .ird__pct {
+          font-size: clamp(1.8rem, 3vw, 2.4rem);
+          line-height: 1;
+          letter-spacing: -0.02em;
+        }
+        .ird__pp {
+          margin-top: 6px;
+        }
+        .ird__spark {
+          margin-top: 14px;
+        }
+        /* Sector bars */
+        .ird-sectors {
+          margin-top: 16px;
+          padding-top: 14px;
+          border-top: 1px solid var(--rule-soft);
+        }
+        .ird-sectors__head {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 8px;
+        }
+        .ird-sectors__today {
+          font-family: var(--font-serif);
+          font-style: italic;
+          font-size: 11px;
+          letter-spacing: 0;
+          text-transform: none;
+          color: var(--ink-mute);
+        }
+        .ird-sectors__list {
+          list-style: none;
+          margin: 0;
+          padding: 0;
+        }
+        .ird-sectors__row {
+          display: grid;
+          grid-template-columns: 1fr 130px 56px;
+          align-items: center;
+          gap: 10px;
+          padding: 4px 0;
+          font-family: var(--font-sans);
+          font-size: 12.5px;
+          color: var(--ink-soft);
+        }
+        @media (max-width: 480px) {
+          .ird-sectors__row {
+            grid-template-columns: 1fr 80px 50px;
+          }
+        }
+        .ird-sectors__name {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .ird-sectors__track {
+          position: relative;
+          height: 6px;
+          background: color-mix(in oklab, var(--ink) 6%, transparent);
+          border-radius: 3px;
+          overflow: hidden;
+        }
+        .ird-sectors__axis {
+          position: absolute;
+          left: 50%;
+          top: -3px;
+          bottom: -3px;
+          width: 1px;
+          background: var(--ink);
+          opacity: 0.45;
+        }
+        .ird-sectors__fill {
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          border-radius: 2px;
+          transition: width 0.4s ease;
+        }
+        .ird-sectors__pct {
+          text-align: right;
+          font-size: 12px;
+          font-weight: 700;
+        }
+        /* CTA row */
+        .ird__cta {
+          margin-top: 18px;
+          padding-top: 14px;
+          border-top: 1px solid var(--rule-soft);
+          font-family: var(--font-sans);
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          color: var(--ink);
+          text-decoration: none;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        .ird__cta:hover {
+          color: var(--stamp);
+        }
+      `}</style>
     </article>
   );
 }

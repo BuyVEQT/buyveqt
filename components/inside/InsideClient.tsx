@@ -2,19 +2,17 @@
 
 import { Suspense } from "react";
 import InsideHero from "./InsideHero";
-import InsideStats from "./InsideStats";
+import GeographyPanel from "./GeographyPanel";
 import InsideRegionGrid from "./InsideRegionGrid";
 import InsideHeatBoard from "./InsideHeatBoard";
 import InsideHoldings from "./InsideHoldings";
 import InsideMethodology from "./InsideMethodology";
 
 /**
- * Round 4 M3 — /inside-veqt dashboard. No broadsheet wrapper, no per-page
- * nav (the global shell handles that). Composition mirrors the home page
- * cadence: hero, stats strip, region grid, holdings + methodology pair.
+ * V2 /inside-veqt page composition.
  *
- * The dark methodology card and the cream region cards are guaranteed at
- * least 28px of gap between them (via the .inside-stack gap on lg).
+ * InsideStats is gone — its data is now inlined as a SpecRow inside InsideHero.
+ * GeographyPanel sits between the hero and the region grid as its own full-width module.
  */
 export default function InsideClient() {
   return (
@@ -27,7 +25,7 @@ export default function InsideClient() {
     >
       <div className="inside-stack">
         <InsideHero />
-        <InsideStats />
+        <GeographyPanel />
         <InsideRegionGrid />
 
         {/* The deep heatmap. Wrapped in Suspense because useSearchParams
@@ -59,7 +57,7 @@ export default function InsideClient() {
         }
         @media (min-width: 1024px) {
           .inside-stack {
-            gap: 32px;
+            gap: 28px;
             padding: 32px 26px 56px;
           }
           .inside-two-up {

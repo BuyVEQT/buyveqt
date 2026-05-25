@@ -1,121 +1,116 @@
 "use client";
 
-import { useMemo } from "react";
-import Card from "@/components/ui/Card";
-import SectionLabel from "@/components/ui/SectionLabel";
-import Lede from "@/components/ui/Lede";
-import TiltBar, { type TiltWeights } from "@/components/charts/TiltBar";
-import { useRegions } from "@/lib/useRegions";
+import { useFundInfo } from "@/lib/useFundInfo";
+import SpecRow from "./SpecRow";
 
-const REGION_TO_KEY: Record<string, keyof TiltWeights> = {
-  VUN: "us",
-  VCN: "ca",
-  VIU: "dev",
-  VEE: "em",
-};
+type FundInfoSource = "yahoo-finance" | "cache" | "snapshot";
 
-/** Fallback tilt — VEQT factsheet weights (April 30, 2026), used when the
- *  live feed is silent. */
-const FALLBACK_TILT: TiltWeights = {
-  us: 0.445,
-  ca: 0.306,
-  dev: 0.177,
-  em: 0.072,
-};
+/** Format a decimal expense ratio (0.002 → "0.20%"). Falls back to "~0.20%". */
+function fmtPctMer(decimal: number | null): string {
+  if (decimal === null || !Number.isFinite(decimal)) return "~0.20%";
+  return `${(decimal * 100).toFixed(2)}%`;
+}
+
+/** Build a human-readable data-freshness sub-caption. */
+function srcSub(
+  source: FundInfoSource,
+  snapshotAsOf: string,
+  liveLabel: string
+): string {
+  if (source === "yahoo-finance") return liveLabel;
+  if (source === "cache") return `${liveLabel} (cached)`;
+  return `as of ${snapshotAsOf}`;
+}
 
 /**
- * Two-column page hero for /inside-veqt.
+ * V2 InsideHero — single-column type-driven lockup.
  *
- *   ┌──────────────────────────┐  ┌──────────────────┐
- *   │ THE FUND                 │  │ THE GEOGRAPHY    │
- *   │ What you own when you    │  │ TiltBar with     │
- *   │ own VEQT.                │  │ showLabels       │
- *   │ Lede with drop cap …     │  └──────────────────┘
- *   └──────────────────────────┘
+ * eyebrow → huge italic h1 → drop-cap lede → 4-cell SpecRow (Holdings / AUM / MER / Inception)
  *
- * Stacks on mobile, two-column on lg.
+ * Replaces the v1 two-column hero + TiltBar card. GeographyPanel is now its
+ * own module rendered directly below this in InsideClient.
  */
 export default function InsideHero() {
-  const { payload } = useRegions();
+  const { data } = useFundInfo("VEQT.TO");
 
-  const tilt = useMemo<TiltWeights>(() => {
-    const regions = payload?.regions ?? [];
-    if (regions.length === 0) return FALLBACK_TILT;
-    const next: TiltWeights = { us: 0, ca: 0, dev: 0, em: 0 };
-    let total = 0;
-    for (const r of regions) {
-      const key = REGION_TO_KEY[r.ticker];
-      if (!key) continue;
-      next[key] += r.weight;
-      total += r.weight;
-    }
-    if (total === 0) return FALLBACK_TILT;
-    return {
-      us: next.us / total,
-      ca: next.ca / total,
-      dev: next.dev / total,
-      em: next.em / total,
-    };
-  }, [payload]);
+  const holdingsValue = data?.holdingCount != null
+    ? data.holdingCount.toLocaleString("en-CA")
+    : "13,726";
+  const holdingsSub = data
+    ? srcSub(data.sources.holdingCount, data.snapshotAsOf, "across 4 ETFs")
+    : "across 4 ETFs";
+
+  const aumValue = data?.aumDisplay ?? "$13.4B";
+  const aumSub = data
+    ? srcSub(data.sources.netAssets, data.snapshotAsOf, "Vanguard Canada · Apr 30")
+    : "Vanguard Canada · Apr 30";
+
+  const merValue = data && data.expenseRatio !== null
+    ? fmtPctMer(data.expenseRatio)
+    : "~0.20%";
+  const merSub = data
+    ? srcSub(data.sources.expenseRatio, data.snapshotAsOf, "effective rate")
+    : "reduced Nov 2025";
+
+  const specs = [
+    { label: "Holdings",  value: holdingsValue, sub: holdingsSub },
+    { label: "AUM",       value: aumValue,       sub: aumSub },
+    { label: "MER",       value: merValue,       sub: merSub },
+    { label: "Inception", value: "Jan 29, 2019", sub: "7+ years on tape" },
+  ];
 
   return (
     <section className="inside-hero">
-      <div className="inside-hero__left">
-        <SectionLabel>The fund</SectionLabel>
-        <h1 className="ed-display-italic inside-hero__h1">
-          What you own when you own VEQT.
-        </h1>
-        <Lede>
-          Thirteen thousand seven hundred companies in a single ticker, sorted
-          into four index ETFs by region and rebalanced by Vanguard. Every
-          quarter the weights drift; every quarter the fund snaps them back.
-          Your only job is to keep buying.
-        </Lede>
+      <div className="ed-stamp inside-hero__eyebrow">
+        Inside VEQT · Inception Jan 2019 · Updated quarterly
       </div>
+      <h1 className="ed-display-italic inside-hero__h1">
+        What you own when you own{" "}
+        <em style={{ fontStyle: "italic", fontWeight: 500 }}>VEQT.</em>
+      </h1>
+      <p className="ed-body inside-hero__lede">
+        <span className="inside-hero__dropcap">T</span>hirteen thousand seven
+        hundred and twenty-six companies in a single ticker, sorted into four
+        index ETFs by region and rebalanced by Vanguard. Every quarter the
+        weights drift; every quarter the fund snaps them back. Your only job
+        is to keep buying.
+      </p>
 
-      <Card>
-        <SectionLabel>The geography</SectionLabel>
-        <div
-          className="ed-display-italic"
-          style={{
-            fontSize: 22,
-            lineHeight: 1.05,
-            color: "var(--ink)",
-            marginTop: 6,
-            marginBottom: 18,
-          }}
-        >
-          Where your dollars sit.
-        </div>
-        <TiltBar weights={tilt} height={44} showLabels />
-      </Card>
+      <SpecRow items={specs} />
 
       <style jsx>{`
         .inside-hero {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 22px;
-          align-items: end;
+          padding: 30px 0 18px;
+        }
+        .inside-hero__eyebrow {
+          margin-bottom: 16px;
         }
         .inside-hero__h1 {
-          font-size: 36px;
-          line-height: 1.02;
-          letter-spacing: -0.02em;
-          margin: 8px 0 14px;
+          font-size: clamp(2.6rem, 6vw, 4.6rem);
+          line-height: 1;
+          letter-spacing: -0.03em;
           color: var(--ink);
+          margin: 0;
+          max-width: 18ch;
         }
-        @media (min-width: 1024px) {
-          .inside-hero {
-            grid-template-columns: 7fr 5fr;
-            gap: 40px;
-          }
-          .inside-hero__h1 {
-            font-size: 56px;
-            line-height: 1;
-            letter-spacing: -0.025em;
-            margin: 12px 0 22px;
-            max-width: 14ch;
-          }
+        .inside-hero__lede {
+          margin: 22px 0 0;
+          font-size: clamp(15px, 1.6vw, 18px);
+          line-height: 1.55;
+          color: var(--ink-soft);
+          max-width: 62ch;
+        }
+        .inside-hero__dropcap {
+          float: left;
+          font-family: var(--font-display);
+          font-weight: 700;
+          font-size: 3.6em;
+          line-height: 0.86;
+          color: var(--ink);
+          padding: 0.06em 0.12em 0 0;
+          margin-top: 0.05em;
+          font-feature-settings: "ss01";
+          shape-outside: margin-box;
         }
       `}</style>
     </section>
