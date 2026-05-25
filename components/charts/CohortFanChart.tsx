@@ -37,7 +37,11 @@ interface CohortFanChartProps {
 export default function CohortFanChart({
   userPath,
   monthlyHistory,
-  height = 280,
+  /* Default height bumped from 280 → 360 — the cohort fan is the
+     marquee chart on the Lookback calculator and benefits from more
+     vertical room to read the fan's spread between best and worst
+     monthly cohorts. */
+  height = 360,
 }: CohortFanChartProps) {
   const W = 820;
   const H = height;

@@ -39,7 +39,10 @@ export default function ProjectionChart({
   paths,
   activeKey,
   baseline,
-  height = 240,
+  /* Default height bumped from 240 → 320. The chart fills its wider
+     parent on /calculators now, and 240px read as undersized against
+     the dark result slab above it. */
+  height = 320,
 }: ProjectionChartProps) {
   const W = 820;
   const H = height;

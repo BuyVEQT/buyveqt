@@ -243,7 +243,7 @@ export default function FIRECalculator() {
                   {fmtCAD(expenses)}/yr &divide; {wRate}%
                 </div>
               </div>
-              <div className="calc__sub-rule" />
+              <div className="calc__sub-rule" aria-hidden />
               <div>
                 <div className="ed-label calc__sub-label">Coast FIRE today</div>
                 <AnimatedDollar value={coastFire} size="large" />

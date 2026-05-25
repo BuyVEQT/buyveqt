@@ -108,12 +108,12 @@ export default function CalculatorCard<I>({
                 <div className="ed-label calc__sub-label">You contribute</div>
                 <AnimatedDollar value={contributed} size="medium" />
               </div>
-              <div className="calc__sub-rule" />
+              <div className="calc__sub-rule" aria-hidden />
               <div>
                 <div className="ed-label calc__sub-label">Growth</div>
                 <AnimatedDollar value={growth} size="medium" />
               </div>
-              <div className="calc__sub-rule" />
+              <div className="calc__sub-rule" aria-hidden />
               <div>
                 <div className="ed-label calc__sub-label">Multiple</div>
                 <span className="ed-display ed-numerals calc__mult">
