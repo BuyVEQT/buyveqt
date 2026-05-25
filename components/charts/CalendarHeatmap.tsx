@@ -33,6 +33,9 @@ interface CalendarData {
 
 interface CalendarHeatmapProps {
   returns: CalendarReturn[];
+  /** Upper bound on cell width/height. Cells will be at most this size but
+   *  may shrink to fit the available container width. Square via aspect-ratio.
+   */
   cellSize: number;
   gap: number;
   todayISO: string;
@@ -170,14 +173,25 @@ export default function CalendarHeatmap({
     );
   }
 
+  // Responsive columns: cells can shrink to fit container, capped at cellSize.
+  // Cells get `aspect-ratio: 1` so rows match column width automatically — no
+  // need for a fixed `gridAutoRows`, and the whole grid never needs horizontal
+  // scroll because columns reduce to 0 if the container becomes too narrow.
+  const gridTemplate = `20px repeat(${cols}, minmax(0, ${cellSize}px))`;
+
+  // For short ranges (few cols), center the grid inside the wrapper so it
+  // doesn't drift left while leaving a wide empty band on the right.
+  const justify = cols < 14 ? "center" : "start";
+
   return (
     <div className="calheat__wrap">
       {/* Month axis */}
       <div
         className="calheat__months"
         style={{
-          gridTemplateColumns: `20px repeat(${cols}, ${cellSize}px)`,
+          gridTemplateColumns: gridTemplate,
           gap: `${gap}px`,
+          justifyContent: justify,
         }}
       >
         <span />
@@ -192,9 +206,9 @@ export default function CalendarHeatmap({
       <div
         className="calheat__grid"
         style={{
-          gridTemplateColumns: `20px repeat(${cols}, ${cellSize}px)`,
-          gridAutoRows: `${cellSize}px`,
+          gridTemplateColumns: gridTemplate,
           gap: `${gap}px`,
+          justifyContent: justify,
         }}
       >
         {/* DOW labels */}
@@ -259,7 +273,8 @@ export default function CalendarHeatmap({
 
       <style jsx>{`
         .calheat__wrap {
-          overflow-x: auto;
+          width: 100%;
+          /* No horizontal scroll — columns shrink to fit via minmax(0, ...). */
         }
         .calheat__months {
           display: grid;
@@ -273,6 +288,8 @@ export default function CalendarHeatmap({
         }
         .calheat__month-label {
           white-space: nowrap;
+          min-width: 0;
+          overflow: hidden;
         }
         .calheat__grid {
           display: grid;
@@ -293,6 +310,9 @@ export default function CalendarHeatmap({
           border-radius: 2px;
           cursor: pointer;
           transition: transform 0.12s, box-shadow 0.12s;
+          /* Square cells regardless of how wide the column resolves. */
+          aspect-ratio: 1 / 1;
+          width: 100%;
         }
         .calheat__cell:hover,
         .calheat__cell:focus-visible,

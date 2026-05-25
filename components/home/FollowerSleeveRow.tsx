@@ -10,6 +10,15 @@ const REGION_TONE: Record<string, string> = {
   VEE: "var(--rule)",
 };
 
+/** Canonical sleeve names — matches LeaderSleeveCard so the section reads
+ *  as a cohesive geographic grouping regardless of API labels. */
+const REGION_LABEL: Record<string, string> = {
+  VUN: "United States",
+  VCN: "Canada",
+  VIU: "Developed ex-NA",
+  VEE: "Emerging Markets",
+};
+
 interface FollowerSleeveRowProps {
   region: Region;
   rank: number;
@@ -26,6 +35,7 @@ export default function FollowerSleeveRow({
   const up = (region.changePercent ?? 0) >= 0;
   const tone = up ? "var(--green)" : "var(--stamp)";
   const stripe = REGION_TONE[region.ticker] ?? "var(--ink)";
+  const regionName = REGION_LABEL[region.ticker] ?? region.fullName;
   const contribAbs = Math.abs(region.contribution ?? 0).toFixed(2);
   const contribSign = (region.contribution ?? 0) >= 0 ? "+" : "−";
 
@@ -41,7 +51,7 @@ export default function FollowerSleeveRow({
           <span className="follower__rank ed-display">{rank}</span>
           <div>
             <div className="ed-display-italic follower__name-text">
-              {region.fullName}
+              {regionName}
             </div>
             <div className="ed-label follower__ticker">
               {region.ticker} · {region.weight.toFixed(1)}%
