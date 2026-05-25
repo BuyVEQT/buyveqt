@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback, Suspense } from "react";
+import { useState, useEffect, useCallback, useMemo, Suspense } from "react";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { getVerdict } from "@/lib/compare-verdicts";
 import CompareSetup from "./CompareSetup";
 import FaceoffBanner from "./FaceoffBanner";
 import type { ComparePeriod } from "./PerformanceChart";
@@ -97,6 +98,17 @@ function CompareContentInner({ initialFunds }: CompareContentProps) {
     setSelected(funds);
   }, []);
 
+  // Which optional widgets will actually render? Used to collapse the
+  // two-up rows to single-column when the right-side widget is absent,
+  // so the chart / allocation bars stretch to fill the row instead of
+  // leaving a wide empty band on the right.
+  const isPair = selected.length === 2;
+  const hasGap = isPair;
+  const hasVerdict = useMemo(
+    () => (isPair ? Boolean(getVerdict(selected[0], selected[1])) : false),
+    [isPair, selected]
+  );
+
   const twoUp: React.CSSProperties = {
     display: "grid",
     gridTemplateColumns: "1fr",
@@ -132,43 +144,57 @@ function CompareContentInner({ initialFunds }: CompareContentProps) {
           <FaceoffBanner selected={selected} />
         )}
 
-        <div className="compare-row" style={twoUp}>
+        <div
+          className={`compare-row${hasGap ? " compare-row--two" : ""}`}
+          style={twoUp}
+        >
           <PerformanceChart
             selected={selected}
             period={period}
             onPeriodChange={setPeriod}
           />
-          {selected.length === 2 && (
-            <CompareGap selected={selected} period={period} />
-          )}
+          {hasGap && <CompareGap selected={selected} period={period} />}
         </div>
 
         <StatsTable selected={selected} />
 
-        <div className="compare-row" style={twoUp}>
+        <div
+          className={`compare-row${hasVerdict ? " compare-row--two" : ""}`}
+          style={twoUp}
+        >
           <AllocationBars selected={selected} />
-          <Verdict selected={selected} />
+          {hasVerdict && <Verdict selected={selected} />}
         </div>
 
         {selected.length === 2 && (
           <Scorecard selected={selected} />
         )}
 
-        <div className="compare-row" style={twoUp}>
+        <div className="compare-row compare-row--two" style={twoUp}>
           <WhoThisSuits selected={selected} />
           <FAQSection />
         </div>
       </div>
 
-      <style jsx>{`
+      <style jsx global>{`
         @media (min-width: 1024px) {
           .compare-stack {
             padding: 32px 26px 56px !important;
             gap: 28px !important;
           }
+          /* Default desktop row: single column. The 7fr/5fr split only
+             kicks in when both children render — driven by the
+             .compare-row--two modifier set in JSX based on hasGap /
+             hasVerdict. This way the chart and allocation bars stretch
+             to full width whenever their right-hand sibling is absent
+             (e.g. user picks a non-curated 2-fund pair, or selects 1
+             or 3+ funds — no CompareGap, no curated Verdict). */
           .compare-row {
-            grid-template-columns: 7fr 5fr !important;
+            grid-template-columns: 1fr !important;
             gap: 22px !important;
+          }
+          .compare-row.compare-row--two {
+            grid-template-columns: 7fr 5fr !important;
           }
         }
       `}</style>
