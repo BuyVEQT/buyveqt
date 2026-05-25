@@ -1,7 +1,14 @@
 import type { Metadata } from "next";
 import InteriorShell from "@/components/broadsheet/InteriorShell";
+import CommunityHero from "@/components/community/CommunityHero";
 import CommunityContent from "@/components/community/CommunityContent";
-import { getRedditPosts, getSubredditStats } from "@/lib/data/reddit";
+import CommunityCTA from "@/components/community/CommunityCTA";
+import {
+  getRedditPosts,
+  getSubredditStats,
+  type RedditPost,
+  type SubredditStats,
+} from "@/lib/data/reddit";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { buildBreadcrumbSchema, canonicalUrl } from "@/lib/seo-config";
 
@@ -20,6 +27,43 @@ export const metadata: Metadata = {
   },
 };
 
+/**
+ * Derive the live pulse-strip numbers that Reddit's about endpoint
+ * doesn't surface (postsToday, avgComments), and graft them onto the
+ * server-side `SubredditStats` so the hero can render statically.
+ *
+ * Reddit's API doesn't expose newSubscribersThisWeek; we leave that
+ * undefined and the hero hides the column when missing. With a proper
+ * backend pipeline this could come from a daily snapshot diff.
+ */
+function deriveLiveStats(
+  base: SubredditStats | null,
+  hotPosts: RedditPost[]
+): SubredditStats | null {
+  if (!base) return null;
+
+  const ONE_DAY_MS = 86_400_000;
+  const now = Date.now();
+  const postsToday = hotPosts.filter(
+    (p) => now - new Date(p.createdAt).getTime() <= ONE_DAY_MS
+  ).length;
+
+  const withComments = hotPosts.filter((p) => p.commentCount > 0);
+  const avgComments =
+    withComments.length > 0
+      ? Math.round(
+          withComments.reduce((sum, p) => sum + p.commentCount, 0) /
+            withComments.length
+        )
+      : 0;
+
+  return {
+    ...base,
+    postsToday,
+    avgComments,
+  };
+}
+
 export default async function CommunityPage() {
   const [hotResult, topResult, statsResult] = await Promise.allSettled([
     getRedditPosts("hot", 12),
@@ -33,7 +77,7 @@ export default async function CommunityPage() {
 
   // Merge hot + top/all for trending to always have 10+ posts
   const seen = new Set<string>();
-  const hotPosts: typeof hot = [];
+  const hotPosts: RedditPost[] = [];
   for (const post of [...hot, ...topAll]) {
     if (!seen.has(post.id)) {
       seen.add(post.id);
@@ -43,6 +87,7 @@ export default async function CommunityPage() {
   }
 
   const topPosts = topAll.slice(0, 10);
+  const enrichedStats = deriveLiveStats(stats, hotPosts);
 
   return (
     <InteriorShell>
@@ -53,49 +98,17 @@ export default async function CommunityPage() {
         ])}
       />
 
-      {/* ── Page head ──────────────────────────────────────────── */}
-      <section className="pt-8 sm:pt-10 pb-6 bs-enter">
-        <p className="bs-stamp mb-3">The Forum</p>
-        <h1
-          className="bs-display text-[2.25rem] sm:text-[3.25rem] lg:text-[4.25rem] leading-[0.98]"
-          style={{ color: "var(--ink)" }}
-        >
-          <span className="block">Letters from</span>{" "}
-          <em className="bs-display-italic block">the holders.</em>
-        </h1>
-        <p
-          className="bs-body mt-5 max-w-[58ch]"
-          style={{ color: "var(--ink)" }}
-        >
-          {stats?.subscribers ? (
-            <>
-              <span className="bs-numerals not-italic">
-                {stats.subscribers.toLocaleString("en-CA")}
-              </span>{" "}
-              Canadians
-            </>
-          ) : (
-            "Thousands of Canadians"
-          )}{" "}
-          hold each other accountable at{" "}
-          <a
-            href="https://www.reddit.com/r/JustBuyVEQT/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bs-link"
-          >
-            r/JustBuyVEQT
-          </a>
-          . Questions, milestones, the occasional panic, the occasional
-          victory. Here&apos;s what&apos;s on the feed.
-        </p>
-      </section>
+      <CommunityHero stats={enrichedStats} />
 
       <CommunityContent
         hotPosts={hotPosts}
         topPosts={topPosts}
-        stats={stats}
+        stats={enrichedStats}
       />
+
+      <div style={{ marginTop: 32 }}>
+        <CommunityCTA />
+      </div>
     </InteriorShell>
   );
 }
