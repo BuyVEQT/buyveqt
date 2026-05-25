@@ -4,7 +4,6 @@ import { useMemo } from "react";
 import type { Region } from "@/lib/useRegions";
 import LeaderSleeveCard from "./LeaderSleeveCard";
 import FollowerSleeveRow from "./FollowerSleeveRow";
-import InSentenceHeadline from "./InSentenceHeadline";
 
 interface RegionGridProps {
   regions: Region[];
@@ -13,18 +12,22 @@ interface RegionGridProps {
 }
 
 /**
- * RegionLedger — leader (1.5fr) + followers column (1fr) on >= 880px.
- * Stacks on mobile with leader card on top, follower rows below.
+ * RegionLedger — leader card full-width on top, three follower cards
+ * in a horizontal row below (desktop). Mobile stacks everything.
  *
- * Replaces the old 4-up equal grid + mobile carousel split.
- * The mobile/desktop split is now handled internally via CSS.
+ * Header is intentionally brief: eyebrow + headline only. The deck caption
+ * and editorial in-sentence summary were removed to reduce visual noise so
+ * the sleeves themselves carry the story.
+ *
+ * Every card links through to the corresponding `/inside-veqt#TICKER`
+ * anchor so the home page sleeves act as click-through tiles.
  */
 export default function RegionGrid({
   regions,
   leaderIndex: _leaderIndex,
   sortBy = "contribution",
 }: RegionGridProps) {
-  // Sort by |contribution| or weight descending
+  // Sort by |contribution| (default) or weight, descending.
   const sorted = useMemo(() => {
     if (regions.length === 0) return [];
     const arr = [...regions].filter(
@@ -48,45 +51,31 @@ export default function RegionGrid({
   const leader = sorted[0] ?? null;
   const others = sorted.slice(1);
 
-  // Fund-level change ≈ sum of contributions
-  const fundChangePct = useMemo(
-    () => sorted.reduce((s, r) => s + (r.contribution ?? 0), 0),
-    [sorted]
-  );
-
   const rankBadge = sortBy === "weight" ? "Largest sleeve" : "Leader";
 
-  // Skeleton state — show placeholder boxes while loading
+  // Skeleton state — show placeholders while loading.
   if (regions.length === 0) {
     return (
       <section className="ledger">
         <div className="ledger__head">
-          <div>
-            <div className="ed-stamp">Today&apos;s move came from</div>
-            <h2 className="ed-display ledger__h2">
-              Four sleeves,{" "}
-              <em style={{ fontStyle: "italic", fontWeight: 500 }}>one fund.</em>
-            </h2>
-          </div>
-          <div className="ed-caption ledger__deck">
-            A weighted average of four regional Vanguard ETFs.
-          </div>
+          <div className="ed-stamp">Today&apos;s move came from</div>
+          <h2 className="ed-display ledger__h2">
+            Four sleeves,{" "}
+            <em style={{ fontStyle: "italic", fontWeight: 500 }}>one fund.</em>
+          </h2>
         </div>
         <div className="rule-thick" />
-        <div className="ledger__layout">
-          <div
-            className="skeleton"
-            style={{ height: 320, borderRadius: 18 }}
-          />
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {[0, 1, 2].map((i) => (
-              <div
-                key={i}
-                className="skeleton"
-                style={{ height: 90, borderRadius: 12 }}
-              />
-            ))}
-          </div>
+        <div className="ledger__leader-wrap">
+          <div className="skeleton" style={{ height: 280, borderRadius: 18 }} />
+        </div>
+        <div className="ledger__followers">
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              className="skeleton"
+              style={{ height: 140, borderRadius: 12 }}
+            />
+          ))}
         </div>
         <LedgerStyles />
       </section>
@@ -96,39 +85,25 @@ export default function RegionGrid({
   return (
     <section className="ledger">
       <div className="ledger__head">
-        <div>
-          <div className="ed-stamp">Today&apos;s move came from</div>
-          <h2 className="ed-display ledger__h2">
-            Four sleeves,{" "}
-            <em style={{ fontStyle: "italic", fontWeight: 500 }}>one fund.</em>
-          </h2>
-        </div>
-        <div className="ed-caption ledger__deck">
-          A weighted average of four regional Vanguard ETFs.
-        </div>
+        <div className="ed-stamp">Today&apos;s move came from</div>
+        <h2 className="ed-display ledger__h2">
+          Four sleeves,{" "}
+          <em style={{ fontStyle: "italic", fontWeight: 500 }}>one fund.</em>
+        </h2>
       </div>
 
       <div className="rule-thick" />
 
       {leader && (
-        <InSentenceHeadline
-          leader={leader}
-          others={others}
-          fundChangePct={fundChangePct}
-        />
+        <div className="ledger__leader-wrap">
+          <LeaderSleeveCard region={leader} rankBadge={rankBadge} />
+        </div>
       )}
 
-      <div className="ledger__layout">
-        <div className="ledger__leader-col">
-          {leader && (
-            <LeaderSleeveCard region={leader} rankBadge={rankBadge} />
-          )}
-        </div>
-        <div className="ledger__followers-col">
-          {others.map((r, i) => (
-            <FollowerSleeveRow key={r.ticker} region={r} rank={i + 2} />
-          ))}
-        </div>
+      <div className="ledger__followers">
+        {others.map((r, i) => (
+          <FollowerSleeveRow key={r.ticker} region={r} rank={i + 2} />
+        ))}
       </div>
 
       <LedgerStyles />
@@ -138,17 +113,15 @@ export default function RegionGrid({
 
 function LedgerStyles() {
   return (
-    <style jsx>{`
+    <style jsx global>{`
       .ledger {
-        padding: 30px 0 20px;
+        padding: 26px 0 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
       }
       .ledger__head {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-        gap: 24px;
-        margin-bottom: 14px;
-        flex-wrap: wrap;
+        margin: 0;
       }
       .ledger__h2 {
         font-size: clamp(2rem, 3.4vw, 2.5rem);
@@ -156,26 +129,19 @@ function LedgerStyles() {
         letter-spacing: -0.02em;
         margin: 6px 0 0;
       }
-      .ledger__deck {
-        flex: 0 1 320px;
-        max-width: 320px;
-        font-size: 13px;
+      .ledger__leader-wrap {
+        margin-top: 4px;
       }
-      .ledger__layout {
+      .ledger__followers {
         display: grid;
         grid-template-columns: 1fr;
-        gap: var(--gap, 22px);
+        gap: 12px;
       }
-      @media (min-width: 880px) {
-        .ledger__layout {
-          grid-template-columns: 1.5fr 1fr;
-          align-items: stretch;
+      @media (min-width: 720px) {
+        .ledger__followers {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 14px;
         }
-      }
-      .ledger__followers-col {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
       }
     `}</style>
   );

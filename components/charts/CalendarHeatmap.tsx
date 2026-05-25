@@ -241,16 +241,14 @@ export default function CalendarHeatmap({
           const isHovered = hover === i;
 
           return (
-            <button
+            <div
               key={i}
-              type="button"
+              role="img"
               className={`calheat__cell${isToday ? " is-today" : ""}${
                 isHovered ? " is-hovered" : ""
               }`}
               onMouseEnter={() => onHover(i)}
               onMouseLeave={() => onHover(null)}
-              onFocus={() => onHover(i)}
-              onBlur={() => onHover(null)}
               style={{
                 gridColumn: cell.col + 2,
                 gridRow: cell.row + 1,
@@ -265,7 +263,6 @@ export default function CalendarHeatmap({
                   ? `${fmtDayFull(cell.iso)}: ${fmtPct(cell.entry.pct)}`
                   : "non-trading day"
               }
-              tabIndex={cell.kind === "filled" ? 0 : -1}
             />
           );
         })}

@@ -107,7 +107,7 @@ export default function ArticleStrip() {
         </ol>
       </div>
 
-      <style jsx>{`
+      <style jsx global>{`
         .course {
           padding: 28px 0 12px;
         }
@@ -192,7 +192,11 @@ export default function ArticleStrip() {
         .course__row {
           display: grid;
           grid-template-columns: 56px 1fr 24px;
-          align-items: center;
+          /* Bottom-align so the big Fraunces ordinal's baseline sits on
+             the same line as the article title; the small kicker label
+             just rides above it. align-items center left the digits
+             floating against the kicker instead of the title. */
+          align-items: end;
           gap: 18px;
           padding: 18px 4px;
           border-bottom: 1px solid var(--rule-soft);
@@ -213,10 +217,18 @@ export default function ArticleStrip() {
 
         .course__num {
           font-size: 48px;
-          line-height: 0.9;
+          /* line-height: 1 so the digit's bottom edge sits on the row's
+             bottom edge; combined with align-items end this lines the
+             numeral up with the article title's baseline. */
+          line-height: 1;
           letter-spacing: -0.04em;
           color: var(--stamp);
           font-feature-settings: "ss01", "lnum";
+          /* Visual baseline trim: Fraunces lining figures sit a few px
+             above the descender line, so nudge down so the bottom of the
+             digit reads as flush with the title text below it. */
+          position: relative;
+          top: 4px;
         }
         .course__row-body {
           min-width: 0;
@@ -231,12 +243,14 @@ export default function ArticleStrip() {
           font-size: clamp(1.1rem, 1.8vw, 1.4rem);
           line-height: 1.1;
           letter-spacing: -0.01em;
+          margin: 0;
         }
         .course__chev {
           color: var(--ink-mute);
           font-size: 24px;
           font-family: var(--font-display);
           transition: transform 0.18s, color 0.18s;
+          align-self: center;
         }
       `}</style>
     </section>

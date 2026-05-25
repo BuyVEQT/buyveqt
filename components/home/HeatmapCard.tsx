@@ -172,7 +172,17 @@ export default function HeatmapCard({ history, loading }: HeatmapCardProps) {
   const readoutEntry = hoverEntry ?? todayEntry;
   const readoutIsToday = !hoverEntry;
 
+  // Range tabs use the same handler but stopPropagation so the click
+  // doesn't bubble up through the outer click-through Link and bounce
+  // the user off to /inside-veqt instead of just changing the range.
+  const stopRange = (r: SessionRange) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setRange(r);
+  };
+
   return (
+    <Link href="/inside-veqt#heatmap" className="session-link">
     <Card>
       <div className="session__head">
         <div>
@@ -188,7 +198,7 @@ export default function HeatmapCard({ history, loading }: HeatmapCardProps) {
                 type="button"
                 role="tab"
                 aria-selected={active}
-                onClick={() => setRange(r)}
+                onClick={stopRange(r)}
                 className={`session__tab${active ? " is-active" : ""}`}
               >
                 {r}
@@ -282,16 +292,32 @@ export default function HeatmapCard({ history, loading }: HeatmapCardProps) {
         </span>
       </div>
 
-      {/* Caption + link */}
+      {/* Caption — outer Link wrapping turns the whole card into a
+          click-through, so the inline "Open the full board →" link is
+          redundant. Caption is kept as the explanatory legend copy. */}
       <p className="ed-body session__caption">
         Each cell is one trading day. Darker ink = stronger up days, darker
         vermilion = stronger down days. Hover for the date and return.{" "}
-        <Link href="/inside-veqt#heatmap" className="session__link">
-          Open the full board →
-        </Link>
+        <span className="session__link">Open the full board →</span>
       </p>
 
-      <style jsx>{`
+      <style jsx global>{`
+        .session-link {
+          display: block;
+          text-decoration: none;
+          color: inherit;
+          border-radius: var(--radius, 18px);
+          transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .session-link:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 12px 28px rgba(15, 13, 10, 0.08);
+        }
+        .session-link:focus-visible {
+          outline: 2px solid var(--stamp);
+          outline-offset: 4px;
+        }
+
         .session__head {
           display: flex;
           justify-content: space-between;
@@ -416,5 +442,6 @@ export default function HeatmapCard({ history, loading }: HeatmapCardProps) {
         }
       `}</style>
     </Card>
+    </Link>
   );
 }
