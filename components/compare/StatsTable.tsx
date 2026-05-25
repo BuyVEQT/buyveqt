@@ -1,15 +1,12 @@
 "use client";
 
-import type { ReactNode } from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { FUNDS, FUND_DATA_LAST_UPDATED } from "@/data/funds";
 import type { DataSourceType } from "@/lib/types";
 import type { RiskMetrics } from "@/lib/risk-metrics";
 import DataFreshness from "@/components/ui/DataFreshness";
 import StaleBanner from "@/components/ui/StaleBanner";
-import TiltBar from "@/components/compare/TiltBar";
 import Card from "@/components/ui/Card";
-import SectionLabel from "@/components/ui/SectionLabel";
 
 interface FundQuote {
   price: number | null;
@@ -17,9 +14,15 @@ interface FundQuote {
   dividendYield: number | null;
   ytdReturn: number | null;
   oneYearReturn: number | null;
+  fiveYearReturn: number | null;
   risk: RiskMetrics | null;
   source?: DataSourceType;
   error: boolean;
+}
+
+interface PricePoint {
+  date: string;
+  close: number;
 }
 
 interface StatsTableProps {
@@ -28,19 +31,69 @@ interface StatsTableProps {
 
 type HighlightMode = "lowest" | "highest" | "none";
 
-interface Row {
-  label: string;
-  getValue: (ticker: string, quote: FundQuote | null) => string;
-  highlight: HighlightMode;
-  getNumericValue?: (ticker: string, quote: FundQuote | null) => number | null;
-  render?: (ticker: string, quote: FundQuote | null) => ReactNode;
+function fmtPctSigned(n: number | null | undefined, digits = 2): string {
+  if (n == null || !Number.isFinite(n)) return "—";
+  const sign = n > 0 ? "+" : n < 0 ? "−" : "";
+  return `${sign}${Math.abs(n).toFixed(digits)}%`;
+}
+
+function fmtRecovery(days: number | null | undefined): string {
+  if (days == null) return "still recovering";
+  if (days < 60) return `${days}d`;
+  const months = days / 30.44;
+  if (months < 24) return `${months.toFixed(1)}mo`;
+  return `${(days / 365.25).toFixed(1)}y`;
+}
+
+function MiniSpark({
+  data,
+  color,
+  height = 22,
+  width = 90,
+}: {
+  data: PricePoint[];
+  color: string;
+  height?: number;
+  width?: number;
+}) {
+  if (!data || data.length < 2) return null;
+  const closes = data.map((p) => p.close);
+  const min = Math.min(...closes);
+  const max = Math.max(...closes);
+  const range = max - min || 1;
+  const x = (i: number) => (i / (data.length - 1)) * width;
+  const y = (v: number) => height - ((v - min) / range) * height;
+  let path = "";
+  closes.forEach((c, i) => {
+    path += `${i === 0 ? "M" : "L"} ${x(i).toFixed(1)} ${y(c).toFixed(1)} `;
+  });
+  return (
+    <svg
+      viewBox={`0 0 ${width} ${height}`}
+      preserveAspectRatio="none"
+      style={{ width, height, display: "block", flexShrink: 0 }}
+      aria-hidden
+    >
+      <path
+        d={path}
+        fill="none"
+        stroke={color}
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        vectorEffect="non-scaling-stroke"
+      />
+    </svg>
+  );
 }
 
 export default function StatsTable({ selected }: StatsTableProps) {
   const [quotes, setQuotes] = useState<Record<string, FundQuote>>({});
+  const [histories, setHistories] = useState<Record<string, PricePoint[]>>({});
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
 
+  // Fetch quotes
   useEffect(() => {
     async function fetchQuotes() {
       setLoading(true);
@@ -62,6 +115,30 @@ export default function StatsTable({ selected }: StatsTableProps) {
     fetchQuotes();
   }, [selected]);
 
+  // Fetch histories for sparklines (ALL range, then slice client-side)
+  useEffect(() => {
+    async function fetchHistories() {
+      const results = await Promise.all(
+        selected.map(async (ticker) => {
+          try {
+            const res = await fetch(`/api/funds/chart/${ticker}?range=ALL`);
+            if (!res.ok) return { ticker, data: [] };
+            const json = await res.json();
+            return { ticker, data: (json.data ?? []) as PricePoint[] };
+          } catch {
+            return { ticker, data: [] as PricePoint[] };
+          }
+        })
+      );
+      const map: Record<string, PricePoint[]> = {};
+      for (const { ticker, data } of results) {
+        map[ticker] = data;
+      }
+      setHistories(map);
+    }
+    fetchHistories();
+  }, [selected]);
+
   const quoteValues = Object.values(quotes);
   const uniqueSources = [
     ...new Set(
@@ -76,118 +153,197 @@ export default function StatsTable({ selected }: StatsTableProps) {
     ? "cache"
     : uniqueSources[0] ?? "yahoo-finance";
 
-  const rows: Row[] = [
+  // YTD slice helper: start of current year
+  const ytdSlice = (ticker: string): PricePoint[] => {
+    const h = histories[ticker] ?? [];
+    const year = new Date().getFullYear();
+    const cutoff = `${year}-01-01`;
+    const idx = h.findIndex((p) => p.date >= cutoff);
+    return idx >= 0 ? h.slice(idx) : h.slice(-60);
+  };
+
+  interface RowDef {
+    label: string;
+    highlight: HighlightMode;
+    getNumeric: (t: string) => number | null;
+    renderCell: (t: string) => React.ReactNode;
+    skipSkeleton?: boolean;
+  }
+
+  const rows: RowDef[] = useMemo(() => [
     {
       label: "Price",
-      getValue: (_t, q) =>
-        q?.price != null ? `$${q.price.toFixed(2)}` : "\u2014",
-      highlight: "none",
+      highlight: "none" as HighlightMode,
+      getNumeric: () => null,
+      renderCell: (t) => {
+        const p = quotes[t]?.price;
+        return p != null ? `$${p.toFixed(2)}` : "—";
+      },
     },
     {
       label: "MER",
-      getValue: (t) => {
-        const f = FUNDS[t];
-        if (!f) return "\u2014";
-        return f.merFootnote ? `~${f.mer.toFixed(2)}%*` : `${f.mer.toFixed(2)}%`;
+      highlight: "lowest" as HighlightMode,
+      getNumeric: (t) => FUNDS[t]?.mer ?? null,
+      renderCell: (t) => {
+        const m = FUNDS[t]?.mer ?? 0;
+        const fill = Math.min((m / 0.25) * 100, 100);
+        return (
+          <span className="cell-bar">
+            <span className="cell-bar__track" aria-hidden>
+              <span className="cell-bar__fill" style={{ width: `${fill}%` }} />
+            </span>
+            <span className="cell-bar__val ed-numerals">{m.toFixed(2)}%</span>
+          </span>
+        );
       },
-      highlight: "lowest",
-      getNumericValue: (t) => FUNDS[t]?.mer ?? null,
+      skipSkeleton: true,
     },
     {
       label: "AUM",
-      getValue: (t) => FUNDS[t]?.aum ?? "\u2014",
-      highlight: "none",
+      highlight: "none" as HighlightMode,
+      getNumeric: () => null,
+      renderCell: (t) => FUNDS[t]?.aum ?? "—",
+      skipSkeleton: true,
     },
     {
-      label: "YTD Return",
-      getValue: (_, q) =>
-        q?.ytdReturn != null
-          ? `${q.ytdReturn >= 0 ? "+" : ""}${q.ytdReturn.toFixed(2)}%`
-          : "\u2014",
-      highlight: "highest",
-      getNumericValue: (_, q) => q?.ytdReturn ?? null,
-    },
-    {
-      label: "1Y Return",
-      getValue: (_, q) =>
-        q?.oneYearReturn != null
-          ? `${q.oneYearReturn >= 0 ? "+" : ""}${q.oneYearReturn.toFixed(2)}%`
-          : "\u2014",
-      highlight: "highest",
-      getNumericValue: (_, q) => q?.oneYearReturn ?? null,
-    },
-    {
-      // Worst peak-to-trough drop in the fund's full history.
-      // "Highest" wins — the smallest absolute drop is the easiest
-      // hold. Always shown as a negative number with explicit sign so
-      // the sign column reads consistently.
-      label: "Max Drawdown",
-      getValue: (_, q) =>
-        q?.risk
-          ? `${q.risk.maxDrawdownPct.toFixed(1)}%`
-          : "\u2014",
-      highlight: "highest", // less negative = better
-      getNumericValue: (_, q) => q?.risk?.maxDrawdownPct ?? null,
-    },
-    {
-      // Calendar days from trough to a new all-time high.
-      // "Lowest" wins — fastest recovery is the least painful hold.
-      // If the fund hasn't recovered, we show "still recovering" with
-      // the current gap, and exclude it from "best" eligibility (we
-      // ranked by recoveryDays, which is null when not recovered).
-      label: "Recovery Time",
-      getValue: (_, q) => {
-        if (!q?.risk) return "\u2014";
-        if (q.risk.stillRecovering) {
-          const cur = q.risk.currentDrawdownPct;
-          return `still recovering (${cur.toFixed(1)}%)`;
-        }
-        const days = q.risk.recoveryDays ?? 0;
-        if (days < 60) return `${days}d`;
-        const months = days / 30.44;
-        if (months < 24) return `${months.toFixed(1)}mo`;
-        const years = days / 365.25;
-        return `${years.toFixed(1)}y`;
+      label: "YTD",
+      highlight: "highest" as HighlightMode,
+      getNumeric: (t) => quotes[t]?.ytdReturn ?? null,
+      renderCell: (t) => {
+        const v = quotes[t]?.ytdReturn ?? null;
+        const fund = FUNDS[t];
+        const slice = ytdSlice(t);
+        return (
+          <span className="cell-pct">
+            {fund && slice.length >= 2 && (
+              <MiniSpark data={slice} color={fund.chartColor} />
+            )}
+            <span
+              className="ed-numerals cell-pct__val"
+              style={{ color: (v ?? 0) >= 0 ? "var(--green)" : "var(--stamp)" }}
+            >
+              {fmtPctSigned(v)}
+            </span>
+          </span>
+        );
       },
-      highlight: "lowest", // fewer days = better
-      getNumericValue: (_, q) => q?.risk?.recoveryDays ?? null,
+    },
+    {
+      label: "1Y",
+      highlight: "highest" as HighlightMode,
+      getNumeric: (t) => quotes[t]?.oneYearReturn ?? null,
+      renderCell: (t) => {
+        const v = quotes[t]?.oneYearReturn ?? null;
+        const fund = FUNDS[t];
+        const h = (histories[t] ?? []).slice(-252);
+        return (
+          <span className="cell-pct">
+            {fund && h.length >= 2 && (
+              <MiniSpark data={h} color={fund.chartColor} />
+            )}
+            <span
+              className="ed-numerals cell-pct__val"
+              style={{ color: (v ?? 0) >= 0 ? "var(--green)" : "var(--stamp)" }}
+            >
+              {fmtPctSigned(v)}
+            </span>
+          </span>
+        );
+      },
+    },
+    {
+      label: "5Y",
+      highlight: "highest" as HighlightMode,
+      getNumeric: (t) => quotes[t]?.fiveYearReturn ?? null,
+      renderCell: (t) => {
+        const v = quotes[t]?.fiveYearReturn ?? null;
+        const fund = FUNDS[t];
+        const h = (histories[t] ?? []).slice(-252 * 5);
+        return (
+          <span className="cell-pct">
+            {fund && h.length >= 2 && (
+              <MiniSpark data={h} color={fund.chartColor} />
+            )}
+            <span
+              className="ed-numerals cell-pct__val"
+              style={{ color: (v ?? 0) >= 0 ? "var(--green)" : "var(--stamp)" }}
+            >
+              {fmtPctSigned(v)}
+            </span>
+          </span>
+        );
+      },
+    },
+    {
+      label: "Max drawdown",
+      highlight: "highest" as HighlightMode,
+      getNumeric: (t) => quotes[t]?.risk?.maxDrawdownPct ?? null,
+      renderCell: (t) => {
+        const v = quotes[t]?.risk?.maxDrawdownPct;
+        if (v == null) return "—";
+        return (
+          <span className="ed-numerals" style={{ color: "var(--stamp)" }}>
+            {v.toFixed(1)}%
+          </span>
+        );
+      },
+    },
+    {
+      label: "Recovery time",
+      highlight: "lowest" as HighlightMode,
+      getNumeric: (t) => quotes[t]?.risk?.recoveryDays ?? null,
+      renderCell: (t) => {
+        const q = quotes[t];
+        if (!q?.risk) return "—";
+        if (q.risk.stillRecovering) {
+          return `still recovering (${q.risk.currentDrawdownPct.toFixed(1)}%)`;
+        }
+        return fmtRecovery(q.risk.recoveryDays);
+      },
+    },
+    {
+      label: "Volatility",
+      highlight: "lowest" as HighlightMode,
+      getNumeric: (t) => quotes[t]?.risk?.annualVol ?? null,
+      renderCell: (t) => {
+        const v = quotes[t]?.risk?.annualVol;
+        if (v == null) return "—";
+        return `${v.toFixed(1)}%`;
+      },
     },
     {
       label: "Inception",
-      getValue: (t) => {
+      highlight: "none" as HighlightMode,
+      getNumeric: () => null,
+      renderCell: (t) => {
         const d = FUNDS[t]?.inceptionDate;
-        if (!d) return "\u2014";
+        if (!d) return "—";
         return new Date(d).toLocaleDateString("en-CA", {
           year: "numeric",
           month: "short",
         });
       },
-      highlight: "none",
+      skipSkeleton: true,
     },
     {
       label: "Equity / FI",
-      getValue: (t) => {
+      highlight: "none" as HighlightMode,
+      getNumeric: () => null,
+      renderCell: (t) => {
         const f = FUNDS[t];
-        if (!f) return "\u2014";
+        if (!f) return "—";
         return `${f.equityAllocation}/${f.fixedIncomeAllocation}`;
       },
-      highlight: "none",
+      skipSkeleton: true,
     },
-    {
-      // Geographic stack-bar: US / Canada / Intl / EM. Matches the
-      // segment colors locked in TASKS.md (ink tints + stamp for EM).
-      label: "Tilt",
-      getValue: () => "",
-      highlight: "none",
-      render: (t) => <TiltBar ticker={t} />,
-    },
-  ];
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  ], [quotes, histories]);
 
-  function getBest(row: Row): string | null {
-    if (row.highlight === "none" || !row.getNumericValue) return null;
+  function getBest(row: RowDef): string | null {
+    if (row.highlight === "none") return null;
     let best: { ticker: string; value: number } | null = null;
     for (const t of selected) {
-      const val = row.getNumericValue(t, quotes[t] ?? null);
+      const val = row.getNumeric(t);
       if (val == null) continue;
       if (
         !best ||
@@ -202,77 +358,34 @@ export default function StatsTable({ selected }: StatsTableProps) {
 
   return (
     <Card>
-      <SectionLabel>The ledger</SectionLabel>
-      <div
-        className="ed-display-italic"
-        style={{
-          fontSize: "clamp(1.5rem, 2.5vw, 1.875rem)",
-          lineHeight: 1.1,
-          color: "var(--ink)",
-          marginTop: 6,
-          marginBottom: 18,
-        }}
-      >
-        Side-by-side on the metrics.
+      <div className="stats__head">
+        <div>
+          <div className="ed-stamp">The ledger</div>
+          <h2 className="ed-display-italic stats__h2">Side by side on the metrics.</h2>
+        </div>
+        <p className="ed-caption stats__deck">
+          Green dot marks the row leader. Drawdown and volatility are measured
+          over each fund&apos;s full available history.
+        </p>
       </div>
 
-      <div style={{ overflowX: "auto", margin: "0 -4px" }}>
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            fontFamily: "var(--font-sans)",
-            minWidth: 420,
-          }}
-        >
+      <div className="stats__scroll">
+        <table className="stats__table">
           <thead>
             <tr>
-              <th
-                className="ed-label"
-                style={{
-                  textAlign: "left",
-                  padding: "12px 14px",
-                  borderBottom: "1px solid var(--rule-soft)",
-                  color: "var(--ink-mute)",
-                }}
-              >
-                Metric
-              </th>
+              <th className="ed-label stats__th-label">Metric</th>
               {selected.map((t) => {
                 const isVeqt = t === "VEQT.TO";
                 return (
-                  <th
-                    key={t}
-                    style={{
-                      textAlign: "left",
-                      padding: "12px 14px",
-                      verticalAlign: "bottom",
-                      borderBottom: "1px solid var(--rule-soft)",
-                    }}
-                  >
+                  <th key={t} className="stats__th">
                     <span
-                      className="ed-display"
-                      style={{
-                        display: "block",
-                        fontSize: 16,
-                        lineHeight: 1,
-                        color: isVeqt ? "var(--stamp)" : "var(--ink)",
-                        letterSpacing: "-0.012em",
-                      }}
+                      className="stats__th-ticker ed-display"
+                      style={{ color: isVeqt ? "var(--stamp)" : "var(--ink)" }}
                     >
-                      {FUNDS[t]?.shortName ?? t}
+                      {FUNDS[t]?.shortName ?? t.replace(".TO", "")}
                     </span>
-                    <span
-                      style={{
-                        display: "block",
-                        marginTop: 4,
-                        fontFamily: "var(--font-serif)",
-                        fontStyle: "italic",
-                        fontSize: 11,
-                        color: "var(--ink-mute)",
-                      }}
-                    >
-                      {isVeqt ? "house" : FUNDS[t]?.provider ?? ""}
+                    <span className="stats__th-sub">
+                      {isVeqt ? "house" : (FUNDS[t]?.provider ?? "")}
                     </span>
                   </th>
                 );
@@ -283,76 +396,34 @@ export default function StatsTable({ selected }: StatsTableProps) {
             {rows.map((row) => {
               const bestTicker = getBest(row);
               return (
-                <tr
-                  key={row.label}
-                  style={{
-                    borderBottom: "1px solid var(--rule-soft)",
-                  }}
-                >
-                  <td
-                    style={{
-                      padding: "14px 14px",
-                      fontFamily: "var(--font-serif)",
-                      fontStyle: "italic",
-                      fontSize: 13,
-                      color: "var(--ink-soft)",
-                    }}
-                  >
-                    {row.label}
-                  </td>
+                <tr key={row.label}>
+                  <td className="stats__td-label">{row.label}</td>
                   {selected.map((t) => {
                     const isBest = bestTicker === t;
                     const isVeqt = t === "VEQT.TO";
-                    const value = row.getValue(t, quotes[t] ?? null);
                     const skeletalRow =
                       loading &&
-                      row.label !== "MER" &&
-                      row.label !== "AUM" &&
-                      row.label !== "Inception" &&
-                      row.label !== "Equity / FI";
+                      !row.skipSkeleton &&
+                      row.highlight !== "none";
 
                     return (
                       <td
                         key={t}
-                        className="ed-numerals"
-                        style={{
-                          padding: "14px 14px",
-                          fontFamily: "var(--font-sans)",
-                          fontSize: 14,
-                          fontWeight: 600,
-                          color: isBest ? "var(--stamp)" : "var(--ink)",
-                          background: isVeqt
-                            ? "color-mix(in oklab, var(--stamp) 4%, transparent)"
-                            : undefined,
-                        }}
+                        className={`stats__td${isBest ? " is-best" : ""}${isVeqt ? " is-veqt" : ""}`}
                       >
-                        {skeletalRow ? (
-                          <div className="skeleton" style={{ height: 16, width: 56 }} />
-                        ) : row.render ? (
-                          row.render(t, quotes[t] ?? null)
-                        ) : (
-                          <span
-                            style={{
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: 6,
-                            }}
-                          >
-                            {isBest && (
-                              <span
-                                aria-hidden
-                                style={{
-                                  width: 7,
-                                  height: 7,
-                                  borderRadius: "50%",
-                                  background: "var(--green)",
-                                  display: "inline-block",
-                                }}
-                              />
-                            )}
-                            {value}
-                          </span>
+                        {isBest && row.highlight !== "none" && (
+                          <span className="stats__dot" aria-hidden />
                         )}
+                        <span className="stats__val">
+                          {skeletalRow ? (
+                            <div
+                              className="skeleton"
+                              style={{ height: 16, width: 56 }}
+                            />
+                          ) : (
+                            row.renderCell(t)
+                          )}
+                        </span>
                       </td>
                     );
                   })}
@@ -363,22 +434,18 @@ export default function StatsTable({ selected }: StatsTableProps) {
         </table>
       </div>
 
-      <div
-        style={{
-          marginTop: 18,
-          paddingTop: 14,
-          borderTop: "1px solid var(--rule-soft)",
-          display: "flex",
-          flexDirection: "column",
-          gap: 6,
-        }}
-      >
+      <div className="stats__footer">
         {!loading && lastUpdated ? (
           <DataFreshness source={displaySource} fetchedAt={oldestFetchedAt} />
         ) : (
           <p
-            className="bs-caption italic text-[11px]"
-            style={{ color: "var(--ink-soft)" }}
+            style={{
+              fontFamily: "var(--font-serif)",
+              fontStyle: "italic",
+              fontSize: 11,
+              color: "var(--ink-soft)",
+              margin: 0,
+            }}
           >
             Live data from Alpha Vantage / Yahoo Finance
           </p>
@@ -399,19 +466,6 @@ export default function StatsTable({ selected }: StatsTableProps) {
           )}
           . Sources: Vanguard Canada, BlackRock Canada, BMO ETF Centre.
         </p>
-        <p
-          style={{
-            fontFamily: "var(--font-serif)",
-            fontStyle: "italic",
-            fontSize: 11,
-            color: "var(--ink-mute)",
-            margin: 0,
-          }}
-        >
-          A green dot marks the leader on each row. Drawdown and recovery
-          are measured over each fund&apos;s full available history —
-          younger funds have lived through fewer storms.
-        </p>
       </div>
 
       {hasCachedFund && oldestFetchedAt && (
@@ -419,6 +473,137 @@ export default function StatsTable({ selected }: StatsTableProps) {
           <StaleBanner fetchedAt={oldestFetchedAt} />
         </div>
       )}
+
+      <style jsx>{`
+        .stats__head {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-end;
+          gap: 16px;
+          flex-wrap: wrap;
+          margin-bottom: 18px;
+        }
+        .stats__h2 {
+          font-size: clamp(1.5rem, 2.4vw, 1.9rem);
+          line-height: 1.05;
+          margin: 4px 0 0;
+          color: var(--ink);
+        }
+        .stats__deck {
+          flex: 0 1 380px;
+          max-width: 380px;
+          font-size: 13px;
+        }
+        .stats__scroll {
+          overflow-x: auto;
+          margin: 0 -4px;
+        }
+        .stats__table {
+          width: 100%;
+          border-collapse: collapse;
+          font-family: var(--font-sans);
+          min-width: 480px;
+        }
+        .stats__th-label {
+          text-align: left;
+          padding: 12px 14px 14px;
+          border-bottom: 2px solid var(--ink);
+          color: var(--ink-mute);
+        }
+        .stats__th {
+          text-align: left;
+          padding: 12px 14px 14px;
+          vertical-align: bottom;
+          border-bottom: 2px solid var(--ink);
+        }
+        .stats__th-ticker {
+          display: block;
+          font-size: 18px;
+          line-height: 1;
+          letter-spacing: -0.015em;
+        }
+        .stats__th-sub {
+          display: block;
+          margin-top: 4px;
+          font-family: var(--font-serif);
+          font-style: italic;
+          font-size: 11.5px;
+          color: var(--ink-mute);
+        }
+        .stats__td-label {
+          padding: 14px 14px;
+          font-family: var(--font-serif);
+          font-style: italic;
+          font-size: 13px;
+          color: var(--ink-soft);
+          border-bottom: 1px solid var(--rule-soft);
+        }
+        :global(.stats__td) {
+          padding: 14px 14px;
+          font-family: var(--font-sans);
+          font-size: 14px;
+          font-weight: 600;
+          color: var(--ink);
+          border-bottom: 1px solid var(--rule-soft);
+          position: relative;
+        }
+        :global(.stats__td.is-veqt) {
+          background: color-mix(in oklab, var(--stamp) 4%, transparent);
+        }
+        :global(.stats__td.is-best) {
+          color: var(--green);
+        }
+        :global(.stats__dot) {
+          position: absolute;
+          left: 4px;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: var(--green);
+        }
+        :global(.stats__val) {
+          display: inline-block;
+        }
+        :global(.cell-bar) {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          min-width: 0;
+        }
+        :global(.cell-bar__track) {
+          width: 50px;
+          height: 4px;
+          background: var(--paper-warm);
+          border-radius: 2px;
+          overflow: hidden;
+        }
+        :global(.cell-bar__fill) {
+          display: block;
+          height: 100%;
+          background: var(--ink);
+        }
+        :global(.cell-bar__val) {
+          font-weight: 700;
+        }
+        :global(.cell-pct) {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+        }
+        :global(.cell-pct__val) {
+          font-weight: 700;
+        }
+        .stats__footer {
+          margin-top: 18px;
+          padding-top: 14px;
+          border-top: 1px solid var(--rule-soft);
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+      `}</style>
     </Card>
   );
 }

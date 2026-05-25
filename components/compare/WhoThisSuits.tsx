@@ -2,7 +2,6 @@
 
 import { FUNDS } from "@/data/funds";
 import Card from "@/components/ui/Card";
-import SectionLabel from "@/components/ui/SectionLabel";
 
 interface WhoThisSuitsProps {
   selected: string[];
@@ -17,19 +16,18 @@ interface WhoThisSuitsProps {
 export default function WhoThisSuits({ selected }: WhoThisSuitsProps) {
   return (
     <Card>
-      <SectionLabel>The suitability</SectionLabel>
-      <div
+      <div className="ed-stamp">The suitability</div>
+      <h2
         className="ed-display-italic"
         style={{
-          fontSize: "clamp(1.5rem, 2.5vw, 1.875rem)",
-          lineHeight: 1.1,
+          fontSize: "clamp(1.5rem, 2.4vw, 1.9rem)",
+          lineHeight: 1.05,
           color: "var(--ink)",
-          marginTop: 6,
-          marginBottom: 22,
+          margin: "4px 0 18px",
         }}
       >
         Who each fund is for.
-      </div>
+      </h2>
 
       <ol
         style={{
@@ -53,9 +51,8 @@ export default function WhoThisSuits({ selected }: WhoThisSuitsProps) {
                 display: "grid",
                 gridTemplateColumns: "auto 1fr",
                 gap: "18px 22px",
-                padding: "20px 0",
-                borderTop:
-                  idx === 0 ? "1px solid var(--rule-soft)" : "1px solid var(--rule-soft)",
+                padding: "18px 0",
+                borderTop: "1px solid var(--rule-soft)",
                 alignItems: "start",
               }}
             >

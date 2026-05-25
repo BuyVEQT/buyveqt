@@ -2,7 +2,6 @@
 
 import { FUNDS } from "@/data/funds";
 import Card from "@/components/ui/Card";
-import SectionLabel from "@/components/ui/SectionLabel";
 
 interface AllocationBarsProps {
   selected: string[];
@@ -67,19 +66,18 @@ export default function AllocationBars({ selected }: AllocationBarsProps) {
 
   return (
     <Card>
-      <SectionLabel>The geography</SectionLabel>
-      <div
+      <div className="ed-stamp">The geography</div>
+      <h2
         className="ed-display-italic"
         style={{
-          fontSize: "clamp(1.5rem, 2.5vw, 1.875rem)",
-          lineHeight: 1.1,
+          fontSize: "clamp(1.5rem, 2.4vw, 1.9rem)",
+          lineHeight: 1.05,
           color: "var(--ink)",
-          marginTop: 6,
-          marginBottom: 22,
+          margin: "4px 0 22px",
         }}
       >
         Where the dollars sit.
-      </div>
+      </h2>
 
       <ul
         style={{

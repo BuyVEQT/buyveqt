@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { COMPARE_FAQ } from "@/data/faq";
 import Card from "@/components/ui/Card";
-import SectionLabel from "@/components/ui/SectionLabel";
 
 /**
  * Compare FAQ — Round 4 D2 version. Accordion list with the first item
@@ -15,19 +14,18 @@ export default function FAQSection() {
 
   return (
     <Card>
-      <SectionLabel>The questions</SectionLabel>
-      <div
+      <div className="ed-stamp">The questions</div>
+      <h2
         className="ed-display-italic"
         style={{
-          fontSize: "clamp(1.5rem, 2.5vw, 1.875rem)",
-          lineHeight: 1.1,
+          fontSize: "clamp(1.5rem, 2.4vw, 1.9rem)",
+          lineHeight: 1.05,
           color: "var(--ink)",
-          marginTop: 6,
-          marginBottom: 18,
+          margin: "4px 0 12px",
         }}
       >
         Frequently asked.
-      </div>
+      </h2>
 
       <ul
         role="list"
