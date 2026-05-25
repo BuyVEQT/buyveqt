@@ -1,249 +1,343 @@
-"use client";
-
-import { useState } from "react";
-import Card from "@/components/ui/Card";
-import SectionLabel from "@/components/ui/SectionLabel";
-
 interface NewsletterCardProps {
-  /** Compact = small footer-style card. Full = the page-bottom hero. */
+  /**
+   * Tightens padding and font sizes for inline use below an article body.
+   * The dark slab, vermilion rule, pulled quote, and bullet list all stay —
+   * only the surrounding chrome compresses.
+   */
   compact?: boolean;
 }
 
 /**
- * Dark card with the weekly-dispatch subscribe form. Replaces the
- * legacy NewsletterSignup on /learn (index + article reader).
- * Posts to /api/subscribe; shows a "thanks" state on success.
+ * V2 NewsletterCard — dark publication card with vermilion top rule.
+ *
+ * Layout:
+ *   Top stamps:   "The weekly dispatch"  ·  "Edition N · Shipped …"
+ *   Hairline rule
+ *   2-col body (>= 760px, 1.45fr/1fr):
+ *     Left:  italic h2 + body copy + 3-bullet "what's inside" list
+ *     Right: pulled quote with vermilion left border + edition byline
+ *   Email + "Join N readers" CTA row (single row >= 560px, stacks below)
+ *   Tiny legal caption
+ *
+ * Visual-only — wire the submit handler upstream when a backend exists.
  */
-export default function NewsletterCard({ compact = false }: NewsletterCardProps) {
-  const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "ok" | "error">(
-    "idle"
-  );
-  const [error, setError] = useState<string | null>(null);
+export default function NewsletterCard({ compact = false }: NewsletterCardProps = {}) {
+  return (
+    <section className={`news-v2 ${compact ? "news-v2--compact" : ""}`}>
+      <div className="news-v2__top">
+        <span className="ed-stamp news-v2__masthead">
+          The weekly dispatch
+        </span>
+        <span className="ed-stamp news-v2__edition">
+          Edition 47 · Shipped Sun
+        </span>
+      </div>
+      <div className="news-v2__rule" />
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!email.trim() || !email.includes("@")) {
-      setError("That doesn't look like an email address.");
-      setStatus("error");
-      return;
-    }
-    setStatus("loading");
-    setError(null);
-    try {
-      const res = await fetch("/api/subscribe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim() }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        throw new Error(data?.error ?? `Status ${res.status}`);
-      }
-      setStatus("ok");
-      setEmail("");
-    } catch (err) {
-      setStatus("error");
-      setError(err instanceof Error ? err.message : "Something went wrong.");
-    }
-  }
-
-  if (compact) {
-    return (
-      <Card dark>
-        <SectionLabel dark>The dispatch · weekly</SectionLabel>
-        <div
-          className="ed-display-italic"
-          style={{
-            fontSize: 20,
-            lineHeight: 1.15,
-            marginTop: 10,
-            color: "var(--band-paper)",
-          }}
-        >
-          Get next Sunday&apos;s dispatch.
+      <div className="news-v2__body">
+        <div className="news-v2__lead">
+          <h2 className="ed-display-italic news-v2__h2">
+            One letter,{" "}
+            <em style={{ fontStyle: "italic", fontWeight: 500 }}>
+              every Sunday.
+            </em>
+          </h2>
+          <p className="ed-body news-v2__copy">
+            A weekly read for the VEQT holder who hasn&apos;t given up on
+            understanding what they own. ~600 words. Independent. No
+            affiliate links. Unsubscribe in one click.
+          </p>
+          <ul className="news-v2__bullets">
+            <li>
+              <span className="news-v2__check" aria-hidden>
+                ✓
+              </span>{" "}
+              The week&apos;s new dispatches
+            </li>
+            <li>
+              <span className="news-v2__check" aria-hidden>
+                ✓
+              </span>{" "}
+              One chart that explains the week
+            </li>
+            <li>
+              <span className="news-v2__check" aria-hidden>
+                ✓
+              </span>{" "}
+              A line worth thinking about
+            </li>
+          </ul>
         </div>
-        <form onSubmit={onSubmit} style={{ marginTop: 14, display: "flex", gap: 8 }}>
+
+        <aside className="news-v2__quote">
+          <span className="news-v2__quote-mark" aria-hidden>
+            &ldquo;
+          </span>
+          <p className="news-v2__quote-body">
+            Diversification is the only free lunch in investing. Take seconds.
+          </p>
+          <p className="news-v2__quote-byline">
+            From <em>Edition 46 · On Canadian home bias</em>
+          </p>
+        </aside>
+      </div>
+
+      <form
+        className="news-v2__form"
+        onSubmit={(e) => e.preventDefault()}
+        aria-label="Subscribe to the weekly dispatch"
+      >
+        <label className="news-v2__field">
+          <span className="news-v2__sr">Email</span>
           <input
             type="email"
+            placeholder="you@example.com"
             required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@inbox.com"
-            disabled={status === "loading" || status === "ok"}
-            style={{
-              flex: 1,
-              background: "rgba(246,239,220,0.08)",
-              border: "none",
-              padding: "10px 14px",
-              borderRadius: 10,
-              color: "var(--band-paper)",
-              fontFamily: "var(--font-sans)",
-              fontSize: 13,
-              outline: "none",
-            }}
+            aria-label="Email address"
           />
-          <button
-            type="submit"
-            disabled={status === "loading" || status === "ok"}
-            style={{
-              background: status === "ok" ? "var(--green)" : "var(--stamp)",
-              color: "var(--band-paper)",
-              border: "none",
-              padding: "10px 16px",
-              borderRadius: 10,
-              fontFamily: "var(--font-sans)",
-              fontSize: 12,
-              fontWeight: 700,
-              letterSpacing: "0.08em",
-              cursor: status === "loading" ? "wait" : "pointer",
-            }}
-          >
-            {status === "ok" ? "DONE ✓" : status === "loading" ? "…" : "JOIN"}
-          </button>
-        </form>
-        {status === "error" && error && (
-          <p style={errorStyle}>{error}</p>
-        )}
-        {status === "ok" && (
-          <p style={successStyle}>You&apos;re on the list. See you Sunday.</p>
-        )}
-      </Card>
-    );
-  }
+        </label>
+        <button type="submit" className="news-v2__submit">
+          Join 4,238 readers
+          <span aria-hidden className="news-v2__submit-arrow">
+            →
+          </span>
+        </button>
+      </form>
 
-  return (
-    <Card dark padding="36px 32px">
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr",
-          gap: 28,
-          alignItems: "center",
-        }}
-        className="newsletter-grid"
-      >
-        <div>
-          <SectionLabel dark>The dispatch · weekly</SectionLabel>
-          <div
-            className="ed-display-italic"
-            style={{
-              fontSize: "clamp(1.75rem, 3.5vw, 2.25rem)",
-              lineHeight: 1.1,
-              marginTop: 12,
-              color: "var(--band-paper)",
-              letterSpacing: "-0.018em",
-            }}
-          >
-            One dispatch a&nbsp;week. Sundays. Free.
-          </div>
-        </div>
-        <div>
-          <p
-            style={{
-              fontFamily: "var(--font-serif)",
-              fontSize: 15.5,
-              lineHeight: 1.6,
-              color: "rgba(246,239,220,0.78)",
-              margin: 0,
-              maxWidth: "46ch",
-            }}
-          >
-            We send the lead, the severity reading, and a single article worth
-            your time. That&apos;s it. No upsells, no notifications, no daily
-            push to open the app.
-          </p>
-          <form
-            onSubmit={onSubmit}
-            style={{
-              marginTop: 22,
-              display: "flex",
-              gap: 10,
-              maxWidth: 460,
-              flexWrap: "wrap",
-            }}
-          >
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@inbox.com"
-              disabled={status === "loading" || status === "ok"}
-              style={{
-                flex: 1,
-                minWidth: 200,
-                background: "rgba(246,239,220,0.10)",
-                border: "none",
-                padding: "12px 16px",
-                borderRadius: 10,
-                color: "var(--band-paper)",
-                fontFamily: "var(--font-sans)",
-                fontSize: 14,
-                outline: "none",
-              }}
-            />
-            <button
-              type="submit"
-              disabled={status === "loading" || status === "ok"}
-              style={{
-                background: status === "ok" ? "var(--green)" : "var(--stamp)",
-                color: "var(--band-paper)",
-                border: "none",
-                padding: "12px 22px",
-                borderRadius: 10,
-                fontFamily: "var(--font-sans)",
-                fontSize: 12,
-                fontWeight: 700,
-                letterSpacing: "0.18em",
-                cursor: status === "loading" ? "wait" : "pointer",
-              }}
-            >
-              {status === "ok" ? "SUBSCRIBED ✓" : status === "loading" ? "…" : "SUBSCRIBE"}
-            </button>
-          </form>
-          {status === "error" && error && (
-            <p style={errorStyle}>{error}</p>
-          )}
-          {status === "ok" && (
-            <p style={successStyle}>You&apos;re on the list. See you Sunday.</p>
-          )}
-          <p
-            style={{
-              fontFamily: "var(--font-serif)",
-              fontStyle: "italic",
-              fontSize: 12.5,
-              color: "rgba(246,239,220,0.55)",
-              marginTop: 14,
-              marginBottom: 0,
-            }}
-          >
-            Unsubscribe in one click. We don&apos;t share your email.
-          </p>
-        </div>
+      <div className="news-v2__legal">
+        <span className="ed-caption">
+          Independent. We don&apos;t share your email. Read the{" "}
+          <a href="/privacy">privacy note</a>.
+        </span>
       </div>
-      <style jsx>{`
-        @media (min-width: 1024px) {
-          .newsletter-grid {
-            grid-template-columns: 5fr 7fr !important;
-            gap: 56px !important;
+
+      <style jsx global>{`
+        .news-v2 {
+          margin-top: 28px;
+          padding: 28px 32px 26px;
+          background: var(--band-ink);
+          color: var(--band-paper);
+          border-radius: 18px;
+          position: relative;
+          overflow: hidden;
+        }
+        .news-v2--compact {
+          margin-top: 16px;
+          padding: 22px 24px 20px;
+          border-radius: 14px;
+        }
+        .news-v2--compact .news-v2__h2 {
+          font-size: clamp(1.4rem, 2.4vw, 1.8rem);
+        }
+        .news-v2--compact .news-v2__body {
+          gap: 18px;
+          margin-bottom: 18px;
+        }
+        .news-v2::before {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 3px;
+          background: var(--stamp);
+        }
+        .news-v2__top {
+          display: flex;
+          justify-content: space-between;
+          align-items: baseline;
+          gap: 12px;
+          flex-wrap: wrap;
+        }
+        .news-v2__masthead {
+          color: var(--paper);
+          letter-spacing: 0.24em;
+        }
+        .news-v2__edition {
+          color: rgba(246, 239, 220, 0.55);
+        }
+        .news-v2__rule {
+          height: 1px;
+          background: rgba(246, 239, 220, 0.22);
+          margin: 12px 0 22px;
+        }
+
+        .news-v2__body {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 26px;
+          align-items: start;
+          margin-bottom: 22px;
+        }
+        @media (min-width: 760px) {
+          .news-v2__body {
+            grid-template-columns: 1.45fr 1fr;
+            gap: 36px;
           }
         }
+        .news-v2__h2 {
+          font-size: clamp(1.7rem, 3vw, 2.3rem);
+          line-height: 1.1;
+          color: var(--paper);
+          margin: 0 0 14px;
+          max-width: 14ch;
+        }
+        .news-v2__copy {
+          font-size: 14.5px;
+          line-height: 1.55;
+          color: rgba(246, 239, 220, 0.78);
+          margin: 0 0 14px;
+          max-width: 56ch;
+        }
+        .news-v2__bullets {
+          list-style: none;
+          margin: 0;
+          padding: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+        .news-v2__bullets li {
+          font-family: var(--font-serif);
+          font-size: 14px;
+          color: rgba(246, 239, 220, 0.85);
+          display: flex;
+          gap: 10px;
+          align-items: baseline;
+        }
+        .news-v2__check {
+          color: var(--stamp);
+          font-weight: 700;
+        }
+
+        .news-v2__quote {
+          background: rgba(246, 239, 220, 0.06);
+          border-left: 3px solid var(--stamp);
+          padding: 18px 20px 16px;
+          border-radius: 0 12px 12px 0;
+          position: relative;
+        }
+        .news-v2__quote-mark {
+          position: absolute;
+          top: -6px;
+          left: 12px;
+          font-family: var(--font-display);
+          font-size: 48px;
+          line-height: 1;
+          color: var(--stamp);
+          opacity: 0.6;
+        }
+        .news-v2__quote-body {
+          font-family: var(--font-serif);
+          font-style: italic;
+          font-size: 16px;
+          line-height: 1.5;
+          color: var(--paper);
+          margin: 14px 0 8px;
+        }
+        .news-v2__quote-byline {
+          font-family: var(--font-sans);
+          font-size: 10.5px;
+          font-weight: 700;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          color: rgba(246, 239, 220, 0.55);
+          margin: 0;
+        }
+        .news-v2__quote-byline em {
+          color: rgba(246, 239, 220, 0.75);
+          text-transform: none;
+          font-weight: 500;
+          letter-spacing: 0.02em;
+          font-family: var(--font-serif);
+          font-style: italic;
+        }
+
+        .news-v2__form {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+        @media (min-width: 560px) {
+          .news-v2__form {
+            grid-template-columns: 1fr auto;
+          }
+        }
+        .news-v2__field {
+          display: block;
+        }
+        .news-v2__sr {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          padding: 0;
+          margin: -1px;
+          overflow: hidden;
+          clip: rect(0, 0, 0, 0);
+          white-space: nowrap;
+          border-width: 0;
+        }
+        .news-v2__field input {
+          appearance: none;
+          width: 100%;
+          padding: 14px 16px;
+          background: rgba(246, 239, 220, 0.06);
+          border: 1px solid rgba(246, 239, 220, 0.18);
+          border-radius: 999px;
+          font-family: var(--font-serif);
+          font-size: 15px;
+          color: var(--paper);
+          outline: none;
+          transition: border-color 0.18s, background 0.18s;
+        }
+        .news-v2__field input:focus {
+          border-color: var(--stamp);
+          background: rgba(246, 239, 220, 0.10);
+        }
+        .news-v2__field input::placeholder {
+          color: rgba(246, 239, 220, 0.4);
+        }
+        .news-v2__submit {
+          appearance: none;
+          padding: 14px 22px;
+          background: var(--stamp);
+          color: var(--paper-light);
+          border: 0;
+          border-radius: 999px;
+          font-family: var(--font-sans);
+          font-size: 12px;
+          font-weight: 700;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          white-space: nowrap;
+          transition: background 0.18s, transform 0.18s;
+        }
+        .news-v2__submit:hover {
+          background: color-mix(in oklab, var(--stamp) 85%, white);
+          transform: translateX(2px);
+        }
+        .news-v2__submit-arrow {
+          color: var(--paper-light);
+          font-size: 14px;
+        }
+
+        .news-v2__legal {
+          margin-top: 14px;
+        }
+        .news-v2__legal a {
+          color: rgba(246, 239, 220, 0.7);
+          text-decoration: underline;
+          text-underline-offset: 2px;
+        }
+        .news-v2__legal a:hover {
+          color: var(--paper);
+        }
       `}</style>
-    </Card>
+    </section>
   );
 }
-
-const errorStyle: React.CSSProperties = {
-  marginTop: 10,
-  color: "#e0665e",
-  fontSize: 12,
-  fontFamily: "var(--font-sans)",
-};
-
-const successStyle: React.CSSProperties = {
-  marginTop: 10,
-  color: "#7cc095",
-  fontSize: 12,
-  fontFamily: "var(--font-sans)",
-};
