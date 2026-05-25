@@ -8,26 +8,38 @@ import { useState, useEffect, useRef } from "react";
  *
  * Snaps immediately on first render (no animation from 0).
  * Cleans up animation on unmount or when target changes mid-flight.
+ *
+ * The integer overload (default export) rounds to the nearest int — used
+ * for dollar amounts. For fractional values (years, percentages) use
+ * `useAnimatedNumberRaw`.
  */
 export function useAnimatedNumber(target: number, duration = 400): number {
+  return Math.round(useAnimatedNumberRaw(target, duration));
+}
+
+/** Same animation as `useAnimatedNumber` but without int rounding. */
+export function useAnimatedNumberRaw(target: number, duration = 700): number {
   const [displayed, setDisplayed] = useState(target);
   const rafRef = useRef<number | null>(null);
   const isFirstRender = useRef(true);
+  // Track displayed value via ref so consecutive target changes start from
+  // the live animated value, not stale React state.
+  const displayedRef = useRef(target);
 
   useEffect(() => {
-    // Snap on first render — don't animate from 0
     if (isFirstRender.current) {
       isFirstRender.current = false;
+      displayedRef.current = target;
       setDisplayed(target);
       return;
     }
 
-    const startValue = displayed;
+    const startValue = displayedRef.current;
     const startTime = performance.now();
     const delta = target - startValue;
 
-    // No animation needed if value hasn't changed
-    if (Math.abs(delta) < 0.5) {
+    if (Math.abs(delta) < 1e-6) {
+      displayedRef.current = target;
       setDisplayed(target);
       return;
     }
@@ -35,12 +47,11 @@ export function useAnimatedNumber(target: number, duration = 400): number {
     function tick(now: number) {
       const elapsed = now - startTime;
       const progress = Math.min(elapsed / duration, 1);
-
-      // Cubic ease-out: 1 - (1 - t)^3
       const eased = 1 - Math.pow(1 - progress, 3);
       const current = startValue + delta * eased;
 
-      setDisplayed(progress >= 1 ? target : current);
+      displayedRef.current = progress >= 1 ? target : current;
+      setDisplayed(displayedRef.current);
 
       if (progress < 1) {
         rafRef.current = requestAnimationFrame(tick);
@@ -57,5 +68,5 @@ export function useAnimatedNumber(target: number, duration = 400): number {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [target, duration]);
 
-  return Math.round(displayed);
+  return displayed;
 }
