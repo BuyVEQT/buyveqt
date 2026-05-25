@@ -368,12 +368,15 @@ export default function HeroPriceCard({
             <p className="ed-body hero__rail-blurb">{blurb(severity)}</p>
             <Link
               href={ctaHref(severity)}
+              /* Inline marginTop:auto as a belt-and-braces guarantee in
+                 case styled-jsx scoping ever fails to attach to the Link's
+                 rendered <a>. The .hero__rail-cta CSS still drives the
+                 rest of the styling. */
+              style={{ marginTop: "auto" }}
               className="hero__rail-cta"
             >
               <span>{ctaLabel(severity)}</span>
-              <span aria-hidden style={{ color: "var(--stamp)" }}>
-                →
-              </span>
+              <span aria-hidden>→</span>
             </Link>
           </>
         ) : (
@@ -388,7 +391,7 @@ export default function HeroPriceCard({
         )}
       </aside>
 
-      <style jsx>{`
+      <style jsx global>{`
         .hero {
           display: grid;
           grid-template-columns: 1fr;
@@ -585,6 +588,11 @@ export default function HeroPriceCard({
           line-height: 1.5;
           color: var(--ink-soft);
         }
+        /* Solid ink-filled CTA card. Anchored to the bottom of the rail
+           via margin-top:auto so it acts as the closing element of the
+           weather block — the inline-style fallback in JSX guarantees the
+           anchor in case styled-jsx scoping ever fails to attach the
+           jsx hash to Next.js Link's rendered <a>. */
         .hero__rail-cta {
           margin-top: auto;
           display: inline-flex;
@@ -592,20 +600,25 @@ export default function HeroPriceCard({
           justify-content: space-between;
           gap: 12px;
           width: 100%;
-          padding: 10px 14px;
+          padding: 14px 18px;
+          background: var(--ink);
           border: 1px solid var(--ink);
           border-radius: 12px;
-          color: var(--ink);
+          color: var(--paper-light);
           font-family: var(--font-sans);
           font-size: 11px;
           font-weight: 700;
           letter-spacing: 0.16em;
           text-transform: uppercase;
           text-decoration: none;
-          transition: background 0.15s;
+          transition: background 0.18s, transform 0.18s;
         }
         .hero__rail-cta:hover {
-          background: var(--paper-warm);
+          background: var(--stamp);
+          transform: translateX(3px);
+        }
+        .hero__rail-cta > span:last-child {
+          color: var(--paper-light);
         }
       `}</style>
     </section>
