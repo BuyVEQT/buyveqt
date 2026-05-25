@@ -6,6 +6,13 @@ import { computeRiskMetrics, type RiskMetrics } from "@/lib/risk-metrics";
 
 export const revalidate = 300; // 5 minutes — Yahoo is free, refresh frequently
 
+/** Five-year-ago cutoff string, e.g. "2021-04-05" */
+function fiveYearAgoCutoff(): string {
+  const d = new Date();
+  d.setFullYear(d.getFullYear() - 5);
+  return d.toISOString().split("T")[0];
+}
+
 interface FundQuote {
   ticker: string;
   price: number | null;
@@ -14,6 +21,8 @@ interface FundQuote {
   dividendYield: number | null;
   ytdReturn: number | null;
   oneYearReturn: number | null;
+  /** Five-year total return, or null if not enough history. */
+  fiveYearReturn: number | null;
   /**
    * Drawdown / recovery measured over the fund's full available
    * history. Null if history is too short (< 30 sessions) to be
@@ -39,10 +48,12 @@ async function fetchQuote(symbol: string): Promise<FundQuote> {
 
     let ytdReturn: number | null = null;
     let oneYearReturn: number | null = null;
+    let fiveYearReturn: number | null = null;
     let risk: RiskMetrics | null = null;
     if (history) {
       ytdReturn = computeReturn(history.data, quoteData.price, ytdCutoff());
       oneYearReturn = computeReturn(history.data, quoteData.price, oneYearAgoCutoff());
+      fiveYearReturn = computeReturn(history.data, quoteData.price, fiveYearAgoCutoff());
       // Drawdown/recovery uses adjusted closes so dividends don't
       // manufacture phantom drops. Series is already oldest-first.
       risk = computeRiskMetrics(
@@ -61,6 +72,7 @@ async function fetchQuote(symbol: string): Promise<FundQuote> {
       dividendYield: quoteData.dividendYield || null,
       ytdReturn,
       oneYearReturn,
+      fiveYearReturn,
       risk,
       source: quoteData.source,
       error: false,
@@ -74,6 +86,7 @@ async function fetchQuote(symbol: string): Promise<FundQuote> {
       dividendYield: null,
       ytdReturn: null,
       oneYearReturn: null,
+      fiveYearReturn: null,
       risk: null,
       error: true,
     };

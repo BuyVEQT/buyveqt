@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { Region } from "@/lib/useRegions";
 import Sparkline from "@/components/charts/Sparkline";
 
@@ -8,6 +9,15 @@ const REGION_TONE: Record<string, string> = {
   VCN: "var(--stamp)",
   VIU: "var(--amber)",
   VEE: "var(--rule)",
+};
+
+/** Canonical sleeve names — matches LeaderSleeveCard so the section reads
+ *  as a cohesive geographic grouping regardless of API labels. */
+const REGION_LABEL: Record<string, string> = {
+  VUN: "United States",
+  VCN: "Canada",
+  VIU: "Developed ex-NA",
+  VEE: "Emerging Markets",
 };
 
 interface FollowerSleeveRowProps {
@@ -26,10 +36,16 @@ export default function FollowerSleeveRow({
   const up = (region.changePercent ?? 0) >= 0;
   const tone = up ? "var(--green)" : "var(--stamp)";
   const stripe = REGION_TONE[region.ticker] ?? "var(--ink)";
+  const regionName = REGION_LABEL[region.ticker] ?? region.fullName;
   const contribAbs = Math.abs(region.contribution ?? 0).toFixed(2);
   const contribSign = (region.contribution ?? 0) >= 0 ? "+" : "−";
 
   return (
+    <Link
+      href={`/inside-veqt#${region.ticker}`}
+      className="follower-link"
+      aria-label={`${regionName} — view inside VEQT details`}
+    >
     <article className="follower">
       <div
         className="follower__stripe"
@@ -41,7 +57,7 @@ export default function FollowerSleeveRow({
           <span className="follower__rank ed-display">{rank}</span>
           <div>
             <div className="ed-display-italic follower__name-text">
-              {region.fullName}
+              {regionName}
             </div>
             <div className="ed-label follower__ticker">
               {region.ticker} · {region.weight.toFixed(1)}%
@@ -80,7 +96,22 @@ export default function FollowerSleeveRow({
         </div>
       </div>
 
-      <style jsx>{`
+      <style jsx global>{`
+        .follower-link {
+          display: block;
+          text-decoration: none;
+          color: inherit;
+          border-radius: 12px;
+        }
+        .follower-link:focus-visible {
+          outline: 2px solid var(--stamp);
+          outline-offset: 4px;
+        }
+        .follower-link:hover .follower {
+          transform: translateY(-2px);
+          border-color: var(--rule);
+          box-shadow: 0 8px 18px rgba(15, 13, 10, 0.06);
+        }
         .follower {
           position: relative;
           background: var(--paper-light);
@@ -91,6 +122,8 @@ export default function FollowerSleeveRow({
           display: flex;
           flex-direction: column;
           gap: 10px;
+          height: 100%;
+          transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
         }
         .follower__stripe {
           position: absolute;
@@ -161,5 +194,6 @@ export default function FollowerSleeveRow({
         }
       `}</style>
     </article>
+    </Link>
   );
 }

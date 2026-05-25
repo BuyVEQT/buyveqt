@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Card from "@/components/ui/Card";
-import SectionLabel from "@/components/ui/SectionLabel";
 import { FUNDS } from "@/data/funds";
 import type { ComparePeriod } from "./PerformanceChart";
 
@@ -11,25 +10,49 @@ interface CompareGapProps {
   period: ComparePeriod;
 }
 
-interface GapStats {
-  /** Last spread A − B in pp (positive = A leads). */
-  lastSpread: number;
-  /** Mean of |A − B|. */
-  avgGap: number;
-  /** Best day for fund A (highest daily delta A − B). */
-  bestDayA: number;
-  /** Worst day (most negative daily delta A − B). */
-  worstGap: number;
-  /** Days A out-performed B / total days with both fund returns. */
-  daysAWon: number;
-  totalDays: number;
+interface PricePoint {
+  date: string;
+  close: number;
 }
 
-const PERIOD_LABEL: Record<ComparePeriod, string> = {
-  "1Y": "1Y",
-  "5Y": "5Y",
-  ALL: "ALL",
-};
+interface CumPoint {
+  date: string;
+  pct: number;
+}
+
+interface SpreadPoint {
+  date: string;
+  spread: number;
+}
+
+interface GapStats {
+  lastSpread: number;
+  avgGap: number;
+  bestDayA: number;
+  worstGap: number;
+  daysAWon: number;
+  totalDays: number;
+  spreads: SpreadPoint[];
+}
+
+function toCumulative(slice: PricePoint[]): CumPoint[] {
+  if (slice.length === 0) return [];
+  const base = slice[0].close;
+  return slice.map((p) => ({
+    date: p.date,
+    pct: ((p.close - base) / base) * 100,
+  }));
+}
+
+function pairSeries(a: CumPoint[], b: CumPoint[]) {
+  const bMap = new Map(b.map((p) => [p.date, p.pct]));
+  const out: { date: string; a: number; b: number }[] = [];
+  for (const p of a) {
+    const bv = bMap.get(p.date);
+    if (bv !== undefined) out.push({ date: p.date, a: p.pct, b: bv });
+  }
+  return out;
+}
 
 function fmtPct(n: number, digits = 2): string {
   if (!Number.isFinite(n)) return "—";
@@ -43,15 +66,9 @@ function fmtPp(n: number, digits = 1): string {
   return `${sign}${Math.abs(n).toFixed(digits)} pp`;
 }
 
-/**
- * "The Gap" card — only renders when exactly two funds are selected. Card
- * has a vermilion left stripe (Card accent). Inside:
- *   - Section label "The Gap · 1Y"
- *   - Italic headline: "XEQT beat VEQT by 0.2 pp." (templated)
- *   - 4-tile grid: avg daily gap, best day for A, A beat B (X of N), worst gap
- */
 export default function CompareGap({ selected, period }: CompareGapProps) {
-  const [gap, setGap] = useState<GapStats | null>(null);
+  const [dataA, setDataA] = useState<PricePoint[]>([]);
+  const [dataB, setDataB] = useState<PricePoint[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
 
@@ -61,7 +78,8 @@ export default function CompareGap({ selected, period }: CompareGapProps) {
 
   useEffect(() => {
     if (!enabled) {
-      setGap(null);
+      setDataA([]);
+      setDataB([]);
       return;
     }
     let cancelled = false;
@@ -77,78 +95,65 @@ export default function CompareGap({ selected, period }: CompareGapProps) {
     ])
       .then(([resA, resB]) => {
         if (cancelled) return;
-        const a = (resA?.data ?? []) as { date: string; close: number }[];
-        const b = (resB?.data ?? []) as { date: string; close: number }[];
+        const a = (resA?.data ?? []) as PricePoint[];
+        const b = (resB?.data ?? []) as PricePoint[];
         if (a.length < 2 || b.length < 2) {
           setError(true);
           setLoading(false);
           return;
         }
-        const aBase = a[0].close;
-        const bBase = b[0].close;
-        const bByDate = new Map(b.map((p) => [p.date, p.close]));
-
-        const spreads: number[] = [];
-        for (const p of a) {
-          const bClose = bByDate.get(p.date);
-          if (bClose === undefined) continue;
-          const aRet = ((p.close - aBase) / aBase) * 100;
-          const bRet = ((bClose - bBase) / bBase) * 100;
-          spreads.push(aRet - bRet);
-        }
-        if (spreads.length < 2) {
-          setError(true);
-          setLoading(false);
-          return;
-        }
-
-        // Daily deltas — A's daily move minus B's daily move on the same date
-        const dailyDeltas: number[] = [];
-        let daysAWon = 0;
-        let prev: { aClose: number; bClose: number } | null = null;
-        for (const p of a) {
-          const bClose = bByDate.get(p.date);
-          if (bClose === undefined) continue;
-          if (prev) {
-            const aDay = ((p.close - prev.aClose) / prev.aClose) * 100;
-            const bDay = ((bClose - prev.bClose) / prev.bClose) * 100;
-            const delta = aDay - bDay;
-            dailyDeltas.push(delta);
-            if (delta > 0) daysAWon += 1;
-          }
-          prev = { aClose: p.close, bClose };
-        }
-
-        const avgGap =
-          dailyDeltas.length > 0
-            ? dailyDeltas.reduce((s, x) => s + Math.abs(x), 0) /
-              dailyDeltas.length
-            : 0;
-        const bestDayA =
-          dailyDeltas.length > 0 ? Math.max(...dailyDeltas) : 0;
-        const worstGap =
-          dailyDeltas.length > 0 ? Math.min(...dailyDeltas) : 0;
-
-        setGap({
-          lastSpread: spreads[spreads.length - 1],
-          avgGap,
-          bestDayA,
-          worstGap,
-          daysAWon,
-          totalDays: dailyDeltas.length,
-        });
+        setDataA(a);
+        setDataB(b);
         setLoading(false);
       })
       .catch(() => {
-        if (cancelled) return;
-        setError(true);
-        setLoading(false);
+        if (!cancelled) {
+          setError(true);
+          setLoading(false);
+        }
       });
-
     return () => {
       cancelled = true;
     };
   }, [tickerA, tickerB, period, enabled]);
+
+  const stats: GapStats | null = useMemo(() => {
+    if (dataA.length < 2 || dataB.length < 2) return null;
+    const sa = toCumulative(dataA);
+    const sb = toCumulative(dataB);
+    const pairs = pairSeries(sa, sb);
+    if (pairs.length < 2) return null;
+
+    const spreads: SpreadPoint[] = pairs.map((p) => ({
+      date: p.date,
+      spread: p.a - p.b,
+    }));
+    const lastSpread = spreads[spreads.length - 1].spread;
+
+    const dailyDeltas: number[] = [];
+    let daysAWon = 0;
+    for (let i = 1; i < spreads.length; i++) {
+      const delta = spreads[i].spread - spreads[i - 1].spread;
+      dailyDeltas.push(delta);
+      if (delta > 0) daysAWon++;
+    }
+    const avgGap =
+      dailyDeltas.length > 0
+        ? dailyDeltas.reduce((s, x) => s + Math.abs(x), 0) / dailyDeltas.length
+        : 0;
+    const bestDayA = dailyDeltas.length > 0 ? Math.max(...dailyDeltas) : 0;
+    const worstGap = dailyDeltas.length > 0 ? Math.min(...dailyDeltas) : 0;
+
+    return {
+      lastSpread,
+      avgGap,
+      bestDayA,
+      worstGap,
+      daysAWon,
+      totalDays: dailyDeltas.length,
+      spreads,
+    };
+  }, [dataA, dataB]);
 
   if (!enabled) return null;
 
@@ -158,29 +163,51 @@ export default function CompareGap({ selected, period }: CompareGapProps) {
 
   const shortA = fundA.shortName;
   const shortB = fundB.shortName;
-  const periodLabel = PERIOD_LABEL[period];
 
-  let headline: string;
-  if (loading) {
-    headline = `${shortA} vs ${shortB}…`;
-  } else if (error || !gap) {
-    headline = `${shortA} × ${shortB}.`;
-  } else {
-    const aLeads = gap.lastSpread >= 0;
-    const winner = aLeads ? shortA : shortB;
-    const loser = aLeads ? shortB : shortA;
-    headline = `${winner} beat ${loser} by ${Math.abs(gap.lastSpread).toFixed(1)} pp.`;
+  const aLeads = (stats?.lastSpread ?? 0) >= 0;
+  const winner = aLeads ? shortA : shortB;
+  const loser = aLeads ? shortB : shortA;
+
+  // Sparkline math
+  const spSpreads = stats?.spreads ?? [];
+  const SW = 280, SH = 64;
+  const spPadL = 4, spPadR = 4, spPadT = 6, spPadB = 6;
+  const spInnerW = SW - spPadL - spPadR;
+  const spInnerH = SH - spPadT - spPadB;
+
+  let spMin = Infinity, spMax = -Infinity;
+  for (const s of spSpreads) {
+    if (s.spread < spMin) spMin = s.spread;
+    if (s.spread > spMax) spMax = s.spread;
   }
+  const spPad = ((spMax - spMin) * 0.1) || 0.5;
+  const spMinP = spMin - spPad;
+  const spMaxP = spMax + spPad;
 
-  const tiles = gap
+  const spSx = (i: number) =>
+    spSpreads.length > 1
+      ? spPadL + (i / (spSpreads.length - 1)) * spInnerW
+      : spPadL;
+  const spSy = (v: number) =>
+    spPadT + ((spMaxP - v) / (spMaxP - spMinP)) * spInnerH;
+
+  let spPath = "";
+  spSpreads.forEach((s, i) => {
+    spPath += `${i === 0 ? "M" : "L"} ${spSx(i).toFixed(1)} ${spSy(s.spread).toFixed(1)} `;
+  });
+
+  const zeroY = spSy(0);
+  const spFill =
+    spSpreads.length > 1
+      ? `${spPath} L ${spSx(spSpreads.length - 1).toFixed(1)} ${zeroY.toFixed(1)} L ${spSx(0).toFixed(1)} ${zeroY.toFixed(1)} Z`
+      : "";
+
+  const tiles = stats
     ? [
-        { l: "Avg daily gap", v: fmtPct(gap.avgGap) },
-        { l: `Best day for ${shortA}`, v: fmtPct(gap.bestDayA) },
-        {
-          l: `${shortA} beat ${shortB}`,
-          v: `${gap.daysAWon} / ${gap.totalDays}`,
-        },
-        { l: "Worst gap", v: fmtPp(gap.worstGap) },
+        { l: "Avg daily gap", v: fmtPct(stats.avgGap) },
+        { l: `Best day for ${shortA}`, v: fmtPct(stats.bestDayA) },
+        { l: `${shortA} beat ${shortB}`, v: `${stats.daysAWon} / ${stats.totalDays}` },
+        { l: "Worst gap", v: fmtPp(stats.worstGap) },
       ]
     : [
         { l: "Avg daily gap", v: "—" },
@@ -191,67 +218,178 @@ export default function CompareGap({ selected, period }: CompareGapProps) {
 
   return (
     <Card accent style={{ paddingLeft: 23 }}>
-      <SectionLabel>The Gap · {periodLabel}</SectionLabel>
-      <div
-        className="ed-display-italic"
-        style={{
-          fontSize: 26,
-          lineHeight: 1.1,
-          marginTop: 10,
-          letterSpacing: "-0.018em",
-          color: "var(--ink)",
-        }}
-      >
-        {headline}
-      </div>
-      <p
-        style={{
-          fontFamily: "var(--font-serif)",
-          fontSize: 14,
-          lineHeight: 1.55,
-          color: "var(--ink-soft)",
-          margin: "10px 0 0",
-        }}
-      >
-        Daily moves over the period. The headline is the cumulative spread on
-        the last session.
+      <div className="ed-stamp">The gap · {period}</div>
+
+      {loading ? (
+        <div
+          className="ed-display-italic gap__h"
+          style={{
+            fontSize: "clamp(1.3rem, 2.4vw, 1.7rem)",
+            lineHeight: 1.15,
+            color: "var(--ink)",
+            margin: "8px 0 0",
+          }}
+        >
+          {shortA} vs {shortB}…
+        </div>
+      ) : error || !stats ? (
+        <div
+          className="ed-display-italic gap__h"
+          style={{
+            fontSize: "clamp(1.3rem, 2.4vw, 1.7rem)",
+            lineHeight: 1.15,
+            color: "var(--ink)",
+            margin: "8px 0 0",
+          }}
+        >
+          {shortA} × {shortB}.
+        </div>
+      ) : (
+        <h3 className="gap__h">
+          <span className="ed-display" style={{ fontWeight: 500 }}>
+            {winner}
+          </span>{" "}
+          <em>beat</em>{" "}
+          <span
+            className="ed-display"
+            style={{ fontWeight: 500, color: "var(--ink-mute)" }}
+          >
+            {loser}
+          </span>{" "}
+          <em>by</em>{" "}
+          <span className="ed-display ed-numerals" style={{ fontWeight: 500 }}>
+            {Math.abs(stats.lastSpread).toFixed(2)} pp.
+          </span>
+        </h3>
+      )}
+
+      <p className="gap__body">
+        Cumulative spread over the period — A minus B. The line crosses zero
+        whenever the lead flips.
       </p>
 
-      <div
-        style={{
-          marginTop: 18,
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 10,
-        }}
-      >
-        {tiles.map((t) => (
-          <div
-            key={t.l}
-            style={{
-              padding: "10px 12px",
-              background: "var(--paper-warm)",
-              borderRadius: 10,
-            }}
+      {/* Inline sparkline */}
+      {stats && spSpreads.length >= 2 && (
+        <div className="gap__spark">
+          <svg
+            viewBox={`0 0 ${SW} ${SH}`}
+            preserveAspectRatio="none"
+            style={{ width: "100%", height: 64, display: "block" }}
           >
+            {/* Zero baseline */}
+            <line
+              x1={spPadL} x2={SW - spPadR}
+              y1={zeroY} y2={zeroY}
+              stroke="var(--ink-mute)"
+              strokeWidth="0.5"
+              strokeDasharray="2 3"
+            />
+            {/* Fill */}
+            {spFill && (
+              <path
+                d={spFill}
+                fill="color-mix(in oklab, var(--stamp) 12%, transparent)"
+              />
+            )}
+            {/* Line */}
+            <path
+              d={spPath}
+              fill="none"
+              stroke="var(--stamp)"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              vectorEffect="non-scaling-stroke"
+            />
+          </svg>
+          <div className="gap__spark-cap">
+            <span className="ed-caption">
+              Spread ({shortA} − {shortB})
+            </span>
+            <span
+              className="ed-numerals gap__spark-last"
+              style={{
+                color: aLeads ? "var(--green)" : "var(--stamp)",
+                fontWeight: 700,
+              }}
+            >
+              {aLeads ? "+" : "−"}
+              {Math.abs(stats.lastSpread).toFixed(2)} pp
+            </span>
+          </div>
+        </div>
+      )}
+
+      <ul className="gap__tiles">
+        {tiles.map((t) => (
+          <li key={t.l} className="gap__tile">
             <div className="ed-label" style={{ color: "var(--ink-mute)" }}>
               {t.l}
             </div>
             <div
-              className="ed-numerals"
+              className="ed-display ed-numerals"
               style={{
-                fontFamily: "var(--font-display)",
-                fontWeight: 500,
-                fontSize: 18,
+                fontSize: 17,
+                lineHeight: 1,
                 marginTop: 4,
+                letterSpacing: "-0.015em",
                 color: "var(--ink)",
               }}
             >
               {t.v}
             </div>
-          </div>
+          </li>
         ))}
-      </div>
+      </ul>
+
+      <style jsx>{`
+        .gap__h {
+          font-family: var(--font-serif);
+          font-style: italic;
+          font-size: clamp(1.3rem, 2.4vw, 1.7rem);
+          line-height: 1.15;
+          color: var(--ink);
+          margin: 8px 0 0;
+        }
+        .gap__body {
+          font-family: var(--font-serif);
+          font-size: 13.5px;
+          color: var(--ink-soft);
+          margin: 8px 0 0;
+          line-height: 1.5;
+        }
+        .gap__spark {
+          margin-top: 16px;
+          padding: 10px 12px;
+          background: var(--paper-warm);
+          border-radius: 8px;
+          border: 1px solid var(--rule-soft);
+        }
+        .gap__spark-cap {
+          display: flex;
+          justify-content: space-between;
+          align-items: baseline;
+          margin-top: 6px;
+          gap: 12px;
+        }
+        .gap__spark-last {
+          font-family: var(--font-sans);
+          font-size: 12px;
+        }
+        .gap__tiles {
+          list-style: none;
+          margin: 16px 0 0;
+          padding: 0;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+        }
+        .gap__tile {
+          padding: 10px 12px;
+          background: var(--paper-warm);
+          border-radius: 8px;
+        }
+      `}</style>
     </Card>
   );
 }

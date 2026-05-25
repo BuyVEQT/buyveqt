@@ -157,9 +157,14 @@ export default function HeatmapCard({ history, loading }: HeatmapCardProps) {
     return { total: returns.length, up, down, best, worst };
   }, [returns]);
 
-  // Cell size scales with range so 1Y still fits
+  // Upper bound on cell size per range. The CalendarHeatmap now uses
+  // `minmax(0, cellSize)` columns + aspect-ratio cells, so this is a CAP,
+  // not a fixed dimension — cells shrink to fit narrow containers.
+  // For 30D/90D the cap is generous so the grid feels full in the
+  // available width; for YTD/1Y the cap is smaller so cells stay
+  // dense even on wide screens.
   const cellSize =
-    range === "1Y" ? 11 : range === "YTD" ? 13 : range === "90D" ? 16 : 24;
+    range === "1Y" ? 14 : range === "YTD" ? 18 : range === "90D" ? 22 : 32;
   const gap = range === "1Y" ? 2 : 3;
 
   // Hover readout — falls back to today
@@ -167,7 +172,17 @@ export default function HeatmapCard({ history, loading }: HeatmapCardProps) {
   const readoutEntry = hoverEntry ?? todayEntry;
   const readoutIsToday = !hoverEntry;
 
+  // Range tabs use the same handler but stopPropagation so the click
+  // doesn't bubble up through the outer click-through Link and bounce
+  // the user off to /inside-veqt instead of just changing the range.
+  const stopRange = (r: SessionRange) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setRange(r);
+  };
+
   return (
+    <Link href="/inside-veqt#heatmap" className="session-link">
     <Card>
       <div className="session__head">
         <div>
@@ -183,7 +198,7 @@ export default function HeatmapCard({ history, loading }: HeatmapCardProps) {
                 type="button"
                 role="tab"
                 aria-selected={active}
-                onClick={() => setRange(r)}
+                onClick={stopRange(r)}
                 className={`session__tab${active ? " is-active" : ""}`}
               >
                 {r}
@@ -277,16 +292,32 @@ export default function HeatmapCard({ history, loading }: HeatmapCardProps) {
         </span>
       </div>
 
-      {/* Caption + link */}
+      {/* Caption — outer Link wrapping turns the whole card into a
+          click-through, so the inline "Open the full board →" link is
+          redundant. Caption is kept as the explanatory legend copy. */}
       <p className="ed-body session__caption">
         Each cell is one trading day. Darker ink = stronger up days, darker
         vermilion = stronger down days. Hover for the date and return.{" "}
-        <Link href="/inside-veqt#heatmap" className="session__link">
-          Open the full board →
-        </Link>
+        <span className="session__link">Open the full board →</span>
       </p>
 
-      <style jsx>{`
+      <style jsx global>{`
+        .session-link {
+          display: block;
+          text-decoration: none;
+          color: inherit;
+          border-radius: var(--radius, 18px);
+          transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .session-link:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 12px 28px rgba(15, 13, 10, 0.08);
+        }
+        .session-link:focus-visible {
+          outline: 2px solid var(--stamp);
+          outline-offset: 4px;
+        }
+
         .session__head {
           display: flex;
           justify-content: space-between;
@@ -367,7 +398,8 @@ export default function HeatmapCard({ history, loading }: HeatmapCardProps) {
           background: var(--paper);
           border: 1px solid var(--rule-soft);
           border-radius: 12px;
-          overflow-x: auto;
+          /* No overflow-x: the inner CalendarHeatmap uses responsive
+             minmax(0, cellSize) columns so the grid always fits. */
         }
 
         .session__legend {
@@ -410,5 +442,6 @@ export default function HeatmapCard({ history, loading }: HeatmapCardProps) {
         }
       `}</style>
     </Card>
+    </Link>
   );
 }

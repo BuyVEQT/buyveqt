@@ -45,6 +45,12 @@ export interface RiskMetrics {
    * can show "−18% from peak" alongside the historical max.
    */
   currentDrawdownPct: number;
+  /**
+   * Annualised standard deviation of daily returns, expressed as a
+   * percentage. Computed as sqrt(variance_of_daily_returns * 252) * 100.
+   * Null if the series is too short.
+   */
+  annualVol: number | null;
 }
 
 interface PricePoint {
@@ -116,6 +122,26 @@ export function computeRiskMetrics(series: PricePoint[]): RiskMetrics | null {
   const lastClose = series[series.length - 1].close;
   const currentDrawdownPct = ((lastClose - allTimeHigh) / allTimeHigh) * 100;
 
+  // Annualised volatility: std-dev of daily log returns * sqrt(252) * 100
+  let annualVol: number | null = null;
+  if (series.length >= 30) {
+    const dailyReturns: number[] = [];
+    for (let i = 1; i < series.length; i++) {
+      const prev = series[i - 1].close;
+      const cur = series[i].close;
+      if (prev > 0 && cur > 0) {
+        dailyReturns.push(Math.log(cur / prev));
+      }
+    }
+    if (dailyReturns.length >= 20) {
+      const mean = dailyReturns.reduce((s, x) => s + x, 0) / dailyReturns.length;
+      const variance =
+        dailyReturns.reduce((s, x) => s + (x - mean) ** 2, 0) /
+        (dailyReturns.length - 1);
+      annualVol = Math.sqrt(variance * 252) * 100;
+    }
+  }
+
   return {
     maxDrawdownPct: worstDrawdown * 100,
     peakDate: series[worstPeakIdx].date,
@@ -124,5 +150,6 @@ export function computeRiskMetrics(series: PricePoint[]): RiskMetrics | null {
     recoveryDays,
     stillRecovering,
     currentDrawdownPct,
+    annualVol,
   };
 }

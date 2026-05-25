@@ -120,7 +120,7 @@ function ctaHref(reading: SeverityReading): string {
 function ctaLabel(reading: SeverityReading): string {
   return reading.todayChangePercent < 0
     ? "Read · what to do when it's down"
-    : "Read · why stock markets go up";
+    : "Read · why markets rise";
 }
 
 // ---------------------------------------------------------------------------
@@ -551,40 +551,42 @@ export default function HeroPriceCard({
           background: var(--paper-warm);
         }
 
-        /* Weather rail */
+        /* Weather rail — tightened spacing so the ring, headline, blurb,
+           and CTA read as a single compact block rather than a tall column
+           padded with dead space. */
         .hero__rail {
-          padding: 22px;
+          padding: 18px 20px 16px;
           background: var(--paper-light);
           border: 1px solid var(--rule-soft);
           border-radius: var(--radius, 18px);
           display: flex;
           flex-direction: column;
           align-items: flex-start;
-          min-height: 100%;
+          gap: 10px;
         }
         .hero__rail-ring {
           align-self: center;
-          margin: 14px 0 4px;
+          margin: 4px 0 2px;
         }
         .hero__rail-head {
-          font-size: clamp(1.3rem, 1.9vw, 1.55rem);
+          font-size: clamp(1.2rem, 1.7vw, 1.4rem);
           color: var(--ink);
-          margin: 12px 0 0;
+          margin: 0;
         }
         .hero__rail-blurb {
-          margin: 14px 0 0;
-          font-size: 14px;
-          line-height: 1.55;
+          margin: 0;
+          font-size: 13px;
+          line-height: 1.5;
           color: var(--ink-soft);
         }
         .hero__rail-cta {
-          margin-top: auto;
+          margin-top: 6px;
           display: inline-flex;
           align-items: center;
           justify-content: space-between;
           gap: 12px;
           width: 100%;
-          padding: 12px 14px;
+          padding: 10px 14px;
           border: 1px solid var(--ink);
           border-radius: 12px;
           color: var(--ink);
