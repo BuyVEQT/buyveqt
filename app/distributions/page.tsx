@@ -71,25 +71,77 @@ export default async function DistributionsPage() {
         ])}
       />
 
-      {/* SECTION: Page head ─────────────────────────────────────── */}
-      <section className="pt-8 sm:pt-10 pb-2 bs-enter">
-        <p className="bs-stamp mb-3">The Annual</p>
-        <h1
-          className="bs-display text-[2.25rem] sm:text-[3.25rem] lg:text-[4.25rem] leading-[0.98]"
-          style={{ color: "var(--ink)" }}
-        >
-          <span className="block">One envelope,</span>{" "}
-          <em className="bs-display-italic block">every December.</em>
-        </h1>
-        <p
-          className="bs-body italic mt-5 max-w-[58ch] text-[1.0625rem]"
-          style={{ color: "var(--ink-soft)" }}
-        >
-          VEQT pays once a year, in late December. It&apos;s grown every
-          year since inception. Here&apos;s the rhythm — and what your
-          stake pays.
-        </p>
-      </section>
+      {/* SECTION: V2 Masthead — stamp row + 2-col italic lockup ── */}
+      <header className="v2-masthead">
+        <div className="v2-masthead__top">
+          <span className="ed-stamp">
+            The annual · {yearsPaid} payments on record · Updated quarterly
+          </span>
+          <span className="ed-stamp" style={{ color: "var(--ink-mute)" }}>
+            {new Intl.DateTimeFormat("en-CA", {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            }).format(new Date())}
+          </span>
+        </div>
+        <div className="v2-masthead__lockup">
+          <h1 className="ed-display-italic v2-masthead__h1">
+            Every <em style={{ fontStyle: "italic", fontWeight: 500 }}>December.</em>
+          </h1>
+          <p className="ed-body v2-masthead__lede">
+            VEQT pays once a year, in late December. It&apos;s grown every
+            year since inception. Here&apos;s the rhythm — and what your
+            stake pays.
+          </p>
+        </div>
+        <style>{`
+          .v2-masthead {
+            padding: 26px 0 22px;
+          }
+          .v2-masthead__top {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding-bottom: 10px;
+          }
+          .v2-masthead__lockup {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 18px;
+            padding: 18px 0 8px;
+            border-top: 3px solid var(--ink);
+            border-bottom: 1px solid var(--ink);
+            align-items: end;
+          }
+          @media (min-width: 720px) {
+            .v2-masthead__lockup {
+              grid-template-columns: auto 1fr;
+              gap: 40px;
+              padding: 22px 0 12px;
+            }
+          }
+          .v2-masthead__h1 {
+            font-size: clamp(3rem, 8vw, 6rem);
+            line-height: 1;
+            letter-spacing: -0.035em;
+            margin: 0;
+            color: var(--ink);
+            white-space: nowrap;
+          }
+          .v2-masthead__lede {
+            font-size: clamp(15px, 1.6vw, 17.5px);
+            line-height: 1.55;
+            color: var(--ink-soft);
+            margin: 0;
+            max-width: 52ch;
+            padding-bottom: 8px;
+          }
+        `}</style>
+      </header>
 
       {/* SECTION: Hero ledger stats ─────────────────────────────── */}
       <DistributionStats
@@ -105,14 +157,23 @@ export default async function DistributionsPage() {
         className="mt-10 sm:mt-14 pt-6 border-t-2 border-[var(--ink)]"
         aria-labelledby="window-heading"
       >
-        <p id="window-heading" className="bs-stamp mb-3">
-          The Window
+        <p id="window-heading" className="ed-stamp" style={{ marginBottom: 10 }}>
+          The window
         </p>
         <h2
-          className="bs-display text-[1.5rem] sm:text-[2rem] mb-5"
-          style={{ color: "var(--ink)" }}
+          className="ed-display-italic"
+          style={{
+            fontSize: "clamp(1.6rem, 2.6vw, 2.1rem)",
+            lineHeight: 1.1,
+            color: "var(--ink)",
+            margin: "0 0 18px",
+            letterSpacing: "-0.02em",
+          }}
         >
-          <em>What&apos;s next</em> and what just landed
+          What&apos;s next and what{" "}
+          <em style={{ fontStyle: "italic", fontWeight: 500 }}>
+            just landed.
+          </em>
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
@@ -195,14 +256,23 @@ export default async function DistributionsPage() {
         className="mt-10 sm:mt-14 pt-6 border-t-2 border-[var(--ink)]"
         aria-labelledby="chronicle-heading"
       >
-        <p id="chronicle-heading" className="bs-stamp mb-3">
-          The Chronicle
+        <p id="chronicle-heading" className="ed-stamp" style={{ marginBottom: 10 }}>
+          The chronicle
         </p>
         <h2
-          className="bs-display text-[1.5rem] sm:text-[2rem] mb-2"
-          style={{ color: "var(--ink)" }}
+          className="ed-display-italic"
+          style={{
+            fontSize: "clamp(1.6rem, 2.6vw, 2.1rem)",
+            lineHeight: 1.1,
+            color: "var(--ink)",
+            margin: "0 0 6px",
+            letterSpacing: "-0.02em",
+          }}
         >
-          <em>The check,</em> year by year
+          The check,{" "}
+          <em style={{ fontStyle: "italic", fontWeight: 500 }}>
+            year by year.
+          </em>
         </h2>
         <p
           className="bs-caption italic mb-5"
@@ -224,14 +294,23 @@ export default async function DistributionsPage() {
         className="mt-10 sm:mt-14 pt-6 border-t-2 border-[var(--ink)]"
         aria-labelledby="books-heading"
       >
-        <p id="books-heading" className="bs-stamp mb-3">
-          The Books
+        <p id="books-heading" className="ed-stamp" style={{ marginBottom: 10 }}>
+          The books
         </p>
         <h2
-          className="bs-display text-[1.5rem] sm:text-[2rem] mb-5"
-          style={{ color: "var(--ink)" }}
+          className="ed-display-italic"
+          style={{
+            fontSize: "clamp(1.6rem, 2.6vw, 2.1rem)",
+            lineHeight: 1.1,
+            color: "var(--ink)",
+            margin: "0 0 18px",
+            letterSpacing: "-0.02em",
+          }}
         >
-          <em>Every payment</em> on record
+          Every payment{" "}
+          <em style={{ fontStyle: "italic", fontWeight: 500 }}>
+            on record.
+          </em>
         </h2>
         <div className="overflow-x-auto -mx-2 sm:mx-0">
           <table className="w-full text-sm border-collapse min-w-[460px]">
@@ -342,14 +421,21 @@ export default async function DistributionsPage() {
           className="mt-10 sm:mt-14 pt-6 border-t-2 border-[var(--ink)]"
           aria-labelledby="stake-heading"
         >
-          <p id="stake-heading" className="bs-stamp mb-3">
-            The Stake
+          <p id="stake-heading" className="ed-stamp" style={{ marginBottom: 10 }}>
+            The stake
           </p>
           <h2
-            className="bs-display text-[1.5rem] sm:text-[2rem] mb-2"
-            style={{ color: "var(--ink)" }}
+            className="ed-display-italic"
+            style={{
+              fontSize: "clamp(1.6rem, 2.6vw, 2.1rem)",
+              lineHeight: 1.1,
+              color: "var(--ink)",
+              margin: "0 0 6px",
+              letterSpacing: "-0.02em",
+            }}
           >
-            <em>What your stake</em> pays
+            What your stake{" "}
+            <em style={{ fontStyle: "italic", fontWeight: 500 }}>pays.</em>
           </h2>
           <p
             className="bs-caption italic mb-5"
@@ -378,15 +464,23 @@ export default async function DistributionsPage() {
         className="mt-10 sm:mt-14 pt-6 border-t-2 border-[var(--ink)]"
         aria-labelledby="fineprint-heading"
       >
-        <p id="fineprint-heading" className="bs-stamp mb-3">
-          The Fine Print
+        <p id="fineprint-heading" className="ed-stamp" style={{ marginBottom: 10 }}>
+          The fine print
         </p>
         <h2
-          className="bs-display text-[1.5rem] sm:text-[2rem] mb-5"
-          style={{ color: "var(--ink)" }}
+          className="ed-display-italic"
+          style={{
+            fontSize: "clamp(1.6rem, 2.6vw, 2.1rem)",
+            lineHeight: 1.1,
+            color: "var(--ink)",
+            margin: "0 0 18px",
+            letterSpacing: "-0.02em",
+          }}
         >
-          <em>What a distribution</em>{" "}
-          actually is
+          What a distribution{" "}
+          <em style={{ fontStyle: "italic", fontWeight: 500 }}>
+            actually is.
+          </em>
         </h2>
 
         <div
