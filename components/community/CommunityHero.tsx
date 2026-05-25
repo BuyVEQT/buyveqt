@@ -136,14 +136,8 @@ export default function CommunityHero({ stats }: CommunityHeroProps) {
   const subscribers = useCountUp(subscribersTarget);
 
   const activeUsers = stats?.activeUsers ?? null;
-  const postsToday = stats?.postsToday ?? null;
-  const newSubscribersThisWeek = stats?.newSubscribersThisWeek;
+  const topPostScore = stats?.topPostScore ?? null;
   const avgComments = stats?.avgComments ?? null;
-
-  // Hide "New this week" when we don't have the data (Reddit's API doesn't
-  // surface it). Pulse strip then renders as a 3-up on wide.
-  const showNewThisWeek =
-    typeof newSubscribersThisWeek === "number" && newSubscribersThisWeek > 0;
 
   return (
     <header className="cm-hero">
@@ -194,26 +188,20 @@ export default function CommunityHero({ stats }: CommunityHeroProps) {
         you&apos;ll get honesty back.
       </p>
 
-      {/* 4-up pulse strip (3-up when the optional "new this week" is hidden) */}
-      <div
-        className={`cm-hero__pulse ${
-          showNewThisWeek ? "is-four" : "is-three"
-        }`}
-      >
+      {/* 3-up pulse strip — Reddit's /about endpoint only gives us
+          `subscribers` (in the hero card above) and `accounts_active`.
+          Everything else here is derived from listings. Showing a
+          "Posts today" zero on a quiet day reads as a broken stat, so
+          we replaced it with "Top post score" — a more honest gauge
+          for a small-but-engaged community. */}
+      <div className="cm-hero__pulse is-three">
         <PulseStat
           label="Online now"
           value={activeUsers}
           icon="•"
           tone="live"
         />
-        <PulseStat label="Posts today" value={postsToday} icon="✎" />
-        {showNewThisWeek && (
-          <PulseStat
-            label="New this week"
-            value={newSubscribersThisWeek}
-            icon="↑"
-          />
-        )}
+        <PulseStat label="Top post score" value={topPostScore} icon="▲" />
         <PulseStat label="Avg replies" value={avgComments} icon="↳" />
       </div>
 

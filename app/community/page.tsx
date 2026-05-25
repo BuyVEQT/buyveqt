@@ -28,25 +28,24 @@ export const metadata: Metadata = {
 };
 
 /**
- * Derive the live pulse-strip numbers that Reddit's about endpoint
- * doesn't surface (postsToday, avgComments), and graft them onto the
- * server-side `SubredditStats` so the hero can render statically.
+ * Derive pulse-strip numbers from listings. Reddit's /about endpoint
+ * only gives `subscribers` and `accounts_active`; everything else is
+ * computed from posts.
  *
- * Reddit's API doesn't expose newSubscribersThisWeek; we leave that
- * undefined and the hero hides the column when missing. With a proper
- * backend pipeline this could come from a daily snapshot diff.
+ * `topPostScore` reads the highest score on file from the top-all-time
+ * listing. Previously this slot was "Posts today", which read as a
+ * broken zero whenever the sub had a quiet day. Top score is a more
+ * honest gauge for a small-but-engaged community.
+ *
+ * `avgComments` is the mean of `commentCount` across posts that have
+ * received at least one reply — a proxy for engagement quality.
  */
 function deriveLiveStats(
   base: SubredditStats | null,
-  hotPosts: RedditPost[]
+  hotPosts: RedditPost[],
+  topPosts: RedditPost[]
 ): SubredditStats | null {
   if (!base) return null;
-
-  const ONE_DAY_MS = 86_400_000;
-  const now = Date.now();
-  const postsToday = hotPosts.filter(
-    (p) => now - new Date(p.createdAt).getTime() <= ONE_DAY_MS
-  ).length;
 
   const withComments = hotPosts.filter((p) => p.commentCount > 0);
   const avgComments =
@@ -57,9 +56,13 @@ function deriveLiveStats(
         )
       : 0;
 
+  const topPostScore = topPosts.length > 0
+    ? Math.max(...topPosts.map((p) => p.score))
+    : 0;
+
   return {
     ...base,
-    postsToday,
+    topPostScore,
     avgComments,
   };
 }
@@ -87,7 +90,7 @@ export default async function CommunityPage() {
   }
 
   const topPosts = topAll.slice(0, 10);
-  const enrichedStats = deriveLiveStats(stats, hotPosts);
+  const enrichedStats = deriveLiveStats(stats, hotPosts, topAll);
 
   return (
     <InteriorShell>
