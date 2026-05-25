@@ -74,6 +74,7 @@
   --paper-warm: #f0e9d0;
   --rule: #b8a66e;
   --rule-soft: rgba(184, 166, 110, 0.55);
+  --rule-hair: rgba(184, 166, 110, 0.35);
   --stamp: #8a1c1c;
   --stamp-soft: rgba(138, 28, 28, 0.12);
   --print-green: #1d5431;
@@ -575,7 +576,7 @@ body::after {
   font-style: italic;
   font-weight: 500;
   letter-spacing: -0.022em;
-  line-height: 0.95;
+  line-height: 1.05;
   font-feature-settings: "ss01";
 }
 
@@ -1648,6 +1649,24 @@ body::after {
 .ed-numerals {
   font-variant-numeric: tabular-nums lining-nums;
   font-feature-settings: "tnum", "lnum";
+}
+
+/* Broadsheet-style section rules promoted to global scope so the v2
+   /compare page can use them outside the [data-broadsheet] wrapper. */
+.rule-thick {
+  border-top: 3px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+  height: 6px;
+}
+
+.rule-thin {
+  border-top: 1px solid var(--ink);
+  height: 0;
+}
+
+.rule-hair {
+  border-top: 1px solid var(--rule-soft);
+  height: 0;
 }
 
 /* Lede: drop-cap on first character of a single paragraph. Pair with the
