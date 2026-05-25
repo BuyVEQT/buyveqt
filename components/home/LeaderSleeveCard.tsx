@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { Region } from "@/lib/useRegions";
 import Sparkline from "@/components/charts/Sparkline";
 
@@ -55,10 +56,14 @@ export default function LeaderSleeveCard({
   } as React.CSSProperties;
 
   return (
+    <Link
+      href={`/inside-veqt#${region.ticker}`}
+      className="leader-link"
+      aria-label={`Leader: ${regionName} — view inside VEQT details`}
+    >
     <article
       className="leader"
       style={themeStyle}
-      aria-label={`Leader: ${regionName}`}
     >
       <div className="leader__stripe" aria-hidden />
       <div className="leader__chrome">
@@ -115,9 +120,25 @@ export default function LeaderSleeveCard({
         </div>
       )}
 
-      <style jsx>{`
+      <style jsx global>{`
+        .leader-link {
+          display: block;
+          text-decoration: none;
+          color: inherit;
+          border-radius: var(--radius, 18px);
+        }
+        .leader-link:focus-visible {
+          outline: 2px solid var(--stamp);
+          outline-offset: 4px;
+        }
+        .leader-link:hover .leader {
+          transform: translateY(-2px);
+          border-color: var(--leader-tone);
+          box-shadow: 0 12px 28px rgba(15, 13, 10, 0.08);
+        }
         .leader {
           position: relative;
+          transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
           /* Faint region-toned wash on top of the paper-light surface */
           background: color-mix(
             in oklab,
@@ -232,5 +253,6 @@ export default function LeaderSleeveCard({
         }
       `}</style>
     </article>
+    </Link>
   );
 }
