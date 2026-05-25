@@ -237,7 +237,12 @@ export default function CalculatorCard<I>({
           border-top: 1px solid rgba(246, 239, 220, 0.18);
           flex-wrap: wrap;
         }
-        .calc__sub-stats > div {
+        /* The original selector .calc__sub-stats > div accidentally
+           caught the 1px .calc__sub-rule divider too, inflating it to
+           110px min-width — a wide grey block in the middle of the dark
+           result slab. :not() excludes it so only the actual stat cells
+           pick up the min-width. */
+        .calc__sub-stats > div:not(.calc__sub-rule) {
           display: flex;
           flex-direction: column;
           gap: 6px;
@@ -247,6 +252,7 @@ export default function CalculatorCard<I>({
           color: rgba(246, 239, 220, 0.55);
         }
         .calc__sub-rule {
+          flex: 0 0 1px;
           width: 1px;
           align-self: stretch;
           background: rgba(246, 239, 220, 0.18);

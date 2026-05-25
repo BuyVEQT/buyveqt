@@ -37,6 +37,8 @@ interface TFSAInputs {
   horizon: number;
   active: ScenarioKey;
   adjustInflation: boolean;
+  /** Marginal tax bracket — used to estimate the RRSP refund. */
+  marginalRate: number;
 }
 
 const DEFAULTS: TFSAInputs = {
@@ -46,6 +48,7 @@ const DEFAULTS: TFSAInputs = {
   horizon: 25,
   active: "realistic",
   adjustInflation: false,
+  marginalRate: 30,
 };
 
 const ANNUAL_CAP: Record<AccountKind, number> = {
@@ -61,6 +64,7 @@ export default function TFSARRSPCalculator() {
   const [horizon, setHorizon] = useState(DEFAULTS.horizon);
   const [active, setActive] = useState<ScenarioKey>(DEFAULTS.active);
   const [adjustInflation, setAdjustInflation] = useState(DEFAULTS.adjustInflation);
+  const [marginalRate, setMarginalRate] = useState(DEFAULTS.marginalRate);
   const { pinned, pin, remove, restore } = usePinnedScenarios<TFSAInputs>(3);
 
   // Hydrate from URL (share-link landings + OG previews).
@@ -121,13 +125,16 @@ export default function TFSARRSPCalculator() {
     setHorizon(DEFAULTS.horizon);
     setActive(DEFAULTS.active);
     setAdjustInflation(DEFAULTS.adjustInflation);
+    setMarginalRate(DEFAULTS.marginalRate);
   }
 
   function pinCurrent() {
     pin({
       label: `${account} · ${fmtCAD(starting)} + ${fmtCAD(annual)}/y`,
       value: paths[active].final,
-      inputs: { account, starting, annual, horizon, active, adjustInflation },
+      inputs: {
+        account, starting, annual, horizon, active, adjustInflation, marginalRate,
+      },
     });
   }
 
@@ -140,13 +147,21 @@ export default function TFSARRSPCalculator() {
     setHorizon(inp.horizon);
     setActive(inp.active);
     setAdjustInflation(inp.adjustInflation);
+    if (inp.marginalRate !== undefined) setMarginalRate(inp.marginalRate);
   }
+
+  // Annual tax refund estimate for RRSP. Deductible contributions reduce
+  // taxable income by `annual`, so the refund is roughly `annual × bracket`.
+  // Over the full horizon: `annual × bracket × years`. This is an
+  // approximation — it ignores cash-flow timing and any clawback effects.
+  const annualRefund = account === "RRSP" ? annual * (marginalRate / 100) : 0;
+  const totalRefund = annualRefund * horizon;
 
   const accountCaption =
     account === "TFSA"
       ? "Tax-free growth · 2026 cap $7,000/yr"
       : account === "RRSP"
-      ? "Tax-deferred growth · deductible up to limit"
+      ? `Tax-deferred · ~${fmtCAD(annualRefund, 0)}/yr refund at ${marginalRate}% bracket`
       : "Tax-free for first home · $8,000/yr to $40,000 lifetime";
 
   return (
@@ -171,12 +186,62 @@ export default function TFSARRSPCalculator() {
       onRestore={restoreScenario}
       onReset={resetAll}
       advancedContent={
-        <AdvToggle
-          label="Adjust for inflation"
-          sub="Subtract 2.5% from the assumed return rate"
-          value={adjustInflation}
-          onChange={setAdjustInflation}
-        />
+        <>
+          <AdvToggle
+            label="Adjust for inflation"
+            sub="Subtract 2.5% from the assumed return rate"
+            value={adjustInflation}
+            onChange={setAdjustInflation}
+          />
+          {account === "RRSP" && (
+            <>
+              <NumberInput
+                label="Marginal tax bracket"
+                value={marginalRate}
+                onChange={setMarginalRate}
+                suffix="%"
+                step={1}
+                min={15}
+                max={54}
+              />
+              <div className="rrsp-refund">
+                <div className="ed-label rrsp-refund__lab">
+                  Annual refund estimate
+                </div>
+                <div className="ed-display ed-numerals rrsp-refund__val">
+                  {fmtCAD(annualRefund, 0)}
+                </div>
+                <div className="ed-caption rrsp-refund__sub">
+                  ≈ {fmtCAD(totalRefund, 0)} over {horizon} years.
+                  Reinvest the refund to compound twice.
+                </div>
+                <style jsx>{`
+                  .rrsp-refund {
+                    padding: 12px 14px;
+                    background: var(--paper-light);
+                    border: 1px solid var(--rule-soft);
+                    border-left: 3px solid var(--stamp);
+                    border-radius: 8px;
+                  }
+                  .rrsp-refund__lab {
+                    color: var(--ink-mute);
+                  }
+                  .rrsp-refund__val {
+                    font-size: clamp(1.4rem, 2.4vw, 1.7rem);
+                    line-height: 1.05;
+                    margin-top: 4px;
+                    color: var(--stamp);
+                    letter-spacing: -0.02em;
+                  }
+                  .rrsp-refund__sub {
+                    margin-top: 6px;
+                    font-size: 12px;
+                  }
+                `}</style>
+              </div>
+            </>
+          )}
+        </>
       }
       controls={
         <>

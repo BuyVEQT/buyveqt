@@ -213,6 +213,51 @@ export function buildLookbackCohorts(
   });
 }
 
+/**
+ * DCA variant of buildLookbackCohorts: for each monthly bar, treat that
+ * month as the start of a recurring $amount-per-month investment
+ * carried through to the most recent bar. Used by Lookback's scenario
+ * strip when the user is in DCA mode so the worst/median/best outcomes
+ * reflect DCA mechanics, not lump-sum.
+ *
+ * Cohorts shorter than `minMonths` are excluded so a "cohort that
+ * started one month ago" doesn't dominate the worst-case bucket — those
+ * outcomes are noise, not signal.
+ */
+export function buildLookbackDCACohorts(
+  monthlyAmount: number,
+  monthlyHistory: MonthlyBar[],
+  minMonths = 6
+): LookbackCohort[] {
+  const n = monthlyHistory.length;
+  if (n === 0) return [];
+  const endPrice = monthlyHistory[n - 1].close;
+  const out: LookbackCohort[] = [];
+
+  for (let i = 0; i < n; i++) {
+    const startBar = monthlyHistory[i];
+    const cohortBars = monthlyHistory.slice(i);
+    if (cohortBars.length < minMonths) continue;
+    let totalShares = 0;
+    let contributed = 0;
+    for (const bar of cohortBars) {
+      totalShares += monthlyAmount / bar.close;
+      contributed += monthlyAmount;
+    }
+    const finalValue = totalShares * endPrice;
+    out.push({
+      start: startBar.date.slice(0, 7),
+      startDate: startBar.date,
+      startPrice: startBar.close,
+      finalValue,
+      // For DCA we report return as growth-over-contributions, which is
+      // the apples-to-apples vs the lump-sum cohort's price return.
+      finalReturn: contributed > 0 ? (finalValue - contributed) / contributed : 0,
+    });
+  }
+  return out;
+}
+
 // ─── Adapter for the codebase's HistoricalDataPoint ─────────────
 
 /**

@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import dynamic from "next/dynamic";
 import CalcMasthead from "@/components/calculators/CalcMasthead";
-import CalcDock from "@/components/calculators/CalcDock";
 import FinePrint from "@/components/calculators/FinePrint";
+import CalculatorsClient from "@/components/calculators/CalculatorsClient";
 import { getDailyHistory } from "@/lib/data";
 import { JsonLd } from "@/components/seo/JsonLd";
 import {
@@ -14,20 +13,6 @@ import {
 import { expandParams } from "@/lib/share-params";
 
 export const revalidate = 86400; // 24 hours
-
-// The four V2 calculators are heavy client components (animated SVG,
-// pinned-scenarios state, URL writers). Defer them past first paint so
-// the masthead lands instantly.
-const Lookback = dynamic(() => import("@/components/calculators/Lookback"));
-const DCACalculator = dynamic(
-  () => import("@/components/calculators/DCACalculator")
-);
-const TFSARRSPCalculator = dynamic(
-  () => import("@/components/calculators/TFSARRSPCalculator")
-);
-const FIRECalculator = dynamic(
-  () => import("@/components/calculators/FIRECalculator")
-);
 
 // ─── Helpers for dynamic OG titles ────────────────────────────
 
@@ -187,11 +172,7 @@ export default async function CalculatorsPage() {
         />
 
         <CalcMasthead sessionsCount={sessionsCount} />
-        <Lookback history={historyResult} />
-        <CalcDock />
-        <DCACalculator />
-        <TFSARRSPCalculator />
-        <FIRECalculator />
+        <CalculatorsClient history={historyResult} />
         <FinePrint />
       </div>
 
