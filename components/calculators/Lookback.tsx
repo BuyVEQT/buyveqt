@@ -21,6 +21,7 @@ import {
   fmtMonth,
   dailyToMonthly,
   buildLookbackCohorts,
+  buildLookbackDCACohorts,
   toDailySeries,
   cagr,
   type MonthlyBar,
@@ -227,9 +228,14 @@ export default function Lookback({ history }: LookbackProps) {
   const deflator = adjustInflation ? Math.pow(1 + 0.025, years) : 1;
   const displayedFinal = (result?.finalValue ?? 0) / deflator;
 
-  // Scenario percentiles from every monthly cohort, scaled to the user's amount.
+  // Scenario percentiles from every monthly cohort, scaled to the
+  // user's amount AND strategy. In lump-sum mode each cohort is a one-
+  // shot buy on the cohort start month; in DCA mode each cohort is a
+  // recurring $amount/mo from the start through today.
   const scenarios = useMemo(() => {
-    const cohorts = buildLookbackCohorts(amount, monthly);
+    const cohorts = mode === "lump"
+      ? buildLookbackCohorts(amount, monthly)
+      : buildLookbackDCACohorts(amount, monthly);
     if (cohorts.length === 0) {
       return null;
     }
@@ -238,7 +244,7 @@ export default function Lookback({ history }: LookbackProps) {
     const median = sorted[Math.floor(sorted.length * 0.5)] ?? sorted[Math.floor(sorted.length / 2)];
     const best = sorted[Math.floor(sorted.length * 0.9)] ?? sorted[sorted.length - 1];
     return { worst, median, best };
-  }, [amount, monthly]);
+  }, [amount, monthly, mode]);
 
   // Push state to URL so OG-image preview keeps working.
   useEffect(() => {

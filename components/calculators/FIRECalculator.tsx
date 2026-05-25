@@ -44,6 +44,8 @@ interface FIREInputs {
   monthly: number;
   active: ScenarioKey;
   adjustInflation: boolean;
+  /** Optional annual gross income — drives savings-rate display. */
+  income: number;
 }
 
 const DEFAULTS: FIREInputs = {
@@ -53,6 +55,7 @@ const DEFAULTS: FIREInputs = {
   monthly: 1500,
   active: "realistic",
   adjustInflation: false,
+  income: 90000,
 };
 
 export default function FIRECalculator() {
@@ -62,6 +65,7 @@ export default function FIRECalculator() {
   const [monthly, setMonthly] = useState(DEFAULTS.monthly);
   const [active, setActive] = useState<ScenarioKey>(DEFAULTS.active);
   const [adjustInflation, setAdjustInflation] = useState(DEFAULTS.adjustInflation);
+  const [income, setIncome] = useState(DEFAULTS.income);
   const { pinned, pin, remove, restore } = usePinnedScenarios<FIREInputs>(3);
 
   // Hydrate from URL (share-link landings + OG previews).
@@ -148,13 +152,16 @@ export default function FIRECalculator() {
     setMonthly(DEFAULTS.monthly);
     setActive(DEFAULTS.active);
     setAdjustInflation(DEFAULTS.adjustInflation);
+    setIncome(DEFAULTS.income);
   }
 
   function pinCurrent() {
     pin({
       label: `${fmtCAD(expenses)}/yr · ${wRate}%`,
       value: fireNumber,
-      inputs: { expenses, wRate, currentNW, monthly, active, adjustInflation },
+      inputs: {
+        expenses, wRate, currentNW, monthly, active, adjustInflation, income,
+      },
     });
   }
 
@@ -167,10 +174,24 @@ export default function FIRECalculator() {
     setMonthly(inp.monthly);
     setActive(inp.active);
     setAdjustInflation(inp.adjustInflation);
+    if (inp.income !== undefined) setIncome(inp.income);
   }
 
   const activeRate = SCENARIOS[active].rate;
   const coastFire = fireNumber / Math.pow(1 + activeRate, Math.max(0, activeYears));
+
+  // Savings rate — proportion of gross income going into contributions.
+  // The 4% rule's flip-side rule of thumb is that savings rate maps
+  // roughly to years-to-FIRE (e.g. 50% rate → ~17 years). Display gives
+  // the user a check against their progress vs that heuristic.
+  const annualContribution = monthly * 12;
+  const savingsRate =
+    income > 0 ? Math.min(0.95, annualContribution / income) : 0;
+  const savingsRateLabel = `${(savingsRate * 100).toFixed(0)}%`;
+  // Lean FIRE = 25× a tighter expenses figure (75% of current);
+  // Fat FIRE = 25× 150% expenses. Both at the same withdrawal rate.
+  const leanFire = (expenses * 0.75) / (wRate / 100);
+  const fatFire = (expenses * 1.5) / (wRate / 100);
 
   // Restrict the chart to just the 3 scenario paths (no `years` field).
   const chartPaths: ProjectionPathSet = {
@@ -236,6 +257,40 @@ export default function FIRECalculator() {
           <div className="calc__chart-wrap">
             <ProjectionChart paths={chartPaths} activeKey={active} baseline={baseline} />
             <ScenarioToggle value={active} paths={chartPaths} onChange={setActive} />
+
+            {/* Depth strip — three reference points: savings rate
+                check, Lean FIRE target, and Fat FIRE target. Helps the
+                user calibrate whether the FIRE plan above is plausible
+                and what alternatives look like. */}
+            <div className="fire-depth">
+              <div className="fire-depth__cell">
+                <div className="ed-label">Savings rate</div>
+                <div className="fire-depth__val">
+                  {savingsRateLabel}
+                </div>
+                <div className="ed-caption fire-depth__cap">
+                  {fmtCAD(annualContribution)} / yr of {fmtCAD(income)} gross
+                </div>
+              </div>
+              <div className="fire-depth__cell">
+                <div className="ed-label">Lean FIRE</div>
+                <div className="fire-depth__val fire-depth__val--green">
+                  {fmtCAD(leanFire, 0)}
+                </div>
+                <div className="ed-caption fire-depth__cap">
+                  If you trim expenses 25% to {fmtCAD(expenses * 0.75)}/yr
+                </div>
+              </div>
+              <div className="fire-depth__cell">
+                <div className="ed-label">Fat FIRE</div>
+                <div className="fire-depth__val fire-depth__val--stamp">
+                  {fmtCAD(fatFire, 0)}
+                </div>
+                <div className="ed-caption fire-depth__cap">
+                  If you target 50% more spending: {fmtCAD(expenses * 1.5)}/yr
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -279,6 +334,15 @@ export default function FIRECalculator() {
             step={100}
             min={0}
             max={50_000}
+          />
+          <NumberInput
+            label="Annual gross income"
+            value={income}
+            onChange={setIncome}
+            prefix="$"
+            step={5000}
+            min={0}
+            max={2_000_000}
           />
           <AdvancedPanel>
             <AdvToggle
@@ -402,7 +466,10 @@ export default function FIRECalculator() {
           border-top: 1px solid rgba(246, 239, 220, 0.18);
           flex-wrap: wrap;
         }
-        .fire__stats > div {
+        /* Exclude .calc__sub-rule from the flex/min-width that applies
+           to actual stat cells, otherwise the 1px divider gets inflated
+           to 160px and reads as a grey block in the middle of the slab. */
+        .fire__stats > div:not(.calc__sub-rule) {
           flex: 1;
           min-width: 160px;
           display: flex;
@@ -416,6 +483,7 @@ export default function FIRECalculator() {
           color: rgba(246, 239, 220, 0.55);
         }
         .calc__sub-rule {
+          flex: 0 0 1px;
           width: 1px;
           align-self: stretch;
           background: rgba(246, 239, 220, 0.18);
@@ -444,6 +512,45 @@ export default function FIRECalculator() {
           gap: 12px;
           padding-bottom: 14px;
           border-bottom: 1px solid var(--rule-soft);
+        }
+        .fire-depth {
+          margin-top: 24px;
+          padding-top: 20px;
+          border-top: 1px solid var(--rule-soft);
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 16px;
+        }
+        @media (min-width: 720px) {
+          .fire-depth {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 22px;
+          }
+        }
+        .fire-depth__cell {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+        .fire-depth__val {
+          font-family: var(--font-display);
+          font-weight: 500;
+          font-size: clamp(1.4rem, 2.4vw, 1.8rem);
+          line-height: 1.05;
+          letter-spacing: -0.02em;
+          margin-top: 4px;
+          color: var(--ink);
+          font-variant-numeric: tabular-nums lining-nums;
+        }
+        .fire-depth__val--green {
+          color: var(--green);
+        }
+        .fire-depth__val--stamp {
+          color: var(--stamp);
+        }
+        .fire-depth__cap {
+          font-size: 12px;
+          color: var(--ink-mute);
         }
       `}</style>
     </section>
