@@ -157,9 +157,14 @@ export default function HeatmapCard({ history, loading }: HeatmapCardProps) {
     return { total: returns.length, up, down, best, worst };
   }, [returns]);
 
-  // Cell size scales with range so 1Y still fits
+  // Upper bound on cell size per range. The CalendarHeatmap now uses
+  // `minmax(0, cellSize)` columns + aspect-ratio cells, so this is a CAP,
+  // not a fixed dimension — cells shrink to fit narrow containers.
+  // For 30D/90D the cap is generous so the grid feels full in the
+  // available width; for YTD/1Y the cap is smaller so cells stay
+  // dense even on wide screens.
   const cellSize =
-    range === "1Y" ? 11 : range === "YTD" ? 13 : range === "90D" ? 16 : 24;
+    range === "1Y" ? 14 : range === "YTD" ? 18 : range === "90D" ? 22 : 32;
   const gap = range === "1Y" ? 2 : 3;
 
   // Hover readout — falls back to today
@@ -367,7 +372,8 @@ export default function HeatmapCard({ history, loading }: HeatmapCardProps) {
           background: var(--paper);
           border: 1px solid var(--rule-soft);
           border-radius: 12px;
-          overflow-x: auto;
+          /* No overflow-x: the inner CalendarHeatmap uses responsive
+             minmax(0, cellSize) columns so the grid always fits. */
         }
 
         .session__legend {

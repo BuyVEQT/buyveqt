@@ -10,6 +10,16 @@ const REGION_TONE: Record<string, string> = {
   VEE: "var(--rule)",
 };
 
+/** Canonical, geography-first sleeve names. Used regardless of what the
+ *  live API labels a region (e.g. "US Total Market") so the cards read as
+ *  a cohesive geographic grouping. */
+const REGION_LABEL: Record<string, string> = {
+  VUN: "United States",
+  VCN: "Canada",
+  VIU: "Developed ex-NA",
+  VEE: "Emerging Markets",
+};
+
 interface LeaderSleeveCardProps {
   region: Region;
   rankBadge?: string;
@@ -17,8 +27,13 @@ interface LeaderSleeveCardProps {
 
 /**
  * The big leader card — 1.5fr column on desktop, full-width on mobile.
- * 5px left stripe, "Leader" vermilion pill, italic Fraunces name,
- * big colored % change, contribution block, wide sparkline footer.
+ * 5px left stripe, "Leader" pill themed to the leading region's tone,
+ * italic Fraunces name, big colored % change, contribution block,
+ * wide sparkline footer.
+ *
+ * The card chrome (stripe, badge border, badge dot, faint background
+ * tint) all adopt the leading region's color so the section visibly
+ * shifts identity day-to-day based on which sleeve carried the move.
  */
 export default function LeaderSleeveCard({
   region,
@@ -26,18 +41,26 @@ export default function LeaderSleeveCard({
 }: LeaderSleeveCardProps) {
   const up = (region.changePercent ?? 0) >= 0;
   const tone = up ? "var(--green)" : "var(--stamp)";
-  const stripe = REGION_TONE[region.ticker] ?? "var(--ink)";
+  const regionTone = REGION_TONE[region.ticker] ?? "var(--ink)";
+  const regionName = REGION_LABEL[region.ticker] ?? region.fullName;
   const pctAbs = Math.abs(region.changePercent ?? 0).toFixed(2);
   const contribAbs = Math.abs(region.contribution ?? 0).toFixed(2);
   const contribSign = (region.contribution ?? 0) >= 0 ? "+" : "−";
 
+  // Inline custom-property handles for the region-themed accents (stripe,
+  // badge border/dot, faint card tint). Keeping them in CSS variables so the
+  // <style jsx> selectors can pick them up uniformly.
+  const themeStyle = {
+    ["--leader-tone" as string]: regionTone,
+  } as React.CSSProperties;
+
   return (
-    <article className="leader" aria-label={`Leader: ${region.fullName}`}>
-      <div
-        className="leader__stripe"
-        style={{ background: stripe }}
-        aria-hidden
-      />
+    <article
+      className="leader"
+      style={themeStyle}
+      aria-label={`Leader: ${regionName}`}
+    >
+      <div className="leader__stripe" aria-hidden />
       <div className="leader__chrome">
         <span className="leader__badge">
           <span className="leader__badge-dot" aria-hidden />
@@ -50,7 +73,7 @@ export default function LeaderSleeveCard({
         </span>
       </div>
 
-      <h3 className="ed-display-italic leader__name">{region.fullName}</h3>
+      <h3 className="ed-display-italic leader__name">{regionName}</h3>
 
       <div className="leader__numbers">
         <div
@@ -95,9 +118,14 @@ export default function LeaderSleeveCard({
       <style jsx>{`
         .leader {
           position: relative;
-          background: var(--paper-light);
+          /* Faint region-toned wash on top of the paper-light surface */
+          background: color-mix(
+            in oklab,
+            var(--leader-tone) 4%,
+            var(--paper-light)
+          );
           border: 1px solid var(--rule-soft);
-          border-radius: var(--radius);
+          border-radius: var(--radius, 18px);
           padding: 26px 26px 22px 30px;
           overflow: hidden;
           display: flex;
@@ -111,6 +139,7 @@ export default function LeaderSleeveCard({
           top: 0;
           bottom: 0;
           width: 5px;
+          background: var(--leader-tone);
         }
         .leader__chrome {
           display: flex;
@@ -128,9 +157,13 @@ export default function LeaderSleeveCard({
           font-weight: 700;
           letter-spacing: 0.22em;
           text-transform: uppercase;
-          color: var(--stamp);
-          background: var(--paper-warm);
-          border: 1px solid var(--stamp);
+          color: var(--leader-tone);
+          background: color-mix(
+            in oklab,
+            var(--leader-tone) 8%,
+            var(--paper-warm)
+          );
+          border: 1px solid var(--leader-tone);
           padding: 4px 10px;
           border-radius: 999px;
           white-space: nowrap;
@@ -139,7 +172,7 @@ export default function LeaderSleeveCard({
           width: 6px;
           height: 6px;
           border-radius: 50%;
-          background: var(--stamp);
+          background: var(--leader-tone);
           flex-shrink: 0;
         }
         .leader__sep {

@@ -120,7 +120,7 @@ function ctaHref(reading: SeverityReading): string {
 function ctaLabel(reading: SeverityReading): string {
   return reading.todayChangePercent < 0
     ? "Read · what to do when it's down"
-    : "Read · why stock markets go up";
+    : "Read · why markets rise";
 }
 
 // ---------------------------------------------------------------------------

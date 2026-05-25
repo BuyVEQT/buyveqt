@@ -1,5 +1,15 @@
 import type { Region } from "@/lib/useRegions";
 
+/** Canonical sleeve names — matches LeaderSleeveCard / FollowerSleeveRow
+ *  so the editorial sentence above the sleeves reads with the same
+ *  geographic vocabulary as the cards below it. */
+const REGION_LABEL: Record<string, string> = {
+  VUN: "United States",
+  VCN: "Canada",
+  VIU: "Developed ex-NA",
+  VEE: "Emerging Markets",
+};
+
 interface InSentenceHeadlineProps {
   leader: Region;
   others: Region[];
@@ -38,8 +48,10 @@ function makeHeadline(
     trailer = "The other sleeves split.";
   }
 
+  const leaderName = REGION_LABEL[leader.ticker] ?? leader.fullName;
+
   return {
-    body: `${leader.fullName} ${verb} today — ${contribStr} of contribution.`,
+    body: `${leaderName} ${verb} today — ${contribStr} of contribution.`,
     trailer,
   };
 }
