@@ -6,8 +6,6 @@ import { useRegions, type Region } from "@/lib/useRegions";
 import { computeSeverity } from "@/lib/severity";
 
 import HeroPriceCard from "./HeroPriceCard";
-import WeatherCard from "./WeatherCard";
-import RegionCarousel from "./RegionCarousel";
 import RegionGrid from "./RegionGrid";
 import HeatmapCard from "./HeatmapCard";
 import InceptionBand from "./InceptionBand";
@@ -32,16 +30,15 @@ function leaderIndex(regions: readonly Region[]): number {
 }
 
 /**
- * Round 4 home — dashboard-shaped layout against the new D2 system.
+ * Round 4 home V2 — bonded hero + leader/followers + session board + Almanac + course.
  *
- *  HeroPriceCard  →  WeatherCard
- *  RegionCarousel (mobile) / RegionGrid (desktop)
- *  HeatmapCard  →  InceptionBand
- *  ArticleStrip
+ *  HeroPriceCard (bonded: price left + weather rail right)
+ *  RegionGrid (leader 1.5fr + followers 1fr, handles mobile internally)
+ *  two-up: HeatmapCard (calendar session board) | InceptionBand (Almanac)
+ *  ArticleStrip (editor column + three course rows)
  *
- * Two `useVeqtData` calls: one keyed to the period pill (hero sparkline)
- * and one pinned to "ALL" (severity + heatmap classification + inception
- * calc — all need the full distribution to mean anything).
+ * Two useVeqtData calls: one keyed to the period pill (hero sparkline)
+ * and one pinned to "ALL" (severity + heatmap + inception calc).
  */
 export default function HomeClient() {
   const hero = useVeqtData("1M");
@@ -56,7 +53,10 @@ export default function HomeClient() {
     );
   }, [regionsPayload]);
 
-  const leaderIdx = useMemo(() => leaderIndex(orderedRegions), [orderedRegions]);
+  const leaderIdx = useMemo(
+    () => leaderIndex(orderedRegions),
+    [orderedRegions]
+  );
 
   const severity = useMemo(() => {
     if (!full.data?.quote || !full.data.historical) return null;
@@ -88,25 +88,26 @@ export default function HomeClient() {
             borderWidth: 0,
           }}
         >
-          BuyVEQT — VEQT.TO live price, regional sleeves, and weather signal for Canadian passive investors.
+          BuyVEQT — VEQT.TO live price, regional sleeves, and weather signal
+          for Canadian passive investors.
         </h1>
 
+        {/* Bonded hero — price + weather rail */}
         <HeroPriceCard
           data={hero.data}
           loading={hero.loading}
           period={hero.period}
           onPeriodChange={hero.setPeriod}
+          severity={severity}
         />
 
-        <WeatherCard reading={severity} loading={full.loading && !severity} />
+        {/* Region sleeves — leader + followers (handles mobile internally) */}
+        <RegionGrid
+          regions={regionsLoading ? [] : orderedRegions}
+          leaderIndex={leaderIdx}
+        />
 
-        <div className="region-mobile">
-          <RegionCarousel regions={orderedRegions} leaderIndex={leaderIdx} />
-        </div>
-        <div className="region-desktop">
-          <RegionGrid regions={regionsLoading ? [] : orderedRegions} leaderIndex={leaderIdx} />
-        </div>
-
+        {/* Two-up: session-board calendar + Almanac (dark band) */}
         <div className="two-up">
           <HeatmapCard
             history={full.data?.historical ?? []}
@@ -131,16 +132,6 @@ export default function HomeClient() {
           margin: 0 auto;
           padding: 20px 14px 40px;
         }
-        .region-mobile {
-          display: block;
-          /* Carousel escapes the page padding so cards can scroll flush to
-             the viewport edges on small screens. */
-          margin-left: -14px;
-          margin-right: -14px;
-        }
-        .region-desktop {
-          display: none;
-        }
         .two-up {
           display: grid;
           grid-template-columns: 1fr;
@@ -151,12 +142,6 @@ export default function HomeClient() {
           .home-stack {
             gap: 28px;
             padding: 32px 26px 48px;
-          }
-          .region-mobile {
-            display: none;
-          }
-          .region-desktop {
-            display: block;
           }
           .two-up {
             grid-template-columns: 7fr 5fr;
