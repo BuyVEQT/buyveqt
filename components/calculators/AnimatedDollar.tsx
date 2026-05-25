@@ -27,7 +27,15 @@ export default function AnimatedDollar({
 }: AnimatedDollarProps) {
   const v = useAnimatedNumber(value);
   return (
-    <span className={`anum anum--${size} ed-display ed-numerals`}>
+    <span
+      className={`anum anum--${size} ed-display ed-numerals`}
+      /* Screen readers should hear the settled value when inputs
+         change, but not every intermediate tween frame. The settled
+         number lands on the next render after `value` stops changing,
+         so polite + atomic gives a clean read-out. */
+      aria-live="polite"
+      aria-atomic="true"
+    >
       {fmtCAD(v, fractionDigits)}
       <style jsx>{`
         .anum {

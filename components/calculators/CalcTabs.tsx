@@ -130,6 +130,11 @@ export default function CalcTabs({ value, onChange }: CalcTabsProps) {
         .calc-tab:hover {
           background: var(--paper-warm);
         }
+        .calc-tab:focus-visible {
+          outline: 2px solid var(--stamp);
+          outline-offset: -2px;
+          background: var(--paper-warm);
+        }
         .calc-tab.is-active {
           color: var(--ink);
         }

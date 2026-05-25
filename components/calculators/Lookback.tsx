@@ -350,12 +350,12 @@ export default function Lookback({ history }: LookbackProps) {
                 <div className="ed-label lookback__sub-label">Total return</div>
                 <AnimatedPct value={result?.totalReturn ?? 0} tone="auto" digits={1} />
               </div>
-              <div className="lookback__sub-rule" />
+              <div className="lookback__sub-rule" aria-hidden />
               <div>
                 <div className="ed-label lookback__sub-label">CAGR</div>
                 <AnimatedPct value={result?.cagr ?? 0} tone="green" digits={1} />
               </div>
-              <div className="lookback__sub-rule" />
+              <div className="lookback__sub-rule" aria-hidden />
               <div>
                 <div className="ed-label lookback__sub-label">Years held</div>
                 <span className="ed-display ed-numerals lookback__years">
@@ -533,7 +533,10 @@ export default function Lookback({ history }: LookbackProps) {
           border-top: 1px solid rgba(246, 239, 220, 0.18);
           flex-wrap: wrap;
         }
-        .lookback__sub-stats > div {
+        /* :not(.lookback__sub-rule) — same bug as CalculatorCard /
+           FIRECalculator. The min-width was inflating the 1px divider
+           into a 90px grey block in the middle of the result slab. */
+        .lookback__sub-stats > div:not(.lookback__sub-rule) {
           display: flex;
           flex-direction: column;
           gap: 6px;
@@ -543,6 +546,7 @@ export default function Lookback({ history }: LookbackProps) {
           color: rgba(246, 239, 220, 0.55);
         }
         .lookback__sub-rule {
+          flex: 0 0 1px;
           width: 1px;
           align-self: stretch;
           background: rgba(246, 239, 220, 0.18);

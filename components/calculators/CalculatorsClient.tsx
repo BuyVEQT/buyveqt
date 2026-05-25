@@ -102,6 +102,10 @@ function CalculatorsClientInner({ history }: CalculatorsClientProps) {
         id={`calc-panel-${active}`}
         role="tabpanel"
         aria-label={`${activeMeta.label} calculator`}
+        /* tabIndex 0 so keyboard users can Tab from the tabstrip into
+           the panel content even if the first child is non-interactive
+           (e.g. a pinned-scenarios bar that's empty). */
+        tabIndex={0}
       >
         {active === "historical" && <Lookback history={history} />}
         {active === "dca" && <DCACalculator />}

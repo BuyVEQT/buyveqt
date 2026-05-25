@@ -178,14 +178,18 @@ export default async function CalculatorsPage() {
 
       <style>{`
         .calc-stack {
-          max-width: 1280px;
+          /* Calculators are dashboards, not articles — give them the
+             screen. Wider container lets the charts fill the page and
+             keeps the controls comfortable side-by-side. */
+          max-width: min(1600px, calc(100% - 48px));
           margin: 0 auto;
-          padding: 8px 28px 60px;
+          padding: 8px 0 60px;
           display: flex;
           flex-direction: column;
         }
         @media (max-width: 720px) {
           .calc-stack {
+            max-width: 100%;
             padding: 4px 18px 60px;
           }
         }
