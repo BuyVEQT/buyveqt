@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
-import CalculatorTabs from "@/components/invest/CalculatorTabs";
-import CalculatorsHero from "@/components/invest/CalculatorsHero";
-import Card from "@/components/ui/Card";
-import SectionLabel from "@/components/ui/SectionLabel";
+import dynamic from "next/dynamic";
+import CalcMasthead from "@/components/calculators/CalcMasthead";
+import CalcDock from "@/components/calculators/CalcDock";
+import FinePrint from "@/components/calculators/FinePrint";
 import { getDailyHistory } from "@/lib/data";
-import { computeVolatilityStats } from "@/lib/data/volatility";
 import { JsonLd } from "@/components/seo/JsonLd";
 import {
   buildBreadcrumbSchema,
@@ -16,11 +15,25 @@ import { expandParams } from "@/lib/share-params";
 
 export const revalidate = 86400; // 24 hours
 
+// The four V2 calculators are heavy client components (animated SVG,
+// pinned-scenarios state, URL writers). Defer them past first paint so
+// the masthead lands instantly.
+const Lookback = dynamic(() => import("@/components/calculators/Lookback"));
+const DCACalculator = dynamic(
+  () => import("@/components/calculators/DCACalculator")
+);
+const TFSARRSPCalculator = dynamic(
+  () => import("@/components/calculators/TFSARRSPCalculator")
+);
+const FIRECalculator = dynamic(
+  () => import("@/components/calculators/FIRECalculator")
+);
+
 // ─── Helpers for dynamic OG titles ────────────────────────────
 
 const MONTHS = [
-  "Jan","Feb","Mar","Apr","May","Jun",
-  "Jul","Aug","Sep","Oct","Nov","Dec",
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 ];
 
 function fmtDollars(raw: string): string {
@@ -51,12 +64,12 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
     return {
       title: "The Math — VEQT Calculators",
       description:
-        "Five calculators on the boring fund: lookback, drip, yield, shelter, exit. Free VEQT calculators for Canadian investors.",
+        "Four calculators on the boring fund: lookback, DCA, TFSA/RRSP, FIRE. Free VEQT calculators for Canadian investors.",
       alternates: { canonical: canonicalUrl("/calculators") },
       openGraph: {
         title: "The Math — VEQT Calculators",
         description:
-          "Lookback, drip, yield, shelter, exit. Five calculators on Vanguard's boring all-equity fund.",
+          "Lookback, DCA, shelter, exit. Four calculators on Vanguard's boring all-equity fund.",
         url: canonicalUrl("/calculators"),
       },
     };
@@ -90,11 +103,6 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
     case "dca": {
       title = `${fmtDollars(g("monthly"))}/mo in VEQT for ${g("horizon")} years → ${fmtDollars(g("result"))}`;
       description = `${fmtDollars(g("contributions"))} contributions · ${fmtDollars(g("growth"))} projected growth · ${g("rate")}% return assumed`;
-      break;
-    }
-    case "dividends": {
-      title = `${fmtDollars(g("portfolio"))} VEQT portfolio → ${fmtDollars(g("annualIncome"))}/year in dividends`;
-      description = `${g("yield")}% yield · ${g("growthRate")}% annual growth assumed`;
       break;
     }
     case "tfsa-rrsp": {
@@ -136,11 +144,10 @@ export default async function CalculatorsPage() {
   try {
     historyResult = await getDailyHistory("VEQT", "full");
   } catch {
-    // Will show DataUnavailable in the calculator component
+    // Lookback renders a quiet placeholder if history is null.
   }
 
-  // Compute volatility stats server-side (once per 24h ISR cycle)
-  const volatilityStats = computeVolatilityStats(historyResult);
+  const sessionsCount = historyResult?.data?.length ?? 0;
 
   return (
     <main
@@ -150,16 +157,7 @@ export default async function CalculatorsPage() {
         minHeight: "100dvh",
       }}
     >
-      <div
-        style={{
-          maxWidth: 1400,
-          margin: "0 auto",
-          padding: "20px 14px 48px",
-          display: "flex",
-          flexDirection: "column",
-          gap: 24,
-        }}
-      >
+      <div className="calc-stack">
         <JsonLd
           data={buildBreadcrumbSchema([
             { name: "Home", path: "/" },
@@ -172,7 +170,7 @@ export default async function CalculatorsPage() {
             "@type": "WebApplication",
             name: "VEQT Investment Calculators",
             description:
-              "Historical return calculator, DCA planner, dividend income estimator, and TFSA/RRSP growth projector.",
+              "Historical return calculator, DCA planner, TFSA/RRSP growth projector, and FIRE planner for VEQT investors.",
             url: canonicalUrl("/calculators"),
             applicationCategory: "FinanceApplication",
             operatingSystem: "Any",
@@ -188,68 +186,29 @@ export default async function CalculatorsPage() {
           }}
         />
 
-        <CalculatorsHero />
-
-        <section aria-labelledby="calculators-heading">
-          <h2 id="calculators-heading" className="sr-only">
-            Calculators
-          </h2>
-          <CalculatorTabs
-            history={historyResult}
-            volatilityStats={volatilityStats}
-          />
-        </section>
-
-        <Card>
-          <SectionLabel>The fine print</SectionLabel>
-          <div
-            className="ed-body"
-            style={{
-              marginTop: 14,
-              fontSize: 15,
-              lineHeight: 1.65,
-              color: "var(--ink-soft)",
-              maxWidth: "64ch",
-              display: "flex",
-              flexDirection: "column",
-              gap: "1rem",
-            }}
-          >
-            <p style={{ margin: 0 }}>
-              These calculators use simplified assumptions for illustration.
-              They don&apos;t account for fees, taxes, inflation, or the
-              full shape of market volatility — only the bones of the math.
-            </p>
-            <p style={{ margin: 0 }}>
-              <em>Past performance is not a forecast.</em> The Lookback tells
-              you what was; the other four ask you to assume a future return
-              rate. Reasonable assumptions still produce wide ranges —
-              change a 7% input to 5% and watch what happens.
-            </p>
-            <p style={{ margin: 0 }}>
-              None of this is financial advice. It&apos;s arithmetic, run
-              slowly, on one ETF. Your situation, taxes, and risk tolerance
-              are your own to weigh.
-            </p>
-          </div>
-          <p
-            className="ed-label"
-            style={{
-              marginTop: 18,
-              paddingTop: 14,
-              borderTop: "1px solid var(--rule-soft)",
-              fontStyle: "italic",
-              fontFamily: "var(--font-serif)",
-              fontSize: 11,
-              letterSpacing: "0.08em",
-              textTransform: "none",
-              color: "var(--ink-mute)",
-            }}
-          >
-            Source: VEQT historical price data via Yahoo Finance · Updated daily
-          </p>
-        </Card>
+        <CalcMasthead sessionsCount={sessionsCount} />
+        <Lookback history={historyResult} />
+        <CalcDock />
+        <DCACalculator />
+        <TFSARRSPCalculator />
+        <FIRECalculator />
+        <FinePrint />
       </div>
+
+      <style>{`
+        .calc-stack {
+          max-width: 1280px;
+          margin: 0 auto;
+          padding: 8px 28px 60px;
+          display: flex;
+          flex-direction: column;
+        }
+        @media (max-width: 720px) {
+          .calc-stack {
+            padding: 4px 18px 60px;
+          }
+        }
+      `}</style>
     </main>
   );
 }

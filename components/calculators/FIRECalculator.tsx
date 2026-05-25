@@ -1,37 +1,70 @@
 "use client";
 
+/**
+ * FIRECalculator (V2) — financial-independence math.
+ *
+ * Inputs: annual `expenses`, withdrawal rate `wRate` (%), current
+ * portfolio `currentNW`, monthly contribution `monthly`.
+ * Derived: `fireNumber = expenses / (wRate/100)`. For each scenario, we
+ * compute years to reach the FIRE number via `yearsToTarget`, plus a
+ * projection path for the chart.
+ *
+ * Result slab differs from DCA / TFSA: instead of an animated dollar
+ * headline, the big number is "FIRE in {years} years" using
+ * `useAnimatedNumberRaw` directly so the fractional years tween smoothly.
+ * Two sub-stats: the FIRE number itself and Coast FIRE today (the lump
+ * that, left alone at this rate, would compound into the FIRE number by
+ * the FIRE date).
+ */
 import { useState, useMemo, useEffect } from "react";
-import { formatDollars } from "@/lib/chart-utils";
-import { CARD, STAT_CARD } from "@/lib/styles";
-import { useAnimatedNumber } from "./useAnimatedNumber";
-import MonteCarloChart from "./MonteCarloChart";
-import ShareModal from "@/components/ShareModal";
-import type { VolatilityStats } from "@/lib/data/volatility";
+import {
+  SCENARIOS,
+  SCENARIO_KEYS,
+  fmtCAD,
+  projectGrowth,
+  yearsToTarget,
+  type ScenarioKey,
+} from "@/lib/calc-data";
 import { expandParams } from "@/lib/share-params";
-import type { NewPin } from "@/lib/usePinnedScenarios";
-import PinScenarioButton from "@/components/invest/PinScenarioButton";
+import AnimatedDollar from "./AnimatedDollar";
+import NumberInput from "./NumberInput";
+import AdvancedPanel, { AdvToggle } from "./AdvancedPanel";
+import ControlsActions from "./ControlsActions";
+import PinnedScenariosBar, { usePinnedScenarios } from "./PinnedScenariosBar";
+import ProjectionChart, {
+  type ProjectionPathSet,
+} from "@/components/charts/ProjectionChart";
+import ScenarioToggle from "./ScenarioToggle";
+import { useAnimatedNumberRaw } from "./useAnimatedNumber";
 
-const VEQT_MER = 0.0024; // 0.24%
-const INFLATION_RATE = 0.02; // 2%
-
-interface FIRECalculatorProps {
-  volatilityStats: VolatilityStats | null;
-  /** Pin the current scenario to the compare bar. */
-  onPin?: (input: NewPin) => void;
+interface FIREInputs {
+  expenses: number;
+  wRate: number;
+  currentNW: number;
+  monthly: number;
+  active: ScenarioKey;
+  adjustInflation: boolean;
 }
 
-export default function FIRECalculator({ volatilityStats, onPin }: FIRECalculatorProps) {
-  const [currentAge, setCurrentAge] = useState(30);
-  const [retirementAge, setRetirementAge] = useState(55);
-  const [portfolioValue, setPortfolioValue] = useState(50000);
-  const [monthlyContribution, setMonthlyContribution] = useState(1000);
-  const [annualExpenses, setAnnualExpenses] = useState(50000);
-  const [expectedReturn, setExpectedReturn] = useState(7);
-  const [withdrawalRate, setWithdrawalRate] = useState(4);
-  const [shareOpen, setShareOpen] = useState(false);
+const DEFAULTS: FIREInputs = {
+  expenses: 50000,
+  wRate: 4,
+  currentNW: 50000,
+  monthly: 1500,
+  active: "realistic",
+  adjustInflation: false,
+};
 
-  // Read URL params on mount — supports Shelter → FIRE handoffs and
-  // share-link landings.
+export default function FIRECalculator() {
+  const [expenses, setExpenses] = useState(DEFAULTS.expenses);
+  const [wRate, setWRate] = useState(DEFAULTS.wRate);
+  const [currentNW, setCurrentNW] = useState(DEFAULTS.currentNW);
+  const [monthly, setMonthly] = useState(DEFAULTS.monthly);
+  const [active, setActive] = useState<ScenarioKey>(DEFAULTS.active);
+  const [adjustInflation, setAdjustInflation] = useState(DEFAULTS.adjustInflation);
+  const { pinned, pin, remove, restore } = usePinnedScenarios<FIREInputs>(3);
+
+  // Hydrate from URL (share-link landings + OG previews).
   useEffect(() => {
     if (typeof window === "undefined") return;
     const raw: Record<string, string> = {};
@@ -39,541 +72,380 @@ export default function FIRECalculator({ volatilityStats, onPin }: FIRECalculato
       raw[k] = v;
     });
     const p = expandParams(raw);
-    const portfolio =
-      typeof p.portfolio === "string" ? Number(p.portfolio) : NaN;
-    if (!isNaN(portfolio) && portfolio >= 0 && portfolio <= 10_000_000) {
-      setPortfolioValue(Math.round(portfolio / 1000) * 1000);
+    const e = typeof p.expenses === "string" ? Number(p.expenses) : NaN;
+    if (Number.isFinite(e) && e >= 10_000 && e <= 500_000) setExpenses(Math.round(e));
+    const wr = typeof p.withdrawalRate === "string" ? Number(p.withdrawalRate) : NaN;
+    if (Number.isFinite(wr) && wr >= 2 && wr <= 6) setWRate(wr);
+    const port = typeof p.portfolio === "string" ? Number(p.portfolio) : NaN;
+    if (Number.isFinite(port) && port >= 0 && port <= 10_000_000) {
+      setCurrentNW(Math.round(port));
     }
-    const monthly = typeof p.monthly === "string" ? Number(p.monthly) : NaN;
-    if (!isNaN(monthly) && monthly >= 0 && monthly <= 50_000) {
-      setMonthlyContribution(Math.round(monthly / 50) * 50);
-    }
-    const rate = typeof p.rate === "string" ? Number(p.rate) : NaN;
-    if (!isNaN(rate) && rate >= 1 && rate <= 15) setExpectedReturn(rate);
-    const expenses = typeof p.expenses === "string" ? Number(p.expenses) : NaN;
-    if (!isNaN(expenses) && expenses >= 10_000 && expenses <= 500_000) {
-      setAnnualExpenses(Math.round(expenses / 1000) * 1000);
-    }
-    const wr =
-      typeof p.withdrawalRate === "string" ? Number(p.withdrawalRate) : NaN;
-    if (!isNaN(wr) && wr >= 2 && wr <= 5) setWithdrawalRate(wr);
-    const ca = typeof p.currentAge === "string" ? Number(p.currentAge) : NaN;
-    if (!isNaN(ca) && ca >= 18 && ca <= 70) setCurrentAge(Math.round(ca));
-    const ra =
-      typeof p.retirementAge === "string" ? Number(p.retirementAge) : NaN;
-    if (!isNaN(ra) && ra >= 18 && ra <= 80) setRetirementAge(Math.round(ra));
+    const m = typeof p.monthly === "string" ? Number(p.monthly) : NaN;
+    if (Number.isFinite(m) && m >= 0 && m <= 50_000) setMonthly(Math.round(m));
   }, []);
 
-  // Enhancement toggles — same pattern as DCACalculator/TFSARRSPCalculator.
-  // For FIRE these matter the most: the calc is about a future spending
-  // number, so inflation and fees shape every result.
-  const [showFees, setShowFees] = useState(false);
-  const [showInflation, setShowInflation] = useState(false);
+  const fireNumber = expenses / (wRate / 100);
 
-  const {
-    targetPortfolio,
-    yearsToFire,
-    coastFIRE,
-    progressPct,
-    alreadyFIRE,
-    coastFIREAchieved,
-    projectedFireYear,
-    feeImpactYears,
-  } = useMemo(() => {
-    const target = annualExpenses / (withdrawalRate / 100);
-    const years = Math.max(1, retirementAge - currentAge);
-    // Effective return rate: subtract MER if fees are shown.
-    const nominalRate = expectedReturn / 100;
-    const rate = showFees ? nominalRate - VEQT_MER : nominalRate;
-    const annualContrib = monthlyContribution * 12;
+  // Per-scenario: years to reach fireNumber, and a projection path that
+  // ends at the FIRE-crossing month so the chart shows accumulation up
+  // to the milestone (not 80-year tails).
+  const scenarioResults: ProjectionPathSet & { years: Record<ScenarioKey, number> } = useMemo(() => {
+    const out: ProjectionPathSet & { years: Record<ScenarioKey, number> } = {
+      pessimistic: { final: 0, contributed: 0, path: [] },
+      realistic: { final: 0, contributed: 0, path: [] },
+      optimistic: { final: 0, contributed: 0, path: [] },
+      years: { pessimistic: 0, realistic: 0, optimistic: 0 },
+    } as ProjectionPathSet & { years: Record<ScenarioKey, number> };
 
-    // Coast FIRE: amount needed today such that growth alone reaches target
-    const coast = target / Math.pow(1 + rate, years);
-
-    const already = portfolioValue >= target;
-    const coastAchieved = portfolioValue >= coast;
-
-    // Find the year the portfolio hits the target. When "Today's dollars"
-    // is on, we deflate the running balance back to today's purchasing
-    // power before comparing — this stretches yearsToFire because real
-    // returns are slower than nominal.
-    let projectedYear: number | null = null;
-    let balance = portfolioValue;
-    for (let y = 1; y <= years; y++) {
-      balance = (balance + annualContrib) * (1 + rate);
-      const adjusted = showInflation
-        ? balance / Math.pow(1 + INFLATION_RATE, y)
-        : balance;
-      if (adjusted >= target && projectedYear === null) {
-        projectedYear = y;
-      }
+    for (const key of SCENARIO_KEYS) {
+      const rate = SCENARIOS[key].rate - (adjustInflation ? 0.025 : 0);
+      const years = yearsToTarget({
+        lumpSum: currentNW,
+        monthly,
+        target: fireNumber,
+        annualRate: rate,
+      });
+      const months = Math.max(12, Math.ceil(years * 12));
+      const p = projectGrowth({
+        lumpSum: currentNW,
+        monthly,
+        months,
+        annualRate: rate,
+      });
+      out[key] = { final: p.final, contributed: p.contributed, path: p.path };
+      out.years[key] = years;
     }
+    return out;
+  }, [expenses, wRate, currentNW, monthly, fireNumber, adjustInflation]);
 
-    // Compute the "no fees" projection so we can show the fee impact.
-    let projectedYearNominal: number | null = null;
-    let balanceNominal = portfolioValue;
-    for (let y = 1; y <= years; y++) {
-      balanceNominal = (balanceNominal + annualContrib) * (1 + nominalRate);
-      const adjusted = showInflation
-        ? balanceNominal / Math.pow(1 + INFLATION_RATE, y)
-        : balanceNominal;
-      if (adjusted >= target && projectedYearNominal === null) {
-        projectedYearNominal = y;
-      }
-    }
+  const activeYears = scenarioResults.years[active];
+  const animatedYears = useAnimatedNumberRaw(activeYears);
 
-    const feeYears =
-      showFees && projectedYear && projectedYearNominal
-        ? projectedYear - projectedYearNominal
-        : 0;
+  // Push state to URL for OG previews.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    const sp = url.searchParams;
+    sp.set("tab", "fire");
+    sp.set("expenses", String(expenses));
+    sp.set("withdrawalRate", String(wRate));
+    sp.set("portfolio", String(currentNW));
+    sp.set("monthly", String(monthly));
+    sp.set("rate", String((SCENARIOS[active].rate * 100).toFixed(1)));
+    sp.set("yearsToFire", activeYears.toFixed(1));
+    sp.set("result", String(Math.round(fireNumber)));
+    const coast =
+      fireNumber /
+      Math.pow(1 + SCENARIOS[active].rate, Math.max(0, activeYears));
+    sp.set("coastFire", String(Math.round(coast)));
+    window.history.replaceState(null, "", `${url.pathname}?${sp.toString()}${url.hash}`);
+  }, [expenses, wRate, currentNW, monthly, active, fireNumber, activeYears]);
 
-    return {
-      targetPortfolio: target,
-      yearsToFire: projectedYear,
-      coastFIRE: coast,
-      progressPct: Math.min(100, (portfolioValue / target) * 100),
-      alreadyFIRE: already,
-      coastFIREAchieved: coastAchieved,
-      projectedFireYear: projectedYear,
-      feeImpactYears: feeYears,
-    };
-  }, [
-    currentAge,
-    retirementAge,
-    portfolioValue,
-    monthlyContribution,
-    annualExpenses,
-    expectedReturn,
-    withdrawalRate,
-    showFees,
-    showInflation,
-  ]);
+  function resetAll() {
+    setExpenses(DEFAULTS.expenses);
+    setWRate(DEFAULTS.wRate);
+    setCurrentNW(DEFAULTS.currentNW);
+    setMonthly(DEFAULTS.monthly);
+    setActive(DEFAULTS.active);
+    setAdjustInflation(DEFAULTS.adjustInflation);
+  }
 
-  // Animated stat values
-  const animTarget = useAnimatedNumber(targetPortfolio);
-  const animCoast = useAnimatedNumber(coastFIRE);
-  const animProgress = useAnimatedNumber(Math.round(progressPct));
-  const animYears = useAnimatedNumber(yearsToFire ?? 0);
+  function pinCurrent() {
+    pin({
+      label: `${fmtCAD(expenses)}/yr · ${wRate}%`,
+      value: fireNumber,
+      inputs: { expenses, wRate, currentNW, monthly, active, adjustInflation },
+    });
+  }
 
-  const yearsToRetirement = Math.max(1, retirementAge - currentAge);
+  function restoreScenario(i: number) {
+    const inp = restore(i);
+    if (!inp) return;
+    setExpenses(inp.expenses);
+    setWRate(inp.wRate);
+    setCurrentNW(inp.currentNW);
+    setMonthly(inp.monthly);
+    setActive(inp.active);
+    setAdjustInflation(inp.adjustInflation);
+  }
+
+  const activeRate = SCENARIOS[active].rate;
+  const coastFire = fireNumber / Math.pow(1 + activeRate, Math.max(0, activeYears));
+
+  // Restrict the chart to just the 3 scenario paths (no `years` field).
+  const chartPaths: ProjectionPathSet = {
+    pessimistic: scenarioResults.pessimistic,
+    realistic: scenarioResults.realistic,
+    optimistic: scenarioResults.optimistic,
+  };
+  const baseline = chartPaths.realistic.path.map((p) => ({
+    month: p.month,
+    balance: p.contributed,
+  }));
 
   return (
-    <div className={CARD}>
-      <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-1">
-        FIRE Calculator
-      </h2>
-      <p className="text-sm text-[var(--color-text-muted)] mb-5">
-        Find your Financial Independence, Retire Early target — and when you
-        could reach it investing in VEQT.
-      </p>
+    <section className="calc" id="fire">
+      <header className="calc__head">
+        <span className="ed-stamp calc__stamp">Calculator 04 &middot; FIRE</span>
+        <h3 className="ed-display-italic calc__title">
+          Years to{" "}
+          <em style={{ fontStyle: "italic", fontWeight: 500 }}>financial independence.</em>
+        </h3>
+      </header>
 
-      {/* Inputs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-        {/* Current Age */}
-        <div>
-          <label className="block text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider mb-1.5">
-            Current Age
-          </label>
-          <input
-            type="number"
-            value={currentAge}
-            onChange={(e) => setCurrentAge(Number(e.target.value) || 0)}
-            onBlur={() => {
-              const clamped = Math.max(18, Math.min(70, currentAge));
-              setCurrentAge(clamped);
-            }}
-            min={18}
-            max={70}
-            className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] py-2 px-3 text-sm font-medium text-[var(--color-text-primary)] focus:border-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand)]"
+      <div className="calc__layout">
+        <div className="calc__main">
+          <PinnedScenariosBar
+            pinned={pinned}
+            onRestore={restoreScenario}
+            onRemove={remove}
+            formatter={(n) => fmtCAD(n)}
           />
+
+          <div className="calc__result calc__result--dark">
+            <div className="ed-stamp calc__result-stamp">FIRE in</div>
+            <div className="fire__years-row">
+              <span className="ed-display ed-numerals fire__years">
+                {animatedYears.toFixed(1)}
+              </span>
+              <span className="fire__years-unit">years</span>
+            </div>
+            <p className="fire__sentence">
+              At {(activeRate * 100).toFixed(0)}% returns and {fmtCAD(monthly)} a month, you cross{" "}
+              <strong>{fmtCAD(fireNumber, 0)}</strong> (your FIRE number, based on a {wRate}% withdrawal).
+            </p>
+            <div className="fire__stats">
+              <div>
+                <div className="ed-label calc__sub-label">FIRE number</div>
+                <AnimatedDollar value={fireNumber} size="large" />
+                <div className="ed-caption fire__caption">
+                  {fmtCAD(expenses)}/yr &divide; {wRate}%
+                </div>
+              </div>
+              <div className="calc__sub-rule" />
+              <div>
+                <div className="ed-label calc__sub-label">Coast FIRE today</div>
+                <AnimatedDollar value={coastFire} size="large" />
+                <div className="ed-caption fire__caption">
+                  If you stop contributing now
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="calc__chart-wrap">
+            <ProjectionChart paths={chartPaths} activeKey={active} baseline={baseline} />
+            <ScenarioToggle value={active} paths={chartPaths} onChange={setActive} />
+          </div>
         </div>
 
-        {/* Retirement Age */}
-        <div>
-          <label className="block text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider mb-1.5">
-            Target Retirement Age: {retirementAge}
-          </label>
-          <input
-            type="range"
-            value={retirementAge}
-            onChange={(e) => setRetirementAge(Number(e.target.value))}
-            min={Math.max(currentAge + 1, 30)}
-            max={80}
-            step={1}
-            className="calc-slider w-full mt-2"
+        <aside className="calc__inputs">
+          <div className="calc__inputs-head">
+            <span className="ed-stamp">Controls</span>
+            <span className="ed-caption">Adjust to recompute</span>
+          </div>
+          <NumberInput
+            label="Annual expenses"
+            value={expenses}
+            onChange={setExpenses}
+            prefix="$"
+            step={1000}
+            min={10000}
+            max={500_000}
           />
-          <div className="flex justify-between text-[10px] text-[var(--color-text-muted)] mt-0.5">
-            <span>{Math.max(currentAge + 1, 30)}</span>
-            <span>80</span>
-          </div>
-        </div>
-
-        {/* Current Portfolio */}
-        <div>
-          <label className="block text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider mb-1.5">
-            Current Portfolio
-          </label>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[var(--color-text-muted)]">$</span>
-            <input
-              type="number"
-              value={portfolioValue}
-              onChange={(e) => setPortfolioValue(Number(e.target.value) || 0)}
-              onBlur={() => {
-                const clamped = Math.max(0, Math.min(10000000, portfolioValue));
-                setPortfolioValue(Math.round(clamped / 1000) * 1000);
-              }}
-              min={0}
-              max={10000000}
-              step={1000}
-              className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] py-2 pl-7 pr-3 text-sm font-medium text-[var(--color-text-primary)] focus:border-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand)]"
-            />
-          </div>
-        </div>
-
-        {/* Monthly Contribution */}
-        <div>
-          <label className="block text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider mb-1.5">
-            Monthly Contribution
-          </label>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[var(--color-text-muted)]">$</span>
-            <input
-              type="number"
-              value={monthlyContribution}
-              onChange={(e) => setMonthlyContribution(Number(e.target.value) || 0)}
-              onBlur={() => {
-                const clamped = Math.max(0, Math.min(50000, monthlyContribution));
-                setMonthlyContribution(Math.round(clamped / 50) * 50);
-              }}
-              min={0}
-              max={50000}
-              step={50}
-              className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] py-2 pl-7 pr-3 text-sm font-medium text-[var(--color-text-primary)] focus:border-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand)]"
-            />
-          </div>
-        </div>
-
-        {/* Annual Expenses */}
-        <div data-calc-hero-input>
-          <label className="calc-section-label">
-            Annual expenses in retirement
-          </label>
-          <div className="relative flex items-baseline gap-2">
-            <span
-              style={{
-                fontFamily: "var(--font-display)",
-                fontWeight: 500,
-                fontSize: "clamp(1.5rem, 3vw, 2rem)",
-                color: "var(--ink-mute)",
-                lineHeight: 1,
-              }}
-            >
-              $
-            </span>
-            <input
-              type="number"
-              aria-label="Annual expenses in retirement"
-              value={annualExpenses}
-              onChange={(e) => setAnnualExpenses(Number(e.target.value) || 0)}
-              onBlur={() => {
-                const clamped = Math.max(10000, Math.min(500000, annualExpenses));
-                setAnnualExpenses(Math.round(clamped / 1000) * 1000);
-              }}
-              min={10000}
-              max={500000}
-              step={1000}
-            />
-          </div>
-        </div>
-
-        {/* Expected Return */}
-        <div>
-          <label className="block text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider mb-1.5">
-            Expected Return: {expectedReturn.toFixed(1)}%
-          </label>
-          <input
-            type="range"
-            value={expectedReturn}
-            onChange={(e) => setExpectedReturn(Number(e.target.value))}
-            min={1}
-            max={15}
+          <NumberInput
+            label="Withdrawal rate"
+            value={wRate}
+            onChange={setWRate}
+            suffix="%"
             step={0.5}
-            className="calc-slider w-full mt-2"
-          />
-          <div className="flex justify-between text-[10px] text-[var(--color-text-muted)] mt-0.5">
-            <span>1%</span>
-            <span>15%</span>
-          </div>
-        </div>
-
-        {/* Withdrawal Rate */}
-        <div className="sm:col-span-2 lg:col-span-3">
-          <label className="block text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider mb-1.5">
-            Safe Withdrawal Rate: {withdrawalRate.toFixed(1)}%
-          </label>
-          <input
-            type="range"
-            value={withdrawalRate}
-            onChange={(e) => setWithdrawalRate(Number(e.target.value))}
             min={2}
-            max={5}
-            step={0.1}
-            className="calc-slider w-full mt-2"
+            max={6}
           />
-          <div className="flex justify-between text-[10px] text-[var(--color-text-muted)] mt-0.5">
-            <span>2% (conservative)</span>
-            <span>4% (traditional)</span>
-            <span>5% (aggressive)</span>
-          </div>
-        </div>
+          <NumberInput
+            label="Current portfolio"
+            value={currentNW}
+            onChange={setCurrentNW}
+            prefix="$"
+            step={5000}
+            min={0}
+            max={10_000_000}
+          />
+          <NumberInput
+            label="Monthly contribution"
+            value={monthly}
+            onChange={setMonthly}
+            prefix="$"
+            step={100}
+            min={0}
+            max={50_000}
+          />
+          <AdvancedPanel>
+            <AdvToggle
+              label="Adjust for inflation"
+              sub="Subtract 2.5% from the assumed return rate"
+              value={adjustInflation}
+              onChange={setAdjustInflation}
+            />
+          </AdvancedPanel>
+          <ControlsActions
+            onPin={pinCurrent}
+            onReset={resetAll}
+            pinDisabled={pinned.length >= 3}
+          />
+        </aside>
       </div>
 
-      {/* Enhancement toggles — match DCA/TFSA pattern. FIRE is the most
-          inflation- and fee-sensitive calc on the page; these toggles
-          should have been here from the start. */}
-      <div className="flex flex-wrap gap-3 mb-6">
-        <label className="flex items-center gap-2 text-xs text-[var(--color-text-secondary)] cursor-pointer">
-          <input
-            type="checkbox"
-            checked={showFees}
-            onChange={(e) => setShowFees(e.target.checked)}
-            className="accent-[var(--color-brand)] w-3.5 h-3.5"
-          />
-          Show fee impact
-        </label>
-        <label className="flex items-center gap-2 text-xs text-[var(--color-text-secondary)] cursor-pointer">
-          <input
-            type="checkbox"
-            checked={showInflation}
-            onChange={(e) => setShowInflation(e.target.checked)}
-            className="accent-[var(--color-brand)] w-3.5 h-3.5"
-          />
-          Today&apos;s dollars
-        </label>
-      </div>
-
-      {/* Hero stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
-        <div className={STAT_CARD}>
-          <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">
-            FIRE Target
-          </p>
-          <p className="text-lg font-semibold tabular-nums mt-1">
-            {formatDollars(animTarget)}
-          </p>
-        </div>
-        <div className={STAT_CARD}>
-          <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">
-            {alreadyFIRE ? "Status" : "Years to FIRE"}
-          </p>
-          <p className="text-lg font-semibold tabular-nums mt-1 text-[var(--color-positive)]">
-            {alreadyFIRE
-              ? "FIRE achieved!"
-              : projectedFireYear
-              ? `~${animYears} years`
-              : `${yearsToRetirement}+ years`}
-          </p>
-        </div>
-        <div className={STAT_CARD}>
-          <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">
-            Coast FIRE Number
-          </p>
-          <p className="text-lg font-semibold tabular-nums mt-1">
-            {formatDollars(animCoast)}
-          </p>
-        </div>
-      </div>
-
-      {/* Progress bar */}
-      <div className="mb-6">
-        <div className="flex justify-between items-baseline mb-1.5">
-          <p className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
-            Progress to FIRE
-          </p>
-          <p className="text-sm font-semibold tabular-nums">
-            {animProgress}%
-          </p>
-        </div>
-        <div className="h-3 rounded-full bg-[var(--color-base)] border border-[var(--color-border)] overflow-hidden">
-          <div
-            className="h-full rounded-full transition-all duration-500 ease-out"
-            style={{
-              width: `${progressPct}%`,
-              backgroundColor: alreadyFIRE
-                ? "var(--color-positive)"
-                : progressPct >= 75
-                ? "var(--color-positive)"
-                : progressPct >= 50
-                ? "var(--color-accent)"
-                : "var(--color-brand)",
-            }}
-          />
-        </div>
-        <div className="flex justify-between text-[10px] text-[var(--color-text-muted)] mt-1">
-          <span>{formatDollars(portfolioValue)}</span>
-          <span>{formatDollars(targetPortfolio)}</span>
-        </div>
-      </div>
-
-      {/* Fee impact callout — surfaces the years-to-FIRE delta caused by
-          MER drag, in the same callout pattern as DCA's fee impact. */}
-      {showFees && feeImpactYears > 0 && !alreadyFIRE && (
-        <div className="rounded-lg bg-[var(--color-base)] border border-[var(--color-border)] p-3 mb-6">
-          <p className="text-xs text-[var(--color-text-secondary)]">
-            <span className="font-medium text-[var(--color-negative)]">
-              Estimated fee drag: +{feeImpactYears} year
-              {feeImpactYears === 1 ? "" : "s"} to FIRE
-            </span>{" "}
-            at VEQT&apos;s 0.24% MER. Still far lower than most mutual funds
-            (1–2% MER).
-          </p>
-        </div>
-      )}
-
-      {/* Conditional callouts */}
-      {alreadyFIRE && (
-        <div className="rounded-lg bg-[var(--color-positive)]/10 border border-[var(--color-positive)]/20 p-4 mb-6">
-          <p className="text-sm font-medium text-[var(--color-positive)]">
-            Congratulations — you&apos;ve reached your FIRE number!
-          </p>
-          <p className="text-xs text-[var(--color-text-secondary)] mt-1">
-            Your portfolio of {formatDollars(portfolioValue)} exceeds your target
-            of {formatDollars(targetPortfolio)}. At a {withdrawalRate}% withdrawal
-            rate, you could withdraw {formatDollars(annualExpenses)}/year
-            indefinitely.
-          </p>
-        </div>
-      )}
-      {!alreadyFIRE && coastFIREAchieved && (
-        <div className="rounded-lg bg-[var(--color-accent)]/10 border border-[var(--color-accent)]/20 p-4 mb-6">
-          <p className="text-sm font-medium text-[var(--color-accent)]">
-            Coast FIRE achieved!
-          </p>
-          <p className="text-xs text-[var(--color-text-secondary)] mt-1">
-            Your portfolio of {formatDollars(portfolioValue)} exceeds the Coast
-            FIRE number of {formatDollars(Math.round(coastFIRE))}. Even if you
-            stopped contributing today, your portfolio would grow to your target
-            of {formatDollars(targetPortfolio)} by age {retirementAge}.
-          </p>
-        </div>
-      )}
-
-      {/* Monte Carlo chart — always on for FIRE.
-          When fees are toggled on we shift the simulation's mean return
-          down by VEQT's MER so the bands and median line reflect the
-          same reality the headline stats use. Inflation deflation lives
-          in MonteCarloChart so the chart and the notes stay in sync. */}
-      <div className="mb-6">
-        <MonteCarloChart
-          volatilityStats={
-            showFees && volatilityStats
-              ? {
-                  ...volatilityStats,
-                  meanReturn: volatilityStats.meanReturn - VEQT_MER,
-                }
-              : volatilityStats
+      <style jsx>{`
+        .calc {
+          padding: 30px 0 18px;
+          scroll-margin-top: 80px;
+        }
+        .calc__head {
+          margin-bottom: 22px;
+        }
+        .calc__stamp {
+          color: var(--paper-light);
+          background: var(--stamp);
+          padding: 5px 12px 4px;
+          letter-spacing: 0.22em;
+          display: inline-block;
+        }
+        .calc__title {
+          font-size: clamp(1.8rem, 3.4vw, 2.4rem);
+          line-height: 1.05;
+          letter-spacing: -0.025em;
+          margin: 12px 0 0;
+          color: var(--ink);
+        }
+        .calc__layout {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 18px;
+        }
+        @media (min-width: 1000px) {
+          .calc__layout {
+            grid-template-columns: minmax(0, 1.8fr) minmax(260px, 1fr);
+            gap: 32px;
           }
-          startingValue={portfolioValue}
-          annualContribution={monthlyContribution * 12}
-          years={yearsToRetirement}
-          targetValue={targetPortfolio}
-          height={300}
-          deflateInflation={showInflation}
-        />
-      </div>
-
-      {/* Pin + Share */}
-      <div className="flex flex-wrap justify-end gap-2">
-        <PinScenarioButton
-          onPin={onPin}
-          build={() => ({
-            tab: "fire",
-            tabLabel: "FIRE",
-            label: alreadyFIRE
-              ? `FIRE achieved · target ${formatDollars(targetPortfolio)}`
-              : projectedFireYear
-              ? `${projectedFireYear}yr to ${formatDollars(targetPortfolio)} target`
-              : `Target ${formatDollars(targetPortfolio)} · ${formatDollars(annualExpenses)}/yr expenses`,
-            highlight: alreadyFIRE
-              ? "FIRE achieved"
-              : projectedFireYear
-              ? `~${projectedFireYear} years`
-              : `${yearsToRetirement}+ years`,
-            params: {
-              portfolio: portfolioValue,
-              monthly: monthlyContribution,
-              rate: expectedReturn,
-              expenses: annualExpenses,
-              withdrawalRate,
-              currentAge,
-              retirementAge,
-            },
-          })}
-        />
-        <button
-          onClick={() => setShareOpen(true)}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] px-3 py-2 text-sm font-medium text-[var(--color-text-secondary)] hover:bg-[var(--color-base)] transition-colors"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-          </svg>
-          Share Results
-        </button>
-      </div>
-      <ShareModal
-        tab="fire"
-        params={{
-          portfolio: portfolioValue,
-          monthly: monthlyContribution,
-          rate: expectedReturn,
-          expenses: annualExpenses,
-          withdrawalRate,
-          result: Math.round(targetPortfolio),
-          coastFire: Math.round(coastFIRE),
-          yearsToFire: projectedFireYear ?? yearsToRetirement,
-          currentAge,
-          retirementAge,
-        }}
-        isOpen={shareOpen}
-        onClose={() => setShareOpen(false)}
-      />
-
-      {/* Notes */}
-      <div className="text-[11px] text-[var(--color-text-muted)] space-y-1.5 border-t border-[var(--color-border)] pt-4">
-        <p>
-          The &ldquo;4% rule&rdquo; comes from the Trinity Study, which found
-          that a 4% initial withdrawal rate (adjusted for inflation) historically
-          sustained a 30-year retirement in most market conditions. Your mileage
-          may vary.
-        </p>
-        <p>
-          Coast FIRE is the portfolio value where growth alone (no further
-          contributions) would reach your target by retirement age, assuming the
-          expected return rate.
-        </p>
-        <p>
-          The Monte Carlo simulation uses historical VEQT return distribution to
-          model uncertainty. Each scenario randomly samples annual returns. This
-          is not a prediction — it shows the range of possible outcomes.
-        </p>
-        {showInflation && (
-          <p>
-            Values shown in today&apos;s purchasing power, assuming 2% annual inflation.
-          </p>
-        )}
-        {!showFees && (
-          <p>
-            Does not account for VEQT&apos;s 0.24% MER. Toggle &ldquo;Show fee
-            impact&rdquo; to see the years it adds.
-          </p>
-        )}
-        <p>
-          Does not account for taxes, changes in expenses over time, or
-          government benefits (CPP/OAS/GIS).
-        </p>
-      </div>
-    </div>
+        }
+        .calc__main {
+          min-width: 0;
+          display: flex;
+          flex-direction: column;
+        }
+        .calc__result--dark {
+          background: var(--band-ink);
+          color: var(--band-paper);
+          border-radius: 14px 14px 0 0;
+          position: relative;
+          overflow: hidden;
+          padding: 28px 30px 26px;
+        }
+        .calc__result--dark::before {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 3px;
+          background: var(--stamp);
+        }
+        .calc__result--dark :global(.anum) {
+          color: var(--paper);
+        }
+        .calc__result-stamp {
+          color: rgba(246, 239, 220, 0.55);
+          margin-bottom: 10px;
+        }
+        .fire__years-row {
+          display: flex;
+          align-items: baseline;
+          gap: 12px;
+          margin: 4px 0 10px;
+        }
+        .fire__years {
+          font-size: clamp(3.4rem, 7vw, 5.4rem);
+          line-height: 0.95;
+          letter-spacing: -0.035em;
+          color: var(--paper);
+          font-family: var(--font-display);
+          font-weight: 500;
+          font-variant-numeric: tabular-nums lining-nums;
+        }
+        .fire__years-unit {
+          font-family: var(--font-serif);
+          font-style: italic;
+          font-size: clamp(1.3rem, 1.9vw, 1.6rem);
+          color: rgba(246, 239, 220, 0.6);
+        }
+        .fire__sentence {
+          font-family: var(--font-serif);
+          font-style: italic;
+          font-size: clamp(15px, 1.6vw, 17px);
+          line-height: 1.55;
+          color: rgba(246, 239, 220, 0.78);
+          margin: 6px 0 0;
+          max-width: 56ch;
+        }
+        .fire__sentence strong {
+          font-style: normal;
+          color: var(--paper);
+          font-weight: 600;
+        }
+        .fire__stats {
+          display: flex;
+          gap: 18px;
+          align-items: center;
+          margin-top: 18px;
+          padding-top: 16px;
+          border-top: 1px solid rgba(246, 239, 220, 0.18);
+          flex-wrap: wrap;
+        }
+        .fire__stats > div {
+          flex: 1;
+          min-width: 160px;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+        .fire__caption {
+          color: rgba(246, 239, 220, 0.55);
+        }
+        .calc__sub-label {
+          color: rgba(246, 239, 220, 0.55);
+        }
+        .calc__sub-rule {
+          width: 1px;
+          align-self: stretch;
+          background: rgba(246, 239, 220, 0.18);
+        }
+        .calc__chart-wrap {
+          padding: 22px 28px 18px;
+          background: var(--paper-light);
+          border: 1px solid var(--rule-soft);
+          border-top: 0;
+          border-radius: 0 0 14px 14px;
+        }
+        .calc__inputs {
+          padding: 24px;
+          background: var(--paper-warm);
+          border: 1px solid var(--rule-soft);
+          border-radius: 14px;
+          display: flex;
+          flex-direction: column;
+          gap: 22px;
+          align-self: start;
+        }
+        .calc__inputs-head {
+          display: flex;
+          justify-content: space-between;
+          align-items: baseline;
+          gap: 12px;
+          padding-bottom: 14px;
+          border-bottom: 1px solid var(--rule-soft);
+        }
+      `}</style>
+    </section>
   );
 }
