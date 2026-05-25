@@ -475,7 +475,11 @@ export default function HeroPriceCard({
 
         .hero__chart {
           width: 100%;
-          height: clamp(100px, 14vw, 140px);
+          /* Taller on desktop so the chart reads as the headline visual,
+             not a thin caption below the price. The right-rail weather card
+             still grid-stretches to match — the CTA pushes to the bottom
+             via margin-top:auto so growth doesn't add dead space. */
+          height: clamp(100px, 16vw, 200px);
           color: var(--ink);
         }
         .hero__chart :global(svg) {
@@ -551,9 +555,11 @@ export default function HeroPriceCard({
           background: var(--paper-warm);
         }
 
-        /* Weather rail — tightened spacing so the ring, headline, blurb,
-           and CTA read as a single compact block rather than a tall column
-           padded with dead space. */
+        /* Weather rail — content groups at the top, CTA anchors at the
+           bottom via margin-top:auto. When the grid stretches the rail
+           to match the (now taller) left column, the extra room sits in
+           the gap between blurb and CTA rather than as dead space below
+           the link. */
         .hero__rail {
           padding: 18px 20px 16px;
           background: var(--paper-light);
@@ -580,7 +586,7 @@ export default function HeroPriceCard({
           color: var(--ink-soft);
         }
         .hero__rail-cta {
-          margin-top: 6px;
+          margin-top: auto;
           display: inline-flex;
           align-items: center;
           justify-content: space-between;
