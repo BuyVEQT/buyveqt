@@ -353,10 +353,10 @@ export default function HeroPriceCard({
           {loading && !severity ? (
             <div
               className="skeleton"
-              style={{ width: 150, height: 150, borderRadius: "50%" }}
+              style={{ width: 210, height: 210, borderRadius: "50%" }}
             />
           ) : (
-            <SeverityRing z={signedZ} label={zoneLabel} size={150} />
+            <SeverityRing z={signedZ} label={zoneLabel} size={210} />
           )}
         </div>
 
@@ -578,15 +578,20 @@ export default function HeroPriceCard({
           margin: 4px 0 2px;
         }
         .hero__rail-head {
-          font-size: clamp(1.2rem, 1.7vw, 1.4rem);
+          /* Bigger than before so the headline carries weight against the
+             larger ring — the rail now reads top-to-bottom as one solid
+             editorial block: ring (210) → italic headline → blurb → black CTA. */
+          font-size: clamp(1.55rem, 2.4vw, 2rem);
+          line-height: 1.1;
           color: var(--ink);
-          margin: 0;
+          margin: 6px 0 0;
         }
         .hero__rail-blurb {
           margin: 0;
-          font-size: 13px;
-          line-height: 1.5;
+          font-size: 14.5px;
+          line-height: 1.55;
           color: var(--ink-soft);
+          max-width: 36ch;
         }
         /* Solid ink-filled CTA card. Anchored to the bottom of the rail
            via margin-top:auto so it acts as the closing element of the
