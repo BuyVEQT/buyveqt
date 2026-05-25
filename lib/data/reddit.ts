@@ -12,15 +12,16 @@ export interface RedditPost {
 }
 
 export interface SubredditStats {
+  /** Total all-time subscriber count. Source: Reddit /about endpoint. */
   subscribers: number;
+  /** Users currently active in the sub. Source: Reddit /about endpoint. */
   activeUsers: number | null;
-  /** Posts in the last 24 hours. Derived client-/page-side from `hotPosts`
-   *  when the Reddit about endpoint doesn't surface it. */
-  postsToday?: number;
-  /** New subscribers in the last 7 days. Reddit's about endpoint doesn't
-   *  expose this; left optional and hidden when unavailable. */
-  newSubscribersThisWeek?: number;
-  /** Average comment count across the active feed (proxy for engagement). */
+  /** Highest score on any top-all-time post on file. Derived page-side
+   *  from the top/all listing. Shows what's resonated with the community
+   *  without misleading when daily volume is low. */
+  topPostScore?: number;
+  /** Average comment count across the active feed (proxy for engagement).
+   *  Derived page-side from `hotPosts`. */
   avgComments?: number;
 }
 
