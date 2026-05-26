@@ -30,16 +30,17 @@ const REDDIT_FETCH_TIMEOUT = 8000;
 const PROXY_BASE = 'https://reddit-api.buyveqt.ca';
 
 /**
- * Last-known-good subscriber count. Used as a baseline when the
- * proxy is unreachable so the community hero never renders a literal
- * "0 members" (which reads as a broken site). Bump this number when
- * we re-deploy and notice the live count has drifted meaningfully.
- *
- * The real count is fetched live from `${PROXY_BASE}/about` on every
- * revalidation (every 30 min via page-level ISR). This constant only
- * kicks in when that fetch fails.
+ * Headers we send to the Cloudflare Worker proxy. Vercel's Node
+ * serverless `fetch` (undici) sends a `node` User-Agent by default;
+ * identifying ourselves explicitly avoids any chance the proxy or
+ * an intermediate CDN config flags the hop as bot traffic. The
+ * Worker forwards its own UA to Reddit, so this only governs the
+ * Vercel→CF leg.
  */
-const BASELINE_SUBSCRIBERS = 6180;
+const PROXY_HEADERS = {
+  'User-Agent': 'buyveqt-web/1.0 (+https://buyveqt.ca)',
+  Accept: 'application/json',
+};
 
 /* ── Reddit response parser ──────────────────────────────── */
 function parseRedditListing(json: Record<string, unknown>): RedditPost[] {
@@ -79,7 +80,7 @@ async function getRedditPostsRss(sort: string): Promise<RedditPost[]> {
     const rssUrl = `https://www.reddit.com/r/${SUBREDDIT}/${sort}.rss`;
     const res = await fetch(
       `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`,
-      { next: { revalidate: 600 } }
+      { cache: 'no-store' }
     );
     if (!res.ok) return [];
 
@@ -120,9 +121,16 @@ export async function getRedditPosts(
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), REDDIT_FETCH_TIMEOUT);
 
+    // `cache: 'no-store'` deliberately bypasses Next's data cache.
+    // The cache layer had been holding poisoned empty responses
+    // across revalidations whenever the proxy fetch failed once —
+    // locking the pulse strip on zeros for hours. CDN-level caching
+    // on the page response is the right place for HTTP caching;
+    // the data layer should always hit live.
     const res = await fetch(url, {
       signal: controller.signal,
-      next: { revalidate: 600 },
+      cache: 'no-store',
+      headers: PROXY_HEADERS,
     });
     clearTimeout(timeout);
 
@@ -147,48 +155,51 @@ export async function getRedditPosts(
 }
 
 /**
- * Returns subreddit-level stats. Always returns a non-null object —
- * falls back to the `BASELINE_SUBSCRIBERS` constant if the proxy
- * fetch fails, so the community hero never renders "0 members"
- * during a proxy outage. `activeUsers` stays nullable because
- * Reddit's `/about` no longer reliably populates `accounts_active`
- * for unauthenticated requests, and the hero already handles a
- * null/0 value by showing "—" instead of a literal zero.
+ * Subreddit-level stats from the Cloudflare Worker proxy. On any
+ * failure (timeout, non-2xx, malformed body) returns
+ * `{ subscribers: 0, activeUsers: null }` — no hardcoded
+ * last-known-good number. The community hero's `CommunityHero`
+ * client component will refetch the same data on mount via the
+ * `/api/reddit` Edge route (which is what already works for the
+ * post feed), so even if Node serverless can't reach the proxy at
+ * SSR, the user sees live numbers within a second of hydration.
+ *
+ * `activeUsers` stays nullable because Reddit's `/about` no longer
+ * reliably populates `accounts_active` for unauthenticated requests.
  */
 export async function getSubredditStats(): Promise<SubredditStats> {
+  const empty: SubredditStats = { subscribers: 0, activeUsers: null };
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), REDDIT_FETCH_TIMEOUT);
 
     const res = await fetch(`${PROXY_BASE}/about`, {
       signal: controller.signal,
-      next: { revalidate: 1800 },
+      cache: 'no-store',
+      headers: PROXY_HEADERS,
     });
     clearTimeout(timeout);
     if (!res.ok) {
-      console.warn(`[reddit] proxy /about returned HTTP ${res.status}; using baseline`);
-      return { subscribers: BASELINE_SUBSCRIBERS, activeUsers: null };
+      console.warn(`[reddit] proxy /about returned HTTP ${res.status}`);
+      return empty;
     }
 
     const json = await res.json();
     const data = json?.data;
     if (!data) {
-      console.warn('[reddit] proxy /about returned no data; using baseline');
-      return { subscribers: BASELINE_SUBSCRIBERS, activeUsers: null };
+      console.warn('[reddit] proxy /about returned no data');
+      return empty;
     }
     const subs = data.subscribers as number | undefined;
     return {
-      // Even if the response is missing `subscribers`, prefer the
-      // baseline over a literal 0 — a 0 here reads as a broken site,
-      // a slightly stale baseline reads as "we're still here".
-      subscribers: typeof subs === 'number' && subs > 0 ? subs : BASELINE_SUBSCRIBERS,
+      subscribers: typeof subs === 'number' ? subs : 0,
       activeUsers: (data.accounts_active as number) ?? null,
     };
   } catch (err) {
     console.warn(
-      '[reddit] proxy /about fetch failed; using baseline:',
+      '[reddit] proxy /about fetch failed:',
       err instanceof Error ? err.message : String(err)
     );
-    return { subscribers: BASELINE_SUBSCRIBERS, activeUsers: null };
+    return empty;
   }
 }

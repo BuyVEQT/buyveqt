@@ -207,8 +207,33 @@ export async function GET() {
 
   const finalPosts = gotData ? posts : postsCache.data;
 
+  // Enrich stats with the same derived pulse numbers the community
+  // hero needs (topPostScore, avgComments). Done here so the hero
+  // can populate every number from one /api/reddit call instead of
+  // re-fetching the proxy from the client. The math mirrors what
+  // `deriveLiveStats` in app/community/page.tsx does server-side.
+  const trendingForStats: RedditPost[] = finalPosts.trending ?? [];
+  const topForStats: RedditPost[] = finalPosts.top ?? [];
+
+  const realScores = topForStats.map((p) => p.score).filter((s) => s > 0);
+  const topPostScore =
+    realScores.length > 0 ? Math.max(...realScores) : undefined;
+
+  const withComments = trendingForStats.filter((p) => p.commentCount > 0);
+  const avgComments =
+    withComments.length > 0
+      ? Math.round(
+          withComments.reduce((sum, p) => sum + p.commentCount, 0) /
+            withComments.length
+        )
+      : undefined;
+
+  const enrichedStats = stats
+    ? { ...stats, topPostScore, avgComments }
+    : null;
+
   return NextResponse.json(
-    { posts: finalPosts, stats, cached: !gotData },
+    { posts: finalPosts, stats: enrichedStats, cached: !gotData },
     { headers: { 'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=300' } }
   );
 }

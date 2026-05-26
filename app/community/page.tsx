@@ -84,9 +84,12 @@ export default async function CommunityPage() {
 
   const hot = hotResult.status === "fulfilled" ? hotResult.value : [];
   const topAll = topResult.status === "fulfilled" ? topResult.value : [];
-  // `getSubredditStats` now always resolves to an object (baseline
-  // fallback inside the function), so this is a defensive guard for
-  // the unreachable rejected branch only.
+  // `getSubredditStats` always resolves (it swallows errors and
+  // returns `{ subscribers: 0, activeUsers: null }` on failure), so
+  // this is just a defensive guard for the unreachable rejected
+  // branch. CommunityHero will refetch live stats client-side from
+  // `/api/reddit` regardless, so even a zero here gets corrected
+  // within a second of hydration.
   const stats =
     statsResult.status === "fulfilled"
       ? statsResult.value
