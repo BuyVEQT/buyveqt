@@ -40,6 +40,7 @@ const ARTICLE_ORDER = [
   "veqt-distributions-explained",
   "veqt-vs-vgro",
   "veqt-vs-vfv",
+  "veqt-vs-cage",
   "veqt-is-down",
   "veqt-tfsa-rrsp-taxable",
   "veqt-in-your-fhsa",
