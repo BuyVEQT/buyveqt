@@ -184,7 +184,7 @@ export default function CalcTabs({ value, onChange }: CalcTabsProps) {
         .calc-tab.is-active {
           background: var(--band-ink);
           border-color: var(--band-ink);
-          color: var(--paper-light);
+          color: var(--band-paper);
         }
         .calc-tab.is-active::before {
           content: "";
@@ -238,7 +238,7 @@ export default function CalcTabs({ value, onChange }: CalcTabsProps) {
           white-space: nowrap;
         }
         .calc-tab.is-active .calc-tab__sub {
-          color: rgba(246, 239, 220, 0.65);
+          color: var(--on-band-mute);
         }
         .calc-tab__chev {
           display: inline-flex;

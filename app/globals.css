@@ -87,11 +87,22 @@
    * `--ink` and `--paper` swap in dark mode (ink becomes cream).
    * The editorial "dark band" motif (verdict cards, dark headers,
    * newsletter strip, calculator hat) must stay ink-on-cream
-   * regardless of theme. These two tokens are intentionally NOT
+   * regardless of theme. These tokens are intentionally NOT
    * overridden in [data-theme="dark"] so they remain stable.
    * Source values mirror the light-mode --ink and --paper.        */
   --band-ink: #0f0d0a;
   --band-paper: #f6efdc;
+  /* "On-band" tints — text/rules sitting *on top of* a dark slab.
+     Always reference these instead of hardcoding rgba(246,239,220,X)
+     so the slab stays visually identical in both themes. */
+  --on-band-soft: rgba(246, 239, 220, 0.78);
+  --on-band-mute: rgba(246, 239, 220, 0.55);
+  --on-band-faint: rgba(246, 239, 220, 0.35);
+  --on-band-rule: rgba(246, 239, 220, 0.18);
+  --on-band-hair: rgba(246, 239, 220, 0.10);
+  /* Brass hairline overlay for the dark slab in Late Edition —
+     anchors its edge against the espresso page bg. Inert in light. */
+  --shadow-band: none;
 
   /* ── Editorial chart accents ────────────────────────────────
    * Used across MDX charts and callouts for the "data orange"
@@ -125,59 +136,91 @@
   --color-accent: #a67c2e;
 }
 
-/* ── Dark mode ─────────────────────────────────────────────── *
- * INTENTIONALLY RETAINED — currently inert.
+/* ── Dark mode — "Late Edition" ────────────────────────────── *
+ * Warm dark, not pure black. Background is espresso (#1a1612),
+ * text is parchment (#ece4cf). Vermilion lifts to a warmer
+ * coral (#e07a5f) and signal-green to sage (#7fb98a) so brand
+ * identity survives the night shift while contrast stays legible.
  *
- * Round 4 polish ships light-only (see the `data-theme="light"` lock
- * in app/layout.tsx). This block is preserved as the source of truth
- * for the eventual dark-mode re-enable, after the D2 contrast audit.
- * The architecture (ThemeProvider, var() tokens) stays in place; only
- * the runtime selector is pinned. Do not delete without coordinating
- * with the dark-mode reactivation work.
- *
- * Note: --band-ink and --band-paper are intentionally NOT overridden
- * here — the dark-band motif must stay ink-on-cream regardless of
- * theme. See the :root block above.
+ * The dark slab tokens (--band-ink / --band-paper / --on-band-*)
+ * are intentionally NOT overridden — the Almanac, Methodology,
+ * FIRE-result, and Lookback-result slabs must look identical in
+ * both editions. In dark mode they get a 1px brass hairline via
+ * --shadow-band so their edge doesn't blend into the espresso bg.
  * ───────────────────────────────────────────────────────────── */
 
 [data-theme="dark"] {
-  --color-base: #0c0e18;
-  --color-base-warm: #111422;
-  --color-card: #161a2a;
-  --color-card-hover: #1c2034;
-  --color-border: #272b3d;
-  --color-border-light: #343950;
-  --color-text-primary: #e8e6e1;
-  --color-text-secondary: #b5b2ad;
-  --color-text-muted: #6e6b78;
-  --color-positive: #4dd88a;
-  --color-positive-bg: rgba(77, 216, 138, 0.10);
-  --color-negative: #f47080;
-  --color-negative-bg: rgba(244, 112, 128, 0.10);
-  --color-brand: #e8485c;
-  --color-brand-dark: #d63a4e;
-  --color-chart-line: #6ea8e6;
-  --color-chart-fill: rgba(110, 168, 230, 0.08);
-  --color-accent: #d4a94e;
+  /* Round-4 compatibility shims for the tailwind --color-* utilities. */
+  --color-base: #1a1612;
+  --color-base-warm: #221c17;
+  --color-card: #221c17;
+  --color-card-hover: #2a221b;
+  --color-border: rgba(184, 166, 110, 0.22);
+  --color-border-light: rgba(184, 166, 110, 0.32);
+  --color-text-primary: #ece4cf;
+  --color-text-secondary: #c9bfa5;
+  --color-text-muted: #8a8170;
+  --color-positive: #7fb98a;
+  --color-positive-bg: rgba(127, 185, 138, 0.12);
+  --color-negative: #e07a5f;
+  --color-negative-bg: rgba(224, 122, 95, 0.12);
+  --color-brand: #e07a5f;
+  --color-brand-dark: #cf6a4f;
+  --color-chart-line: #c9bfa5;
+  --color-chart-fill: rgba(201, 191, 165, 0.08);
+  --color-accent: #d4b574;
 
-  /* Round 4: editorial tokens in dark mode.
-     Mirror the [data-broadsheet] inversion so cards on a dark page bg
-     still feel papery-but-darker, and the dark band remains pure ink. */
-  --ink: #ebe2cc;
-  --ink-soft: #c9c0a8;
-  --ink-mute: #948b76;
-  --ink-faint: #6e6b78;
-  --paper: #0a0a0d;
-  --paper-deep: #141318;
-  --paper-light: #14161f;
-  --paper-warm: #1a1d28;
-  --rule: #735f3c;
-  --rule-soft: rgba(115, 95, 60, 0.45);
-  --stamp: #e0665e;
-  --stamp-soft: rgba(224, 102, 94, 0.18);
-  --green: #5ec989;
-  --green-soft: rgba(94, 201, 137, 0.14);
-  --amber: #d4a94e;
+  /* Editorial broadsheet palette — Late Edition */
+  --ink: #ece4cf;
+  --ink-soft: #c9bfa5;
+  --ink-mute: #8a8170;
+  --ink-faint: #5e574a;
+  --paper: #1a1612;
+  --paper-deep: #120e0a;
+  --paper-light: #221c17;
+  --paper-warm: #2a221b;
+  --rule: #8a7a4d;
+  --rule-soft: rgba(138, 122, 77, 0.45);
+  --rule-hair: rgba(138, 122, 77, 0.30);
+  --stamp: #e07a5f;
+  --stamp-soft: rgba(224, 122, 95, 0.16);
+  --print-green: #7fb98a;
+  --print-red: #e07a5f;
+  --green: #7fb98a;
+  --green-soft: rgba(127, 185, 138, 0.14);
+  --amber: #d4b574;
+  --color-chart-orange: #f0a060;
+  --color-chart-orange-soft: rgba(240, 160, 96, 0.14);
+
+  /* Brass hairline so the dark slab's edge stays visible
+     against the espresso page background. */
+  --shadow-band: 0 0 0 1px rgba(184, 166, 110, 0.28);
+}
+
+/* Auto: respect the OS preference on first paint when no
+   localStorage value has been set yet. The no-FOUC head script
+   resolves auto → light/dark synchronously, but this fallback
+   covers the (rare) case where JS is disabled. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+  }
+}
+
+/* Force light when printing — nobody prints a black newspaper. */
+@media print {
+  :root,
+  [data-theme="dark"] {
+    color-scheme: light;
+    --color-base: #ffffff;
+    --paper: #ffffff;
+    --paper-light: #ffffff;
+    --paper-warm: #f7f5f0;
+    --paper-deep: #f0ece4;
+    --ink: #000000;
+    --ink-soft: #1f2937;
+    --ink-mute: #4b5563;
+  }
 }
 
 /* ── Base ──────────────────────────────────────────────────── */
@@ -188,6 +231,16 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Smooth theme swap. Only body — animating shadows/borders
+     globally looks junky. Everything else inherits the new var
+     values instantly. */
+  transition: background-color 220ms ease, color 220ms ease;
+}
+
+/* Skip the body transition during the first paint so the no-FOUC
+   script's data-theme write doesn't fade in the page background. */
+html:not(.theme-ready) body {
+  transition: none;
 }
 
 /* Film grain overlay — subtle texture */

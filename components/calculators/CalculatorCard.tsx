@@ -163,7 +163,7 @@ export default function CalculatorCard<I>({
           margin-bottom: 22px;
         }
         .calc__stamp {
-          color: var(--paper-light);
+          color: var(--band-paper);
           background: var(--stamp);
           padding: 5px 12px 4px;
           letter-spacing: 0.22em;
@@ -217,10 +217,10 @@ export default function CalculatorCard<I>({
           margin-bottom: 10px;
         }
         .calc__result-stamp + :global(.anum) {
-          color: var(--paper);
+          color: var(--band-paper);
         }
         .calc__result--dark :global(.anum) {
-          color: var(--paper);
+          color: var(--band-paper);
         }
         .calc__chart-wrap {
           padding: 22px 28px 18px;
@@ -273,7 +273,7 @@ export default function CalculatorCard<I>({
           font-size: clamp(1.4rem, 2.4vw, 1.7rem);
           line-height: 1.05;
           letter-spacing: -0.015em;
-          color: var(--paper);
+          color: var(--band-paper);
           font-variant-numeric: tabular-nums lining-nums;
         }
         .calc__inputs {

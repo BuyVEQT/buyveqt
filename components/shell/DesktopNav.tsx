@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import LiveTickerPill from "./LiveTickerPill";
+import ThemeToggle from "./ThemeToggle";
 
 type NavId = "today" | "inside" | "compare" | "learn" | "calc" | "comm";
 
@@ -142,6 +143,7 @@ export default function DesktopNav() {
               {l.label}
             </Link>
           ))}
+          <ThemeToggle />
         </div>
       </div>
     </nav>

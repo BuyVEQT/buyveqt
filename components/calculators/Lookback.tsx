@@ -456,7 +456,7 @@ export default function Lookback({ history }: LookbackProps) {
           margin-bottom: 22px;
         }
         .lookback__stamp {
-          color: var(--paper-light);
+          color: var(--band-paper);
           background: var(--stamp);
           padding: 5px 12px 4px;
           letter-spacing: 0.22em;
@@ -504,7 +504,7 @@ export default function Lookback({ history }: LookbackProps) {
           background: var(--stamp);
         }
         .lookback__result--dark :global(.anum) {
-          color: var(--paper);
+          color: var(--band-paper);
         }
         .lookback__result-stamp {
           color: rgba(246, 239, 220, 0.55);
@@ -558,7 +558,7 @@ export default function Lookback({ history }: LookbackProps) {
           font-weight: 500;
           font-size: clamp(1.6rem, 2.6vw, 2rem);
           line-height: 1;
-          color: var(--paper);
+          color: var(--band-paper);
           letter-spacing: -0.02em;
           font-variant-numeric: tabular-nums lining-nums;
         }

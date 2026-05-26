@@ -4,7 +4,7 @@ import { Newsreader, Inter, Fraunces } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
-import ThemeProvider from "@/components/ThemeProvider";
+import ThemeProvider, { NoFoucThemeScript } from "@/components/ThemeProvider";
 import DesktopNav from "@/components/shell/DesktopNav";
 import TopBar from "@/components/shell/TopBar";
 import TabBar from "@/components/shell/TabBar";
@@ -135,12 +135,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" data-theme="light" className={`${newsreader.variable} ${inter.variable} ${fraunces.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${newsreader.variable} ${inter.variable} ${fraunces.variable}`} suppressHydrationWarning>
       <head>
-        {/* Dark mode disabled for the Round 4 polish pass. Light is the only
-            supported theme until we audit dark-mode contrast across all D2
-            pages. ThemeProvider stays mounted (no-op) so the architecture
-            remains in place for a later re-enable. */}
+        {/* No-FOUC theme init — MUST run before globals.css loads.
+            Reads localStorage.veqt-theme, resolves "auto" via
+            prefers-color-scheme, and writes data-theme on <html>
+            synchronously so dark-mode users don't see a cream flash
+            on cold loads. */}
+        <NoFoucThemeScript />
       </head>
       <body className="min-h-screen bg-[var(--color-base)] text-[var(--color-text-primary)]">
         <JsonLd

@@ -152,7 +152,7 @@ export default function NewsletterCard({ compact = false }: NewsletterCardProps 
           flex-wrap: wrap;
         }
         .news-v2__masthead {
-          color: var(--paper);
+          color: var(--band-paper);
           letter-spacing: 0.24em;
         }
         .news-v2__edition {
@@ -180,7 +180,7 @@ export default function NewsletterCard({ compact = false }: NewsletterCardProps 
         .news-v2__h2 {
           font-size: clamp(1.7rem, 3vw, 2.3rem);
           line-height: 1.1;
-          color: var(--paper);
+          color: var(--band-paper);
           margin: 0 0 14px;
           max-width: 14ch;
         }
@@ -234,7 +234,7 @@ export default function NewsletterCard({ compact = false }: NewsletterCardProps 
           font-style: italic;
           font-size: 16px;
           line-height: 1.5;
-          color: var(--paper);
+          color: var(--band-paper);
           margin: 14px 0 8px;
         }
         .news-v2__quote-byline {
@@ -288,7 +288,7 @@ export default function NewsletterCard({ compact = false }: NewsletterCardProps 
           border-radius: 999px;
           font-family: var(--font-serif);
           font-size: 15px;
-          color: var(--paper);
+          color: var(--band-paper);
           outline: none;
           transition: border-color 0.18s, background 0.18s;
         }
@@ -303,7 +303,7 @@ export default function NewsletterCard({ compact = false }: NewsletterCardProps 
           appearance: none;
           padding: 14px 22px;
           background: var(--stamp);
-          color: var(--paper-light);
+          color: var(--band-paper);
           border: 0;
           border-radius: 999px;
           font-family: var(--font-sans);
@@ -324,7 +324,7 @@ export default function NewsletterCard({ compact = false }: NewsletterCardProps 
           transform: translateX(2px);
         }
         .news-v2__submit-arrow {
-          color: var(--paper-light);
+          color: var(--band-paper);
           font-size: 14px;
         }
 
@@ -337,7 +337,7 @@ export default function NewsletterCard({ compact = false }: NewsletterCardProps 
           text-underline-offset: 2px;
         }
         .news-v2__legal a:hover {
-          color: var(--paper);
+          color: var(--band-paper);
         }
       `}</style>
     </section>
