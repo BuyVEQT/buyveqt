@@ -6,10 +6,11 @@ import { FUNDS } from "@/data/funds";
 import { fundColor } from "@/lib/styles";
 import { getCached, setCache } from "@/lib/cache";
 
-export type ComparePeriod = "1Y" | "5Y" | "ALL";
-const PERIOD_KEYS: ComparePeriod[] = ["1Y", "5Y", "ALL"];
+export type ComparePeriod = "6M" | "1Y" | "5Y" | "ALL";
+const PERIOD_KEYS: ComparePeriod[] = ["6M", "1Y", "5Y", "ALL"];
 
 const PERF_PERIOD_SUB: Record<ComparePeriod, string> = {
+  "6M": "Past 6 months, total return",
   "1Y": "Past 12 months, total return",
   "5Y": "Past 5 years, total return",
   ALL: "Since the youngest fund's inception",

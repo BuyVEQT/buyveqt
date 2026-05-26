@@ -54,7 +54,9 @@ export async function GET(
   const revalidateTime = ["6M", "1Y", "3Y", "5Y", "ALL"].includes(range) ? 86400 : 3600;
 
   try {
-    const outputsize: "compact" | "full" = ["ALL", "3Y", "5Y", "1Y"].includes(range) ? "full" : "compact";
+    // 6M needs full because compact tops out around 100 trading days,
+    // which is roughly 4.5 months — short of the 6-month window.
+    const outputsize: "compact" | "full" = ["ALL", "3Y", "5Y", "1Y", "6M"].includes(range) ? "full" : "compact";
     const historyData = await getDailyHistory(symbol, outputsize);
 
     const cutoff = getStartDate(range);
