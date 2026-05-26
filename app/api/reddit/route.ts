@@ -6,6 +6,7 @@ export const runtime = 'edge';
 const SUBREDDIT = 'JustBuyVEQT';
 const REDDIT_TIMEOUT = 8000;
 const UA = 'web:BuyVEQT:1.0 (by /u/buyveqt)';
+const PROXY_BASE = 'https://reddit-api.buyveqt.ca';
 
 /* ── OAuth token management ──────────────────────────────────
  *
@@ -162,7 +163,60 @@ async function fetchStatsOAuth(token: string): Promise<SubredditStats | null> {
   }
 }
 
-/* ── Tier 2: Public JSON API ─────────────────────────────── */
+/* ── Tier 2: Cloudflare Worker proxy ──────────────────────── */
+async function fetchPostsProxy(
+  sort: string,
+  limit: number,
+  timeFilter?: string
+): Promise<RedditPost[]> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REDDIT_TIMEOUT);
+
+  let url = `${PROXY_BASE}/${sort}?limit=${limit}`;
+  if (sort === 'top' && timeFilter) url += `&t=${timeFilter}`;
+
+  try {
+    const res = await fetch(url, {
+      signal: controller.signal,
+      cache: 'no-store',
+    });
+    clearTimeout(timeout);
+    if (!res.ok) return [];
+    return parseRedditListing(await res.json());
+  } catch {
+    clearTimeout(timeout);
+    return [];
+  }
+}
+
+async function fetchStatsProxy(): Promise<SubredditStats | null> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REDDIT_TIMEOUT);
+
+  try {
+    const res = await fetch(`${PROXY_BASE}/about`, {
+      signal: controller.signal,
+      cache: 'no-store',
+    });
+    clearTimeout(timeout);
+    if (!res.ok) return null;
+
+    const json = await res.json();
+    const data = json?.data;
+    if (!data || typeof data.subscribers !== 'number' || data.subscribers === 0) {
+      return null;
+    }
+    return {
+      subscribers: data.subscribers as number,
+      activeUsers: (data.accounts_active as number) ?? null,
+    };
+  } catch {
+    clearTimeout(timeout);
+    return null;
+  }
+}
+
+/* ── Tier 3: Public JSON API ─────────────────────────────── */
 async function fetchPostsPublic(
   sort: string,
   limit: number,
@@ -218,7 +272,7 @@ async function fetchStatsPublic(): Promise<SubredditStats | null> {
   }
 }
 
-/* ── Tier 3: RSS fallback via rss2json (always works, no scores) ── */
+/* ── Tier 4: RSS fallback via rss2json (always works, no scores) ── */
 interface Rss2JsonItem {
   title: string;
   pubDate: string;
@@ -260,7 +314,13 @@ async function fetchPostsRss(sort: string): Promise<RedditPost[]> {
   }
 }
 
-/* ── Fetch with 3-tier fallback ──────────────────────────── */
+/* ── Fetch with 4-tier fallback ────────────────────────────
+ *
+ * 1. OAuth (requires REDDIT_CLIENT_ID + REDDIT_CLIENT_SECRET env vars)
+ * 2. Cloudflare Worker proxy at reddit-api.buyveqt.ca
+ * 3. Direct public JSON at old.reddit.com (usually blocked from Vercel)
+ * 4. RSS via rss2json (always works but no scores/comments)
+ */
 async function fetchPosts(
   sort: string,
   limit: number,
@@ -271,6 +331,8 @@ async function fetchPosts(
     const posts = await fetchPostsOAuth(token, sort, limit, timeFilter);
     if (posts.length > 0) return posts;
   }
+  const proxyPosts = await fetchPostsProxy(sort, limit, timeFilter);
+  if (proxyPosts.length > 0) return proxyPosts;
   const publicPosts = await fetchPostsPublic(sort, limit, timeFilter);
   if (publicPosts.length > 0) return publicPosts;
   return fetchPostsRss(sort);
@@ -282,6 +344,8 @@ async function fetchStats(): Promise<SubredditStats | null> {
     const stats = await fetchStatsOAuth(token);
     if (stats) return stats;
   }
+  const proxyStats = await fetchStatsProxy();
+  if (proxyStats) return proxyStats;
   return fetchStatsPublic();
 }
 
