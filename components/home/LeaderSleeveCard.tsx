@@ -53,7 +53,10 @@ export default function LeaderSleeveCard({
       className="leader-link"
       aria-label={`Leader: ${regionName} — view inside VEQT details`}
     >
-      <article className="leader">
+      <article
+        className="leader"
+        style={{ ["--card-accent" as string]: tone }}
+      >
         <div className="leader__chrome">
           <span className="leader__badge">
             <span className="leader__badge-dot" aria-hidden />
@@ -126,7 +129,9 @@ export default function LeaderSleeveCard({
           .leader-link:hover .leader {
             transform: translateY(-2px);
             border-color: var(--rule);
-            box-shadow: 0 14px 32px rgba(15, 13, 10, 0.08);
+            box-shadow:
+              inset 5px 0 0 0 var(--card-accent),
+              0 16px 36px rgba(15, 13, 10, 0.10);
           }
           .leader {
             position: relative;
@@ -134,18 +139,24 @@ export default function LeaderSleeveCard({
             background: var(--paper-light);
             border: 1px solid var(--rule-soft);
             border-radius: 22px;
-            padding: 28px 30px 22px;
+            /* Splash: 5px region-toned accent on the left edge, plus a soft
+               drop-shadow for elevation. The inset shadow is clipped by the
+               border-radius so the stripe inherits the card's rounded corners. */
+            box-shadow:
+              inset 5px 0 0 0 var(--card-accent),
+              0 2px 6px rgba(15, 13, 10, 0.05);
+            padding: 22px 26px 18px 28px;
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            gap: 18px;
+            gap: 14px;
             height: 100%;
             min-height: 100%;
           }
           @media (min-width: 1024px) {
             .leader {
-              padding: 32px 36px 26px;
-              gap: 20px;
+              padding: 26px 30px 22px 34px;
+              gap: 16px;
             }
           }
           .leader__chrome {
@@ -190,8 +201,8 @@ export default function LeaderSleeveCard({
             color: var(--ink-mute);
           }
           .leader__name {
-            margin: 2px 0 4px;
-            font-size: clamp(2.8rem, 6vw, 4.6rem);
+            margin: 0;
+            font-size: clamp(2.4rem, 5vw, 3.8rem);
             line-height: 0.98;
             letter-spacing: -0.028em;
             color: var(--ink);
@@ -199,9 +210,9 @@ export default function LeaderSleeveCard({
           .leader__numbers {
             display: grid;
             grid-template-columns: auto auto;
-            gap: 32px;
+            gap: 28px;
             align-items: end;
-            margin-top: 2px;
+            margin-top: 0;
           }
           @media (max-width: 520px) {
             .leader__numbers {
@@ -211,7 +222,7 @@ export default function LeaderSleeveCard({
             }
           }
           .leader__pct {
-            font-size: clamp(3.2rem, 6.5vw, 4.6rem);
+            font-size: clamp(2.8rem, 5.4vw, 4rem);
             line-height: 0.92;
             letter-spacing: -0.035em;
             font-weight: 500;
@@ -257,7 +268,7 @@ export default function LeaderSleeveCard({
           }
           .leader__spark {
             margin-top: auto;
-            padding-top: 12px;
+            padding-top: 10px;
             border-top: 1px solid var(--rule-soft);
           }
           .leader__spark-cap {
@@ -265,7 +276,7 @@ export default function LeaderSleeveCard({
             font-style: italic;
             font-size: 12px;
             color: var(--ink-mute);
-            margin-top: 6px;
+            margin-top: 4px;
           }
         `}</style>
       </article>

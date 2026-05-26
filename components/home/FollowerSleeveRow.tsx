@@ -51,7 +51,10 @@ export default function FollowerSleeveRow({
       className="follower-link"
       aria-label={`${regionName} — view inside VEQT details`}
     >
-      <article className="follower">
+      <article
+        className="follower"
+        style={{ ["--card-accent" as string]: tone }}
+      >
         <div className="follower__id">
           <span className="follower__rank ed-numerals">{rank}</span>
           <div className="follower__id-text">
@@ -114,18 +117,25 @@ export default function FollowerSleeveRow({
           .follower-link:hover .follower {
             transform: translateY(-2px);
             border-color: var(--rule);
-            box-shadow: 0 8px 18px rgba(15, 13, 10, 0.06);
+            box-shadow:
+              inset 4px 0 0 0 var(--card-accent),
+              0 10px 22px rgba(15, 13, 10, 0.08);
           }
           .follower {
             position: relative;
             background: var(--paper-light);
             border: 1px solid var(--rule-soft);
             border-radius: 16px;
-            padding: 16px 18px;
+            /* Splash: 4px region-toned accent on the left edge (matches
+               leader card pattern at a smaller scale) + soft elevation. */
+            box-shadow:
+              inset 4px 0 0 0 var(--card-accent),
+              0 1px 4px rgba(15, 13, 10, 0.04);
+            padding: 12px 16px 12px 20px;
             overflow: hidden;
             display: grid;
             grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-            gap: 14px;
+            gap: 12px;
             align-items: center;
             height: 100%;
             min-height: 100%;
@@ -203,7 +213,7 @@ export default function FollowerSleeveRow({
             .follower {
               grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
               gap: 10px;
-              padding: 14px 16px;
+              padding: 11px 14px 11px 18px;
             }
             .follower__spark {
               max-width: 120px;
