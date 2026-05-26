@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import InteriorShell from "@/components/broadsheet/InteriorShell";
-import DistributionChart from "@/components/distributions/DistributionChart";
+// DistributionChart loaded via a client-only wrapper to suppress the
+// recharts "width(-1) and height(-1)" SSG warning and shave the
+// recharts payload off the initial server render. See the wrapper for
+// details.
+import DistributionChart from "@/components/distributions/DistributionChartClient";
 import IncomeEstimator from "@/components/distributions/IncomeEstimator";
 import DistributionStats from "@/components/distributions/DistributionStats";
 import StakeDefault from "@/components/distributions/StakeDefault";

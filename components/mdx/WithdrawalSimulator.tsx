@@ -11,6 +11,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { formatDollars, GRID_PROPS, AXIS_PROPS, ChartTooltipWrapper } from "@/lib/chart-utils";
+import ClientOnlyChart from "@/components/charts/ClientOnlyChart";
 
 const STRATEGIES = [
   { id: "constant", label: "Constant dollar", description: "Withdraw the same dollar amount each year, adjusted for inflation" },
@@ -191,8 +192,9 @@ export function WithdrawalSimulator() {
         </p>
       </div>
 
-      {/* Chart */}
+      {/* Chart — gated past hydration to suppress recharts SSG warning */}
       <div className="h-56 sm:h-64 mb-3">
+        <ClientOnlyChart height={256}>
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={chartData}>
             <CartesianGrid {...GRID_PROPS} />
@@ -257,6 +259,7 @@ export function WithdrawalSimulator() {
             />
           </AreaChart>
         </ResponsiveContainer>
+        </ClientOnlyChart>
       </div>
 
       {/* Depletion warning */}

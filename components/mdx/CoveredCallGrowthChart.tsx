@@ -16,6 +16,7 @@ import {
   GRID_PROPS,
   AXIS_PROPS,
 } from "@/lib/chart-utils";
+import ClientOnlyChart from "@/components/charts/ClientOnlyChart";
 
 const STRATEGIES = [
   { key: "veqt", label: "VEQT (Global Index)", rate: 0.085, color: "var(--color-positive)" },
@@ -152,7 +153,8 @@ export function CoveredCallGrowthChart() {
         })}
       </div>
 
-      {/* Chart */}
+      {/* Chart — gated past hydration to suppress recharts SSG warning */}
+      <ClientOnlyChart height={220}>
       <ResponsiveContainer width="100%" height={220}>
         <AreaChart data={chartData}>
           <CartesianGrid {...GRID_PROPS} />
@@ -196,6 +198,7 @@ export function CoveredCallGrowthChart() {
           />
         </AreaChart>
       </ResponsiveContainer>
+      </ClientOnlyChart>
 
       <p className="mt-4 text-[11px] text-[var(--color-text-muted)]">
         Illustrative hypothetical returns only. Assumes 8.5% (global index), 6.8% (dividend ETF), and 5.2% (covered call ETF) annualized returns compounded annually. Actual returns vary and past performance does not predict future results.

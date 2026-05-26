@@ -16,6 +16,7 @@ import {
   GRID_PROPS,
   AXIS_PROPS,
 } from "@/lib/chart-utils";
+import ClientOnlyChart from "@/components/charts/ClientOnlyChart";
 
 const VEQT_FEE = 0.0020; // 0.20%
 const ROBO_FEE = 0.0070; // 0.70%
@@ -179,7 +180,10 @@ export function FeeCalculator() {
         over {years} years.
       </p>
 
-      {/* Chart */}
+      {/* Chart — ClientOnlyChart defers recharts past hydration so
+          the recharts width(-1) SSG warning doesn't fire during the
+          /learn/[slug] article static gen pass. */}
+      <ClientOnlyChart height={220}>
       <ResponsiveContainer width="100%" height={220}>
         <AreaChart data={chartData}>
           <CartesianGrid {...GRID_PROPS} />
@@ -214,6 +218,7 @@ export function FeeCalculator() {
           />
         </AreaChart>
       </ResponsiveContainer>
+      </ClientOnlyChart>
 
       <p className="mt-4 text-[11px] text-[var(--color-text-muted)]">
         Simplified illustration assuming fixed annual returns compounded monthly. VEQT MER ~0.20%, robo-advisor all-in ~0.70%. Actual returns vary. Does not account for taxes or inflation.
