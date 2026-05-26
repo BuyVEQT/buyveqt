@@ -5,7 +5,63 @@ export const runtime = 'edge';
 
 const SUBREDDIT = 'JustBuyVEQT';
 const REDDIT_TIMEOUT = 8000;
-const PROXY_BASE = 'https://reddit-api.buyveqt.ca';
+const UA = 'web:BuyVEQT:1.0 (by /u/buyveqt)';
+
+/* ── OAuth token management ──────────────────────────────────
+ *
+ * App-only OAuth (client_credentials). Bypasses the anonymous-read
+ * blocks Reddit started returning to data-center IPs (including
+ * Cloudflare Workers and Vercel functions). Requires
+ * REDDIT_CLIENT_ID and REDDIT_CLIENT_SECRET env vars on Vercel.
+ *
+ * Module-scope token cache. Edge runtime instances persist for a
+ * while, so warm invocations skip the token fetch (saves ~150ms).
+ * Cold starts fetch a fresh token.
+ */
+let oauthToken: { token: string; expiresAt: number } | null = null;
+
+async function getOAuthToken(): Promise<string | null> {
+  const clientId = process.env.REDDIT_CLIENT_ID;
+  const clientSecret = process.env.REDDIT_CLIENT_SECRET;
+  if (!clientId || !clientSecret) return null;
+
+  if (oauthToken && Date.now() < oauthToken.expiresAt - 60_000) {
+    return oauthToken.token;
+  }
+
+  try {
+    const res = await fetch('https://www.reddit.com/api/v1/access_token', {
+      method: 'POST',
+      headers: {
+        Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'User-Agent': UA,
+      },
+      body: 'grant_type=client_credentials',
+      cache: 'no-store',
+    });
+
+    if (!res.ok) {
+      console.warn(`[reddit-edge] OAuth token HTTP ${res.status}`);
+      return null;
+    }
+
+    const data = await res.json();
+    if (!data.access_token) return null;
+
+    oauthToken = {
+      token: data.access_token,
+      expiresAt: Date.now() + (data.expires_in ?? 3600) * 1000,
+    };
+    return oauthToken.token;
+  } catch (err) {
+    console.warn(
+      '[reddit-edge] OAuth token fetch threw:',
+      err instanceof Error ? err.message : String(err)
+    );
+    return null;
+  }
+}
 
 /* ── In-memory cache ─────────────────────────────────────── */
 interface CacheEntry<T> {
@@ -49,8 +105,9 @@ function parseRedditListing(json: Record<string, unknown>): RedditPost[] {
     });
 }
 
-/* ── Fetch via Cloudflare Worker proxy (full data, always works) ── */
-async function fetchPostsProxy(
+/* ── Tier 1: OAuth API (oauth.reddit.com — not IP-blocked) ── */
+async function fetchPostsOAuth(
+  token: string,
   sort: string,
   limit: number,
   timeFilter?: string
@@ -58,12 +115,13 @@ async function fetchPostsProxy(
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REDDIT_TIMEOUT);
 
-  let url = `${PROXY_BASE}/${sort}?limit=${limit}`;
+  let url = `https://oauth.reddit.com/r/${SUBREDDIT}/${sort}?limit=${limit}&raw_json=1`;
   if (sort === 'top' && timeFilter) url += `&t=${timeFilter}`;
 
   try {
     const res = await fetch(url, {
       signal: controller.signal,
+      headers: { Authorization: `Bearer ${token}`, 'User-Agent': UA },
       cache: 'no-store',
     });
     clearTimeout(timeout);
@@ -75,15 +133,19 @@ async function fetchPostsProxy(
   }
 }
 
-async function fetchStatsProxy(): Promise<SubredditStats | null> {
+async function fetchStatsOAuth(token: string): Promise<SubredditStats | null> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REDDIT_TIMEOUT);
 
   try {
-    const res = await fetch(`${PROXY_BASE}/about`, {
-      signal: controller.signal,
-      cache: 'no-store',
-    });
+    const res = await fetch(
+      `https://oauth.reddit.com/r/${SUBREDDIT}/about`,
+      {
+        signal: controller.signal,
+        headers: { Authorization: `Bearer ${token}`, 'User-Agent': UA },
+        cache: 'no-store',
+      }
+    );
     clearTimeout(timeout);
     if (!res.ok) return null;
 
@@ -100,7 +162,63 @@ async function fetchStatsProxy(): Promise<SubredditStats | null> {
   }
 }
 
-/* ── RSS fallback via rss2json (no scores, but always works) ── */
+/* ── Tier 2: Public JSON API ─────────────────────────────── */
+async function fetchPostsPublic(
+  sort: string,
+  limit: number,
+  timeFilter?: string
+): Promise<RedditPost[]> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REDDIT_TIMEOUT);
+
+  let url = `https://old.reddit.com/r/${SUBREDDIT}/${sort}.json?limit=${limit}&raw_json=1`;
+  if (sort === 'top' && timeFilter) url += `&t=${timeFilter}`;
+
+  try {
+    const res = await fetch(url, {
+      signal: controller.signal,
+      headers: { 'User-Agent': UA, Accept: 'application/json' },
+      cache: 'no-store',
+    });
+    clearTimeout(timeout);
+    if (!res.ok) return [];
+    return parseRedditListing(await res.json());
+  } catch {
+    clearTimeout(timeout);
+    return [];
+  }
+}
+
+async function fetchStatsPublic(): Promise<SubredditStats | null> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REDDIT_TIMEOUT);
+
+  try {
+    const res = await fetch(
+      `https://old.reddit.com/r/${SUBREDDIT}/about.json`,
+      {
+        signal: controller.signal,
+        headers: { 'User-Agent': UA, Accept: 'application/json' },
+        cache: 'no-store',
+      }
+    );
+    clearTimeout(timeout);
+    if (!res.ok) return null;
+
+    const json = await res.json();
+    const data = json?.data;
+    if (!data) return null;
+    return {
+      subscribers: (data.subscribers as number) ?? 0,
+      activeUsers: (data.accounts_active as number) ?? null,
+    };
+  } catch {
+    clearTimeout(timeout);
+    return null;
+  }
+}
+
+/* ── Tier 3: RSS fallback via rss2json (always works, no scores) ── */
 interface Rss2JsonItem {
   title: string;
   pubDate: string;
@@ -142,18 +260,29 @@ async function fetchPostsRss(sort: string): Promise<RedditPost[]> {
   }
 }
 
-/* ── Fetch with fallback ─────────────────────────────────── */
+/* ── Fetch with 3-tier fallback ──────────────────────────── */
 async function fetchPosts(
   sort: string,
   limit: number,
   timeFilter?: string
 ): Promise<RedditPost[]> {
-  // Tier 1: Cloudflare Worker proxy (full data, not blocked)
-  const posts = await fetchPostsProxy(sort, limit, timeFilter);
-  if (posts.length > 0) return posts;
-
-  // Tier 2: RSS (no scores, but always works)
+  const token = await getOAuthToken();
+  if (token) {
+    const posts = await fetchPostsOAuth(token, sort, limit, timeFilter);
+    if (posts.length > 0) return posts;
+  }
+  const publicPosts = await fetchPostsPublic(sort, limit, timeFilter);
+  if (publicPosts.length > 0) return publicPosts;
   return fetchPostsRss(sort);
+}
+
+async function fetchStats(): Promise<SubredditStats | null> {
+  const token = await getOAuthToken();
+  if (token) {
+    const stats = await fetchStatsOAuth(token);
+    if (stats) return stats;
+  }
+  return fetchStatsPublic();
 }
 
 /* ── Route handler ───────────────────────────────────────── */
@@ -166,7 +295,11 @@ export async function GET() {
   if (postsFresh && statsFresh && Object.keys(postsCache.data).length > 0) {
     return NextResponse.json(
       { posts: postsCache.data, stats: statsCache.data, cached: true },
-      { headers: { 'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=300' } }
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=300',
+        },
+      }
     );
   }
 
@@ -175,7 +308,7 @@ export async function GET() {
     fetchPosts('top', 12, 'all'),
   ]);
 
-  // Merge hot + top/all for trending
+  // Merge hot + top/all for trending so we always have 10+ entries
   const seenIds = new Set<string>();
   const trending: RedditPost[] = [];
   for (const post of [...hot, ...topAll]) {
@@ -198,7 +331,7 @@ export async function GET() {
 
   let stats = statsCache.data;
   if (!statsFresh) {
-    const freshStats = await fetchStatsProxy();
+    const freshStats = await fetchStats();
     if (freshStats) {
       stats = freshStats;
       statsCache = { data: freshStats, fetchedAt: now };
@@ -207,11 +340,10 @@ export async function GET() {
 
   const finalPosts = gotData ? posts : postsCache.data;
 
-  // Enrich stats with the same derived pulse numbers the community
+  // Enrich stats with the derived pulse-strip numbers the community
   // hero needs (topPostScore, avgComments). Done here so the hero
-  // can populate every number from one /api/reddit call instead of
-  // re-fetching the proxy from the client. The math mirrors what
-  // `deriveLiveStats` in app/community/page.tsx does server-side.
+  // populates every number from one /api/reddit call. Math mirrors
+  // `deriveLiveStats` in app/community/page.tsx.
   const trendingForStats: RedditPost[] = finalPosts.trending ?? [];
   const topForStats: RedditPost[] = finalPosts.top ?? [];
 
@@ -234,6 +366,10 @@ export async function GET() {
 
   return NextResponse.json(
     { posts: finalPosts, stats: enrichedStats, cached: !gotData },
-    { headers: { 'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=300' } }
+    {
+      headers: {
+        'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=300',
+      },
+    }
   );
 }

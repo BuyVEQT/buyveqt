@@ -90,22 +90,106 @@ async function probe(url: string): Promise<Probe> {
   return result;
 }
 
+async function probeOAuth(): Promise<Probe & { hasCreds?: boolean }> {
+  const clientId = process.env.REDDIT_CLIENT_ID;
+  const clientSecret = process.env.REDDIT_CLIENT_SECRET;
+  const hasCreds = !!(clientId && clientSecret);
+  if (!hasCreds) {
+    return {
+      url: 'oauth.reddit.com (token)',
+      ok: false,
+      hasCreds: false,
+      error: 'REDDIT_CLIENT_ID and/or REDDIT_CLIENT_SECRET env vars are not set on Vercel',
+    };
+  }
+
+  // First: fetch token
+  const start = Date.now();
+  const tokenResult: Probe & { hasCreds?: boolean } = {
+    url: 'oauth.reddit.com (token)',
+    ok: false,
+    hasCreds: true,
+  };
+  try {
+    const tokenRes = await fetch('https://www.reddit.com/api/v1/access_token', {
+      method: 'POST',
+      headers: {
+        Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'User-Agent': HEADERS['User-Agent'],
+      },
+      body: 'grant_type=client_credentials',
+      cache: 'no-store',
+    });
+    tokenResult.status = tokenRes.status;
+    tokenResult.ok = tokenRes.ok;
+    const tokenText = await tokenRes.text();
+    tokenResult.bodyLength = tokenText.length;
+    tokenResult.bodyPreview = tokenText.slice(0, 200);
+    if (tokenRes.ok) {
+      const data = JSON.parse(tokenText);
+      if (data.access_token) {
+        // Then: probe /about with the token
+        const aboutStart = Date.now();
+        const aboutRes = await fetch(
+          'https://oauth.reddit.com/r/JustBuyVEQT/about',
+          {
+            headers: {
+              Authorization: `Bearer ${data.access_token}`,
+              'User-Agent': HEADERS['User-Agent'],
+            },
+            cache: 'no-store',
+          }
+        );
+        const aboutText = await aboutRes.text();
+        tokenResult.error = aboutRes.ok
+          ? undefined
+          : `/about HTTP ${aboutRes.status}`;
+        if (aboutRes.ok) {
+          try {
+            const aboutJson = JSON.parse(aboutText);
+            if (typeof aboutJson?.data?.subscribers === 'number') {
+              tokenResult.subscribers = aboutJson.data.subscribers;
+            }
+          } catch {
+            /* swallow */
+          }
+        }
+        tokenResult.durationMs = Date.now() - aboutStart;
+      } else {
+        tokenResult.error = 'token response missing access_token';
+      }
+    } else {
+      tokenResult.error = `token HTTP ${tokenRes.status}`;
+    }
+  } catch (err) {
+    tokenResult.error =
+      err instanceof Error ? `${err.name}: ${err.message}` : String(err);
+  }
+  if (tokenResult.durationMs == null) {
+    tokenResult.durationMs = Date.now() - start;
+  }
+  return tokenResult;
+}
+
 export async function GET() {
-  // Probe our proxy AND direct Reddit URLs to triangulate where the
-  // failure is: proxy unreachable, Reddit unreachable, or both?
-  const results = await Promise.all([
-    probe(`${PROXY_BASE}/about`),
-    probe(`${PROXY_BASE}/hot?limit=5`),
-    probe(`${PROXY_BASE}/top?limit=5&t=all`),
-    probe(`https://www.reddit.com/r/JustBuyVEQT/about.json`),
-    probe(`https://old.reddit.com/r/JustBuyVEQT/about.json`),
-  ]);
+  // Probe everything in parallel so we can triangulate:
+  //   proxy / direct-anon / OAuth — which path actually works?
+  const [aboutProxy, hotProxy, topProxy, anonWww, anonOld, oauth] =
+    await Promise.all([
+      probe(`${PROXY_BASE}/about`),
+      probe(`${PROXY_BASE}/hot?limit=5`),
+      probe(`${PROXY_BASE}/top?limit=5&t=all`),
+      probe(`https://www.reddit.com/r/JustBuyVEQT/about.json`),
+      probe(`https://old.reddit.com/r/JustBuyVEQT/about.json`),
+      probeOAuth(),
+    ]);
 
   return NextResponse.json({
     runtime: 'nodejs',
     region: process.env.VERCEL_REGION ?? 'unknown',
     nodeVersion: process.version,
     timestamp: new Date().toISOString(),
-    probes: results,
+    probes: { aboutProxy, hotProxy, topProxy, anonWww, anonOld, oauth },
   });
 }
