@@ -39,14 +39,20 @@ export const metadata: Metadata = {
  *
  * `avgComments` is the mean of `commentCount` across posts that have
  * received at least one reply — a proxy for engagement quality.
+ *
+ * Both derived values stay `undefined` when the underlying listing
+ * didn't include real data (e.g. the proxy fell back to RSS, which
+ * doesn't expose scores or comment counts). The hero renders `—`
+ * for undefined/0 values instead of a literal "0" — a broken zero
+ * reads as a bug, a dash reads as "data unavailable right now".
  */
 function deriveLiveStats(
-  base: SubredditStats | null,
+  base: SubredditStats,
   hotPosts: RedditPost[],
   topPosts: RedditPost[]
-): SubredditStats | null {
-  if (!base) return null;
-
+): SubredditStats {
+  // Only count posts with real comment data — RSS-fallback posts all
+  // have commentCount=0, which would average to 0 and look broken.
   const withComments = hotPosts.filter((p) => p.commentCount > 0);
   const avgComments =
     withComments.length > 0
@@ -54,11 +60,13 @@ function deriveLiveStats(
           withComments.reduce((sum, p) => sum + p.commentCount, 0) /
             withComments.length
         )
-      : 0;
+      : undefined;
 
-  const topPostScore = topPosts.length > 0
-    ? Math.max(...topPosts.map((p) => p.score))
-    : 0;
+  // Same defense for scores: RSS posts all have score=0, so the max
+  // would be 0 and read as "the top post got zero upvotes".
+  const realScores = topPosts.map((p) => p.score).filter((s) => s > 0);
+  const topPostScore =
+    realScores.length > 0 ? Math.max(...realScores) : undefined;
 
   return {
     ...base,
@@ -76,7 +84,13 @@ export default async function CommunityPage() {
 
   const hot = hotResult.status === "fulfilled" ? hotResult.value : [];
   const topAll = topResult.status === "fulfilled" ? topResult.value : [];
-  const stats = statsResult.status === "fulfilled" ? statsResult.value : null;
+  // `getSubredditStats` now always resolves to an object (baseline
+  // fallback inside the function), so this is a defensive guard for
+  // the unreachable rejected branch only.
+  const stats =
+    statsResult.status === "fulfilled"
+      ? statsResult.value
+      : { subscribers: 0, activeUsers: null };
 
   // Merge hot + top/all for trending to always have 10+ posts
   const seen = new Set<string>();

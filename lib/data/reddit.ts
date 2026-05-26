@@ -29,6 +29,18 @@ const SUBREDDIT = 'JustBuyVEQT';
 const REDDIT_FETCH_TIMEOUT = 8000;
 const PROXY_BASE = 'https://reddit-api.buyveqt.ca';
 
+/**
+ * Last-known-good subscriber count. Used as a baseline when the
+ * proxy is unreachable so the community hero never renders a literal
+ * "0 members" (which reads as a broken site). Bump this number when
+ * we re-deploy and notice the live count has drifted meaningfully.
+ *
+ * The real count is fetched live from `${PROXY_BASE}/about` on every
+ * revalidation (every 30 min via page-level ISR). This constant only
+ * kicks in when that fetch fails.
+ */
+const BASELINE_SUBSCRIBERS = 6180;
+
 /* ── Reddit response parser ──────────────────────────────── */
 function parseRedditListing(json: Record<string, unknown>): RedditPost[] {
   const children = (json?.data as Record<string, unknown>)?.children;
@@ -102,12 +114,11 @@ export async function getRedditPosts(
   timeFilter?: 'hour' | 'day' | 'week' | 'month' | 'year' | 'all'
 ): Promise<RedditPost[]> {
   // Tier 1: Cloudflare Worker proxy (full data, not blocked)
+  let url = `${PROXY_BASE}/${sort}?limit=${limit}`;
+  if (sort === 'top' && timeFilter) url += `&t=${timeFilter}`;
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), REDDIT_FETCH_TIMEOUT);
-
-    let url = `${PROXY_BASE}/${sort}?limit=${limit}`;
-    if (sort === 'top' && timeFilter) url += `&t=${timeFilter}`;
 
     const res = await fetch(url, {
       signal: controller.signal,
@@ -118,16 +129,33 @@ export async function getRedditPosts(
     if (res.ok) {
       const posts = parseRedditListing(await res.json());
       if (posts.length > 0) return posts;
+      console.warn(`[reddit] proxy ${sort} returned 0 posts; falling back to RSS`);
+    } else {
+      console.warn(`[reddit] proxy ${sort} returned HTTP ${res.status}; falling back to RSS`);
     }
-  } catch {
-    // fall through to RSS
+  } catch (err) {
+    // Surface the real cause in Vercel logs — the silent catch is why
+    // we couldn't tell whether the proxy was unreachable or just slow.
+    console.warn(
+      `[reddit] proxy ${sort} fetch failed (${url}):`,
+      err instanceof Error ? err.message : String(err)
+    );
   }
 
   // Tier 2: RSS (no scores/comments, but always works)
   return getRedditPostsRss(sort);
 }
 
-export async function getSubredditStats(): Promise<SubredditStats | null> {
+/**
+ * Returns subreddit-level stats. Always returns a non-null object —
+ * falls back to the `BASELINE_SUBSCRIBERS` constant if the proxy
+ * fetch fails, so the community hero never renders "0 members"
+ * during a proxy outage. `activeUsers` stays nullable because
+ * Reddit's `/about` no longer reliably populates `accounts_active`
+ * for unauthenticated requests, and the hero already handles a
+ * null/0 value by showing "—" instead of a literal zero.
+ */
+export async function getSubredditStats(): Promise<SubredditStats> {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), REDDIT_FETCH_TIMEOUT);
@@ -137,16 +165,30 @@ export async function getSubredditStats(): Promise<SubredditStats | null> {
       next: { revalidate: 1800 },
     });
     clearTimeout(timeout);
-    if (!res.ok) return null;
+    if (!res.ok) {
+      console.warn(`[reddit] proxy /about returned HTTP ${res.status}; using baseline`);
+      return { subscribers: BASELINE_SUBSCRIBERS, activeUsers: null };
+    }
 
     const json = await res.json();
     const data = json?.data;
-    if (!data) return null;
+    if (!data) {
+      console.warn('[reddit] proxy /about returned no data; using baseline');
+      return { subscribers: BASELINE_SUBSCRIBERS, activeUsers: null };
+    }
+    const subs = data.subscribers as number | undefined;
     return {
-      subscribers: (data.subscribers as number) ?? 0,
+      // Even if the response is missing `subscribers`, prefer the
+      // baseline over a literal 0 — a 0 here reads as a broken site,
+      // a slightly stale baseline reads as "we're still here".
+      subscribers: typeof subs === 'number' && subs > 0 ? subs : BASELINE_SUBSCRIBERS,
       activeUsers: (data.accounts_active as number) ?? null,
     };
-  } catch {
-    return null;
+  } catch (err) {
+    console.warn(
+      '[reddit] proxy /about fetch failed; using baseline:',
+      err instanceof Error ? err.message : String(err)
+    );
+    return { subscribers: BASELINE_SUBSCRIBERS, activeUsers: null };
   }
 }
