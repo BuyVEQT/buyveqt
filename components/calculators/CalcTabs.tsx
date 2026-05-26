@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useRef } from "react";
+
 /**
  * CalcTabs — sticky tab strip that switches between the four calculators.
  *
@@ -37,6 +39,26 @@ interface CalcTabsProps {
 }
 
 export default function CalcTabs({ value, onChange }: CalcTabsProps) {
+  const rowRef = useRef<HTMLDivElement | null>(null);
+
+  // On phones the strip is horizontal scroll-snap. When the active tab
+  // changes from outside the strip (e.g. URL deep link, or a tab off
+  // screen got tapped), smooth-scroll it into view so the user always
+  // sees the current selection.
+  useEffect(() => {
+    const row = rowRef.current;
+    if (!row) return;
+    const target = row.querySelector<HTMLButtonElement>(
+      `button[data-tab-id="${value}"]`
+    );
+    if (!target) return;
+    target.scrollIntoView({
+      block: "nearest",
+      inline: "center",
+      behavior: "smooth",
+    });
+  }, [value]);
+
   return (
     <nav
       aria-label="Calculator selector"
@@ -48,7 +70,7 @@ export default function CalcTabs({ value, onChange }: CalcTabsProps) {
         <span className="calc-tabs__rail-divider" />
         <span className="calc-tabs__rail-hint">Tap to switch</span>
       </div>
-      <div className="calc-tabs__row">
+      <div className="calc-tabs__row" ref={rowRef}>
         {CALC_TABS.map((t) => {
           const active = t.id === value;
           return (
@@ -56,6 +78,7 @@ export default function CalcTabs({ value, onChange }: CalcTabsProps) {
               key={t.id}
               type="button"
               role="tab"
+              data-tab-id={t.id}
               aria-selected={active}
               aria-controls={`calc-panel-${t.id}`}
               onClick={() => onChange(t.id)}
@@ -96,7 +119,15 @@ export default function CalcTabs({ value, onChange }: CalcTabsProps) {
         @media (max-width: 720px) {
           .calc-tabs {
             margin: 0 -18px;
-            padding: 10px 18px 12px;
+            padding: 10px 18px 10px;
+          }
+        }
+        /* Phones — collapse the rail row to just a small caption above the
+           scroll-snap strip. Saves ~20px of always-pinned chrome. */
+        @media (max-width: 520px) {
+          .calc-tabs {
+            padding: 8px 0 8px;
+            margin: 0 -14px;
           }
         }
         .calc-tabs__rail {
@@ -110,6 +141,13 @@ export default function CalcTabs({ value, onChange }: CalcTabsProps) {
           letter-spacing: 0.18em;
           text-transform: uppercase;
           color: var(--ink-mute);
+        }
+        @media (max-width: 520px) {
+          .calc-tabs__rail {
+            padding: 0 14px 6px;
+            font-size: 10px;
+            gap: 8px;
+          }
         }
         .calc-tabs__rail-label {
           color: var(--stamp);
@@ -142,10 +180,26 @@ export default function CalcTabs({ value, onChange }: CalcTabsProps) {
             grid-template-columns: repeat(2, 1fr);
           }
         }
+        /* Phones — flip to a horizontal scroll-snap strip. Was a 1-col
+           stack at ≤520px which ate ~280px of always-pinned vertical
+           chrome on an iPhone (4 × 64px tabs + rail + padding). The
+           horizontal strip fits two tabs in view at any phone width,
+           swipe to discover the rest, and keeps the pinned chrome
+           down to ~78px total. */
         @media (max-width: 520px) {
           .calc-tabs__row {
-            grid-template-columns: 1fr;
-            gap: 6px;
+            display: flex;
+            grid-template-columns: none;
+            gap: 8px;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scroll-padding-inline: 14px;
+            padding: 2px 14px 4px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+          }
+          .calc-tabs__row::-webkit-scrollbar {
+            display: none;
           }
         }
         .calc-tab {
@@ -168,6 +222,17 @@ export default function CalcTabs({ value, onChange }: CalcTabsProps) {
             border-color 0.15s,
             transform 0.08s;
           min-height: 64px;
+        }
+        @media (max-width: 520px) {
+          .calc-tab {
+            /* Each tab snaps to start so two tabs fit in view at most
+               phone widths and the user swipes to see the rest. */
+            scroll-snap-align: start;
+            flex: 0 0 calc(50% - 4px);
+            min-height: 56px;
+            padding: 10px 12px;
+            gap: 10px;
+          }
         }
         .calc-tab:hover {
           background: var(--paper-light);
@@ -205,6 +270,14 @@ export default function CalcTabs({ value, onChange }: CalcTabsProps) {
           color: var(--ink-mute);
           font-variant-numeric: tabular-nums lining-nums;
           flex-shrink: 0;
+        }
+        @media (max-width: 520px) {
+          .calc-tab__num {
+            font-size: 22px;
+          }
+          .calc-tab__sub {
+            font-size: 11.5px;
+          }
         }
         .calc-tab:hover .calc-tab__num {
           color: var(--ink);
