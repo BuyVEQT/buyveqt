@@ -158,48 +158,50 @@ export const FUNDS: Record<string, FundData> = {
     ],
     chartColor: "#16a34a",
   },
-  // The new entrant. Avantis Investments (American Century subsidiary)
-  // brings academic factor research — small-cap + value tilts away from
-  // mega-cap growth — into a single all-equity ticket. Higher MER than
-  // the index-cohort but the pitch is the evidence-based active engine,
-  // not the wrapper.
+  // The new entrant. Avantis (American Century subsidiary, founded 2019
+  // by ex-DFA Co-CEO Eduardo Repetto) partnered with CIBC Asset Management
+  // to bring Avantis's multi-factor academic strategy into a single
+  // TSX-listed all-equity ticket, launched March 2026. Tilts toward
+  // smaller-cap, value, and higher-profitability names away from the
+  // mega-cap growth that dominates a market-cap index.
   //
-  // Allocation figures below approximate the published fact sheet at the
-  // time the fund was added to the compare page; verify against the
-  // current Avantis Canada fact sheet quarterly (see UPDATE SCHEDULE).
+  // Allocation figures from the Apr 30 2026 holdings disclosure — verify
+  // against the current CIBC Asset Management fact sheet quarterly.
   "CAGE.TO": {
     ticker: "CAGE.TO",
-    name: "Avantis All-Equity ETF",
+    name: "Avantis CIBC All-Equity Asset Allocation ETF",
     shortName: "CAGE",
-    provider: "Avantis (American Century)",
-    mer: 0.27,
-    aum: "$180M",
-    inceptionDate: "2024-09-17",
+    provider: "Avantis × CIBC",
+    mer: 0.28,
+    aum: "$267M",
+    inceptionDate: "2026-03-18",
     numberOfHoldings: 4500,
-    distributionFrequency: "Annually",
+    distributionFrequency: "Quarterly",
     currency: "CAD",
     exchangeListed: "TSX",
     equityAllocation: 100,
     fixedIncomeAllocation: 0,
     description:
-      "An evidence-based, multi-factor all-equity ETF. Tilts toward smaller-cap and higher-profitability value names, weighting away from mega-cap growth that dominates a market-cap index.",
+      "An evidence-based, multi-factor all-equity ETF using Avantis's Fama-French-derived size, value, and profitability tilts inside a Canadian wrapper sub-advised by CIBC Asset Management.",
     whoThisSuits:
-      "Investors who buy the academic case for small-cap and value premia, and who want a single-ticket all-equity portfolio without assembling factor sleeves themselves. Comfortable paying ~7bps more than the index trio for an active factor engine.",
+      "Investors who buy the academic case for the size, value, and profitability premia, and want a single-ticket all-equity portfolio without assembling factor sleeves themselves. Comfortable absorbing ~8-15bps of fee headwind over the index cohort as the price of an active factor engine, and willing to hold through multi-year stretches where the factors underperform.",
     geographyAllocation: [
-      { region: "United States", weight: 51, color: "#2563eb" },
-      { region: "Canada", weight: 12, color: "#dc2626" },
-      { region: "International Developed", weight: 27, color: "#16a34a" },
-      { region: "Emerging Markets", weight: 10, color: "#f59e0b" },
+      { region: "United States", weight: 40.1, color: "#2563eb" },
+      { region: "Canada", weight: 30.7, color: "#dc2626" },
+      { region: "International Developed", weight: 16.6, color: "#16a34a" },
+      { region: "Emerging Markets", weight: 5.1, color: "#f59e0b" },
+      { region: "Global Small-Cap Value", weight: 7.4, color: "#6a4b9c" },
     ],
     underlyingETFs: [
-      { ticker: "AVUS", name: "Avantis U.S. Equity ETF", weight: 51, region: "United States" },
-      { ticker: "AVCN", name: "Avantis Canadian Equity ETF", weight: 12, region: "Canada" },
-      { ticker: "AVDE", name: "Avantis International Equity ETF", weight: 27, region: "International" },
-      { ticker: "AVEM", name: "Avantis Emerging Markets Equity ETF", weight: 10, region: "Emerging Markets" },
+      { ticker: "CAUS", name: "Avantis CIBC U.S. All-Cap Equity ETF", weight: 40.1, region: "United States" },
+      { ticker: "CACE", name: "Avantis CIBC Canadian Equity ETF", weight: 30.7, region: "Canada" },
+      { ticker: "CADE", name: "Avantis CIBC International Equity ETF", weight: 16.6, region: "International" },
+      { ticker: "CASV", name: "Avantis CIBC Global Small Cap Value ETF", weight: 7.4, region: "Global Small-Cap Value" },
+      { ticker: "CAEM", name: "Avantis CIBC Emerging Markets Equity ETF", weight: 5.1, region: "Emerging Markets" },
     ],
     chartColor: "#6a4b9c",
     merFootnote:
-      "0.27% MER reflects Avantis's evidence-based active management — higher than the index cohort but lower than most traditional active strategies. Verify against the latest Avantis Canada fact sheet.",
+      "0.28% management fee. Full MER not yet published — first-year reporting expected to land between 0.30%-0.40% once trading costs and operating expenses are recognized. Higher than the 0.17%-0.20% index cohort but lower than most traditional active strategies.",
   },
   "VGRO.TO": {
     ticker: "VGRO.TO",
