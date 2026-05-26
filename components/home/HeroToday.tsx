@@ -321,12 +321,33 @@ function HeroStyles() {
       }
 
       @media (max-width: 880px) {
+        .heroC {
+          padding: 14px 0 18px;
+          gap: 16px;
+        }
         .heroC__top {
           grid-template-columns: 1fr;
-          gap: 22px;
+          gap: 18px;
+          padding-bottom: 16px;
         }
         .heroC__weather-block {
           min-width: 0;
+        }
+        .heroC__change-aux {
+          font-size: 12px;
+        }
+        .heroC__chartwrap {
+          /* Slightly taller floor on mobile so labels in the HTML overlay
+             have breathing room above and below the chart line. */
+          height: clamp(200px, 50vw, 240px);
+        }
+      }
+      @media (max-width: 520px) {
+        .heroC__sub {
+          font-size: 1.05rem;
+        }
+        .heroC__change {
+          gap: 8px;
         }
       }
     `}</style>

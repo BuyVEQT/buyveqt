@@ -233,14 +233,27 @@ export default function PeriodStatsRibbon({
           .ribbon {
             grid-template-columns: 1fr 1fr;
             row-gap: 18px;
+            padding: 14px 4px 4px;
+            gap: 10px 14px;
           }
           .ribbon__sep {
             display: none;
           }
+          .ribbon__stat-val {
+            /* 22 → 18px so the Range value ($XX.XX – $XX.XX) fits in
+               a single line at 320px wide */
+            font-size: 18px;
+          }
           .ribbon__tabs {
             grid-column: 1 / -1;
-            justify-content: flex-start;
-            flex-wrap: wrap;
+            justify-content: space-between;
+            flex-wrap: nowrap;
+          }
+          .ribbon__tab {
+            /* Bigger touch target on mobile (7×12 → 9×14); flex-shrink
+               keeps all 5 pills on one row even at 320px wide */
+            padding: 9px 10px;
+            flex: 1 0 auto;
           }
         }
       `}</style>

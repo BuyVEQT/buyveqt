@@ -208,6 +208,27 @@ export default function WeatherCard({ quote, severity }: WeatherCardProps) {
           line-height: 1.5;
           color: var(--ink-soft);
         }
+
+        @media (max-width: 880px) {
+          .wxCard {
+            padding: 14px 16px 16px;
+          }
+          .wxCard__zone {
+            font-size: 26px;
+          }
+          .wxCard__copy {
+            font-size: 13px;
+            line-height: 1.45;
+          }
+        }
+        @media (max-width: 380px) {
+          /* iPhone SE territory — pull the glyph in a notch so the card
+             doesn't dominate the fold above the chart. */
+          .wxCard__glyph :global(svg) {
+            width: 116px;
+            height: 116px;
+          }
+        }
       `}</style>
     </div>
   );

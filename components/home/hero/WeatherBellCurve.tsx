@@ -90,8 +90,16 @@ export default function WeatherBellCurve({
   return (
     <svg
       viewBox={`0 0 ${width} ${height}`}
-      width={width}
-      height={height}
+      // Responsive sizing: SVG fills its container up to the natural width,
+      // never overflows on narrow weather cards. Aspect ratio is preserved
+      // by `preserveAspectRatio` defaulting to xMidYMid meet, so the curve
+      // looks identical at 260px and at 200px wide.
+      style={{
+        width: "100%",
+        height: "auto",
+        maxWidth: width,
+        display: "block",
+      }}
       role="img"
       aria-label="Today's move on the daily-distribution bell curve"
     >
