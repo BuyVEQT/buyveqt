@@ -10,7 +10,7 @@ export default async function Image() {
     eyebrow: "Comparisons",
     title: "VEQT vs the field.",
     italic: true,
-    dek: "Head-to-head matchups with XEQT, ZEQT, VGRO, XGRO, and VFV — fees, allocation, and live verdicts.",
+    dek: "Head-to-head matchups with XEQT, ZEQT, CAGE, VGRO, and VFV — fees, allocation, and live verdicts.",
     footerNote: "5 matchups · live data",
     alt,
   });

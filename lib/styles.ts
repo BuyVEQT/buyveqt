@@ -15,9 +15,9 @@ export const FUND_COLOR: Record<string, string> = {
   VEQT: "var(--stamp)",
   XEQT: "var(--ink)",
   ZEQT: "var(--amber)",
+  CAGE: "#6a4b9c",
   VFV: "#3a5b9c",
   VGRO: "#1d5431",
-  XGRO: "#6a4b9c",
   VUN: "#06b6d4",
 };
 
