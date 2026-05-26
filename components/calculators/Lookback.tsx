@@ -369,6 +369,8 @@ export default function Lookback({ history }: LookbackProps) {
             <CohortFanChart
               userPath={result?.path ?? []}
               monthlyHistory={monthly}
+              mode={mode}
+              userAmount={amount}
             />
           </div>
 
