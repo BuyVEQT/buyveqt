@@ -13,6 +13,7 @@ import {
 } from "recharts";
 import { formatDollars, ChartTooltipWrapper, AXIS_PROPS } from "@/lib/chart-utils";
 import { DEFAULT_VOLATILITY, type VolatilityStats } from "@/lib/data/volatility";
+import ClientOnlyChart from "./ClientOnlyChart";
 
 const NUM_SIMULATIONS = 500;
 const INFLATION_RATE = 0.02;
@@ -157,6 +158,7 @@ export default function MonteCarloFan({
 
   return (
     <div>
+      <ClientOnlyChart height={height}>
       <ResponsiveContainer width="100%" height={height}>
         <AreaChart data={data}>
           <XAxis
@@ -225,6 +227,7 @@ export default function MonteCarloFan({
           )}
         </AreaChart>
       </ResponsiveContainer>
+      </ClientOnlyChart>
     </div>
   );
 }

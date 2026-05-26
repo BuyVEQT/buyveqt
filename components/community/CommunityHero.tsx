@@ -37,12 +37,30 @@ interface PulseStatProps {
   value: number | null | undefined;
   icon: string;
   tone?: "live" | "default";
+  /**
+   * If true, render `—` instead of "0" when the value is missing or
+   * exactly 0. Use for stats where a literal 0 is a fluke of timing
+   * (e.g. "Online now" is genuinely 0 between active users) rather
+   * than a meaningful zero. Stats like "Top post score" and "Avg
+   * replies" stay at "0" since 0 there is real data.
+   */
+  emptyAsDash?: boolean;
 }
 
-function PulseStat({ label, value, icon, tone = "default" }: PulseStatProps) {
+function PulseStat({
+  label,
+  value,
+  icon,
+  tone = "default",
+  emptyAsDash = false,
+}: PulseStatProps) {
   const animated = useCountUp(value);
   const isLive = tone === "live";
   const iconColor = isLive ? "var(--stamp)" : "var(--ink)";
+  const isEmpty = value == null || value === 0;
+  const display = emptyAsDash && isEmpty
+    ? "—"
+    : Math.round(animated).toLocaleString("en-CA");
   return (
     <div className="ps">
       <div className="ed-label ps__label">
@@ -54,7 +72,7 @@ function PulseStat({ label, value, icon, tone = "default" }: PulseStatProps) {
           {icon}
         </span>
         <span className="ed-display ed-numerals ps__val">
-          {Math.round(animated).toLocaleString("en-CA")}
+          {display}
         </span>
       </div>
 
@@ -200,6 +218,10 @@ export default function CommunityHero({ stats }: CommunityHeroProps) {
           value={activeUsers}
           icon="•"
           tone="live"
+          /* A literal "0" here is just a quiet moment, not real
+             information — show — instead so it reads as "nobody right
+             this second" rather than a broken zero. */
+          emptyAsDash
         />
         <PulseStat label="Top post score" value={topPostScore} icon="▲" />
         <PulseStat label="Avg replies" value={avgComments} icon="↳" />
