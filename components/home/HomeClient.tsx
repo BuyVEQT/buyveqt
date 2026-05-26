@@ -5,7 +5,7 @@ import { useVeqtData } from "@/lib/useVeqtData";
 import { useRegions, type Region } from "@/lib/useRegions";
 import { computeSeverity } from "@/lib/severity";
 
-import HeroPriceCard from "./HeroPriceCard";
+import HeroToday from "./HeroToday";
 import RegionGrid from "./RegionGrid";
 import HeatmapCard from "./HeatmapCard";
 import InceptionBand from "./InceptionBand";
@@ -30,18 +30,18 @@ function leaderIndex(regions: readonly Region[]): number {
 }
 
 /**
- * Round 4 home V2 — bonded hero + leader/followers + session board + Almanac + course.
+ * Round 4 home V2 — Editorial Almanac hero + four-sleeves + session board + Almanac + course.
  *
- *  HeroPriceCard (bonded: price left + weather rail right)
- *  RegionGrid (leader 1.5fr + followers 1fr, handles mobile internally)
- *  two-up: HeatmapCard (calendar session board) | InceptionBand (Almanac)
- *  ArticleStrip (editor column + three course rows)
+ *  HeroToday        — price + 52w track + duotone chart + hybrid weather card
+ *                     + period stats ribbon + 4 companion tiles
+ *  RegionGrid       — leader + followers (handles mobile internally)
+ *  two-up           — HeatmapCard (calendar session board) | InceptionBand (Almanac)
+ *  ArticleStrip     — editor column + three course rows
  *
- * Two useVeqtData calls: one keyed to the period pill (hero sparkline)
- * and one pinned to "ALL" (severity + heatmap + inception calc).
+ * The hero drives its own period state from a single `useVeqtData("ALL")`
+ * fetch and slices client-side — no separate period-keyed fetch.
  */
 export default function HomeClient() {
-  const hero = useVeqtData("1M");
   const full = useVeqtData("ALL");
   const { payload: regionsPayload, loading: regionsLoading } = useRegions();
 
@@ -92,13 +92,12 @@ export default function HomeClient() {
           for Canadian passive investors.
         </h1>
 
-        {/* Bonded hero — price + weather rail */}
-        <HeroPriceCard
-          data={hero.data}
-          loading={hero.loading}
-          period={hero.period}
-          onPeriodChange={hero.setPeriod}
+        {/* Editorial Almanac hero — price · duotone chart · weather card · tiles */}
+        <HeroToday
+          data={full.data}
+          loading={full.loading}
           severity={severity}
+          regions={regionsLoading ? [] : orderedRegions}
         />
 
         {/* Region sleeves — leader + followers (handles mobile internally) */}
