@@ -48,17 +48,18 @@ export const WX_CONDITIONS: readonly WxCondition[] = [
 ] as const;
 
 /**
- * Map a SeverityZone + direction to a glyph condition. The matrix is
- * symmetric across direction at every zone except Typical (which is
- * direction-agnostic — a quiet day is a quiet day).
+ * Map a SeverityZone + direction to a glyph condition. Direction
+ * symmetric at every zone — a quiet-down day still reads visually
+ * "down" even when the magnitude is small.
  *
- *   Typical   → clear
+ *   Typical   → clear / overcast      (overcast keeps Typical-down honest
+ *                                       with the "passing cloud" copy)
  *   Notable   → breeze / overcast
  *   Unusual   → breeze / rainy        (mild up shares with Notable)
  *   Rare      → radiant / storm       (radiant is the new celebratory glyph)
  */
 export function zoneToCondition(zone: SeverityZone, up: boolean): WxCondition {
-  if (zone === "Typical") return "clear";
+  if (zone === "Typical") return up ? "clear" : "overcast";
   if (zone === "Notable") return up ? "breeze" : "overcast";
   if (zone === "Unusual") return up ? "breeze" : "rainy";
   if (zone === "Rare") return up ? "radiant" : "storm";
