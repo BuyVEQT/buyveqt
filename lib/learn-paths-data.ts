@@ -31,9 +31,10 @@ export const LEARN_PATHS: LearnPath[] = [
     id: "comparing",
     question: "I'm comparing alternatives.",
     title: "Pick a fight.",
-    description: "VEQT against XEQT, VFV, VGRO, DIY, robos, and cash.",
+    description: "VEQT against XEQT, CAGE, VFV, VGRO, DIY, robos, and cash.",
     slugs: [
       "veqt-vs-xeqt",
+      "veqt-vs-cage",
       "veqt-vs-vfv",
       "veqt-vs-vgro",
       "veqt-vs-diy-portfolio",
