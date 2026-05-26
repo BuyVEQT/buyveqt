@@ -60,7 +60,12 @@ export default function TileSleeves({ regions }: TileSleevesProps) {
                 r.changePercent >= 0 ? "+" : "−"
               }${Math.abs(r.changePercent).toFixed(2)}%`}
             >
-              <svg viewBox="0 0 36 36" width="32" height="32">
+              <svg
+                viewBox="0 0 36 36"
+                width="32"
+                height="32"
+                className="almTile__gauge-svg"
+              >
                 <circle
                   cx={cx}
                   cy={cy}
@@ -74,9 +79,16 @@ export default function TileSleeves({ regions }: TileSleevesProps) {
                   stroke="var(--ink-mute)"
                   strokeWidth="0.5"
                 />
+                {/* Needle rotates around the SVG viewBox centre. Pinning
+                    `transform-box: view-box` makes `transform-origin: 50% 50%`
+                    reliable across browsers — the old `${cx}px ${cy}px`
+                    form is interpreted as CSS pixels on iOS Safari, which
+                    lands off the gauge centre once the SVG is rendered at
+                    a non-1:1 size (32px CSS on a 36-unit viewBox). */}
                 <g
                   style={{
-                    transformOrigin: `${cx}px ${cy}px`,
+                    transformBox: "view-box",
+                    transformOrigin: "50% 50%",
                     transform: `rotate(${deg}deg)`,
                     transition: `transform 0.7s cubic-bezier(0.2, 0.7, 0.3, 1) ${
                       i * 80

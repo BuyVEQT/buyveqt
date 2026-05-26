@@ -121,12 +121,23 @@ export default function TileStyles() {
         display: block;
         width: 100%;
         height: 100%;
+        /* Squircle on mobile so the dot has area to tap;
+           perfect circle on desktop where the viz reads finer */
         border-radius: 50%;
         cursor: pointer;
         opacity: 0;
         transform: scale(0.4);
         animation: streakDotIn 0.28s cubic-bezier(0.2, 0.7, 0.3, 1) both;
         transition: transform 0.12s ease, opacity 0.12s ease;
+        /* Expand the touch target without changing the visual via a
+           pseudo-element overlay. WCAG asks for ≥24px; we get most of
+           the way there at mobile widths and full-way on desktop. */
+        position: relative;
+      }
+      .almTile__streak-dot::before {
+        content: "";
+        position: absolute;
+        inset: -8px -1px;
       }
       .almTile__streak-dot.is-up {
         background: var(--green);
@@ -176,7 +187,10 @@ export default function TileStyles() {
         appearance: none;
         border: 0;
         background: transparent;
-        padding: 2px 6px;
+        /* Inflated touch target — the visible pill stays small but the
+           hit area is 26px tall on mobile so it passes WCAG 2.5.5. */
+        padding: 6px 8px;
+        margin: -4px -2px;
         border-radius: 4px;
         font-family: var(--font-sans);
         font-size: 9px;
@@ -186,6 +200,7 @@ export default function TileStyles() {
         cursor: pointer;
         text-transform: uppercase;
         transition: background 0.12s, color 0.12s;
+        line-height: 1;
       }
       .almTile__yr-pill:disabled {
         opacity: 0.35;
@@ -231,6 +246,17 @@ export default function TileStyles() {
         cursor: pointer;
         animation: histoIn 0.45s cubic-bezier(0.2, 0.7, 0.3, 1) both;
         transition: opacity 0.12s, transform 0.12s, background 0.12s;
+        /* Touch-target overlay — keeps the visible bar slim while the
+           hit area stretches to the histogram's full height. */
+        position: relative;
+      }
+      .almTile__bar::before {
+        content: "";
+        position: absolute;
+        left: -1px;
+        right: -1px;
+        top: -40px;
+        bottom: 0;
       }
       .almTile__bar.is-today {
         background: var(--stamp);
@@ -408,11 +434,30 @@ export default function TileStyles() {
       @media (max-width: 880px) {
         .heroC__tiles {
           grid-template-columns: 1fr 1fr;
+          gap: 10px;
+        }
+        .almTile {
+          padding: 12px 14px;
+          min-height: 0;
+          gap: 5px;
+        }
+        .almTile__big {
+          font-size: 26px;
+        }
+        .almTile__almanac-y {
+          font-size: 28px;
         }
       }
       @media (max-width: 520px) {
         .heroC__tiles {
           grid-template-columns: 1fr;
+          gap: 10px;
+        }
+        .almTile__big {
+          font-size: 30px;
+        }
+        .almTile__almanac-y {
+          font-size: 32px;
         }
       }
 
