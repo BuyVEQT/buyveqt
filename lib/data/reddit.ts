@@ -27,6 +27,7 @@ export interface SubredditStats {
 const SUBREDDIT = 'JustBuyVEQT';
 const REDDIT_FETCH_TIMEOUT = 8000;
 const UA = 'web:BuyVEQT:1.0 (by /u/buyveqt)';
+const PROXY_BASE = 'https://reddit-api.buyveqt.ca';
 
 /* ── OAuth token management ──────────────────────────────────
  *
@@ -155,11 +156,18 @@ async function getRedditPostsRss(sort: string): Promise<RedditPost[]> {
   }
 }
 
-/* ── Main fetch with 3-tier fallback ───────────────────────
+/* ── Main fetch with 4-tier fallback ───────────────────────
  *
- * 1. OAuth (oauth.reddit.com) — full data, bypasses anonymous-read blocks
- * 2. Public JSON (old.reddit.com) — full data when not blocked
- * 3. RSS via rss2json — no scores/comments, always works
+ * Re-ordered to put the Cloudflare Worker proxy second (after OAuth).
+ * The Worker works reliably most of the time; Reddit sometimes
+ * rate-limits it but a clean retry usually succeeds. OAuth still
+ * wins when env vars are set since it bypasses both anonymous-read
+ * blocks and Worker rate-limiting.
+ *
+ *   1. OAuth (oauth.reddit.com)  — full data, requires env vars
+ *   2. Cloudflare Worker proxy   — full data when Reddit allows it
+ *   3. Public JSON (old.reddit)  — full data when not IP-blocked
+ *   4. RSS via rss2json          — no scores, but always works
  */
 export async function getRedditPosts(
   sort: 'hot' | 'new' | 'top' = 'hot',
@@ -197,7 +205,29 @@ export async function getRedditPosts(
     }
   }
 
-  // Tier 2: Public JSON API (may be IP-blocked from Vercel)
+  // Tier 2: Cloudflare Worker proxy
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), REDDIT_FETCH_TIMEOUT);
+
+    let url = `${PROXY_BASE}/${sort}?limit=${limit}`;
+    if (sort === 'top' && timeFilter) url += `&t=${timeFilter}`;
+
+    const res = await fetch(url, {
+      signal: controller.signal,
+      cache: 'no-store',
+    });
+    clearTimeout(timeout);
+
+    if (res.ok) {
+      const posts = parseRedditListing(await res.json());
+      if (posts.length > 0) return posts;
+    }
+  } catch {
+    // fall through
+  }
+
+  // Tier 3: Public JSON API (may be IP-blocked from Vercel)
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), REDDIT_FETCH_TIMEOUT);
@@ -220,16 +250,17 @@ export async function getRedditPosts(
     // fall through to RSS
   }
 
-  // Tier 3: RSS
+  // Tier 4: RSS
   console.info(`[reddit] All JSON tiers failed for ${sort}; using RSS`);
   return getRedditPostsRss(sort);
 }
 
 /**
- * Subreddit stats with the same 3-tier OAuth → public → null
- * fallback. RSS doesn't expose subscriber counts, so when both
- * JSON tiers fail we return `{ subscribers: 0, activeUsers: null }`
- * and the community hero shows `—` via `emptyAsDash`.
+ * Subreddit stats with the same 4-tier OAuth → Worker proxy →
+ * public → null chain. RSS doesn't expose subscriber counts, so
+ * when all three JSON tiers fail we return
+ * `{ subscribers: 0, activeUsers: null }` and the community hero
+ * shows `—` via `emptyAsDash`.
  */
 export async function getSubredditStats(): Promise<SubredditStats> {
   const empty: SubredditStats = { subscribers: 0, activeUsers: null };
@@ -271,7 +302,32 @@ export async function getSubredditStats(): Promise<SubredditStats> {
     }
   }
 
-  // Tier 2: Public JSON
+  // Tier 2: Cloudflare Worker proxy
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), REDDIT_FETCH_TIMEOUT);
+
+    const res = await fetch(`${PROXY_BASE}/about`, {
+      signal: controller.signal,
+      cache: 'no-store',
+    });
+    clearTimeout(timeout);
+
+    if (res.ok) {
+      const json = await res.json();
+      const data = json?.data;
+      if (data && typeof data.subscribers === 'number' && data.subscribers > 0) {
+        return {
+          subscribers: data.subscribers as number,
+          activeUsers: (data.accounts_active as number) ?? null,
+        };
+      }
+    }
+  } catch {
+    // fall through
+  }
+
+  // Tier 3: Public JSON
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), REDDIT_FETCH_TIMEOUT);
