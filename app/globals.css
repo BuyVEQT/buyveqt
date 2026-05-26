@@ -100,6 +100,23 @@
   --on-band-faint: rgba(246, 239, 220, 0.35);
   --on-band-rule: rgba(246, 239, 220, 0.18);
   --on-band-hair: rgba(246, 239, 220, 0.10);
+  /* ── DATA-IDENTITY CONVENTION ──────────────────────────────
+   * For any element that paints a *filled colored area* with
+   * overlay text (treemap segments, country stripes, geography
+   * bars, region chips), use INVARIANT tokens for the fill:
+   *
+   *   US / "graphite" identity   → var(--band-ink)
+   *   Canada / "vermilion"       → var(--stamp)
+   *   International / "amber"    → var(--amber)
+   *   Emerging / "brass"         → var(--rule)
+   *
+   * Do NOT use var(--ink) for an identity fill — it flips to
+   * parchment in dark mode and renders cream-on-cream against an
+   * invariant cream text overlay (var(--band-paper)).
+   *
+   * For active states (e.g. a selected toggle whose text uses
+   * var(--paper)), var(--ink) is still correct — both tokens
+   * flip together so contrast survives.                       */
   /* Brass hairline overlay for the dark slab in Late Edition —
      anchors its edge against the espresso page bg. Inert in light. */
   --shadow-band: none;

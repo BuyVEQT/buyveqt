@@ -4,8 +4,12 @@ import { useMemo } from "react";
 import { useRegions } from "@/lib/useRegions";
 import { FUNDS } from "@/data/funds";
 
+// Identity-fill colors for the geography bars — see DATA-IDENTITY
+// CONVENTION in app/globals.css. VUN uses --band-ink (invariant) not
+// --ink so the cream overlay text stays legible when --ink flips to
+// parchment in dark mode.
 const GEO_TONE: Record<string, string> = {
-  VUN: "var(--ink)",
+  VUN: "var(--band-ink)",
   VCN: "var(--stamp)",
   VIU: "var(--amber)",
   VEE: "var(--rule)",

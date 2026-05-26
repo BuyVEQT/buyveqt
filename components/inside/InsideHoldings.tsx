@@ -22,10 +22,11 @@ const SECTOR_BY_TICKER: Record<string, string> = {
 
 /**
  * Country tone per display value.
- * US → var(--ink) (dark), Canada → var(--stamp) (vermilion).
+ * US → var(--band-ink) (always dark — see DATA-IDENTITY CONVENTION
+ * in app/globals.css), Canada → var(--stamp) (vermilion).
  */
 function countryTone(country: string): string {
-  if (country === "US") return "var(--ink)";
+  if (country === "US") return "var(--band-ink)";
   if (country === "Canada") return "var(--stamp)";
   return "var(--rule)";
 }

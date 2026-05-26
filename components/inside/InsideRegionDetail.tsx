@@ -16,9 +16,11 @@ interface InsideRegionDetailProps {
   topHoldings: HoldingMini[];
 }
 
-/** Stripe color per sleeve — matches GEO_TONE in GeographyPanel. */
+/** Stripe color per sleeve — matches GEO_TONE in GeographyPanel.
+ *  See DATA-IDENTITY CONVENTION in app/globals.css: VUN uses
+ *  --band-ink (invariant) so it stays dark when --ink flips. */
 const REGION_STRIPE: Record<string, string> = {
-  VUN: "var(--ink)",
+  VUN: "var(--band-ink)",
   VCN: "var(--stamp)",
   VIU: "var(--amber)",
   VEE: "var(--rule)",
