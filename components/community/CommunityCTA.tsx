@@ -80,7 +80,7 @@ export default function CommunityCTA() {
           .cm-cta__h3 {
             font-size: clamp(1.8rem, 3vw, 2.4rem);
             line-height: 1.1;
-            color: var(--paper);
+            color: var(--band-paper);
             margin: 12px 0 14px;
             max-width: 26ch;
           }
@@ -108,7 +108,7 @@ export default function CommunityCTA() {
             align-items: center;
             padding: 14px 22px;
             background: var(--stamp);
-            color: var(--paper-light);
+            color: var(--band-paper);
             border-radius: 999px;
             font-family: var(--font-sans);
             font-size: 12px;
@@ -137,7 +137,7 @@ export default function CommunityCTA() {
             padding-bottom: 4px;
           }
           .cm-cta__secondary:hover {
-            color: var(--paper);
+            color: var(--band-paper);
           }
         `}</style>
       </section>

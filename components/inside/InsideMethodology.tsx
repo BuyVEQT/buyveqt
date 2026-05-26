@@ -67,7 +67,7 @@ export default function InsideMethodology() {
           font-size: clamp(1.5rem, 2.4vw, 1.9rem);
           line-height: 1.05;
           margin: 8px 0 14px;
-          color: var(--paper);
+          color: var(--band-paper);
         }
         .method__body {
           font-family: var(--font-serif);
@@ -91,7 +91,7 @@ export default function InsideMethodology() {
           padding: 8px 0;
           font-family: var(--font-serif);
           font-size: 13px;
-          color: var(--paper);
+          color: var(--band-paper);
           border-bottom: 1px solid rgba(246, 239, 220, 0.1);
           align-items: baseline;
         }
@@ -122,7 +122,7 @@ export default function InsideMethodology() {
           font-weight: 600;
           letter-spacing: 0.18em;
           text-transform: uppercase;
-          color: var(--paper);
+          color: var(--band-paper);
           border-bottom: 1px solid var(--stamp);
           padding-bottom: 4px;
           text-decoration: none;

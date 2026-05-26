@@ -173,7 +173,7 @@ export default function InceptionBand({
         .almanac__lede {
           font-size: clamp(1.5rem, 2.6vw, 1.9rem);
           line-height: 1.05;
-          color: var(--paper);
+          color: var(--band-paper);
           margin-bottom: 14px;
         }
         .almanac__amount {
@@ -191,7 +191,7 @@ export default function InceptionBand({
         .almanac__num {
           font-size: clamp(2.6rem, 6vw, 3.6rem);
           line-height: 0.95;
-          color: var(--paper);
+          color: var(--band-paper);
           border-bottom: 2px solid var(--stamp);
           padding-bottom: 2px;
           padding-right: 6px;
@@ -222,7 +222,7 @@ export default function InceptionBand({
         .almanac__tile-val {
           font-size: clamp(1.6rem, 3.6vw, 2.2rem);
           margin-top: 6px;
-          color: var(--paper);
+          color: var(--band-paper);
           letter-spacing: -0.02em;
         }
         .almanac__tile-val--green {
@@ -247,7 +247,7 @@ export default function InceptionBand({
           display: inline-flex;
           align-items: center;
           gap: 8px;
-          color: var(--paper);
+          color: var(--band-paper);
           font-family: var(--font-sans);
           font-size: 12px;
           font-weight: 700;

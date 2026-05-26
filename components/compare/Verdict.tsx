@@ -27,7 +27,7 @@ export default function Verdict({ selected }: VerdictProps) {
         <span
           className="ed-stamp"
           style={{
-            color: "var(--paper)",
+            color: "var(--band-paper)",
             background: "var(--stamp)",
             padding: "4px 10px",
             letterSpacing: "0.18em",
@@ -75,7 +75,7 @@ export default function Verdict({ selected }: VerdictProps) {
         .editv__h {
           font-size: clamp(1.6rem, 2.8vw, 2.1rem);
           line-height: 1.15;
-          color: var(--paper);
+          color: var(--band-paper);
           margin: 6px 0 12px;
           max-width: 36ch;
         }

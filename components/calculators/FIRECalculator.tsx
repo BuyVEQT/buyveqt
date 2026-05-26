@@ -463,7 +463,7 @@ export default function FIRECalculator() {
           margin-bottom: 22px;
         }
         .calc__stamp {
-          color: var(--paper-light);
+          color: var(--band-paper);
           background: var(--stamp);
           padding: 5px 12px 4px;
           letter-spacing: 0.22em;
@@ -510,7 +510,7 @@ export default function FIRECalculator() {
           background: var(--stamp);
         }
         .calc__result--dark :global(.anum) {
-          color: var(--paper);
+          color: var(--band-paper);
         }
         .calc__result-stamp {
           color: rgba(246, 239, 220, 0.55);
@@ -527,7 +527,7 @@ export default function FIRECalculator() {
           font-size: clamp(3.4rem, 7vw, 5.4rem);
           line-height: 0.95;
           letter-spacing: -0.035em;
-          color: var(--paper);
+          color: var(--band-paper);
           font-family: var(--font-display);
           font-weight: 500;
           font-variant-numeric: tabular-nums lining-nums;
@@ -552,7 +552,7 @@ export default function FIRECalculator() {
         .fire__age-tag strong {
           font-style: normal;
           font-weight: 600;
-          color: var(--paper);
+          color: var(--band-paper);
           font-variant-numeric: tabular-nums lining-nums;
         }
         .fire__age-tag-vs {
@@ -570,7 +570,7 @@ export default function FIRECalculator() {
         }
         .fire__sentence strong {
           font-style: normal;
-          color: var(--paper);
+          color: var(--band-paper);
           font-weight: 600;
         }
         .fire__stats {
@@ -716,11 +716,11 @@ export default function FIRECalculator() {
         }
         .fire-progress__chip--fired {
           background: var(--green, #4a7c47);
-          color: var(--paper-light);
+          color: var(--band-paper);
         }
         .fire-progress__chip--coast {
           background: var(--stamp);
-          color: var(--paper-light);
+          color: var(--band-paper);
         }
         .fire-progress__chip-faint {
           font-style: italic;

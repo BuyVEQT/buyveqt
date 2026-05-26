@@ -177,7 +177,7 @@ export default function GeographyPanel() {
         .geo__seg-inner {
           position: absolute;
           inset: 16px 14px;
-          color: var(--paper);
+          color: var(--band-paper);
           display: flex;
           flex-direction: column;
           justify-content: space-between;
@@ -186,7 +186,7 @@ export default function GeographyPanel() {
           display: none;
         }
         .geo__seg-ticker {
-          color: var(--paper);
+          color: var(--band-paper);
           letter-spacing: 0.22em;
           font-size: 10px;
           font-weight: 700;
@@ -197,14 +197,14 @@ export default function GeographyPanel() {
           font-style: italic;
           font-weight: 500;
           font-size: clamp(0.85rem, 1.4vw, 1.05rem);
-          color: var(--paper);
+          color: var(--band-paper);
           opacity: 0.92;
           letter-spacing: -0.005em;
         }
         .geo__seg-pct {
           font-size: clamp(2rem, 4.4vw, 3.4rem);
           line-height: 0.95;
-          color: var(--paper);
+          color: var(--band-paper);
           letter-spacing: -0.025em;
           align-self: flex-start;
         }

@@ -4,6 +4,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useState, useCallback } from "react";
 import Link from "next/link";
 import LiveTickerPill from "./LiveTickerPill";
+import ThemeToggle from "./ThemeToggle";
 
 interface RouteChrome {
   title: string;
@@ -218,6 +219,31 @@ export default function TopBar() {
             <Link href="/methodology" onClick={() => setMenuOpen(false)} style={menuLink()}>
               Methodology
             </Link>
+
+            <div
+              style={{
+                marginTop: 12,
+                paddingTop: 14,
+                borderTop: "1px solid var(--rule-soft)",
+                display: "flex",
+                flexDirection: "column",
+                gap: 10,
+              }}
+            >
+              <div
+                style={{
+                  fontFamily: "var(--font-sans)",
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: "0.22em",
+                  textTransform: "uppercase",
+                  color: "var(--ink-mute)",
+                }}
+              >
+                Edition
+              </div>
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       )}
