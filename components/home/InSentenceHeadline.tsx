@@ -51,14 +51,15 @@ function makeHeadline(
   const leaderName = REGION_LABEL[leader.ticker] ?? leader.fullName;
 
   return {
-    body: `${leaderName} ${verb} today — ${contribStr} of contribution.`,
+    body: `${leaderName} ${verb} today · ${contribStr} of contribution.`,
     trailer,
   };
 }
 
 /**
- * Editorial sentence above the region sleeves.
- * "In a sentence  United States carried today — +0.30 pp of contribution."
+ * Editorial sentence above the region sleeves — a vermilion-outlined
+ * "IN A SENTENCE" pill on the left, italic Fraunces sentence to the right.
+ * Single row on desktop, wraps below the pill on narrow viewports.
  */
 export default function InSentenceHeadline({
   leader,
@@ -69,43 +70,64 @@ export default function InSentenceHeadline({
 
   return (
     <>
-      <p className="ledger__headline">
-        <span className="ed-stamp ledger__headline-stamp">In a sentence</span>
-        <span>
+      <p className="ledger__sentence">
+        <span className="ledger__sentence-pill" aria-label="In a sentence">
+          In a sentence
+        </span>
+        <span className="ledger__sentence-body">
           <em>{headline.body}</em>{" "}
-          <span className="ledger__headline-trailer">{headline.trailer}</span>
+          <span className="ledger__sentence-trailer">{headline.trailer}</span>
         </span>
       </p>
 
       <style jsx>{`
-        .ledger__headline {
+        .ledger__sentence {
           display: flex;
-          gap: 16px;
-          margin: 16px 0 22px;
+          gap: 14px;
+          margin: 0;
+          padding: 0;
           font-family: var(--font-serif);
-          font-size: clamp(15px, 1.6vw, 17px);
+          font-size: clamp(15px, 1.35vw, 17px);
           line-height: 1.5;
           color: var(--ink);
-          align-items: baseline;
+          align-items: center;
           flex-wrap: wrap;
         }
-        .ledger__headline em {
+        .ledger__sentence-pill {
+          display: inline-flex;
+          align-items: center;
+          font-family: var(--font-sans);
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.22em;
+          text-transform: uppercase;
+          color: var(--stamp);
+          border: 1px solid var(--stamp);
+          padding: 5px 11px;
+          border-radius: 999px;
+          background: transparent;
+          flex-shrink: 0;
+          white-space: nowrap;
+          line-height: 1;
+        }
+        .ledger__sentence-body {
+          min-width: 0;
+          flex: 1 1 auto;
+        }
+        .ledger__sentence-body em {
           font-style: italic;
           font-weight: 500;
+          color: var(--ink);
         }
-        .ledger__headline-stamp {
-          color: var(--stamp);
-          flex-shrink: 0;
-          padding-top: 2px;
-        }
-        .ledger__headline-trailer {
+        .ledger__sentence-trailer {
           color: var(--ink-mute);
           font-style: italic;
         }
         @media (max-width: 560px) {
-          .ledger__headline {
+          .ledger__sentence {
             flex-direction: column;
-            gap: 6px;
+            align-items: flex-start;
+            gap: 8px;
           }
         }
       `}</style>
