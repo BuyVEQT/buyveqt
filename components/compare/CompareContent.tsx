@@ -45,7 +45,7 @@ function parseFundsParam(raw: string | null): string[] | null {
 
 function parsePeriodParam(raw: string | null): ComparePeriod | null {
   if (!raw) return null;
-  const valid: ComparePeriod[] = ["6M", "1Y", "5Y", "ALL"];
+  const valid: ComparePeriod[] = ["3M", "6M", "1Y", "5Y", "ALL"];
   return (valid as string[]).includes(raw) ? (raw as ComparePeriod) : null;
 }
 
