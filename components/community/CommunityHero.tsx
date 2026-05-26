@@ -125,15 +125,14 @@ interface CommunityHeroProps {
 /**
  * V2 community masthead.
  *
- * - Top stamp row: "The forum · r/JustBuyVEQT · Live" left, today's date right
- * - 2-col title lockup (>= 760px): italic "Letters from / the holders." +
- *   cream paper-light card with the subscriber count animated from 0
- * - Lede paragraph (subreddit linked)
- * - 4-up live pulse strip below, separated by a hairline: Online now (with
- *   pulsing vermilion dot) / Posts today / New this week / Avg replies
- *
- * `newSubscribersThisWeek` is rendered only when present, since Reddit's
- * about endpoint doesn't expose it; the rest are derived in the page.
+ * Live numbers come from two sources: the server-rendered `stats` prop
+ * (best-effort; can be zeros if Vercel's Node serverless render fails
+ * to reach the Cloudflare proxy at SSR time) and a client-side refetch
+ * of `/api/reddit` on mount. The Edge route at `/api/reddit` is the
+ * only path proven to reliably reach the proxy from Vercel, which is
+ * why the post feed below already hydrates this way — we mirror the
+ * pattern here so Members / Top post / Avg replies always end up live
+ * regardless of what Node SSR managed to fetch.
  */
 export default function CommunityHero({ stats }: CommunityHeroProps) {
   // Resolve the date client-side post-mount so SSR (which may have been cached
@@ -150,12 +149,34 @@ export default function CommunityHero({ stats }: CommunityHeroProps) {
     );
   }, []);
 
-  const subscribersTarget = stats?.subscribers ?? 0;
+  // Start from the server-rendered stats, then swap to live data on
+  // mount via the working Edge route. /api/reddit returns enriched
+  // stats (subscribers, activeUsers, topPostScore, avgComments) so we
+  // populate every number from one network call.
+  const [liveStats, setLiveStats] = useState<SubredditStats | null>(stats);
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/reddit")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (cancelled || !data?.stats) return;
+        setLiveStats(data.stats as SubredditStats);
+      })
+      .catch(() => {
+        // Swallowed by design — server stats remain in place. The
+        // Edge route logs its own errors, no need to double-log here.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const subscribersTarget = liveStats?.subscribers ?? 0;
   const subscribers = useCountUp(subscribersTarget);
 
-  const activeUsers = stats?.activeUsers ?? null;
-  const topPostScore = stats?.topPostScore ?? null;
-  const avgComments = stats?.avgComments ?? null;
+  const activeUsers = liveStats?.activeUsers ?? null;
+  const topPostScore = liveStats?.topPostScore ?? null;
+  const avgComments = liveStats?.avgComments ?? null;
 
   return (
     <header className="cm-hero">
