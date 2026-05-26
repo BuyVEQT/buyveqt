@@ -8,6 +8,7 @@ import ThemeProvider, { NoFoucThemeScript } from "@/components/ThemeProvider";
 import DesktopNav from "@/components/shell/DesktopNav";
 import TopBar from "@/components/shell/TopBar";
 import TabBar from "@/components/shell/TabBar";
+import SiteFooter from "@/components/shell/SiteFooter";
 import { JsonLd } from "@/components/seo/JsonLd";
 import {
   SITE_URL,
@@ -178,6 +179,7 @@ export default function RootLayout({
           <div style={{ paddingBottom: "var(--shell-bottom-pad, 0)" }} className="[--shell-bottom-pad:90px] lg:[--shell-bottom-pad:0]">
             {children}
           </div>
+          <SiteFooter />
           <TabBar />
         </ThemeProvider>
         <Analytics />

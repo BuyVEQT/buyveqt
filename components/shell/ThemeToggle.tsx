@@ -76,15 +76,7 @@ export default function ThemeToggle({ compact = false, className }: ThemeToggleP
     <div
       role="radiogroup"
       aria-label="Theme"
-      className={className}
-      style={{
-        display: "inline-flex",
-        background: "var(--paper-warm)",
-        border: "1px solid var(--rule-soft)",
-        borderRadius: 999,
-        padding: 2,
-        gap: 1,
-      }}
+      className={`tt-pill${className ? ` ${className}` : ""}`}
     >
       {ORDER.map((p) => {
         const active = p === pref;
@@ -97,31 +89,70 @@ export default function ThemeToggle({ compact = false, className }: ThemeToggleP
             aria-label={LABELS[p].aria}
             onClick={() => setPref(p)}
             title={LABELS[p].full}
-            style={{
-              appearance: "none",
-              background: active ? "var(--ink)" : "transparent",
-              color: active ? "var(--paper-light)" : "var(--ink-soft)",
-              border: 0,
-              borderRadius: 999,
-              padding: "4px 9px",
-              fontFamily: "var(--font-sans)",
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: "0.14em",
-              textTransform: "uppercase",
-              cursor: "pointer",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 4,
-              lineHeight: 1,
-              transition: "background 0.15s, color 0.15s",
-            }}
+            className={`tt-seg${active ? " is-active" : ""}`}
           >
             <ThemeGlyph pref={p} active={active} />
-            <span style={{ marginTop: 1 }}>{LABELS[p].full}</span>
+            <span className="tt-seg__label">{LABELS[p].full}</span>
           </button>
         );
       })}
+      <style jsx>{`
+        .tt-pill {
+          display: inline-flex;
+          background: var(--paper-warm);
+          border: 1px solid var(--rule-soft);
+          border-radius: 999px;
+          padding: 2px;
+          gap: 1px;
+        }
+        .tt-seg {
+          appearance: none;
+          background: transparent;
+          color: var(--ink-soft);
+          border: 0;
+          border-radius: 999px;
+          padding: 4px 9px;
+          font-family: var(--font-sans);
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          line-height: 1;
+          transition: background 0.15s, color 0.15s;
+        }
+        .tt-seg.is-active {
+          background: var(--ink);
+          color: var(--band-paper);
+        }
+        .tt-seg__label {
+          margin-top: 1px;
+        }
+        /* Below 1280px (smaller desktops + 13" laptops) drop the labels
+           on the non-active segments to claw back ~70px of nav width.
+           Active segment keeps its label so the current selection
+           stays legible at a glance. */
+        @media (max-width: 1279px) {
+          .tt-seg:not(.is-active) .tt-seg__label {
+            display: none;
+          }
+          .tt-seg {
+            padding: 4px 7px;
+          }
+        }
+        /* Below 1140px drop ALL labels — glyph-only pill. */
+        @media (max-width: 1139px) {
+          .tt-seg .tt-seg__label {
+            display: none;
+          }
+          .tt-seg {
+            padding: 4px 6px;
+          }
+        }
+      `}</style>
     </div>
   );
 }

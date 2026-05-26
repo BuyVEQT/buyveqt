@@ -22,11 +22,9 @@ const NAV: NavLink[] = [
   { id: "comm", label: "Community", href: "/community" },
 ];
 
-const SECONDARY = [
-  { label: "Distributions", href: "/distributions" },
-  { label: "Weekly", href: "/weekly" },
-  { label: "Methodology", href: "/methodology" },
-];
+/* Secondary links (Distributions / Weekly / Methodology) moved to
+   <SiteFooter> after the theme toggle joined the nav right cluster
+   and crowded the row. */
 
 function activeFromPath(pathname: string): NavId | null {
   if (pathname === "/") return "today";
@@ -40,12 +38,11 @@ function activeFromPath(pathname: string): NavId | null {
 
 /**
  * Desktop sticky nav. ONE navigation surface on desktop:
- *   logo + primary nav | centered live ticker | small secondary text-links.
+ *   logo + primary nav | centered live ticker | theme toggle.
  *
- * The Round 4 polish dropped the ☰ overflow + Search + ★ Watch decorative
- * buttons. Secondary links surface here as small text instead of behind
- * a hamburger so desktop users don't see three competing nav controls
- * (the mobile TopBar + TabBar are hidden via the .shell-* CSS classes).
+ * Secondary links (Distributions / Weekly / Methodology) used to sit
+ * in the right cluster but moved to <SiteFooter> after the theme
+ * toggle joined the nav and the row got too dense at < 1500px.
  */
 export default function DesktopNav() {
   const pathname = usePathname() ?? "/";
@@ -107,6 +104,7 @@ export default function DesktopNav() {
                     paddingBottom: 3,
                     textDecoration: "none",
                     transition: "color 0.15s",
+                    whiteSpace: "nowrap",
                   }}
                 >
                   {l.label}
@@ -124,25 +122,12 @@ export default function DesktopNav() {
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 18,
+            gap: 12,
             fontFamily: "var(--font-sans)",
             fontSize: 12,
             color: "var(--ink-mute)",
           }}
         >
-          {SECONDARY.map((l) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              style={{
-                color: "var(--ink-mute)",
-                textDecoration: "none",
-                transition: "color 0.15s",
-              }}
-            >
-              {l.label}
-            </Link>
-          ))}
           <ThemeToggle />
         </div>
       </div>
