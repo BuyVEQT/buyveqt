@@ -12,7 +12,17 @@ import {
 import { JsonLd } from "@/components/seo/JsonLd";
 import { buildBreadcrumbSchema, canonicalUrl } from "@/lib/seo-config";
 
-export const revalidate = 1800; // 30 minutes
+/**
+ * Render on the Edge runtime, not the default Node serverless. The
+ * Cloudflare Worker proxy at reddit-api.buyveqt.ca is reachable from
+ * Edge (proven by /api/reddit, which works), but Vercel's Node
+ * serverless egress was silently failing to reach it — leaving the
+ * pulse strip baked with zeros after every build and never recovering
+ * via ISR. Edge SSR + CDN caching gives the same perf without the
+ * broken Node→CF data path.
+ */
+export const runtime = 'edge';
+export const revalidate = 1800; // 30 minutes — used as CDN s-maxage hint
 
 export const metadata: Metadata = {
   title: "The Forum — r/JustBuyVEQT",
