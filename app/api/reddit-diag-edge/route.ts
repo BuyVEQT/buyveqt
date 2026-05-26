@@ -1,20 +1,14 @@
 import { NextResponse } from 'next/server';
 
 /**
- * TEMP DIAGNOSTIC — remove once we have a clean signal.
+ * TEMP DIAGNOSTIC (Edge runtime) — pair to `/api/reddit-diag`.
+ * Probes the same endpoints from the Edge runtime so we can compare
+ * what Edge sees vs. what Node serverless sees.
  *
- * Reproduces, in the same Node serverless runtime the page uses,
- * three fetches against the Cloudflare Worker proxy at
- * `reddit-api.buyveqt.ca`. Returns per-endpoint status, headers,
- * body length, durations, and any caught error so we can see what
- * Vercel's serverless environment actually sees — vs. the Edge
- * runtime at `/api/reddit`, which has always worked.
- *
- * Hit: https://buyveqt.ca/api/_reddit-diag
+ * Hit: https://buyveqt.ca/api/reddit-diag-edge
  */
 
-// Force Node runtime to mirror the page's data-fetch environment.
-export const runtime = 'nodejs';
+export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
 const PROXY_BASE = 'https://reddit-api.buyveqt.ca';
@@ -30,6 +24,7 @@ interface Probe {
   status?: number;
   contentType?: string | null;
   bodyLength?: number;
+  bodyPreview?: string;
   childCount?: number;
   firstScore?: number;
   subscribers?: number;
@@ -37,6 +32,7 @@ interface Probe {
   error?: string;
   cfRay?: string | null;
   cacheStatus?: string | null;
+  server?: string | null;
 }
 
 async function probe(url: string): Promise<Probe> {
@@ -57,11 +53,14 @@ async function probe(url: string): Promise<Probe> {
     result.contentType = res.headers.get('content-type');
     result.cfRay = res.headers.get('cf-ray');
     result.cacheStatus = res.headers.get('cf-cache-status');
+    result.server = res.headers.get('server');
     result.ok = res.ok;
 
+    const text = await res.text();
+    result.bodyLength = text.length;
+    result.bodyPreview = text.slice(0, 200);
+
     if (res.ok) {
-      const text = await res.text();
-      result.bodyLength = text.length;
       try {
         const json = JSON.parse(text);
         const data = json?.data;
@@ -90,14 +89,14 @@ async function probe(url: string): Promise<Probe> {
 export async function GET() {
   const results = await Promise.all([
     probe(`${PROXY_BASE}/about`),
-    probe(`${PROXY_BASE}/hot?limit=12`),
-    probe(`${PROXY_BASE}/top?limit=12&t=all`),
+    probe(`${PROXY_BASE}/hot?limit=5`),
+    probe(`${PROXY_BASE}/top?limit=5&t=all`),
+    probe(`https://www.reddit.com/r/JustBuyVEQT/about.json`),
+    probe(`https://old.reddit.com/r/JustBuyVEQT/about.json`),
   ]);
 
   return NextResponse.json({
-    runtime: 'nodejs',
-    region: process.env.VERCEL_REGION ?? 'unknown',
-    nodeVersion: process.version,
+    runtime: 'edge',
     timestamp: new Date().toISOString(),
     probes: results,
   });
