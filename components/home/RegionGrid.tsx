@@ -171,18 +171,18 @@ function LedgerStyles() {
   return (
     <style jsx global>{`
       .ledger {
-        padding: 26px 0 16px;
+        padding: 18px 0 10px;
         display: flex;
         flex-direction: column;
-        gap: 18px;
+        gap: 12px;
       }
       .ledger__top-rule {
-        margin-bottom: 4px;
+        margin-bottom: 2px;
       }
       .ledger__head {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 6px;
       }
       .ledger__eyebrow {
         display: flex;
@@ -196,7 +196,7 @@ function LedgerStyles() {
         align-items: end;
       }
       .ledger__h2 {
-        font-size: clamp(2.2rem, 4vw, 2.9rem);
+        font-size: clamp(2rem, 3.6vw, 2.6rem);
         line-height: 1.02;
         letter-spacing: -0.024em;
         margin: 0;
@@ -214,19 +214,19 @@ function LedgerStyles() {
       .ledger__grid {
         display: grid;
         grid-template-columns: 1fr;
-        gap: 16px;
+        gap: 12px;
         align-items: stretch;
       }
       .ledger__leader-wrap {
         display: flex;
       }
       .ledger__leader-skel {
-        min-height: 360px;
+        min-height: 320px;
       }
       .ledger__followers {
         display: grid;
         grid-template-columns: 1fr;
-        gap: 12px;
+        gap: 10px;
         align-content: stretch;
       }
 
@@ -246,10 +246,10 @@ function LedgerStyles() {
         .ledger__grid {
           /* Leader card ~62%, followers column ~38%. Tweak via fr units. */
           grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr);
-          gap: 18px;
+          gap: 14px;
         }
         .ledger__followers {
-          gap: 12px;
+          gap: 10px;
           /* Stretch each follower to fill the leader card's intrinsic height
              — the leader's tall sparkline tends to drive the column. */
           grid-template-rows: 1fr 1fr 1fr;
