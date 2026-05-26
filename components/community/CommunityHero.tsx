@@ -223,8 +223,17 @@ export default function CommunityHero({ stats }: CommunityHeroProps) {
              this second" rather than a broken zero. */
           emptyAsDash
         />
-        <PulseStat label="Top post score" value={topPostScore} icon="▲" />
-        <PulseStat label="Avg replies" value={avgComments} icon="↳" />
+        {/* Both of these can be undefined when the Reddit proxy is
+            unreachable and we fall back to RSS (which doesn't expose
+            scores or comment counts). A literal "0" reads as broken;
+            "—" reads as honestly "no live data right now". */}
+        <PulseStat
+          label="Top post score"
+          value={topPostScore}
+          icon="▲"
+          emptyAsDash
+        />
+        <PulseStat label="Avg replies" value={avgComments} icon="↳" emptyAsDash />
       </div>
 
       <style jsx>{`
