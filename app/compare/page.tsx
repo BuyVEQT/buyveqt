@@ -7,7 +7,7 @@ import { COMPARE_FAQ } from "@/data/faq";
 export const metadata: Metadata = {
   title: "Compare — VEQT vs the field",
   description:
-    "Side-by-side bouts: VEQT against XEQT, ZEQT, VGRO, XGRO, VFV, and VUN. Performance spreads, the editor's verdict, and the data behind it.",
+    "Side-by-side bouts: VEQT against XEQT, ZEQT, CAGE, VGRO, VFV, and VUN. Performance spreads, the editor's verdict, and the data behind it.",
   alternates: { canonical: canonicalUrl("/compare") },
   openGraph: {
     title: "Compare — VEQT vs the field",

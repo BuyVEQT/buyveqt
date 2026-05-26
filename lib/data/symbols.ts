@@ -34,18 +34,20 @@ export const SYMBOLS: Record<string, SymbolConfig> = {
     fullName: 'BMO All-Equity ETF',
     priority: ['yahoo', 'alpha-vantage'],
   },
+  // Avantis Investments Canada — multi-factor (small-cap + value) all-equity
+  // all-in-one. Lives between ZEQT and XEQT in the all-equity cohort.
+  CAGE: {
+    alphaVantage: 'CAGE.TRT',
+    yahoo: 'CAGE.TO',
+    displayName: 'CAGE',
+    fullName: 'Avantis All-Equity ETF',
+    priority: ['yahoo', 'alpha-vantage'],
+  },
   VGRO: {
     alphaVantage: 'VGRO.TRT',
     yahoo: 'VGRO.TO',
     displayName: 'VGRO',
     fullName: 'Vanguard Growth ETF Portfolio',
-    priority: ['yahoo', 'alpha-vantage'],
-  },
-  XGRO: {
-    alphaVantage: 'XGRO.TRT',
-    yahoo: 'XGRO.TO',
-    displayName: 'XGRO',
-    fullName: 'iShares Core Growth ETF Portfolio',
     priority: ['yahoo', 'alpha-vantage'],
   },
   VFV: {

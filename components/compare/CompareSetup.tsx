@@ -5,18 +5,21 @@ import { fundColor } from "@/lib/styles";
 
 const PRESETS = [
   { id: "veqt-xeqt", label: "VEQT × XEQT", funds: ["VEQT.TO", "XEQT.TO"], blurb: "The marquee fight" },
+  { id: "veqt-cage", label: "VEQT × CAGE", funds: ["VEQT.TO", "CAGE.TO"], blurb: "Index vs evidence" },
   { id: "veqt-zeqt", label: "VEQT × ZEQT", funds: ["VEQT.TO", "ZEQT.TO"], blurb: "The challenger" },
   { id: "veqt-vfv",  label: "VEQT × VFV",  funds: ["VEQT.TO", "VFV.TO"],  blurb: "World vs U.S." },
   { id: "veqt-vgro", label: "VEQT × VGRO", funds: ["VEQT.TO", "VGRO.TO"], blurb: "With or without bonds" },
-  { id: "veqt-xgro", label: "VEQT × XGRO", funds: ["VEQT.TO", "XGRO.TO"], blurb: "Equity vs 80/20" },
 ] as const;
 
+// All-equity cohort first (VEQT · ZEQT · CAGE · XEQT), then the
+// 80/20 balanced sleeve, then the single-market plays. CAGE sits between
+// ZEQT and XEQT as the new factor-tilted entrant in the all-equity field.
 const ALL_FUNDS_ORDER = [
   "VEQT.TO",
-  "XEQT.TO",
   "ZEQT.TO",
+  "CAGE.TO",
+  "XEQT.TO",
   "VGRO.TO",
-  "XGRO.TO",
   "VFV.TO",
   "VUN.TO",
 ] as const;

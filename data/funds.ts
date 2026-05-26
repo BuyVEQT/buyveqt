@@ -158,6 +158,49 @@ export const FUNDS: Record<string, FundData> = {
     ],
     chartColor: "#16a34a",
   },
+  // The new entrant. Avantis Investments (American Century subsidiary)
+  // brings academic factor research — small-cap + value tilts away from
+  // mega-cap growth — into a single all-equity ticket. Higher MER than
+  // the index-cohort but the pitch is the evidence-based active engine,
+  // not the wrapper.
+  //
+  // Allocation figures below approximate the published fact sheet at the
+  // time the fund was added to the compare page; verify against the
+  // current Avantis Canada fact sheet quarterly (see UPDATE SCHEDULE).
+  "CAGE.TO": {
+    ticker: "CAGE.TO",
+    name: "Avantis All-Equity ETF",
+    shortName: "CAGE",
+    provider: "Avantis (American Century)",
+    mer: 0.27,
+    aum: "$180M",
+    inceptionDate: "2024-09-17",
+    numberOfHoldings: 4500,
+    distributionFrequency: "Annually",
+    currency: "CAD",
+    exchangeListed: "TSX",
+    equityAllocation: 100,
+    fixedIncomeAllocation: 0,
+    description:
+      "An evidence-based, multi-factor all-equity ETF. Tilts toward smaller-cap and higher-profitability value names, weighting away from mega-cap growth that dominates a market-cap index.",
+    whoThisSuits:
+      "Investors who buy the academic case for small-cap and value premia, and who want a single-ticket all-equity portfolio without assembling factor sleeves themselves. Comfortable paying ~7bps more than the index trio for an active factor engine.",
+    geographyAllocation: [
+      { region: "United States", weight: 51, color: "#2563eb" },
+      { region: "Canada", weight: 12, color: "#dc2626" },
+      { region: "International Developed", weight: 27, color: "#16a34a" },
+      { region: "Emerging Markets", weight: 10, color: "#f59e0b" },
+    ],
+    underlyingETFs: [
+      { ticker: "AVUS", name: "Avantis U.S. Equity ETF", weight: 51, region: "United States" },
+      { ticker: "AVCN", name: "Avantis Canadian Equity ETF", weight: 12, region: "Canada" },
+      { ticker: "AVDE", name: "Avantis International Equity ETF", weight: 27, region: "International" },
+      { ticker: "AVEM", name: "Avantis Emerging Markets Equity ETF", weight: 10, region: "Emerging Markets" },
+    ],
+    chartColor: "#6a4b9c",
+    merFootnote:
+      "0.27% MER reflects Avantis's evidence-based active management — higher than the index cohort but lower than most traditional active strategies. Verify against the latest Avantis Canada fact sheet.",
+  },
   "VGRO.TO": {
     ticker: "VGRO.TO",
     name: "Vanguard Growth ETF Portfolio",
@@ -194,42 +237,6 @@ export const FUNDS: Record<string, FundData> = {
     chartColor: "#8b5cf6",
     merFootnote:
       "Vanguard reduced VGRO's management fee from 0.22% to 0.17% in November 2025. The official MER is still reported as 0.24% pending fiscal year-end recalculation. The effective MER is expected to be approximately 0.19%–0.20%.",
-  },
-  "XGRO.TO": {
-    ticker: "XGRO.TO",
-    name: "iShares Core Growth ETF Portfolio",
-    shortName: "XGRO",
-    provider: "iShares (BlackRock)",
-    mer: 0.20,
-    aum: "$4.2B",
-    inceptionDate: "2007-06-21",
-    numberOfHoldings: 9300,
-    distributionFrequency: "Quarterly",
-    currency: "CAD",
-    exchangeListed: "TSX",
-    equityAllocation: 80,
-    fixedIncomeAllocation: 20,
-    description:
-      "iShares' 80/20 growth portfolio — global equity exposure with a 20% bond allocation for reduced volatility. The iShares counterpart to Vanguard's VGRO.",
-    whoThisSuits:
-      "Investors with medium-to-long horizons (5–20 years) who want growth but prefer a smoother ride, or anyone who knows they'd panic-sell in a steep downturn.",
-    geographyAllocation: [
-      { region: "United States", weight: 36, color: "#2563eb" },
-      { region: "Canada", weight: 20, color: "#dc2626" },
-      { region: "International Developed", weight: 20, color: "#16a34a" },
-      { region: "Emerging Markets", weight: 4, color: "#f59e0b" },
-      { region: "Bonds", weight: 20, color: "#6b7280" },
-    ],
-    underlyingETFs: [
-      { ticker: "ITOT", name: "iShares Core S&P Total US Stock Market ETF", weight: 36, region: "United States" },
-      { ticker: "XIC", name: "iShares Core S&P/TSX Capped Composite Index ETF", weight: 20, region: "Canada" },
-      { ticker: "IEFA", name: "iShares Core MSCI EAFE ETF", weight: 20, region: "International" },
-      { ticker: "IEMG", name: "iShares Core MSCI Emerging Markets ETF", weight: 4, region: "Emerging Markets" },
-      { ticker: "XSAB", name: "iShares Core Canadian Short Term Bond Index ETF", weight: 20, region: "Canada (Bonds)" },
-    ],
-    chartColor: "#e11d48",
-    merFootnote:
-      "XGRO's management fee was reduced from 0.18% to 0.17% in December 2025. The MER of 0.20% includes operating expenses.",
   },
   "VFV.TO": {
     ticker: "VFV.TO",

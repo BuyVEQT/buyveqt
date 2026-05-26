@@ -29,26 +29,26 @@ export const COMPARE_FAQ: FAQItem[] = [
     answer:
       "VFV tracks only the S&P 500 — the 500 largest US companies. While it has performed very well historically, it provides zero exposure to Canadian, international, or emerging market stocks. A true all-in-one ETF like VEQT or XEQT gives you global diversification in a single purchase. VFV is a great fund, but it's a US-only bet. Combining it with other ETFs to get global coverage defeats the simplicity that makes all-in-one funds attractive.",
   },
-  // VEQT vs XGRO FAQs
+  // VEQT vs CAGE FAQs
   {
-    question: "Is XGRO safer than VEQT?",
+    question: "What's the difference between VEQT and CAGE?",
     answer:
-      "In the short term, yes — XGRO's 20% bond allocation reduces volatility and drawdowns. During the COVID crash, XGRO fell less than VEQT. However, over very long periods (20+ years), the 'safety' of bonds comes at the cost of lower expected returns. Safety depends on your time horizon.",
+      "VEQT holds the entire global stock market weighted by market capitalization — every company at the proportion the market thinks it's worth. CAGE (Avantis All-Equity ETF) holds a similar global mandate but rotates the weights toward smaller-cap and higher-profitability value companies. Same equity universe, different weighting scheme. VEQT costs ~0.20% MER; CAGE costs 0.27%.",
   },
   {
-    question: "Should I hold VEQT or XGRO in my TFSA?",
+    question: "Is CAGE active management?",
     answer:
-      "Either works well in a TFSA. If you're young with decades until retirement, VEQT's higher equity allocation may generate more tax-free growth. If you're closer to needing the money, XGRO's bond cushion provides more stability.",
+      "Sort of — Avantis calls it \"evidence-based\" investing. They don't pick individual stocks based on opinion; they screen the global universe using academic factors (size, value, profitability) that have shown long-run premia since the 1920s. It's rules-based and systematic, but it's not pure market-cap indexing either. Closer to \"smart beta\" or factor investing than to traditional stock-picking.",
   },
   {
-    question: "Can I hold both VEQT and XGRO?",
+    question: "Should I switch from VEQT to CAGE?",
     answer:
-      "You could, but there's significant overlap. Both hold the same global equity markets — XGRO just adds bonds on top. Holding both gives you something between 80–100% equity, which you could achieve more cleanly with one fund. Pick the allocation that matches your risk tolerance.",
+      "Only if you have a real belief in the size and value premia. Those premia have historically rewarded patient investors, but they've also disappeared for 10+ year stretches (most recently 2010–2020, when mega-cap growth dominated). If you'd panic-sell CAGE during a multi-year stretch of underperforming the index, you'll do worse than just holding VEQT. The wrong fund held forever beats the right fund sold at the bottom.",
   },
   {
-    question: "Why not just use VGRO instead of XGRO?",
+    question: "Can I hold both VEQT and CAGE?",
     answer:
-      "VGRO (Vanguard) and XGRO (iShares) are extremely similar — both are 80/20 equity/bond portfolios. The differences are minor: slightly different geographic tilts, index providers (FTSE vs MSCI/S&P), and MERs. See our VEQT vs VGRO comparison for more on the Vanguard side.",
+      "Yes, and some investors do — using VEQT as a market-cap core and adding CAGE as a factor satellite (say, 70/30 or 80/20). The combined portfolio has a mild tilt toward small-cap and value without abandoning the market-cap baseline. Just don't double-count: holding both at 50/50 isn't twice the diversification, it's a diluted factor tilt at a higher blended fee.",
   },
   // VEQT vs VFV FAQs
   {

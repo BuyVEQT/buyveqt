@@ -202,42 +202,48 @@ export const VERDICTS: Record<string, Verdict> = {
       },
     ],
   },
-  "VEQT:XGRO": {
-    slug: "veqt-vs-xgro",
-    headline: "Same philosophical fight: bonds or no bonds.",
+  "CAGE:VEQT": {
+    slug: "veqt-vs-cage",
+    headline: "Index orthodoxy vs the factor pitch.",
     summary:
-      "Same setup as VEQT vs VGRO — 80% equity, 20% bonds — only on the iShares side. XGRO has the longer track record (back to 2007) since BlackRock pre-dates the all-in-one boom. Same trade-off applies: bonds for stomach, no bonds for compounding.",
+      "VEQT holds the world by market cap — the academic baseline, the cheapest possible bet on \"everything.\" CAGE rotates that holding toward the corners academic research says have paid a premium since the 1920s: smaller companies, profitable companies, companies trading cheaper than their fundamentals. It's the same global equity exposure, weighted by a different sermon.",
     recommendation:
-      "The VEQT vs XGRO choice is really the VEQT vs bonds choice. If you want 100% equity, VEQT wins. If you want the bond buffer, XGRO's longer track record (back to 2007, through the GFC) gives you more data than VGRO does.",
+      "If you believe market-cap weighting is the honest default and that any deviation is closet-active in disguise, hold VEQT and pay 20bps. If you've read Fama–French and want a single-ticket way to harvest the size and value premia without bolting AVUV onto your portfolio, CAGE earns its 7bps premium — provided you can stomach years where mega-cap growth runs and the factor sleeve underperforms.",
     points: [
-      {
-        label: "Long-run return expectation",
-        explanation:
-          "100% equity wins on expected compound return over multi-decade horizons. VEQT takes this round.",
-        winner: "VEQT",
-      },
-      {
-        label: "Track record length",
-        explanation:
-          "XGRO launched in 2007 — it has data through the Global Financial Crisis. VEQT launched in 2019.",
-        winner: "XGRO",
-      },
-      {
-        label: "Volatility & drawdown protection",
-        explanation:
-          "XGRO's 20% bond sleeve cuts the worst drawdowns meaningfully. Useful for investors within 10 years of needing the money.",
-        winner: "XGRO",
-      },
       {
         label: "Cost (MER)",
         explanation:
-          "Both ~0.20%. No meaningful difference in cost.",
+          "VEQT ~0.20% effective vs CAGE 0.27%. Cap-weighted indexing is cheaper because it's the lowest-effort weighting scheme — you're paying for the absence of decisions.",
+        winner: "VEQT",
+      },
+      {
+        label: "Weighting philosophy",
+        explanation:
+          "VEQT mirrors what investors collectively own. CAGE deliberately overweights smaller-cap and higher-profitability value names per Avantis's research process — a thesis-driven tilt, not a market mirror.",
         winner: "Tie",
       },
       {
-        label: "Asset class purity",
+        label: "Track record",
         explanation:
-          "VEQT is pure global equity — no bonds diluting the equity risk premium. Cleaner for investors who want unadulterated growth.",
+          "VEQT launched in 2019 and has lived through a real crash. CAGE is brand-new (2024) — its factor strategy has decades of academic evidence behind it, but the Canadian wrapper itself has no through-cycle data.",
+        winner: "VEQT",
+      },
+      {
+        label: "Diversification breadth",
+        explanation:
+          "VEQT holds 13,700+ securities. CAGE holds ~4,500 with deliberate factor screens — fewer names by design, more concentrated in factor-favored quadrants.",
+        winner: "VEQT",
+      },
+      {
+        label: "Expected long-run premia",
+        explanation:
+          "If small-cap and value premia persist as they have since 1928, CAGE's tilts should compound to a multi-percent edge over decades. \"If\" is the operative word — those premia have disappeared for 10+ year stretches before.",
+        winner: "CAGE",
+      },
+      {
+        label: "Behavioural risk",
+        explanation:
+          "Holding a factor fund through a multi-year mega-cap growth run is harder than holding the market through the same run, because the underperformance feels like a choice. VEQT removes that temptation.",
         winner: "VEQT",
       },
     ],

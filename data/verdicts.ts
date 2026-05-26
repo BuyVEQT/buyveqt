@@ -124,49 +124,49 @@ export const VERDICTS: ComparisonVerdict[] = [
       "VEQT is the more established choice with better liquidity. ZEQT is a fine alternative if your brokerage favors BMO products or you prefer their slight allocation differences. Either will serve a passive investor well.",
   },
   {
-    slug: "veqt-vs-xgro",
+    slug: "veqt-vs-cage",
     summary:
-      "This isn't a provider battle — it's a philosophy question. VEQT bets that over long horizons, 100% equities win. XGRO hedges that bet with a 20% bond buffer. Both are right, depending on your timeline and temperament.",
+      "VEQT is the market by market cap — the cheapest, lowest-decision bet on every public company. CAGE is the same global equity exposure rotated toward what academic research has called premium-paying corners since 1928: smaller companies, profitable companies, value names. It's not active vs passive; it's index orthodoxy vs the factor pitch.",
     points: [
       {
-        label: "Long-term return potential",
-        winner: "VEQT",
-        explanation:
-          "100% equities have historically outperformed 80/20 portfolios over 15+ year periods. The bond allocation in XGRO reduces upside alongside risk.",
-      },
-      {
-        label: "Drawdown protection",
-        winner: "XGRO",
-        explanation:
-          "XGRO's 20% bond buffer meaningfully reduced losses during the COVID crash and 2022 bear market. If you'd sell in a panic, XGRO's smoother ride may preserve more wealth in practice.",
-      },
-      {
-        label: "Simplicity",
-        winner: "Tie",
-        explanation:
-          "Both are single-ticker, auto-rebalanced portfolios. Buy either and forget it.",
-      },
-      {
         label: "Cost (MER)",
-        winner: "Tie",
-        explanation:
-          "XGRO's MER is 0.20%. VEQT's effective MER is ~0.20% after the November 2025 fee cut (official MER update pending). Essentially identical.",
-      },
-      {
-        label: "Suitability for 5–15 year goals",
-        winner: "XGRO",
-        explanation:
-          "For medium-term goals like a home down payment or mid-career savings, the bond cushion provides more predictable outcomes.",
-      },
-      {
-        label: "Suitability for 20+ year goals",
         winner: "VEQT",
         explanation:
-          "For retirement-horizon investing, the equity risk premium has historically rewarded patient investors. Bonds become a drag over very long periods.",
+          "VEQT ~0.20% effective vs CAGE 0.27%. Cap-weighted indexing is cheaper because it's the lowest-effort weighting scheme — you pay extra for Avantis's factor screens.",
+      },
+      {
+        label: "Weighting philosophy",
+        winner: "Tie",
+        explanation:
+          "VEQT mirrors what investors collectively own. CAGE deliberately overweights smaller-cap and higher-profitability value names. Both have defensible academic foundations — they answer different questions.",
+      },
+      {
+        label: "Track record",
+        winner: "VEQT",
+        explanation:
+          "VEQT launched 2019 with through-cycle data. CAGE launched 2024 — the underlying factor research goes back nearly a century, but the Canadian wrapper itself is brand new.",
+      },
+      {
+        label: "Holdings breadth",
+        winner: "VEQT",
+        explanation:
+          "VEQT holds 13,700+ securities globally. CAGE holds ~4,500, deliberately concentrated in factor-favored quadrants — fewer names by design.",
+      },
+      {
+        label: "Expected factor premia",
+        winner: "CAGE",
+        explanation:
+          "If size and value premia persist as they have historically, CAGE's tilts should compound to a meaningful edge over multi-decade horizons. The premia have disappeared for 10+ year stretches before — so this is a long-horizon bet.",
+      },
+      {
+        label: "Behavioural risk",
+        winner: "VEQT",
+        explanation:
+          "Holding a factor fund through a mega-cap growth run is harder than holding the market through it — the underperformance feels like a choice. VEQT removes that temptation by definition.",
       },
     ],
     recommendation:
-      "If you're investing for 20+ years and can stomach a 30%+ drawdown without selling, VEQT is the sharper tool. If your horizon is shorter, or you know you'd panic in a crash, XGRO's bond cushion earns its keep. The worst outcome isn't picking the 'wrong' fund — it's selling either one at the bottom.",
+      "Hold VEQT if you believe market-cap weighting is the honest default and any deviation is closet-active in disguise. Hold CAGE if you've read Fama–French, want a single-ticket way to harvest the size and value premia, and can sit through years of mega-cap growth dominance without flinching. Don't pick CAGE for the hype — pick it for the thesis, or skip it.",
   },
   {
     slug: "veqt-vs-vfv",

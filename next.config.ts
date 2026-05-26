@@ -36,6 +36,15 @@ const nextConfig: NextConfig = {
         destination: "/learn/veqt-vs-diy-portfolio",
         permanent: true,
       },
+      {
+        // XGRO was retired from the compare lineup when Avantis CAGE took its
+        // matchup slot. VGRO is XGRO's closest peer (both 80/20 equity/bond),
+        // so route old XGRO links to the Vanguard counterpart instead of
+        // 404-ing — preserves inbound SEO and keeps the bond-tradeoff framing.
+        source: "/compare/veqt-vs-xgro",
+        destination: "/compare/veqt-vs-vgro",
+        permanent: true,
+      },
     ];
   },
 };
