@@ -78,3 +78,33 @@ export function computeTFSARoom(birthYear: number, pastContributions: number) {
     currentYearLimit: TFSA_ANNUAL_LIMITS[CURRENT_YEAR] ?? 7000,
   };
 }
+
+/* ─── FHSA limits ───────────────────────────────────────────────── */
+
+/** FHSA annual contribution limit (CRA, since 2023 launch). */
+export const FHSA_ANNUAL_LIMIT = 8000;
+/** FHSA lifetime contribution limit. */
+export const FHSA_LIFETIME_LIMIT = 40000;
+/** Max participation period (years) — must use for first home or convert to RRSP. */
+export const FHSA_MAX_YEARS = 15;
+
+/**
+ * Compute FHSA usage given total past contributions. The account has both
+ * an annual and lifetime cap; this returns remaining lifetime room and the
+ * % used so far.
+ */
+export function computeFHSARoom(pastContributions: number) {
+  const remaining = Math.max(0, FHSA_LIFETIME_LIMIT - pastContributions);
+  const usedPct = Math.min(
+    100,
+    (pastContributions / FHSA_LIFETIME_LIMIT) * 100
+  );
+  return {
+    lifetimeLimit: FHSA_LIFETIME_LIMIT,
+    annualLimit: FHSA_ANNUAL_LIMIT,
+    remaining,
+    usedPct,
+    isOverContributed: pastContributions > FHSA_LIFETIME_LIMIT,
+    maxYears: FHSA_MAX_YEARS,
+  };
+}

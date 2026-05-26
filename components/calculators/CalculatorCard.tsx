@@ -52,6 +52,12 @@ export interface CalculatorCardProps<I> {
   advancedContent?: ReactNode;
   /** Primary controls (number inputs, segmented controls, presets…). */
   controls: ReactNode;
+  /** Optional content rendered above the projection chart (e.g. account
+   *  contribution-room tracker for Shelter). */
+  aboveChart?: ReactNode;
+  /** Optional content rendered below the scenario toggle (e.g. depth
+   *  stat strip in Shelter's tax callouts). */
+  belowChart?: ReactNode;
 }
 
 export default function CalculatorCard<I>({
@@ -71,6 +77,8 @@ export default function CalculatorCard<I>({
   onReset,
   advancedContent,
   controls,
+  aboveChart,
+  belowChart,
 }: CalculatorCardProps<I>) {
   const activePath = paths[activeKey];
   const activeYears = Math.max(0, Math.floor((activePath.path.length - 1) / 12));
@@ -124,8 +132,10 @@ export default function CalculatorCard<I>({
           </div>
 
           <div className="calc__chart-wrap">
+            {aboveChart}
             <ProjectionChart paths={paths} activeKey={activeKey} baseline={baseline} />
             <ScenarioToggle value={activeKey} paths={paths} onChange={setActiveKey} />
+            {belowChart}
           </div>
         </div>
 

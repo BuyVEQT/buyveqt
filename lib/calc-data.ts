@@ -258,6 +258,36 @@ export function buildLookbackDCACohorts(
   return out;
 }
 
+/**
+ * Per-month value-over-time path for every DCA cohort. For each starting
+ * month, build the trajectory of someone DCAing `monthlyAmount` from that
+ * month forward through the most recent bar. Used by CohortFanChart in
+ * DCA mode so the fan reflects DCA accumulation (long-running cohorts
+ * accumulate to large totals) instead of lump-sum return curves.
+ */
+export function buildLookbackDCAPaths(
+  monthlyAmount: number,
+  monthlyHistory: MonthlyBar[],
+  minMonths = 6
+): { start: string; path: { date: string; value: number }[] }[] {
+  const n = monthlyHistory.length;
+  if (n === 0) return [];
+  const out: { start: string; path: { date: string; value: number }[] }[] = [];
+  for (let i = 0; i < n; i++) {
+    const cohortBars = monthlyHistory.slice(i);
+    if (cohortBars.length < minMonths) continue;
+    let totalShares = 0;
+    const path: { date: string; value: number }[] = [];
+    for (const bar of cohortBars) {
+      if (!bar.close || bar.close <= 0) continue;
+      totalShares += monthlyAmount / bar.close;
+      path.push({ date: bar.date, value: totalShares * bar.close });
+    }
+    if (path.length > 0) out.push({ start: cohortBars[0].date, path });
+  }
+  return out;
+}
+
 // ─── Adapter for the codebase's HistoricalDataPoint ─────────────
 
 /**

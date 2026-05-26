@@ -4,7 +4,8 @@
  * FIRECalculator (V2) — financial-independence math.
  *
  * Inputs: annual `expenses`, withdrawal rate `wRate` (%), current
- * portfolio `currentNW`, monthly contribution `monthly`.
+ * portfolio `currentNW`, monthly contribution `monthly`, current age,
+ * optional annual gross income (for savings-rate display).
  * Derived: `fireNumber = expenses / (wRate/100)`. For each scenario, we
  * compute years to reach the FIRE number via `yearsToTarget`, plus a
  * projection path for the chart.
@@ -12,9 +13,11 @@
  * Result slab differs from DCA / TFSA: instead of an animated dollar
  * headline, the big number is "FIRE in {years} years" using
  * `useAnimatedNumberRaw` directly so the fractional years tween smoothly.
- * Two sub-stats: the FIRE number itself and Coast FIRE today (the lump
- * that, left alone at this rate, would compound into the FIRE number by
- * the FIRE date).
+ *
+ * Depth layer below the chart:
+ *  - Progress chip with % to FIRE and Coast/full-FIRE achievement callout
+ *  - 4-up cells: FIRE age · Safe monthly income · Lean FIRE · Fat FIRE
+ *  - Savings rate (always visible)
  */
 import { useState, useMemo, useEffect } from "react";
 import {
@@ -46,6 +49,8 @@ interface FIREInputs {
   adjustInflation: boolean;
   /** Optional annual gross income — drives savings-rate display. */
   income: number;
+  /** Current age — drives "FIRE at age X" framing in the depth strip. */
+  currentAge: number;
 }
 
 const DEFAULTS: FIREInputs = {
@@ -56,6 +61,7 @@ const DEFAULTS: FIREInputs = {
   active: "realistic",
   adjustInflation: false,
   income: 90000,
+  currentAge: 30,
 };
 
 export default function FIRECalculator() {
@@ -66,6 +72,7 @@ export default function FIRECalculator() {
   const [active, setActive] = useState<ScenarioKey>(DEFAULTS.active);
   const [adjustInflation, setAdjustInflation] = useState(DEFAULTS.adjustInflation);
   const [income, setIncome] = useState(DEFAULTS.income);
+  const [currentAge, setCurrentAge] = useState(DEFAULTS.currentAge);
   const { pinned, pin, remove, restore } = usePinnedScenarios<FIREInputs>(3);
 
   // Hydrate from URL (share-link landings + OG previews).
@@ -86,6 +93,8 @@ export default function FIRECalculator() {
     }
     const m = typeof p.monthly === "string" ? Number(p.monthly) : NaN;
     if (Number.isFinite(m) && m >= 0 && m <= 50_000) setMonthly(Math.round(m));
+    const a = typeof p.currentAge === "string" ? Number(p.currentAge) : NaN;
+    if (Number.isFinite(a) && a >= 16 && a <= 90) setCurrentAge(Math.round(a));
   }, []);
 
   const fireNumber = expenses / (wRate / 100);
@@ -138,12 +147,13 @@ export default function FIRECalculator() {
     sp.set("rate", String((SCENARIOS[active].rate * 100).toFixed(1)));
     sp.set("yearsToFire", activeYears.toFixed(1));
     sp.set("result", String(Math.round(fireNumber)));
+    sp.set("currentAge", String(currentAge));
     const coast =
       fireNumber /
       Math.pow(1 + SCENARIOS[active].rate, Math.max(0, activeYears));
     sp.set("coastFire", String(Math.round(coast)));
     window.history.replaceState(null, "", `${url.pathname}?${sp.toString()}${url.hash}`);
-  }, [expenses, wRate, currentNW, monthly, active, fireNumber, activeYears]);
+  }, [expenses, wRate, currentNW, monthly, active, fireNumber, activeYears, currentAge]);
 
   function resetAll() {
     setExpenses(DEFAULTS.expenses);
@@ -153,6 +163,7 @@ export default function FIRECalculator() {
     setActive(DEFAULTS.active);
     setAdjustInflation(DEFAULTS.adjustInflation);
     setIncome(DEFAULTS.income);
+    setCurrentAge(DEFAULTS.currentAge);
   }
 
   function pinCurrent() {
@@ -160,7 +171,7 @@ export default function FIRECalculator() {
       label: `${fmtCAD(expenses)}/yr · ${wRate}%`,
       value: fireNumber,
       inputs: {
-        expenses, wRate, currentNW, monthly, active, adjustInflation, income,
+        expenses, wRate, currentNW, monthly, active, adjustInflation, income, currentAge,
       },
     });
   }
@@ -175,6 +186,7 @@ export default function FIRECalculator() {
     setActive(inp.active);
     setAdjustInflation(inp.adjustInflation);
     if (inp.income !== undefined) setIncome(inp.income);
+    if (inp.currentAge !== undefined) setCurrentAge(inp.currentAge);
   }
 
   const activeRate = SCENARIOS[active].rate;
@@ -192,6 +204,23 @@ export default function FIRECalculator() {
   // Fat FIRE = 25× 150% expenses. Both at the same withdrawal rate.
   const leanFire = (expenses * 0.75) / (wRate / 100);
   const fatFire = (expenses * 1.5) / (wRate / 100);
+
+  // Progress and achievement status against the FIRE number.
+  const fireProgress = fireNumber > 0
+    ? Math.min(1, currentNW / fireNumber)
+    : 0;
+  const animatedProgress = useAnimatedNumberRaw(fireProgress * 100);
+  const alreadyFire = currentNW >= fireNumber;
+  const coastFireAchieved = !alreadyFire && currentNW >= coastFire;
+
+  // Age framing: when will this user hit FIRE, and how does that
+  // compare to the conventional Canadian retirement age of 65?
+  const fireAge = currentAge + activeYears;
+  const yearsVs65 = 65 - fireAge;
+
+  // Safe monthly income at the FIRE number — the actual lived-experience
+  // translation of the abstract dollar target.
+  const safeMonthlyIncome = fireNumber * (wRate / 100) / 12;
 
   // Restrict the chart to just the 3 scenario paths (no `years` field).
   const chartPaths: ProjectionPathSet = {
@@ -230,6 +259,16 @@ export default function FIRECalculator() {
                 {animatedYears.toFixed(1)}
               </span>
               <span className="fire__years-unit">years</span>
+              {Number.isFinite(fireAge) && (
+                <span className="fire__age-tag">
+                  at age <strong>{fireAge.toFixed(0)}</strong>
+                  {yearsVs65 > 0 && (
+                    <em className="fire__age-tag-vs">
+                      &middot; {Math.round(yearsVs65)} years before 65
+                    </em>
+                  )}
+                </span>
+              )}
             </div>
             <p className="fire__sentence">
               At {(activeRate * 100).toFixed(0)}% returns and {fmtCAD(monthly)} a month, you cross{" "}
@@ -255,14 +294,60 @@ export default function FIRECalculator() {
           </div>
 
           <div className="calc__chart-wrap">
+            {/* Progress band — sits between the result slab and the chart.
+                Gives an at-a-glance gauge of how close the user is. */}
+            <div
+              className={`fire-progress${alreadyFire ? " is-fired" : coastFireAchieved ? " is-coast" : ""}`}
+            >
+              <div className="fire-progress__top">
+                <span className="ed-label fire-progress__lab">
+                  Progress to FIRE
+                </span>
+                <span className="fire-progress__pct ed-numerals">
+                  {Math.round(animatedProgress)}%
+                </span>
+              </div>
+              <div className="fire-progress__bar" aria-hidden>
+                <div
+                  className="fire-progress__fill"
+                  style={{ width: `${Math.min(100, fireProgress * 100)}%` }}
+                />
+              </div>
+              <div className="fire-progress__cap">
+                {fmtCAD(currentNW, 0)} of {fmtCAD(fireNumber, 0)}
+                {alreadyFire ? (
+                  <strong className="fire-progress__chip fire-progress__chip--fired">
+                    FIRE achieved — withdraw {fmtCAD(safeMonthlyIncome, 0)}/mo at {wRate}%
+                  </strong>
+                ) : coastFireAchieved ? (
+                  <strong className="fire-progress__chip fire-progress__chip--coast">
+                    Coast FIRE — growth alone gets you there
+                  </strong>
+                ) : (
+                  <em className="fire-progress__chip-faint">
+                    &middot; {fmtCAD(Math.max(0, fireNumber - currentNW), 0)} to go
+                  </em>
+                )}
+              </div>
+            </div>
+
             <ProjectionChart paths={chartPaths} activeKey={active} baseline={baseline} />
             <ScenarioToggle value={active} paths={chartPaths} onChange={setActive} />
 
-            {/* Depth strip — three reference points: savings rate
-                check, Lean FIRE target, and Fat FIRE target. Helps the
-                user calibrate whether the FIRE plan above is plausible
-                and what alternatives look like. */}
+            {/* Depth strip — 4-up: lived-experience FIRE age + monthly
+                income translation; calibration vs Lean / Fat alternatives;
+                a savings-rate check. Helps the user judge whether the
+                plan above is plausible. */}
             <div className="fire-depth">
+              <div className="fire-depth__cell">
+                <div className="ed-label">Safe monthly income</div>
+                <div className="fire-depth__val">
+                  {fmtCAD(safeMonthlyIncome, 0)}
+                </div>
+                <div className="ed-caption fire-depth__cap">
+                  {wRate}% of {fmtCAD(fireNumber, 0)} / 12
+                </div>
+              </div>
               <div className="fire-depth__cell">
                 <div className="ed-label">Savings rate</div>
                 <div className="fire-depth__val">
@@ -336,15 +421,24 @@ export default function FIRECalculator() {
             max={50_000}
           />
           <NumberInput
-            label="Annual gross income"
-            value={income}
-            onChange={setIncome}
-            prefix="$"
-            step={5000}
-            min={0}
-            max={2_000_000}
+            label="Current age"
+            value={currentAge}
+            onChange={setCurrentAge}
+            suffix="yrs"
+            step={1}
+            min={16}
+            max={90}
           />
           <AdvancedPanel>
+            <NumberInput
+              label="Annual gross income"
+              value={income}
+              onChange={setIncome}
+              prefix="$"
+              step={5000}
+              min={0}
+              max={2_000_000}
+            />
             <AdvToggle
               label="Adjust for inflation"
               sub="Subtract 2.5% from the assumed return rate"
@@ -425,8 +519,9 @@ export default function FIRECalculator() {
         .fire__years-row {
           display: flex;
           align-items: baseline;
-          gap: 12px;
+          gap: 14px;
           margin: 4px 0 10px;
+          flex-wrap: wrap;
         }
         .fire__years {
           font-size: clamp(3.4rem, 7vw, 5.4rem);
@@ -442,6 +537,27 @@ export default function FIRECalculator() {
           font-style: italic;
           font-size: clamp(1.3rem, 1.9vw, 1.6rem);
           color: rgba(246, 239, 220, 0.6);
+        }
+        .fire__age-tag {
+          font-family: var(--font-serif);
+          font-style: italic;
+          font-size: 13px;
+          color: rgba(246, 239, 220, 0.7);
+          padding: 4px 10px;
+          border: 1px solid rgba(246, 239, 220, 0.22);
+          border-radius: 999px;
+          letter-spacing: 0;
+          background: rgba(246, 239, 220, 0.05);
+        }
+        .fire__age-tag strong {
+          font-style: normal;
+          font-weight: 600;
+          color: var(--paper);
+          font-variant-numeric: tabular-nums lining-nums;
+        }
+        .fire__age-tag-vs {
+          margin-left: 6px;
+          opacity: 0.8;
         }
         .fire__sentence {
           font-family: var(--font-serif);
@@ -513,6 +629,105 @@ export default function FIRECalculator() {
           padding-bottom: 14px;
           border-bottom: 1px solid var(--rule-soft);
         }
+        .fire-progress {
+          margin: -2px 0 18px;
+          padding: 14px 16px 12px;
+          background: var(--paper);
+          border: 1px solid var(--rule-soft);
+          border-radius: 10px;
+          position: relative;
+          overflow: hidden;
+        }
+        .fire-progress.is-coast {
+          border-color: rgba(178, 110, 19, 0.4);
+          background: rgba(255, 244, 220, 0.6);
+        }
+        .fire-progress.is-fired {
+          border-color: rgba(73, 122, 64, 0.45);
+          background: rgba(235, 248, 230, 0.55);
+        }
+        .fire-progress__top {
+          display: flex;
+          justify-content: space-between;
+          align-items: baseline;
+          gap: 12px;
+          margin-bottom: 8px;
+        }
+        .fire-progress__lab {
+          color: var(--ink-mute);
+        }
+        .fire-progress__pct {
+          font-family: var(--font-display);
+          font-weight: 500;
+          font-size: clamp(1.2rem, 2vw, 1.5rem);
+          color: var(--ink);
+          letter-spacing: -0.02em;
+        }
+        .fire-progress.is-fired .fire-progress__pct {
+          color: var(--green, #4a7c47);
+        }
+        .fire-progress__bar {
+          width: 100%;
+          height: 8px;
+          background: var(--paper-warm);
+          border: 1px solid var(--rule-soft);
+          border-radius: 999px;
+          overflow: hidden;
+        }
+        .fire-progress__fill {
+          height: 100%;
+          background: var(--stamp);
+          border-radius: 999px;
+          transition: width 0.4s ease;
+        }
+        .fire-progress.is-coast .fire-progress__fill {
+          background: linear-gradient(
+            to right,
+            var(--stamp),
+            var(--stamp) 70%,
+            rgba(178, 110, 19, 0.85)
+          );
+        }
+        .fire-progress.is-fired .fire-progress__fill {
+          background: linear-gradient(
+            to right,
+            var(--stamp),
+            var(--green, #4a7c47)
+          );
+        }
+        .fire-progress__cap {
+          margin-top: 8px;
+          font-size: 12px;
+          color: var(--ink-mute);
+          font-family: var(--font-sans);
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+        .fire-progress__chip {
+          font-family: var(--font-sans);
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          padding: 3px 10px;
+          border-radius: 999px;
+        }
+        .fire-progress__chip--fired {
+          background: var(--green, #4a7c47);
+          color: var(--paper-light);
+        }
+        .fire-progress__chip--coast {
+          background: var(--stamp);
+          color: var(--paper-light);
+        }
+        .fire-progress__chip-faint {
+          font-style: italic;
+          font-family: var(--font-serif);
+          color: var(--ink-soft);
+          font-size: 12px;
+        }
         .fire-depth {
           margin-top: 24px;
           padding-top: 20px;
@@ -523,8 +738,13 @@ export default function FIRECalculator() {
         }
         @media (min-width: 720px) {
           .fire-depth {
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(2, 1fr);
             gap: 22px;
+          }
+        }
+        @media (min-width: 1100px) {
+          .fire-depth {
+            grid-template-columns: repeat(4, 1fr);
           }
         }
         .fire-depth__cell {
@@ -535,7 +755,7 @@ export default function FIRECalculator() {
         .fire-depth__val {
           font-family: var(--font-display);
           font-weight: 500;
-          font-size: clamp(1.4rem, 2.4vw, 1.8rem);
+          font-size: clamp(1.3rem, 2.1vw, 1.6rem);
           line-height: 1.05;
           letter-spacing: -0.02em;
           margin-top: 4px;
