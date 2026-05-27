@@ -42,13 +42,41 @@ export function useVeqtData(initialPeriod: ChartPeriod = "1Y") {
     // Initial fetch
     fetchData(period);
 
-    // Auto-refresh every 5 minutes while the tab is open
-    intervalRef.current = setInterval(() => {
-      fetchData(period, true);
-    }, REFETCH_INTERVAL_MS);
+    // Auto-refresh every 5 minutes while the tab is visible. Mobile
+    // browsers keep firing setInterval on backgrounded tabs (modulo
+    // some throttling) which wastes battery and cellular data. Pause
+    // the interval whenever the tab hides; resume + fetch-once on
+    // visibilitychange back to visible.
+    const startInterval = () => {
+      if (intervalRef.current) return;
+      intervalRef.current = setInterval(() => {
+        fetchData(period, true);
+      }, REFETCH_INTERVAL_MS);
+    };
+    const stopInterval = () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") {
+        stopInterval();
+      } else {
+        // Catch up on whatever we missed while hidden, then resume.
+        fetchData(period, true);
+        startInterval();
+      }
+    };
+
+    if (document.visibilityState === "visible") {
+      startInterval();
+    }
+    document.addEventListener("visibilitychange", onVisibility);
 
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      stopInterval();
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [period, fetchData]);
 

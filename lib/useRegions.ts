@@ -40,6 +40,8 @@ export function useRegions(): { payload: RegionsPayload | null; loading: boolean
 
   useEffect(() => {
     let cancelled = false;
+    let interval: ReturnType<typeof setInterval> | null = null;
+
     async function load() {
       try {
         const res = await fetch("/api/regions");
@@ -53,11 +55,38 @@ export function useRegions(): { payload: RegionsPayload | null; loading: boolean
         if (!cancelled) setLoading(false);
       }
     }
+
+    // Pause the 5-minute poll whenever the tab is hidden — mobile
+    // browsers keep firing setInterval on backgrounded tabs which
+    // wastes battery and cellular data. Resume + fetch-once on
+    // visibility change.
+    const startPolling = () => {
+      if (interval) return;
+      interval = setInterval(load, REFRESH_MS);
+    };
+    const stopPolling = () => {
+      if (interval) {
+        clearInterval(interval);
+        interval = null;
+      }
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") {
+        stopPolling();
+      } else {
+        load();
+        startPolling();
+      }
+    };
+
     load();
-    const interval = setInterval(load, REFRESH_MS);
+    if (document.visibilityState === "visible") startPolling();
+    document.addEventListener("visibilitychange", onVisibility);
+
     return () => {
       cancelled = true;
-      clearInterval(interval);
+      stopPolling();
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, []);
 
