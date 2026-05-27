@@ -248,10 +248,11 @@ export default function WeatherGlyph({
             <g
               key={i}
               className="wxg-sparkle"
-              style={{
-                animationDelay: sp.d,
-                transformOrigin: `${sp.x}px ${sp.y}px`,
-              }}
+              // transform-box: fill-box + transform-origin: 50% 50%
+              // live in the global rule block below. The sparkle path
+              // is symmetric around (sp.x, sp.y), so the fill-box centre
+              // matches the inline-pixel origin without the iOS quirk.
+              style={{ animationDelay: sp.d }}
             >
               <path
                 d={`M ${sp.x} ${sp.y - sp.s} L ${sp.x + sp.s * 0.3} ${
@@ -368,10 +369,14 @@ export default function WeatherGlyph({
         </g>
       )}
 
-      {/* Per-condition CSS animations — keyframes only, no JS loop. The
-          transform-origin values reference the actual SVG coords above
-          (sunCx/sunCy depend on condition, so the interpolation is
-          evaluated per-render). */}
+      {/* Per-condition CSS animations — keyframes only, no JS loop.
+          Every animated element uses `transform-box: fill-box;
+          transform-origin: 50% 50%` so the pivot point is each
+          element's own bounding-box centre. iOS Safari interprets
+          the `${sunCx}px` form as CSS pixels (not viewBox user
+          units), which lands off-centre at any rendered size other
+          than 1:1. PR #246 caught this for the sleeve gauges; this
+          block had been regressing the same fix. */}
       <style jsx>{`
         /* Reduced-motion: hold every animation to a slow, gentle pace so
            the glyph still reads as "alive" but doesn't draw the eye.
@@ -380,6 +385,17 @@ export default function WeatherGlyph({
           .wxg :global(*) {
             animation-duration: 8s !important;
           }
+        }
+
+        /* Every animated SVG element pivots around its own bounding box. */
+        .wxg :global(.wxg-rays),
+        .wxg :global(.wxg-sun),
+        .wxg :global(.wxg-halo),
+        .wxg :global(.wxg-streaks),
+        .wxg :global(.wxg-lightning),
+        .wxg :global(.wxg-sparkle) {
+          transform-box: fill-box;
+          transform-origin: 50% 50%;
         }
 
         @keyframes wxg-spin {
@@ -393,11 +409,9 @@ export default function WeatherGlyph({
 
         /* CLEAR — rotating rays + sun breathes */
         .wxg--clear :global(.wxg-rays) {
-          transform-origin: ${sunCx}px ${sunCy}px;
           animation: wxg-spin 24s linear infinite;
         }
         .wxg--clear :global(.wxg-sun) {
-          transform-origin: ${sunCx}px ${sunCy}px;
           animation: wxg-breathe 3.6s ease-in-out infinite;
         }
         @keyframes wxg-breathe {
@@ -414,12 +428,10 @@ export default function WeatherGlyph({
 
         /* BREEZE — fast rays, fast streaks, wide cloud drift */
         .wxg--breeze :global(.wxg-rays) {
-          transform-origin: ${sunCx}px ${sunCy}px;
           animation: wxg-spin 30s linear infinite;
         }
         .wxg--breeze :global(.wxg-streaks) {
           animation: wxg-streak 1.8s ease-in-out infinite;
-          transform-origin: center;
         }
         @keyframes wxg-streak {
           0% {
@@ -528,7 +540,6 @@ export default function WeatherGlyph({
         }
         .wxg--storm :global(.wxg-lightning) {
           animation: wxg-flash 2.1s ease-in-out infinite;
-          transform-origin: center;
         }
         @keyframes wxg-flash {
           0%,
@@ -558,11 +569,9 @@ export default function WeatherGlyph({
         /* RADIANT — celebratory glyph for rare up days. Pulse + halo +
            4 sparkles + 12 fast rays. All the loudest motion in the suite. */
         .wxg--radiant :global(.wxg-rays) {
-          transform-origin: ${sunCx}px ${sunCy}px;
           animation: wxg-spin 14s linear infinite;
         }
         .wxg--radiant :global(.wxg-sun) {
-          transform-origin: ${sunCx}px ${sunCy}px;
           animation: wxg-pulse 1.6s ease-in-out infinite;
         }
         @keyframes wxg-pulse {
@@ -577,7 +586,6 @@ export default function WeatherGlyph({
           }
         }
         .wxg--radiant :global(.wxg-halo) {
-          transform-origin: ${sunCx}px ${sunCy}px;
           opacity: 0;
         }
         .wxg--radiant :global(.wxg-halo--a) {
