@@ -370,7 +370,15 @@ export default function StatsTable({ selected }: StatsTableProps) {
       </div>
 
       <div className="stats__scroll">
-        <table className="stats__table">
+        <table
+          className="stats__table"
+          style={{
+            // Dynamic min-width: 140px per fund column + 140px label column,
+            // capped at 480px so the 4-fund worst case stays scrollable but
+            // a 2-fund table doesn't force a horizontal scrollbar on phones.
+            minWidth: `${Math.min((selected.length + 1) * 140, 480)}px`,
+          }}
+        >
           <thead>
             <tr>
               <th className="ed-label stats__th-label">Metric</th>
@@ -502,7 +510,8 @@ export default function StatsTable({ selected }: StatsTableProps) {
           width: 100%;
           border-collapse: collapse;
           font-family: var(--font-sans);
-          min-width: 480px;
+          /* min-width is set inline based on selected.length so 2-fund
+             tables don't force a horizontal scrollbar on phones. */
         }
         .stats__th-label {
           text-align: left;

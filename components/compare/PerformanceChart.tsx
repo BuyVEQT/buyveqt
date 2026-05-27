@@ -219,18 +219,37 @@ export default function PerformanceChart({
     }
   }
 
-  // Hover handling
-  const onMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
-    const svg = e.currentTarget;
+  // Hover handling — shared between mouse and touch
+  const updateHoverFromClientX = (
+    svg: SVGSVGElement,
+    clientX: number
+  ) => {
     const rect = svg.getBoundingClientRect();
-    const px = ((e.clientX - rect.left) / rect.width) * W;
+    const px = ((clientX - rect.left) / rect.width) * W;
     if (px < padL || px > W - padR) {
       setHoverX(null);
       return;
     }
     setHoverX(px);
   };
+  const onMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
+    updateHoverFromClientX(e.currentTarget, e.clientX);
+  };
   const onMouseLeave = () => setHoverX(null);
+
+  // Touch handlers mirror the mouse behavior so phone users see the
+  // same hover readout when they drag a finger across the chart.
+  const onTouchStart = (e: React.TouchEvent<SVGSVGElement>) => {
+    const t = e.touches[0];
+    if (!t) return;
+    updateHoverFromClientX(e.currentTarget, t.clientX);
+  };
+  const onTouchMove = (e: React.TouchEvent<SVGSVGElement>) => {
+    const t = e.touches[0];
+    if (!t) return;
+    updateHoverFromClientX(e.currentTarget, t.clientX);
+  };
+  const onTouchEnd = () => setHoverX(null);
 
   // Hover snapshot — nearest point on each series
   const hoverSnap = useMemo(() => {
@@ -316,6 +335,9 @@ export default function PerformanceChart({
             className="perf__chart"
             onMouseMove={onMouseMove}
             onMouseLeave={onMouseLeave}
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
           >
             {/* Y gridlines */}
             {[yMin, (yMin + yMax) / 2, yMax].map((v, i) => (

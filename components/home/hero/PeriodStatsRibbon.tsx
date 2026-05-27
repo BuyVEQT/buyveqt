@@ -188,6 +188,10 @@ export default function PeriodStatsRibbon({
           display: flex;
           flex-direction: column;
           gap: 4px;
+          /* min-width: 0 lets the grid track shrink below its content's
+             intrinsic width — without this the Range cell ($XX.XX –
+             $XX.XX) refuses to shrink and wraps to 2 lines at 320px. */
+          min-width: 0;
         }
         .ribbon__stat-val {
           font-family: var(--font-display);
@@ -254,6 +258,15 @@ export default function PeriodStatsRibbon({
                keeps all 5 pills on one row even at 320px wide */
             padding: 9px 10px;
             flex: 1 0 auto;
+          }
+        }
+
+        @media (max-width: 400px) {
+          /* At iPhone SE widths (320px) drop the value font 18 → 16px so
+             the Range value ($XX.XX – $XX.XX) fits on a single line
+             alongside the dash and both prices. */
+          .ribbon__stat-val {
+            font-size: 16px;
           }
         }
       `}</style>
