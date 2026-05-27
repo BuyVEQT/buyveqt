@@ -100,15 +100,15 @@ export function FeeCalculator() {
               $
             </span>
             <input
-              type="number"
+              type="text"
+              inputMode="decimal"
+              pattern="[0-9]*"
               value={monthly}
               onChange={(e) =>
                 setMonthly(Math.max(100, Math.min(2000, Number(e.target.value) || 100)))
               }
-              min={100}
-              max={2000}
-              step={50}
-              className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-card)] py-2 pl-7 pr-3 text-sm font-medium text-[var(--color-text-primary)] focus:border-[var(--color-brand)] focus:outline-none focus:ring-1 focus:ring-[var(--color-brand)]"
+              className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-card)] py-2 pl-7 pr-3 font-medium text-[var(--color-text-primary)] focus:border-[var(--color-brand)] focus:outline-none focus:ring-1 focus:ring-[var(--color-brand)]"
+              style={{ fontSize: "max(16px, 0.875rem)" }}
             />
           </div>
         </div>
