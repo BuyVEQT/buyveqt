@@ -9,9 +9,7 @@ import { Pullquote, PullQuote } from "@/components/mdx/Pullquote";
 import { Sidenote } from "@/components/mdx/Sidenote";
 import { AccountFlowchart } from "@/components/mdx/AccountFlowchart";
 import { FHSATimeline } from "@/components/mdx/FHSATimeline";
-import { FeeCalculator } from "@/components/mdx/FeeCalculator";
 import { ProgressTracker } from "@/components/mdx/ProgressTracker";
-import { CoveredCallGrowthChart } from "@/components/mdx/CoveredCallGrowthChart";
 import { UpsideCapVisualizer } from "@/components/mdx/UpsideCapVisualizer";
 import { ForexLossStats } from "@/components/mdx/ForexLossStats";
 import { OpportunityCostCalculator } from "@/components/mdx/OpportunityCostCalculator";
@@ -25,7 +23,6 @@ import { DriftCalculator } from "@/components/mdx/DriftCalculator";
 import { InvestmentDecisionTree } from "@/components/mdx/InvestmentDecisionTree";
 import { TimeHorizonCalculator } from "@/components/mdx/TimeHorizonCalculator";
 import { EquityPremiumTimeline } from "@/components/mdx/EquityPremiumTimeline";
-import { WithdrawalSimulator } from "@/components/mdx/WithdrawalSimulator";
 import { AssetLocationOptimizer } from "@/components/mdx/AssetLocationOptimizer";
 import { BobTimeline } from "@/components/mdx/BobTimeline";
 import { MissedDaysChart } from "@/components/mdx/MissedDaysChart";
@@ -38,6 +35,13 @@ import { PioneerTimeline } from "@/components/mdx/PioneerTimeline";
 import { VanguardEffectV2 } from "@/components/mdx/VanguardEffectV2";
 import { VerdictCard } from "@/components/mdx/VerdictCard";
 import VerdictCallout from "./VerdictCallout";
+// Recharts-bearing widgets are dynamic-imported via a "use client"
+// boundary so this server component can stay RSC. See LazyChartWidgets.
+import {
+  FeeCalculator,
+  WithdrawalSimulator,
+  CoveredCallGrowthChart,
+} from "./LazyChartWidgets";
 
 function slugify(text: string): string {
   return text
