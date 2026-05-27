@@ -2618,3 +2618,46 @@ body::after {
     gap: 14px;
   }
 }
+
+/* ──────────────────────────────────────────────────────────
+   Mobile platform polish
+   ────────────────────────────────────────────────────────── */
+
+/* Suppress the grey tap-highlight flash that mobile WebKit/Chromium
+   paint on every clickable element. Components that want a press
+   affordance use their own `:active` transform (e.g. TabBar's
+   translateY+scale). */
+a,
+button,
+[role="button"],
+input,
+select,
+textarea,
+summary,
+label {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* `color-mix()` fallback for iOS Safari < 16.4 and any other browser
+   without color-mix support. Affected ~3-4% of active iPhones; on
+   those, the entire `color-mix(...)` declaration is dropped, which
+   leaves chrome surfaces fully transparent. The audit flagged the
+   TabBar (floating dark text over scrolling content) + the
+   `--color-border` token (borders disappearing site-wide). Covered
+   here at the surface layer; component-scoped color-mix uses get
+   inline fallbacks in their own files. */
+@supports not (color: color-mix(in srgb, red, blue)) {
+  :root {
+    --color-border: rgba(184, 166, 110, 0.55);
+  }
+  [data-theme="dark"] {
+    --color-border: rgba(110, 107, 120, 0.45);
+  }
+  .tb,
+  .shell-tabbar {
+    /* TabBar — drop the blur, use solid paper-light so the bar is at
+       least visible. Dark mode picks up its own --paper-light. */
+    background: var(--paper-light);
+  }
+}
+

@@ -257,6 +257,8 @@ export default function InsideRegionDetail({
         .ird-sectors__track {
           position: relative;
           height: 6px;
+          /* iOS Safari < 16.4 color-mix() fallback — translucent rule */
+          background: var(--rule-hair);
           background: color-mix(in oklab, var(--ink) 6%, transparent);
           border-radius: 3px;
           overflow: hidden;
