@@ -178,6 +178,9 @@ export default function TabBar() {
       <style jsx>{`
         .tb {
           grid-template-columns: repeat(5, 1fr);
+          /* iOS Safari < 16.4 drops the whole color-mix() declaration.
+             Without a fallback the bar is fully transparent. */
+          background: var(--paper-light);
           background: color-mix(
             in oklab,
             var(--paper-light) 88%,

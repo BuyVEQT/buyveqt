@@ -80,6 +80,8 @@ export default function SleeveHoldings({ holdings, ticker }: SleeveHoldingsProps
         }
         .ird-holdings__bar {
           height: 4px;
+          /* iOS Safari < 16.4 color-mix() fallback — translucent rule */
+          background: var(--rule-hair);
           background: color-mix(in oklab, var(--ink) 6%, transparent);
           border-radius: 2px;
           overflow: hidden;
