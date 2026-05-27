@@ -260,7 +260,11 @@ export default function GeographyPanel() {
           .geo__bar {
             flex-direction: column;
             height: auto;
-            min-height: 220px;
+            /* No min-height on the stacked variant — each segment already
+               sets its own min-height: 64px, so the bar wraps tightly
+               around its content instead of reserving 220px above the
+               fold on mobile. */
+            min-height: 0;
           }
           .geo__seg {
             width: 100% !important;
