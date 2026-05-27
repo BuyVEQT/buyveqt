@@ -145,7 +145,7 @@ export default function RootLayout({
             on cold loads. */}
         <NoFoucThemeScript />
       </head>
-      <body className="min-h-screen bg-[var(--color-base)] text-[var(--color-text-primary)]">
+      <body className="min-h-dvh bg-[var(--color-base)] text-[var(--color-text-primary)]">
         <JsonLd
           data={{
             "@context": "https://schema.org",
@@ -176,7 +176,20 @@ export default function RootLayout({
         <ThemeProvider>
           <DesktopNav />
           <TopBar />
-          <div style={{ paddingBottom: "var(--shell-bottom-pad, 0)" }} className="[--shell-bottom-pad:90px] lg:[--shell-bottom-pad:0]">
+          {/*
+            Mobile reserves room for the fixed TabBar at the bottom of the
+            shell. Desktop (lg+) hides the TabBar, so the pad collapses to 0.
+            The extra `env(safe-area-inset-bottom)` handles iPhone home-
+            indicator devices — without it, the last ~34 px of content sat
+            under the indicator on the X-and-newer hardware.
+          */}
+          <div
+            style={{
+              paddingBottom:
+                "calc(var(--shell-bottom-pad, 0) + env(safe-area-inset-bottom))",
+            }}
+            className="[--shell-bottom-pad:90px] lg:[--shell-bottom-pad:0]"
+          >
             {children}
           </div>
           <SiteFooter />

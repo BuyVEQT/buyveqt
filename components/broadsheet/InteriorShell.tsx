@@ -23,7 +23,7 @@ export default function InteriorShell({
   return (
     <div
       data-broadsheet
-      className="min-h-screen relative overflow-x-hidden"
+      className="min-h-dvh relative overflow-x-hidden"
       style={{ backgroundColor: "var(--paper)" }}
     >
       <div className={`mx-auto ${maxWidth} ${padding} relative pt-8`}>
