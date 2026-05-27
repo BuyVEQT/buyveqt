@@ -183,6 +183,8 @@ export default function Archive({ articles }: ArchiveProps) {
             <span aria-hidden>⌕</span>
             <input
               type="search"
+              inputMode="search"
+              autoComplete="off"
               value={search}
               onChange={(e) => update({ q: e.target.value })}
               placeholder="Search dispatches…"
@@ -375,7 +377,8 @@ export default function Archive({ articles }: ArchiveProps) {
           border: 0;
           background: transparent;
           font-family: var(--font-sans);
-          font-size: 12px;
+          /* iOS Safari auto-zooms anything < 16px on focus; floor at 16px. */
+          font-size: max(16px, 12px);
           color: var(--ink);
           width: 180px;
           outline: none;

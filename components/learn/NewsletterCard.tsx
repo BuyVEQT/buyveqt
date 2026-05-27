@@ -93,6 +93,8 @@ export default function NewsletterCard({ compact = false }: NewsletterCardProps 
           <span className="news-v2__sr">Email</span>
           <input
             type="email"
+            inputMode="email"
+            autoComplete="email"
             placeholder="you@example.com"
             required
             aria-label="Email address"
@@ -287,7 +289,8 @@ export default function NewsletterCard({ compact = false }: NewsletterCardProps 
           border: 1px solid rgba(246, 239, 220, 0.18);
           border-radius: 999px;
           font-family: var(--font-serif);
-          font-size: 15px;
+          /* iOS Safari auto-zooms anything < 16px; floor on mobile, original 15px elsewhere. */
+          font-size: max(16px, 15px);
           color: var(--band-paper);
           outline: none;
           transition: border-color 0.18s, background 0.18s;

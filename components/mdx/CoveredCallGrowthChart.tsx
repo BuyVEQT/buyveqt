@@ -97,7 +97,8 @@ export function CoveredCallGrowthChart() {
           <select
             value={years}
             onChange={(e) => setYears(Number(e.target.value))}
-            className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-card)] py-2 px-3 text-sm font-medium text-[var(--color-text-primary)] focus:border-[var(--color-brand)] focus:outline-none focus:ring-1 focus:ring-[var(--color-brand)]"
+            className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-card)] py-2 px-3 font-medium text-[var(--color-text-primary)] focus:border-[var(--color-brand)] focus:outline-none focus:ring-1 focus:ring-[var(--color-brand)]"
+            style={{ fontSize: "max(16px, 0.875rem)" }}
           >
             {YEAR_OPTIONS.map((y) => (
               <option key={y} value={y}>
@@ -113,7 +114,8 @@ export function CoveredCallGrowthChart() {
           <select
             value={initial}
             onChange={(e) => setInitial(Number(e.target.value))}
-            className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-card)] py-2 px-3 text-sm font-medium text-[var(--color-text-primary)] focus:border-[var(--color-brand)] focus:outline-none focus:ring-1 focus:ring-[var(--color-brand)]"
+            className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-card)] py-2 px-3 font-medium text-[var(--color-text-primary)] focus:border-[var(--color-brand)] focus:outline-none focus:ring-1 focus:ring-[var(--color-brand)]"
+            style={{ fontSize: "max(16px, 0.875rem)" }}
           >
             {INITIAL_OPTIONS.map((v) => (
               <option key={v} value={v}>

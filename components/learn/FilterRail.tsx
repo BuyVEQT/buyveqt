@@ -212,10 +212,13 @@ export default function FilterRail({ articles }: FilterRailProps) {
           </span>
           <input
             type="search"
+            inputMode="search"
+            autoComplete="off"
             value={search}
             onChange={(e) => update({ q: e.target.value })}
             placeholder={`Search ${articles.length} dispatches…`}
             aria-label="Search dispatches"
+            style={{ fontSize: "max(16px, 13px)" }}
           />
         </label>
       </div>
