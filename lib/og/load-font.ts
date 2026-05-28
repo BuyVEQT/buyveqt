@@ -16,13 +16,35 @@
  * @param family — Google Fonts family, e.g. "Fraunces" or "Inter".
  * @param opts   — weight + italic. Defaults to weight 400, upright.
  */
-export async function loadGoogleFont(
+const fontCache = new Map<string, Promise<ArrayBuffer>>();
+
+export function loadGoogleFont(
   family: string,
   opts: { weight?: number; italic?: boolean } = {}
 ): Promise<ArrayBuffer> {
   const weight = opts.weight ?? 400;
   const italic = opts.italic ?? false;
+  const key = `${family}:${weight}:${italic ? "i" : "n"}`;
 
+  // Memoize per worker. The same family/weight is requested by many OG routes
+  // and repeatedly across renders on a warm Vercel worker; caching the promise
+  // fetches each font's CSS + binary at most once per worker instead of four
+  // Google round-trips on every single image render.
+  let cached = fontCache.get(key);
+  if (!cached) {
+    cached = fetchGoogleFontBuffer(family, weight, italic);
+    // Don't cache a transient failure — let the next render retry.
+    cached.catch(() => fontCache.delete(key));
+    fontCache.set(key, cached);
+  }
+  return cached;
+}
+
+async function fetchGoogleFontBuffer(
+  family: string,
+  weight: number,
+  italic: boolean
+): Promise<ArrayBuffer> {
   const axis = italic ? `ital,wght@1,${weight}` : `wght@${weight}`;
   const cssUrl =
     `https://fonts.googleapis.com/css2` +

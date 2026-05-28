@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    // recharts re-exports a wide surface from its barrel; without this, any
+    // chunk that touches it pulls a large slice (plus d3 deps). Scopes the
+    // import to just what's used.
+    optimizePackageImports: ["recharts"],
+  },
   async redirects() {
     return [
       {
