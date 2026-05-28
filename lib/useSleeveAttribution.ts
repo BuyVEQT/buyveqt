@@ -28,6 +28,7 @@ export function useSleeveComposition(): {
 
   useEffect(() => {
     let cancelled = false;
+    let interval: ReturnType<typeof setInterval> | null = null;
     async function load() {
       try {
         const res = await fetch("/api/sleeve-composition");
@@ -41,11 +42,33 @@ export function useSleeveComposition(): {
         if (!cancelled) setLoading(false);
       }
     }
+    // Pause polling on hidden tabs (mobile keeps firing setInterval on
+    // backgrounded tabs, wasting battery/data); resume + catch up on show.
+    const startPolling = () => {
+      if (interval) return;
+      interval = setInterval(load, COMPOSITION_REFRESH_MS);
+    };
+    const stopPolling = () => {
+      if (interval) {
+        clearInterval(interval);
+        interval = null;
+      }
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") {
+        stopPolling();
+      } else {
+        load();
+        startPolling();
+      }
+    };
     load();
-    const interval = setInterval(load, COMPOSITION_REFRESH_MS);
+    if (document.visibilityState === "visible") startPolling();
+    document.addEventListener("visibilitychange", onVisibility);
     return () => {
       cancelled = true;
-      clearInterval(interval);
+      stopPolling();
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, []);
 
@@ -66,6 +89,7 @@ export function useSectorReturns(): {
 
   useEffect(() => {
     let cancelled = false;
+    let interval: ReturnType<typeof setInterval> | null = null;
     async function load() {
       try {
         const res = await fetch("/api/sector-returns");
@@ -79,11 +103,33 @@ export function useSectorReturns(): {
         if (!cancelled) setLoading(false);
       }
     }
+    // Pause polling on hidden tabs (mobile keeps firing setInterval on
+    // backgrounded tabs, wasting battery/data); resume + catch up on show.
+    const startPolling = () => {
+      if (interval) return;
+      interval = setInterval(load, RETURNS_REFRESH_MS);
+    };
+    const stopPolling = () => {
+      if (interval) {
+        clearInterval(interval);
+        interval = null;
+      }
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") {
+        stopPolling();
+      } else {
+        load();
+        startPolling();
+      }
+    };
     load();
-    const interval = setInterval(load, RETURNS_REFRESH_MS);
+    if (document.visibilityState === "visible") startPolling();
+    document.addEventListener("visibilitychange", onVisibility);
     return () => {
       cancelled = true;
-      clearInterval(interval);
+      stopPolling();
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, []);
 

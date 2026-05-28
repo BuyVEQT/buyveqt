@@ -129,5 +129,11 @@ export async function GET(request: Request) {
     historyFetchedAt: historyData?.fetchedAt,
   };
 
-  return NextResponse.json(response);
+  return NextResponse.json(response, {
+    headers: {
+      // Dynamic route (reads ?period); s-maxage gives the CDN a per-period
+      // cache so repeat hits don't re-run the Yahoo/AV fetch path.
+      "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+    },
+  });
 }

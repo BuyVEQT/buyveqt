@@ -17,7 +17,14 @@ export async function GET(request: Request) {
 
   try {
     const quote = await getQuote(symbol);
-    return NextResponse.json(quote);
+    return NextResponse.json(quote, {
+      headers: {
+        // The route is dynamic (reads ?symbol), so route-level revalidate
+        // doesn't full-route cache. s-maxage lets the CDN serve repeat hits
+        // per-querystring without re-running the handler.
+        "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+      },
+    });
   } catch {
     return NextResponse.json(
       { error: 'Data temporarily unavailable', message: 'Please try again later' },
