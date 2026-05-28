@@ -5,8 +5,6 @@ import { Summary } from "@/components/mdx/Summary";
 import { Callout } from "@/components/mdx/Callout";
 import { ComparisonTable } from "@/components/mdx/ComparisonTable";
 import { TableOfContents } from "@/components/mdx/TableOfContents";
-import { Pullquote, PullQuote } from "@/components/mdx/Pullquote";
-import { Sidenote } from "@/components/mdx/Sidenote";
 import { AccountFlowchart } from "@/components/mdx/AccountFlowchart";
 import { FHSATimeline } from "@/components/mdx/FHSATimeline";
 import { ProgressTracker } from "@/components/mdx/ProgressTracker";
@@ -15,9 +13,6 @@ import { ForexLossStats } from "@/components/mdx/ForexLossStats";
 import { OpportunityCostCalculator } from "@/components/mdx/OpportunityCostCalculator";
 import { JourneyTimeline } from "@/components/mdx/JourneyTimeline";
 import { ZeroSumExplainer } from "@/components/mdx/ZeroSumExplainer";
-import { OwnershipDiagram } from "@/components/mdx/OwnershipDiagram";
-import { OwnershipStructure } from "@/components/mdx/OwnershipStructure";
-import { VanguardEffectTimeline } from "@/components/mdx/VanguardEffectTimeline";
 import { FundStructure } from "@/components/mdx/FundStructure";
 import { DriftCalculator } from "@/components/mdx/DriftCalculator";
 import { InvestmentDecisionTree } from "@/components/mdx/InvestmentDecisionTree";
@@ -34,7 +29,6 @@ import { WeightingComparison } from "@/components/mdx/WeightingComparison";
 import { PioneerTimeline } from "@/components/mdx/PioneerTimeline";
 import { VanguardEffectV2 } from "@/components/mdx/VanguardEffectV2";
 import { VerdictCard } from "@/components/mdx/VerdictCard";
-import VerdictCallout from "./VerdictCallout";
 // Recharts-bearing widgets are dynamic-imported via a "use client"
 // boundary so this server component can stay RSC. See LazyChartWidgets.
 import {
@@ -61,10 +55,6 @@ const mdxComponents = {
   Callout,
   ComparisonTable,
   TableOfContents,
-  Pullquote,
-  PullQuote,
-  Sidenote,
-  VerdictCallout,
   AccountFlowchart,
   FHSATimeline,
   FeeCalculator,
@@ -75,9 +65,6 @@ const mdxComponents = {
   OpportunityCostCalculator,
   JourneyTimeline,
   ZeroSumExplainer,
-  OwnershipDiagram,
-  OwnershipStructure,
-  VanguardEffectTimeline,
   FundStructure,
   DriftCalculator,
   InvestmentDecisionTree,
