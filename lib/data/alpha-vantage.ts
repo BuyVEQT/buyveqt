@@ -65,6 +65,13 @@ async function fetchAlphaVantage<T>(params: Record<string, string>): Promise<T> 
   }
 }
 
+/** Parse an Alpha Vantage numeric string, tolerating missing/garbage values. */
+function avNum(value: string | undefined, fallback = 0): number {
+  if (value == null) return fallback;
+  const n = parseFloat(value.replace("%", ""));
+  return Number.isFinite(n) ? n : fallback;
+}
+
 // ─── Quote ────────────────────────────────────────────────────
 
 interface AVGlobalQuote {
@@ -78,10 +85,19 @@ export async function getQuoteAV(avSymbol: string): Promise<QuoteData> {
   });
 
   const q = json['Global Quote'];
-  if (!q || !q['05. price']) {
+  if (!q) {
     throw {
       type: 'unknown',
       message: 'Empty Global Quote response',
+      source: 'alpha-vantage',
+    } satisfies DataError;
+  }
+
+  const price = avNum(q['05. price'], NaN);
+  if (!Number.isFinite(price) || price <= 0) {
+    throw {
+      type: 'unknown',
+      message: 'Global Quote returned a non-numeric price',
       source: 'alpha-vantage',
     } satisfies DataError;
   }
@@ -92,16 +108,17 @@ export async function getQuoteAV(avSymbol: string): Promise<QuoteData> {
   // GLOBAL_QUOTE exposes the day high/low + previous close inline.
   // 52w high/low + dividendYield require separate AV endpoints; 0 here
   // is filled in by Yahoo on the fallback path or by the cache.
-  // marketCap isn't in GLOBAL_QUOTE at all.
+  // marketCap isn't in GLOBAL_QUOTE at all. Every numeric field goes through
+  // avNum so a missing/garbage value degrades to 0 instead of NaN.
   return {
     symbol: displaySymbol,
-    price: parseFloat(q['05. price']),
-    change: parseFloat(q['09. change']),
-    changePercent: parseFloat((q['10. change percent'] || '0').replace('%', '')),
-    previousClose: parseFloat(q['08. previous close'] || '0'),
-    dayHigh: parseFloat(q['03. high'] || '0'),
-    dayLow: parseFloat(q['04. low'] || '0'),
-    volume: parseInt(q['06. volume'], 10),
+    price,
+    change: avNum(q['09. change']),
+    changePercent: avNum(q['10. change percent']),
+    previousClose: avNum(q['08. previous close']),
+    dayHigh: avNum(q['03. high']),
+    dayLow: avNum(q['04. low']),
+    volume: avNum(q['06. volume']),
     marketCap: 0,
     latestTradingDay: q['07. latest trading day'],
     fiftyTwoWeekHigh: 0,

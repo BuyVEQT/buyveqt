@@ -10,16 +10,21 @@ const RATE_LIMIT_MAX = 5; // 5 signups per IP per hour
 const buckets = new Map<string, { count: number; resetAt: number }>();
 
 function clientIp(req: Request): string {
-  const xff = req.headers.get("x-forwarded-for");
-  if (xff) {
-    // Standard format: client, proxy1, proxy2, ... — the first entry is
-    // the originating client. Trim whitespace because some proxies pad.
-    const first = xff.split(",")[0]?.trim();
+  // On Vercel, x-vercel-forwarded-for and x-real-ip are set by the platform to
+  // the true connecting IP and can't be forged by the caller. x-forwarded-for's
+  // left-most entry IS caller-supplied, so trusting it lets anyone bypass the
+  // per-IP limit (and pollute the bucket map) with a random XFF header.
+  const vercel = req.headers.get("x-vercel-forwarded-for");
+  if (vercel) {
+    const first = vercel.split(",")[0]?.trim();
     if (first) return first;
   }
   const real = req.headers.get("x-real-ip");
-  if (real) return real;
-  return "unknown";
+  if (real) return real.trim();
+  // Fallback for non-Vercel / local environments only.
+  const xff = req.headers.get("x-forwarded-for");
+  const first = xff?.split(",")[0]?.trim();
+  return first || "unknown";
 }
 
 /**

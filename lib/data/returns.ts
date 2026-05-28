@@ -14,6 +14,15 @@ export function computeReturn(
   if (history.length === 0 || currentPrice <= 0) return null;
   const start = history.find((d) => d.date >= sinceDate);
   if (!start) return null;
+  // Guard against sparse history: when the earliest bar at/after the cutoff is
+  // far past it (an Alpha Vantage "compact" series of ~100 days, or a fund that
+  // began trading mid-period), the span we'd measure isn't the requested
+  // YTD/1Y/5Y window. A short-span number under a long-span label is worse than
+  // returning nothing.
+  const MAX_GAP_DAYS = 14;
+  const gapDays =
+    (new Date(start.date).getTime() - new Date(sinceDate).getTime()) / 86_400_000;
+  if (gapDays > MAX_GAP_DAYS) return null;
   const sp = start.adjustedClose || start.close;
   return sp > 0 ? ((currentPrice - sp) / sp) * 100 : null;
 }
