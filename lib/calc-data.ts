@@ -13,7 +13,7 @@
  *
  * No React, no DOM — pure functions, easy to test.
  */
-import type { HistoricalDataPoint } from "@/lib/data/types";
+import type { RawHistoricalBar } from "@/lib/data/types";
 
 export type ScenarioKey = "pessimistic" | "realistic" | "optimistic";
 
@@ -288,15 +288,15 @@ export function buildLookbackDCAPaths(
   return out;
 }
 
-// ─── Adapter for the codebase's HistoricalDataPoint ─────────────
+// ─── Adapter for the codebase's RawHistoricalBar ─────────────
 
 /**
  * Pull a clean `{date, close}` daily series from the project's wider
- * HistoricalDataPoint type. Uses `close` (not adjusted) because Lookback
+ * RawHistoricalBar type. Uses `close` (not adjusted) because Lookback
  * paths are nominal $ amounts. Filters out any invalid bars.
  */
 export function toDailySeries(
-  points: readonly HistoricalDataPoint[] | null | undefined
+  points: readonly RawHistoricalBar[] | null | undefined
 ): { date: string; close: number }[] {
   if (!points || points.length === 0) return [];
   return points

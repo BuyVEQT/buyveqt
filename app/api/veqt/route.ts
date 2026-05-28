@@ -57,7 +57,12 @@ export async function GET(request: Request) {
     // Append (or update) today's live quote price so the chart's last point
     // matches the price widget instead of lagging behind by a day.
     if (quoteData) {
-      const todayStr = new Date().toISOString().split("T")[0];
+      // Eastern (TSX) calendar date, not UTC: after ~7pm ET the UTC date has
+      // already rolled to tomorrow, which would append a future-dated point
+      // ahead of the real series.
+      const todayStr = new Date().toLocaleDateString("en-CA", {
+        timeZone: "America/Toronto",
+      });
       const lastPoint = historical[historical.length - 1];
       if (lastPoint && lastPoint.date === todayStr) {
         // Today's close already in history — update it with live price

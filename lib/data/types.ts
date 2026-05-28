@@ -23,7 +23,7 @@ export interface QuoteData {
   fetchedAt: string; // ISO timestamp of when this data was fetched
 }
 
-export interface HistoricalDataPoint {
+export interface RawHistoricalBar {
   date: string;
   open: number;
   high: number;
@@ -36,7 +36,7 @@ export interface HistoricalDataPoint {
 
 export interface HistoricalData {
   symbol: string;
-  data: HistoricalDataPoint[];
+  data: RawHistoricalBar[];
   source: DataSource;
   fetchedAt: string;
 }
