@@ -110,8 +110,7 @@ export default function NewsletterCard({ compact = false }: NewsletterCardProps 
 
       <div className="news-v2__legal">
         <span className="ed-caption">
-          Independent. We don&apos;t share your email. Read the{" "}
-          <a href="/privacy">privacy note</a>.
+          Independent. We don&apos;t share your email. Unsubscribe in one click.
         </span>
       </div>
 
