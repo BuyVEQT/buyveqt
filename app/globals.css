@@ -298,6 +298,22 @@ body::after {
   opacity: 0.6;
 }
 
+/* ── Reduced motion ───────────────────────────────────────────
+   Respect the OS "reduce motion" setting site-wide. Neutralizes every CSS
+   keyframe animation (shimmer, fades, slides, ink-pulse, ring markers) and
+   transition — including the AnimateIn reveal — for motion-sensitive users.
+   JS rAF count-ups are guarded separately via the useReducedMotion hook. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* ── Skeleton loading ─────────────────────────────────────── */
 
 @keyframes shimmer {

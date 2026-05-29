@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useReducedMotion } from "@/lib/useReducedMotion";
 
 interface Step {
   year: number;
@@ -77,8 +78,15 @@ function AnimatedNumber({
   const [display, setDisplay] = useState(0);
   const prevValue = useRef(0);
   const rafRef = useRef<number>(0);
+  const reduced = useReducedMotion();
 
   useEffect(() => {
+    // Respect reduce-motion: jump straight to the value, no count-up.
+    if (reduced) {
+      setDisplay(value);
+      prevValue.current = value;
+      return;
+    }
     const start = prevValue.current;
     const diff = value - start;
     const startTime = performance.now();
@@ -98,7 +106,7 @@ function AnimatedNumber({
     prevValue.current = value;
 
     return () => cancelAnimationFrame(rafRef.current);
-  }, [value, duration]);
+  }, [value, duration, reduced]);
 
   return (
     <span className={className} style={style}>
