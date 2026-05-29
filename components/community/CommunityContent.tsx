@@ -62,12 +62,11 @@ export default function CommunityContent({
   const [, setClientStats] = useState<SubredditStats | null>(serverStats);
   const [loading, setLoading] = useState(false);
 
-  // Client-side refresh when server data is empty OR missing scores (ISR cache
-  // may have stale RSS data without scores/comments).
+  // Client-side refresh only when the server got nothing at all. We no longer
+  // chase scores on the client: on the RSS fallback the API can't return them
+  // either, so that was a guaranteed-useless extra round-trip on every load.
   const serverEmpty = serverHot.length === 0 && serverTop.length === 0;
-  const serverMissingScores =
-    !serverEmpty && [...serverHot, ...serverTop].every((p) => p.score === 0);
-  const needsClientFetch = serverEmpty || serverMissingScores;
+  const needsClientFetch = serverEmpty;
 
   useEffect(() => {
     if (!needsClientFetch) return;

@@ -178,6 +178,20 @@ export default function CommunityHero({ stats }: CommunityHeroProps) {
   const topPostScore = liveStats?.topPostScore ?? null;
   const avgComments = liveStats?.avgComments ?? null;
 
+  // Only show pulse stats we actually have. On the RSS fallback (no scores,
+  // comments, or subscriber count) these are all empty, so the strip hides
+  // entirely rather than rendering a row of dashes.
+  const pulseStats: {
+    label: string;
+    value: number;
+    icon: string;
+    tone?: "live" | "default";
+  }[] = [
+    { label: "Online now", value: activeUsers ?? 0, icon: "•", tone: "live" as const },
+    { label: "Top post score", value: topPostScore ?? 0, icon: "▲" },
+    { label: "Avg replies", value: avgComments ?? 0, icon: "↳" },
+  ].filter((s) => s.value > 0);
+
   return (
     <header className="cm-hero">
       {/* Top stamp row */}
@@ -200,15 +214,17 @@ export default function CommunityHero({ stats }: CommunityHeroProps) {
             <em style={{ fontStyle: "italic", fontWeight: 500 }}>holders.</em>
           </h1>
         </div>
-        <div className="cm-hero__count">
-          <span className="ed-stamp cm-hero__count-label">Members</span>
-          <span className="ed-display ed-numerals cm-hero__count-num">
-            {Math.round(subscribers).toLocaleString("en-CA")}
-          </span>
-          <span className="ed-caption cm-hero__count-cap">
-            Canadians holding each other accountable.
-          </span>
-        </div>
+        {subscribersTarget > 0 && (
+          <div className="cm-hero__count">
+            <span className="ed-stamp cm-hero__count-label">Members</span>
+            <span className="ed-display ed-numerals cm-hero__count-num">
+              {Math.round(subscribers).toLocaleString("en-CA")}
+            </span>
+            <span className="ed-caption cm-hero__count-cap">
+              Canadians holding each other accountable.
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Lede */}
@@ -227,35 +243,27 @@ export default function CommunityHero({ stats }: CommunityHeroProps) {
         you&apos;ll get honesty back.
       </p>
 
-      {/* 3-up pulse strip — Reddit's /about endpoint only gives us
-          `subscribers` (in the hero card above) and `accounts_active`.
-          Everything else here is derived from listings. Showing a
-          "Posts today" zero on a quiet day reads as a broken stat, so
-          we replaced it with "Top post score" — a more honest gauge
-          for a small-but-engaged community. */}
-      <div className="cm-hero__pulse is-three">
-        <PulseStat
-          label="Online now"
-          value={activeUsers}
-          icon="•"
-          tone="live"
-          /* A literal "0" here is just a quiet moment, not real
-             information — show — instead so it reads as "nobody right
-             this second" rather than a broken zero. */
-          emptyAsDash
-        />
-        {/* Both of these can be undefined when the Reddit proxy is
-            unreachable and we fall back to RSS (which doesn't expose
-            scores or comment counts). A literal "0" reads as broken;
-            "—" reads as honestly "no live data right now". */}
-        <PulseStat
-          label="Top post score"
-          value={topPostScore}
-          icon="▲"
-          emptyAsDash
-        />
-        <PulseStat label="Avg replies" value={avgComments} icon="↳" emptyAsDash />
-      </div>
+      {/* Pulse strip — subscribers/scores/comments come from Reddit's JSON
+          API. On the RSS fallback they're all unavailable, so we render only
+          the stats we actually have, and hide the strip entirely when there
+          are none, rather than showing a row of dashes. */}
+      {pulseStats.length > 0 && (
+        <div
+          className={`cm-hero__pulse ${
+            pulseStats.length >= 3 ? "is-three" : "is-two"
+          }`}
+        >
+          {pulseStats.map((s) => (
+            <PulseStat
+              key={s.label}
+              label={s.label}
+              value={s.value}
+              icon={s.icon}
+              tone={s.tone}
+            />
+          ))}
+        </div>
+      )}
 
       <style jsx>{`
         .cm-hero {
