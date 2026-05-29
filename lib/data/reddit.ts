@@ -26,24 +26,49 @@ export interface SubredditStats {
 
 const SUBREDDIT = 'JustBuyVEQT';
 const REDDIT_FETCH_TIMEOUT = 8000;
-const UA = 'web:BuyVEQT:1.0 (by /u/buyveqt)';
-const PROXY_BASE = 'https://reddit-api.buyveqt.ca';
+const OAUTH_UA = 'web:BuyVEQT:1.0 (by /u/buyveqt)';
+// A real browser UA. Reddit blocks API-style UAs on anonymous reads, so the
+// proxied/direct .json path presents itself as a normal browser.
+const BROWSER_UA =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
+
+/* ── Residential-proxy fetch ─────────────────────────────────
+ *
+ * Reddit 403s its `.json` API from EVERY datacenter IP (Vercel AND
+ * Cloudflare), regardless of User-Agent — confirmed by probing. The only
+ * no-OAuth way to read full data (scores / comments / subscribers) is from a
+ * NON-datacenter IP. Set a residential-proxy template in env to route through
+ * one; `{url}` is replaced with the URL-encoded Reddit endpoint:
+ *
+ *   REDDIT_PROXY_TEMPLATE=https://api.scraperapi.com/?api_key=KEY&url={url}
+ *   REDDIT_PROXY_TEMPLATE=https://app.scrapingbee.com/api/v1/?api_key=KEY&render=false&url={url}
+ *
+ * With no template set, this fetches directly (which Reddit blocks from
+ * Vercel) and callers fall through to RSS. Works on both the Node (page) and
+ * Edge (/api/reddit) runtimes — plain fetch + process.env only.
+ */
+function redditFetch(targetUrl: string, signal: AbortSignal): Promise<Response> {
+  const tmpl = process.env.REDDIT_PROXY_TEMPLATE;
+  const finalUrl = tmpl
+    ? tmpl.replace('{url}', encodeURIComponent(targetUrl))
+    : targetUrl;
+  return fetch(finalUrl, {
+    signal,
+    headers: {
+      'User-Agent': BROWSER_UA,
+      Accept: 'application/json, text/plain, */*',
+    },
+    cache: 'no-store',
+  });
+}
 
 /* ── OAuth token management ──────────────────────────────────
  *
- * Restored from PR #107 (Apr 2026), the version that originally
- * worked. App-only OAuth (client_credentials grant) — no user login
- * needed, just `REDDIT_CLIENT_ID` + `REDDIT_CLIENT_SECRET` env vars.
- *
- * The Cloudflare Worker proxy approach (PR #108) replaced this and
- * worked for a while, but Reddit eventually blocked the Worker's IPs
- * (returns 403 to anonymous reads from CF egress). OAuth bypasses
- * those blocks by going through `oauth.reddit.com` with a bearer
- * token.
- *
- * Token cached in module scope; refreshed when within 60s of expiry.
- * Per-invocation cold starts get a fresh token, which is fine —
- * fetching one costs ~150ms.
+ * App-only OAuth (client_credentials). Bypasses Reddit's anonymous-read IP
+ * blocks via `oauth.reddit.com`. Optional: only used when REDDIT_CLIENT_ID +
+ * REDDIT_CLIENT_SECRET are set. (Reddit currently gates new app approvals, so
+ * the proxy path above is the primary route; OAuth lights up automatically if
+ * creds ever exist.) Token cached in module scope, refreshed near expiry.
  */
 let oauthToken: { token: string; expiresAt: number } | null = null;
 
@@ -62,7 +87,7 @@ async function getOAuthToken(): Promise<string | null> {
       headers: {
         Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
         'Content-Type': 'application/x-www-form-urlencoded',
-        'User-Agent': UA,
+        'User-Agent': OAUTH_UA,
       },
       body: 'grant_type=client_credentials',
       cache: 'no-store',
@@ -114,7 +139,7 @@ function parseRedditListing(json: Record<string, unknown>): RedditPost[] {
     });
 }
 
-/* ── Tier 3: RSS fallback via rss2json (always works, no scores) ── */
+/* ── RSS fallback via rss2json (always works, no scores) ── */
 interface Rss2JsonItem {
   title: string;
   pubDate: string;
@@ -139,7 +164,7 @@ async function getRedditPostsRss(sort: string): Promise<RedditPost[]> {
       const idMatch = item.guid?.match(/t3_(\w+)/);
       const authorClean = item.author?.replace(/^\/u\//, '') || 'unknown';
       return {
-        id: idMatch ? idMatch[1] : item.guid || Math.random().toString(36),
+        id: idMatch ? idMatch[1] : item.guid || `rss-${item.link}`,
         title: item.title,
         author: authorClean,
         createdAt: new Date(item.pubDate).toISOString(),
@@ -156,25 +181,20 @@ async function getRedditPostsRss(sort: string): Promise<RedditPost[]> {
   }
 }
 
-/* ── Main fetch with 4-tier fallback ───────────────────────
+/* ── Posts: OAuth → proxied/direct .json → RSS ─────────────
  *
- * Re-ordered to put the Cloudflare Worker proxy second (after OAuth).
- * The Worker works reliably most of the time; Reddit sometimes
- * rate-limits it but a clean retry usually succeeds. OAuth still
- * wins when env vars are set since it bypasses both anonymous-read
- * blocks and Worker rate-limiting.
- *
- *   1. OAuth (oauth.reddit.com)  — full data, requires env vars
- *   2. Cloudflare Worker proxy   — full data when Reddit allows it
- *   3. Public JSON (old.reddit)  — full data when not IP-blocked
- *   4. RSS via rss2json          — no scores, but always works
+ *   1. OAuth (oauth.reddit.com)     — full data, only if creds are set
+ *   2. Proxied .json (old.reddit)   — full data; needs REDDIT_PROXY_TEMPLATE
+ *                                      (a residential IP) since Reddit blocks
+ *                                      datacenter IPs
+ *   3. RSS via rss2json             — no scores/comments, but always works
  */
 export async function getRedditPosts(
   sort: 'hot' | 'new' | 'top' = 'hot',
   limit: number = 8,
   timeFilter?: 'hour' | 'day' | 'week' | 'month' | 'year' | 'all'
 ): Promise<RedditPost[]> {
-  // Tier 1: OAuth API
+  // Tier 1: OAuth (skipped instantly when creds are absent)
   const token = await getOAuthToken();
   if (token) {
     try {
@@ -186,7 +206,7 @@ export async function getRedditPosts(
 
       const res = await fetch(url, {
         signal: controller.signal,
-        headers: { Authorization: `Bearer ${token}`, 'User-Agent': UA },
+        headers: { Authorization: `Bearer ${token}`, 'User-Agent': OAUTH_UA },
         cache: 'no-store',
       });
       clearTimeout(timeout);
@@ -205,29 +225,7 @@ export async function getRedditPosts(
     }
   }
 
-  // Tier 2: Cloudflare Worker proxy
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), REDDIT_FETCH_TIMEOUT);
-
-    let url = `${PROXY_BASE}/${sort}?limit=${limit}`;
-    if (sort === 'top' && timeFilter) url += `&t=${timeFilter}`;
-
-    const res = await fetch(url, {
-      signal: controller.signal,
-      cache: 'no-store',
-    });
-    clearTimeout(timeout);
-
-    if (res.ok) {
-      const posts = parseRedditListing(await res.json());
-      if (posts.length > 0) return posts;
-    }
-  } catch {
-    // fall through
-  }
-
-  // Tier 3: Public JSON API (may be IP-blocked from Vercel)
+  // Tier 2: public .json, via residential proxy if configured
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), REDDIT_FETCH_TIMEOUT);
@@ -235,11 +233,7 @@ export async function getRedditPosts(
     let url = `https://old.reddit.com/r/${SUBREDDIT}/${sort}.json?limit=${limit}&raw_json=1`;
     if (sort === 'top' && timeFilter) url += `&t=${timeFilter}`;
 
-    const res = await fetch(url, {
-      signal: controller.signal,
-      headers: { 'User-Agent': UA, Accept: 'application/json' },
-      cache: 'no-store',
-    });
+    const res = await redditFetch(url, controller.signal);
     clearTimeout(timeout);
 
     if (res.ok) {
@@ -250,17 +244,14 @@ export async function getRedditPosts(
     // fall through to RSS
   }
 
-  // Tier 4: RSS
-  console.info(`[reddit] All JSON tiers failed for ${sort}; using RSS`);
+  // Tier 3: RSS
   return getRedditPostsRss(sort);
 }
 
 /**
- * Subreddit stats with the same 4-tier OAuth → Worker proxy →
- * public → null chain. RSS doesn't expose subscriber counts, so
- * when all three JSON tiers fail we return
- * `{ subscribers: 0, activeUsers: null }` and the community hero
- * shows `—` via `emptyAsDash`.
+ * Subreddit stats (subscribers + active users) via the same OAuth → proxied
+ * .json chain. RSS doesn't expose subscriber counts, so when both fail we
+ * return `{ subscribers: 0, activeUsers: null }` and the hero shows `—`.
  */
 export async function getSubredditStats(): Promise<SubredditStats> {
   const empty: SubredditStats = { subscribers: 0, activeUsers: null };
@@ -276,7 +267,7 @@ export async function getSubredditStats(): Promise<SubredditStats> {
         `https://oauth.reddit.com/r/${SUBREDDIT}/about`,
         {
           signal: controller.signal,
-          headers: { Authorization: `Bearer ${token}`, 'User-Agent': UA },
+          headers: { Authorization: `Bearer ${token}`, 'User-Agent': OAUTH_UA },
           cache: 'no-store',
         }
       );
@@ -302,21 +293,20 @@ export async function getSubredditStats(): Promise<SubredditStats> {
     }
   }
 
-  // Tier 2: Cloudflare Worker proxy
+  // Tier 2: public /about, via residential proxy if configured
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), REDDIT_FETCH_TIMEOUT);
 
-    const res = await fetch(`${PROXY_BASE}/about`, {
-      signal: controller.signal,
-      cache: 'no-store',
-    });
+    const res = await redditFetch(
+      `https://old.reddit.com/r/${SUBREDDIT}/about.json`,
+      controller.signal
+    );
     clearTimeout(timeout);
-
     if (res.ok) {
       const json = await res.json();
       const data = json?.data;
-      if (data && typeof data.subscribers === 'number' && data.subscribers > 0) {
+      if (data && typeof data.subscribers === 'number') {
         return {
           subscribers: data.subscribers as number,
           activeUsers: (data.accounts_active as number) ?? null,
@@ -327,30 +317,5 @@ export async function getSubredditStats(): Promise<SubredditStats> {
     // fall through
   }
 
-  // Tier 3: Public JSON
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), REDDIT_FETCH_TIMEOUT);
-
-    const res = await fetch(
-      `https://old.reddit.com/r/${SUBREDDIT}/about.json`,
-      {
-        signal: controller.signal,
-        headers: { 'User-Agent': UA, Accept: 'application/json' },
-        cache: 'no-store',
-      }
-    );
-    clearTimeout(timeout);
-    if (!res.ok) return empty;
-
-    const json = await res.json();
-    const data = json?.data;
-    if (!data) return empty;
-    return {
-      subscribers: (data.subscribers as number) ?? 0,
-      activeUsers: (data.accounts_active as number) ?? null,
-    };
-  } catch {
-    return empty;
-  }
+  return empty;
 }
