@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useReducedMotion } from "@/lib/useReducedMotion";
 
 /**
  * Animate a number from its current displayed value to a target.
@@ -25,10 +26,19 @@ export function useAnimatedNumberRaw(target: number, duration = 700): number {
   // Track displayed value via ref so consecutive target changes start from
   // the live animated value, not stale React state.
   const displayedRef = useRef(target);
+  const reduced = useReducedMotion();
 
   useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false;
+      displayedRef.current = target;
+      setDisplayed(target);
+      return;
+    }
+
+    // Respect the OS reduce-motion setting: snap to the target, skip the
+    // count-up animation entirely.
+    if (reduced) {
       displayedRef.current = target;
       setDisplayed(target);
       return;
@@ -66,7 +76,7 @@ export function useAnimatedNumberRaw(target: number, duration = 700): number {
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [target, duration]);
+  }, [target, duration, reduced]);
 
   return displayed;
 }
