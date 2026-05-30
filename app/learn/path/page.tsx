@@ -9,7 +9,7 @@ import { buildBreadcrumbSchema, canonicalUrl } from "@/lib/seo-config";
 export const metadata: Metadata = {
   title: "All Learn Paths — Six Ways In",
   description:
-    "Six curated reading paths through the VEQT corpus — from \"I'm new to this\" to \"I'm planning withdrawal.\" Each path is 4–6 dispatches in the order we think they belong.",
+    "Six curated reading paths through the VEQT corpus — from \"I'm new to this\" to \"planning withdrawal.\" Each is 4–6 dispatches in a deliberate order.",
   alternates: { canonical: canonicalUrl("/learn/path") },
   openGraph: {
     title: "All Learn Paths — Six Ways In",

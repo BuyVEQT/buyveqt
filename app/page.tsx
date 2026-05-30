@@ -5,7 +5,6 @@ import {
   buildFaqSchema,
   buildInvestmentFundSchema,
   canonicalUrl,
-  SITE_DESCRIPTION,
 } from "@/lib/seo-config";
 
 export const revalidate = 300; // 5 minutes — match the live data refresh cadence.
@@ -18,8 +17,7 @@ export const metadata: Metadata = {
     absolute: "BuyVEQT — Live VEQT.TO Price, Charts & Analysis",
   },
   description:
-    "Live VEQT.TO price, interactive charts, regional sleeves, and editorial coverage for Canadian passive investors. " +
-    SITE_DESCRIPTION,
+    "Live VEQT.TO price, interactive charts, regional sleeves, and fund comparisons — the community hub for Canadian passive investors.",
   alternates: { canonical: canonicalUrl("/") },
   openGraph: {
     title: "BuyVEQT — Live VEQT.TO Price, Charts & Analysis",
