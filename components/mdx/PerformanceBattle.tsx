@@ -321,10 +321,10 @@ export function PerformanceBattle({ compact }: PerformanceBattleProps = {}) {
           }}
         >
           {[
-            { l: "VEQT, 5y annualised", v: "+12.69%", tone: STAMP },
-            { l: "XEQT, 5y annualised", v: "+12.45%", tone: INK },
-            { l: "The gap", v: "+0.24%/yr", tone: STAMP, sub: "in VEQT’s favour" },
-            { l: "Correlation", v: "0.99", tone: INK, sub: "they’re twins" },
+            { l: "2025, both funds", v: "≈20.45%", tone: STAMP, sub: "a dead heat" },
+            { l: "5-year leader", v: "VEQT", tone: INK, sub: "by a sliver" },
+            { l: "The gap", v: "<0.5%/yr", tone: STAMP, sub: "noise, not signal" },
+            { l: "Correlation", v: "~0.97", tone: INK, sub: "near-twins" },
           ].map((s) => (
             <div key={s.l}>
               <div className="ed-label" style={{ fontSize: 9.5, margin: 0 }}>
@@ -375,9 +375,9 @@ export function PerformanceBattle({ compact }: PerformanceBattleProps = {}) {
         }}
       >
         The conventional wisdom is that XEQT&rsquo;s heavier US tilt should
-        have pulled it ahead. It hasn&rsquo;t. VEQT has quietly outpaced
-        XEQT every rolling year since inception — by an amount that
-        compounds.
+        have pulled it ahead. It hasn&rsquo;t: across recent windows the two
+        are effectively tied, with VEQT a hair in front. The supposed US
+        edge simply hasn&rsquo;t shown up.
         {usingFallback && (
           <span style={{ opacity: 0.5 }}> Chart shown with cached shape; live data unavailable.</span>
         )}

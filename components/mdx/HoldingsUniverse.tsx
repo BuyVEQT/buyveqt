@@ -22,7 +22,7 @@ export function HoldingsUniverse({ compact }: HoldingsUniverseProps = {}) {
   const rows = mobile ? 38 : 100;
   const cols = mobile ? 60 : 138;
   const total = rows * cols;
-  const owned = Math.round(total * (9300 / 13700));
+  const owned = Math.round(total * (8475 / 13726));
 
   const cellSize = 6;
   const cellGap = mobile ? 1 : 2;
@@ -120,7 +120,7 @@ export function HoldingsUniverse({ compact }: HoldingsUniverseProps = {}) {
                   fontVariantNumeric: "tabular-nums",
                 }}
               >
-                9,300
+                8,475
               </div>
               <div
                 style={{
@@ -157,7 +157,7 @@ export function HoldingsUniverse({ compact }: HoldingsUniverseProps = {}) {
                   fontVariantNumeric: "tabular-nums",
                 }}
               >
-                4,400
+                5,251
               </div>
               <div
                 style={{
@@ -185,7 +185,7 @@ export function HoldingsUniverse({ compact }: HoldingsUniverseProps = {}) {
                   color: "var(--ink)",
                 }}
               >
-                +47%
+                +62%
               </div>
               <div
                 style={{
@@ -219,7 +219,7 @@ export function HoldingsUniverse({ compact }: HoldingsUniverseProps = {}) {
         and micro-cap names than the S&amp;P / MSCI indices XEQT uses. The
         extra{" "}
         <span style={{ color: "var(--stamp)", fontStyle: "normal", fontWeight: 600 }}>
-          4,400 companies
+          5,251 companies
         </span>{" "}
         are mostly small — but a wider net is the point of the product.
       </p>

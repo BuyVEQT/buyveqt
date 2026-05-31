@@ -104,7 +104,7 @@ export const FUNDS: Record<string, FundData> = {
     managementFee: 0.17, // BlackRock, eff. Dec 18 2025 (was 0.18%)
     aum: "$14.7B",
     inceptionDate: "2019-08-07",
-    numberOfHoldings: 8400,
+    numberOfHoldings: 8475, // iShares: underlying holdings as of May 29 2026
     distributionFrequency: "Quarterly",
     currency: "CAD",
     exchangeListed: "TSX",
@@ -117,14 +117,14 @@ export const FUNDS: Record<string, FundData> = {
     geographyAllocation: [
       { region: "United States", weight: 45, color: "#2563eb" },
       { region: "Canada", weight: 25, color: "#dc2626" },
-      { region: "International Developed", weight: 22, color: "#16a34a" },
-      { region: "Emerging Markets", weight: 8, color: "#f59e0b" },
+      { region: "International Developed", weight: 25, color: "#16a34a" },
+      { region: "Emerging Markets", weight: 5, color: "#f59e0b" },
     ],
     underlyingETFs: [
       { ticker: "ITOT", name: "iShares Core S&P Total US Stock Market ETF", weight: 45, region: "United States" },
       { ticker: "XIC", name: "iShares Core S&P/TSX Capped Composite Index ETF", weight: 25, region: "Canada" },
-      { ticker: "XEF", name: "iShares Core MSCI EAFE IMI Index ETF", weight: 22, region: "International" },
-      { ticker: "IEMG", name: "iShares Core MSCI Emerging Markets ETF", weight: 8, region: "Emerging Markets" },
+      { ticker: "XEF", name: "iShares Core MSCI EAFE IMI Index ETF", weight: 25, region: "International" },
+      { ticker: "IEMG", name: "iShares Core MSCI Emerging Markets ETF", weight: 5, region: "Emerging Markets" },
     ],
     chartColor: "#2563eb",
     merFootnote:
