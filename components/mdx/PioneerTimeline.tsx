@@ -34,9 +34,9 @@ const MILESTONES: Milestone[] = [
     text: "BlackRock founded — as a bond risk-management shop. Not yet an asset manager.",
   },
   {
-    year: 1993,
+    year: 2000,
     who: "iShares",
-    text: "iShares launched (by Barclays, later sold to BlackRock in 2009).",
+    text: "Barclays launches the iShares ETF brand (sold to BlackRock in 2009).",
   },
   {
     year: 2018,

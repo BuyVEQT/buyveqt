@@ -11,9 +11,9 @@ type Slice = { name: string; pct: number; color: string; sub: string };
 const COMPACT_THRESHOLD = 600;
 
 const VEQT_SLICES: Slice[] = [
-  { name: "US", pct: 43, color: "var(--stamp)", sub: "follows market" },
-  { name: "Canada", pct: 30, color: "var(--ink)", sub: "30% target" },
-  { name: "Dev", pct: 20, color: "var(--amber)", sub: "follows market" },
+  { name: "US", pct: 44, color: "var(--stamp)", sub: "follows market" },
+  { name: "Canada", pct: 31, color: "var(--ink)", sub: "30% target" },
+  { name: "Dev", pct: 18, color: "var(--amber)", sub: "follows market" },
   { name: "EM", pct: 7, color: "var(--rule)", sub: "follows market" },
 ];
 

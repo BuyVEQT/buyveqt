@@ -10,7 +10,7 @@ type EffectEvent = {
   year: number;
   label: string;
   actor: "Vanguard" | "BlackRock" | "BMO";
-  mer: number;
+  fee: number;
   marquee?: boolean;
   follow?: boolean;
 };
@@ -18,12 +18,11 @@ type EffectEvent = {
 const COMPACT_THRESHOLD = 600;
 
 const EVENTS: EffectEvent[] = [
-  { year: 2018, label: "VEQT, VGRO, VBAL, VCNS launched", actor: "Vanguard", mer: 0.25, marquee: true },
-  { year: 2019, label: "XEQT launches at 0.20%", actor: "BlackRock", mer: 0.20 },
-  { year: 2022, label: "ZEQT launches at 0.20%", actor: "BMO", mer: 0.20 },
-  { year: 2024, label: "Vanguard cuts VEQT to 0.24%", actor: "Vanguard", mer: 0.24 },
-  { year: 2025, label: "Vanguard cuts VEQT to 0.20%", actor: "Vanguard", mer: 0.20, marquee: true },
-  { year: 2025, label: "BlackRock matches at 0.20%", actor: "BlackRock", mer: 0.20, follow: true },
+  { year: 2018, label: "Vanguard launches the asset-allocation suite (VGRO, VBAL, VCNS)", actor: "Vanguard", fee: 0.22, marquee: true },
+  { year: 2019, label: "VEQT — the all-equity version — joins the suite", actor: "Vanguard", fee: 0.22 },
+  { year: 2019, label: "XEQT launches five months later, undercutting at 0.18%", actor: "BlackRock", fee: 0.18 },
+  { year: 2025, label: "Vanguard's biggest-ever cut takes VEQT to 0.17%", actor: "Vanguard", fee: 0.17, marquee: true },
+  { year: 2025, label: "BlackRock matches: XEQT to 0.17%", actor: "BlackRock", fee: 0.17, follow: true },
 ];
 
 export function VanguardEffectV2({ compact }: VanguardEffectV2Props = {}) {
@@ -73,7 +72,7 @@ export function VanguardEffectV2({ compact }: VanguardEffectV2Props = {}) {
         >
           <span className="ed-label" style={{ margin: 0, fontSize: 9.5 }}>Year</span>
           <span className="ed-label" style={{ margin: 0, fontSize: 9.5 }}>What happened</span>
-          <span className="ed-label" style={{ margin: 0, fontSize: 9.5, textAlign: "right" }}>MER</span>
+          <span className="ed-label" style={{ margin: 0, fontSize: 9.5, textAlign: "right" }}>Mgmt fee</span>
         </div>
 
         {EVENTS.map((e, i) => {
@@ -164,7 +163,7 @@ export function VanguardEffectV2({ compact }: VanguardEffectV2Props = {}) {
                   color: "var(--ink)",
                 }}
               >
-                {e.mer.toFixed(2)}%
+                {e.fee.toFixed(2)}%
               </div>
             </div>
           );
