@@ -17,6 +17,8 @@ export interface FundData {
   shortName: string;
   provider: string;
   mer: number;
+  /** Annual management fee — the figure providers publish post-2025 fee cuts. */
+  managementFee: number;
   aum: string;
   inceptionDate: string;
   numberOfHoldings: number;
@@ -62,6 +64,7 @@ export const FUNDS: Record<string, FundData> = {
     shortName: "VEQT",
     provider: "Vanguard",
     mer: 0.2, // effective post-Nov-2025 fee cut; official factsheet MER still 0.24%
+    managementFee: 0.17, // Vanguard, eff. Nov 18 2025 (was 0.22%)
     aum: "$13.4B", // factsheet 2026-04-30: $13,439M
     inceptionDate: "2019-01-29",
     numberOfHoldings: 13726, // factsheet 2026-04-30
@@ -98,6 +101,7 @@ export const FUNDS: Record<string, FundData> = {
     shortName: "XEQT",
     provider: "iShares (BlackRock)",
     mer: 0.20,
+    managementFee: 0.17, // BlackRock, eff. Dec 18 2025 (was 0.18%)
     aum: "$14.7B",
     inceptionDate: "2019-08-07",
     numberOfHoldings: 8400,
@@ -131,7 +135,8 @@ export const FUNDS: Record<string, FundData> = {
     name: "BMO All-Equity ETF",
     shortName: "ZEQT",
     provider: "BMO",
-    mer: 0.20,
+    mer: 0.18, // BMO factsheet (Apr 30 2026): audited MER 0.18%
+    managementFee: 0.15, // BMO, cut Jun 2025
     aum: "$591M",
     inceptionDate: "2022-01-24",
     numberOfHoldings: 9000,
@@ -157,6 +162,8 @@ export const FUNDS: Record<string, FundData> = {
       { ticker: "ZEM", name: "BMO MSCI Emerging Markets Index ETF", weight: 7, region: "Emerging Markets" },
     ],
     chartColor: "#16a34a",
+    merFootnote:
+      "BMO cut ZEQT's management fee to 0.15% (effective June 2025). The MER was 0.18% as of the fund's last fiscal year.",
   },
   // The new entrant. Avantis (American Century subsidiary, founded 2019
   // by ex-DFA Co-CEO Eduardo Repetto) partnered with CIBC Asset Management
@@ -173,6 +180,7 @@ export const FUNDS: Record<string, FundData> = {
     shortName: "CAGE",
     provider: "Avantis × CIBC",
     mer: 0.28,
+    managementFee: 0.28, // Avantis × CIBC; full MER pending (~0.30-0.40% expected)
     aum: "$267M",
     inceptionDate: "2026-03-18",
     numberOfHoldings: 4500,
@@ -209,6 +217,7 @@ export const FUNDS: Record<string, FundData> = {
     shortName: "VGRO",
     provider: "Vanguard",
     mer: 0.2,
+    managementFee: 0.17, // Vanguard, eff. Nov 18 2025 (was 0.22%)
     aum: "$9.2B",
     inceptionDate: "2018-01-25",
     numberOfHoldings: 13700,
@@ -246,6 +255,7 @@ export const FUNDS: Record<string, FundData> = {
     shortName: "VFV",
     provider: "Vanguard",
     mer: 0.09,
+    managementFee: 0.08, // Vanguard
     aum: "$28.3B",
     inceptionDate: "2012-11-02",
     numberOfHoldings: 500,
@@ -263,6 +273,8 @@ export const FUNDS: Record<string, FundData> = {
     ],
     underlyingETFs: [],
     chartColor: "#f59e0b",
+    merFootnote:
+      "VFV charges a 0.08% management fee; its MER is 0.09%. Cheaper than the all-in-one funds because it holds one market (the S&P 500), not the whole world.",
   },
   "VUN.TO": {
     ticker: "VUN.TO",
@@ -270,6 +282,7 @@ export const FUNDS: Record<string, FundData> = {
     shortName: "VUN",
     provider: "Vanguard",
     mer: 0.16,
+    managementFee: 0.15, // Vanguard
     aum: "$8.5B",
     inceptionDate: "2013-08-02",
     numberOfHoldings: 3700,
@@ -287,6 +300,8 @@ export const FUNDS: Record<string, FundData> = {
     ],
     underlyingETFs: [],
     chartColor: "#06b6d4",
+    merFootnote:
+      "VUN charges a 0.15% management fee; its MER is 0.16%. One of VEQT's four underlying building blocks (US total market).",
   },
 };
 

@@ -1,7 +1,10 @@
+import InfoTooltip from "@/components/ui/InfoTooltip";
+
 interface SpecItem {
   label: string;
   value: string;
   sub: string;
+  tooltip?: string;
 }
 
 interface SpecRowProps {
@@ -18,7 +21,10 @@ export default function SpecRow({ items }: SpecRowProps) {
     <div className="spec-row">
       {items.map((it) => (
         <div key={it.label} className="spec-row__cell">
-          <div className="ed-label">{it.label}</div>
+          <div className="ed-label">
+            {it.label}
+            {it.tooltip && <InfoTooltip content={it.tooltip} />}
+          </div>
           <div className="ed-display ed-numerals spec-row__val">{it.value}</div>
           <div className="ed-caption spec-row__sub">{it.sub}</div>
         </div>

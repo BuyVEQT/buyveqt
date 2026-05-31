@@ -1,15 +1,10 @@
 "use client";
 
 import { useFundInfo } from "@/lib/useFundInfo";
+import { FUNDS } from "@/data/funds";
 import SpecRow from "./SpecRow";
 
 type FundInfoSource = "yahoo-finance" | "cache" | "snapshot";
-
-/** Format a decimal expense ratio (0.002 → "0.20%"). Falls back to "~0.20%". */
-function fmtPctMer(decimal: number | null): string {
-  if (decimal === null || !Number.isFinite(decimal)) return "~0.20%";
-  return `${(decimal * 100).toFixed(2)}%`;
-}
 
 /** Build a human-readable data-freshness sub-caption. */
 function srcSub(
@@ -45,17 +40,18 @@ export default function InsideHero() {
     ? srcSub(data.sources.netAssets, data.snapshotAsOf, "Vanguard Canada · Apr 30")
     : "Vanguard Canada · Apr 30";
 
-  const merValue = data && data.expenseRatio !== null
-    ? fmtPctMer(data.expenseRatio)
-    : "~0.20%";
-  const merSub = data
-    ? srcSub(data.sources.expenseRatio, data.snapshotAsOf, "effective rate")
-    : "reduced Nov 2025";
+  // VEQT's management fee is the figure Vanguard publishes today: 0.17%, cut
+  // from 0.22% on Nov 18 2025. The official MER still reflects the prior fiscal
+  // year and is recalculating; the tooltip carries that context. (We don't read
+  // the live expenseRatio feed — Yahoo reports 0 for VEQT, so it was never live.)
+  const veqt = FUNDS["VEQT.TO"];
+  const mgmtFeeValue = veqt ? `${(veqt.managementFee * 100).toFixed(2)}%` : "0.17%";
+  const mgmtFeeTip = veqt?.merFootnote;
 
   const specs = [
     { label: "Holdings",  value: holdingsValue, sub: holdingsSub },
     { label: "AUM",       value: aumValue,       sub: aumSub },
-    { label: "MER",       value: merValue,       sub: merSub },
+    { label: "Mgmt fee",  value: mgmtFeeValue,   sub: "reduced Nov 2025", tooltip: mgmtFeeTip },
     { label: "Inception", value: "Jan 29, 2019", sub: "7+ years on tape" },
   ];
 

@@ -7,6 +7,7 @@ import type { RiskMetrics } from "@/lib/risk-metrics";
 import DataFreshness from "@/components/ui/DataFreshness";
 import StaleBanner from "@/components/ui/StaleBanner";
 import Card from "@/components/ui/Card";
+import InfoTooltip from "@/components/ui/InfoTooltip";
 
 interface FundQuote {
   price: number | null;
@@ -164,6 +165,7 @@ export default function StatsTable({ selected }: StatsTableProps) {
 
   interface RowDef {
     label: string;
+    labelTooltip?: string;
     highlight: HighlightMode;
     getNumeric: (t: string) => number | null;
     renderCell: (t: string) => React.ReactNode;
@@ -181,12 +183,14 @@ export default function StatsTable({ selected }: StatsTableProps) {
       },
     },
     {
-      label: "MER",
+      label: "Management fee",
+      labelTooltip:
+        "The annual management fee each provider publishes. The all-in MER runs a few basis points higher — and the Vanguard and BMO funds' MERs are still being recalculated after their 2025 fee cuts.",
       highlight: "lowest" as HighlightMode,
-      getNumeric: (t) => FUNDS[t]?.mer ?? null,
+      getNumeric: (t) => FUNDS[t]?.managementFee ?? null,
       renderCell: (t) => {
-        const m = FUNDS[t]?.mer ?? 0;
-        const fill = Math.min((m / 0.25) * 100, 100);
+        const m = FUNDS[t]?.managementFee ?? 0;
+        const fill = Math.min((m / 0.3) * 100, 100);
         return (
           <span className="cell-bar">
             <span className="cell-bar__track" aria-hidden>
@@ -405,7 +409,12 @@ export default function StatsTable({ selected }: StatsTableProps) {
               const bestTicker = getBest(row);
               return (
                 <tr key={row.label}>
-                  <td className="stats__td-label">{row.label}</td>
+                  <td className="stats__td-label">
+                    {row.label}
+                    {row.labelTooltip && (
+                      <InfoTooltip content={row.labelTooltip} />
+                    )}
+                  </td>
                   {selected.map((t) => {
                     const isBest = bestTicker === t;
                     const isVeqt = t === "VEQT.TO";
