@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { FUNDS } from "@/data/funds";
 import { fundColor } from "@/lib/styles";
+import InfoTooltip from "@/components/ui/InfoTooltip";
 
 interface FundQuoteData {
   price: number | null;
@@ -55,8 +56,11 @@ function FaceoffSide({
       </div>
       <dl className="fside__stats">
         <div>
-          <dt>MER</dt>
-          <dd className="ed-numerals">{fund.mer.toFixed(2)}%</dd>
+          <dt>
+            Mgmt fee
+            {fund.merFootnote && <InfoTooltip content={fund.merFootnote} />}
+          </dt>
+          <dd className="ed-numerals">{fund.managementFee.toFixed(2)}%</dd>
         </div>
         <div>
           <dt>AUM</dt>

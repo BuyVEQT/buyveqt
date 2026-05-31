@@ -56,7 +56,7 @@ export function buildFaqSchema() {
         name: "What is VEQT's MER?",
         acceptedAnswer: {
           '@type': 'Answer',
-          text: "VEQT's MER is approximately 0.20%. Vanguard reduced the management fee from 0.22% to 0.17% in November 2025. The official MER was last reported as 0.24% based on a prior fiscal year and is expected to be approximately 0.19-0.20% once recalculated.",
+          text: "VEQT's management fee is 0.17%, reduced from 0.22% effective November 18, 2025. Its MER (the all-in figure, which adds operating costs and tax) was last officially reported at 0.24% for a prior fiscal year and is being recalculated — it is expected to land near 0.19-0.20% once the fee cut is fully reflected.",
         },
       },
       {
@@ -99,7 +99,7 @@ export function buildInvestmentFundSchema() {
     alternateName: 'VEQT',
     tickerSymbol: 'VEQT.TO',
     exchange: 'Toronto Stock Exchange',
-    url: 'https://www.vanguard.ca/en/advisor/products/products-group/etfs/VEQT',
+    url: 'https://www.vanguard.ca/en/product/etf/asset-allocation/9692/vanguard-all-equity-etf-portfolio',
     description:
       'A single-ticket, globally diversified, all-equity ETF holding approximately 13,700 stocks across 50 countries through 4 underlying Vanguard index ETFs.',
     provider: {
@@ -107,6 +107,6 @@ export function buildInvestmentFundSchema() {
       name: 'Vanguard Investments Canada Inc.',
     },
     feesAndCommissionsSpecification:
-      'Management Expense Ratio (MER) approximately 0.20%. Management fee reduced to 0.17% in November 2025.',
+      'Management fee 0.17% (reduced from 0.22% effective November 18, 2025). MER pending fiscal year-end recalculation; last reported at 0.24%, expected near 0.19-0.20%.',
   };
 }

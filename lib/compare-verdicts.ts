@@ -185,7 +185,7 @@ export const VERDICTS: Record<string, Verdict> = {
       {
         label: "Cost (MER)",
         explanation:
-          "Both ~0.24% (Vanguard's blended all-in-one cost). No cost difference.",
+          "Identical. Both charge a 0.17% management fee after Vanguard's November 2025 cut, with effective MERs of ~0.20%. No cost difference.",
         winner: "Tie",
       },
       {
@@ -213,7 +213,7 @@ export const VERDICTS: Record<string, Verdict> = {
       {
         label: "Cost (MER)",
         explanation:
-          "VEQT ~0.20% effective vs CAGE 0.27%. Cap-weighted indexing is cheaper because it's the lowest-effort weighting scheme — you're paying for the absence of decisions.",
+          "VEQT's 0.17% management fee (~0.20% effective MER) vs CAGE's 0.28%. Cap-weighted indexing is cheaper because it's the lowest-effort weighting scheme — you're paying for the absence of decisions.",
         winner: "VEQT",
       },
       {
