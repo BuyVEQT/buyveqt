@@ -22,7 +22,7 @@ const FOREX_STEPS: TimelineCard[] = [
     title: "The Wake-Up Call",
     description:
       "Go live. First wins feel amazing. Then revenge trading wipes out gains.",
-    costLabel: "$500 lost",
+    costLabel: "$400 lost",
     balanceLabel: "$1,600 of $2,000",
   },
   {
@@ -37,9 +37,9 @@ const FOREX_STEPS: TimelineCard[] = [
     period: "Month 10\u201312",
     title: "The Crossroads",
     description:
-      "Down ~$2,200 in direct costs, ~$8,600 in time. Most quit here.",
-    costLabel: "$4,000+ total",
-    balanceLabel: "$1,800 of $3,000",
+      "Down ~$2,200 in losses and fees, plus ~500 hours of your year. Most quit here.",
+    costLabel: "$2,200 lost all-in",
+    balanceLabel: "500 hours gone",
   },
 ];
 
