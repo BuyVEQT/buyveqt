@@ -6,7 +6,21 @@ export function ZeroSumExplainer() {
       {/* Forex card */}
       <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5">
         <div className="flex items-center gap-2 mb-3">
-          <span className="text-lg">🎲</span>
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+            style={{ color: "var(--color-negative)" }}
+          >
+            <polyline points="22 17 13.5 8.5 8.5 13.5 2 7" />
+            <polyline points="16 17 22 17 22 11" />
+          </svg>
           <p className="text-sm font-bold text-[var(--color-negative)]">
             Forex = Zero-Sum
           </p>
@@ -37,7 +51,21 @@ export function ZeroSumExplainer() {
       {/* VEQT card */}
       <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5">
         <div className="flex items-center gap-2 mb-3">
-          <span className="text-lg">🌍</span>
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+            style={{ color: "var(--color-positive)" }}
+          >
+            <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
+            <polyline points="16 7 22 7 22 13" />
+          </svg>
           <p className="text-sm font-bold text-[var(--color-positive)]">
             VEQT = Positive-Sum
           </p>

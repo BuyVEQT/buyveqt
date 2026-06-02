@@ -44,8 +44,8 @@ export function ForexLossStats() {
                       ? "var(--color-negative)"
                       : b.loss >= 75
                         ? "var(--color-chart-orange)"
-                        : "var(--color-chart-orange)",
-                  opacity: b.loss >= 80 ? 0.85 : 0.65,
+                        : "var(--color-text-muted)",
+                  opacity: b.loss >= 80 ? 0.9 : b.loss >= 75 ? 0.8 : 0.5,
                 }}
               />
             </div>

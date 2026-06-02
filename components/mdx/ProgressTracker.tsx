@@ -46,7 +46,7 @@ export function ProgressTracker({ labels, anchors }: ProgressTrackerProps) {
   return (
     <div className="my-6 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-4">
       <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)] mb-4">
-        Getting started — 5 steps
+        Getting started — {steps.length} steps
       </p>
 
       {/* Desktop: horizontal */}
