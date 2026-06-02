@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { formatDollars } from "@/lib/chart-utils";
 
-const MIN_WAGE = 17.2; // Ontario 2026
+const HOURLY_VALUE = 30; // ~Canadian median wage (matches the article's basis)
 
 function computeDCA(monthlyAmount: number, annualReturn: number, months: number): number {
   const monthlyRate = annualReturn / 12;
@@ -24,7 +24,7 @@ export function OpportunityCostCalculator() {
 
   const results = useMemo(() => {
     const totalHours = hoursPerWeek * 4.33 * months;
-    const timeCost = Math.round(totalHours * MIN_WAGE);
+    const timeCost = Math.round(totalHours * HOURLY_VALUE);
     const tradingLoss = Math.round(capital * (lossPercent / 100));
     const totalForexCost = timeCost + courseSpend + tradingLoss;
 
@@ -233,7 +233,7 @@ export function OpportunityCostCalculator() {
       </div>
 
       <p className="mt-4 text-[11px] text-[var(--color-text-muted)]">
-        Time valued at Ontario minimum wage ($17.20/hr). VEQT assumes 8.5%
+        Time valued at the ~$30/hr Canadian median wage. VEQT assumes 8.5%
         annualized return with monthly DCA. Illustrative only — actual results vary.
       </p>
     </div>
