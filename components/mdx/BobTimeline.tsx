@@ -207,7 +207,22 @@ export function BobTimeline() {
         {/* INTRO */}
         {isIntro && (
           <div className="flex-1 flex flex-col items-center justify-center text-center px-4 py-6">
-            <div className="text-4xl mb-4">📉</div>
+            <div className="mb-4" style={{ color: "var(--color-text-muted)" }}>
+              <svg
+                width="40"
+                height="40"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <polyline points="22 17 13.5 8.5 8.5 13.5 2 7" />
+                <polyline points="16 17 22 17 22 11" />
+              </svg>
+            </div>
             <p
               className="text-lg font-semibold mb-2"
               style={{ color: "var(--color-text-primary)" }}
