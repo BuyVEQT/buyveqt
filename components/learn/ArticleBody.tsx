@@ -28,6 +28,7 @@ import { PerformanceBattle } from "@/components/mdx/PerformanceBattle";
 import { WeightingComparison } from "@/components/mdx/WeightingComparison";
 import { PioneerTimeline } from "@/components/mdx/PioneerTimeline";
 import { VanguardEffectV2 } from "@/components/mdx/VanguardEffectV2";
+import { HomeBiasOverweight } from "@/components/mdx/HomeBiasOverweight";
 import { VerdictCard } from "@/components/mdx/VerdictCard";
 // Recharts-bearing widgets are dynamic-imported via a "use client"
 // boundary so this server component can stay RSC. See LazyChartWidgets.
@@ -81,6 +82,7 @@ const mdxComponents = {
   WeightingComparison,
   PioneerTimeline,
   VanguardEffectV2,
+  HomeBiasOverweight,
   VerdictCard,
   h2: H2,
 };
