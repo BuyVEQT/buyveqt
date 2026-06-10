@@ -1,3 +1,5 @@
+import { SNAPSHOT_POSTS, SNAPSHOT_STATS } from '@/data/reddit-snapshot';
+
 export interface RedditPost {
   id: string;
   title: string;
@@ -148,9 +150,40 @@ interface Rss2JsonItem {
   author: string;
 }
 
-async function getRedditPostsRss(sort: string): Promise<RedditPost[]> {
+/** Reddit RSS titles arrive entity-encoded ("VEQT &gt;XEQT") and rss2json
+ *  passes them through verbatim. Decode the handful Reddit actually emits. */
+const NAMED_ENTITIES: Record<string, string> = {
+  amp: '&',
+  lt: '<',
+  gt: '>',
+  quot: '"',
+  apos: "'",
+  nbsp: ' ',
+};
+
+function decodeHtmlEntities(text: string): string {
+  return text.replace(/&(#x?[0-9a-fA-F]+|[a-zA-Z]+);/g, (match, entity) => {
+    if (entity[0] === '#') {
+      const code =
+        entity[1] === 'x' || entity[1] === 'X'
+          ? parseInt(entity.slice(2), 16)
+          : parseInt(entity.slice(1), 10);
+      return Number.isNaN(code) ? match : String.fromCodePoint(code);
+    }
+    return NAMED_ENTITIES[entity] ?? match;
+  });
+}
+
+async function getRedditPostsRss(
+  sort: string,
+  timeFilter?: string
+): Promise<RedditPost[]> {
   try {
-    const rssUrl = `https://www.reddit.com/r/${SUBREDDIT}/${sort}.rss`;
+    // Without ?t=, Reddit's top.rss defaults to top-of-day — which made the
+    // all-time tab show a single recent post. The filter must ride inside the
+    // encoded rss_url so rss2json forwards it to Reddit.
+    let rssUrl = `https://www.reddit.com/r/${SUBREDDIT}/${sort}.rss`;
+    if (sort === 'top' && timeFilter) rssUrl += `?t=${timeFilter}`;
     const res = await fetch(
       `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`,
       { cache: 'no-store' }
@@ -165,7 +198,7 @@ async function getRedditPostsRss(sort: string): Promise<RedditPost[]> {
       const authorClean = item.author?.replace(/^\/u\//, '') || 'unknown';
       return {
         id: idMatch ? idMatch[1] : item.guid || `rss-${item.link}`,
-        title: item.title,
+        title: decodeHtmlEntities(item.title),
         author: authorClean,
         createdAt: new Date(item.pubDate).toISOString(),
         score: 0,
@@ -181,13 +214,52 @@ async function getRedditPostsRss(sort: string): Promise<RedditPost[]> {
   }
 }
 
+/* ── Snapshot enrichment (RSS tier only) ────────────────────
+ *
+ * The RSS tier carries no scores, so posts get score/commentCount filled in
+ * from the hand-captured snapshot in data/reddit-snapshot.ts (matched by post
+ * id). For the top/all-time listing the snapshot posts are also unioned in and
+ * the result re-ranked by score — RSS top/all caps at ~25 recent-ish entries
+ * and can miss older greatest hits the snapshot still remembers.
+ */
+function applySnapshot(
+  posts: RedditPost[],
+  sort: string,
+  timeFilter?: string
+): RedditPost[] {
+  const byId = new Map(SNAPSHOT_POSTS.map((p) => [p.id, p]));
+
+  const enriched = posts.map((post) => {
+    const snap = byId.get(post.id);
+    if (!snap || post.score > 0) return post;
+    return {
+      ...post,
+      score: snap.score,
+      commentCount: snap.commentCount,
+      flair: post.flair ?? snap.flair,
+    };
+  });
+
+  if (sort !== 'top' || timeFilter !== 'all') return enriched;
+
+  const seen = new Set(enriched.map((p) => p.id));
+  const merged = [
+    ...enriched,
+    ...SNAPSHOT_POSTS.filter((p) => !seen.has(p.id)),
+  ];
+  // Stable sort: scored posts rank by score, scoreless RSS posts keep their
+  // Reddit-given order after them.
+  return merged.sort((a, b) => b.score - a.score);
+}
+
 /* ── Posts: OAuth → proxied/direct .json → RSS ─────────────
  *
  *   1. OAuth (oauth.reddit.com)     — full data, only if creds are set
  *   2. Proxied .json (old.reddit)   — full data; needs REDDIT_PROXY_TEMPLATE
  *                                      (a residential IP) since Reddit blocks
  *                                      datacenter IPs
- *   3. RSS via rss2json             — no scores/comments, but always works
+ *   3. RSS via rss2json             — always works; scores/comments backfilled
+ *                                      from data/reddit-snapshot.ts by post id
  */
 export async function getRedditPosts(
   sort: 'hot' | 'new' | 'top' = 'hot',
@@ -244,8 +316,8 @@ export async function getRedditPosts(
     // fall through to RSS
   }
 
-  // Tier 3: RSS
-  return getRedditPostsRss(sort);
+  // Tier 3: RSS (right posts and order, no scores) + snapshot scores
+  return applySnapshot(await getRedditPostsRss(sort, timeFilter), sort, timeFilter);
 }
 
 /**
@@ -316,6 +388,10 @@ export async function getSubredditStats(): Promise<SubredditStats> {
   } catch {
     // fall through
   }
+
+  // Tier 3: hand-captured snapshot (data/reddit-snapshot.ts) — stale but real,
+  // beats the dash the hero shows for `subscribers: 0`.
+  if (SNAPSHOT_STATS.subscribers > 0) return SNAPSHOT_STATS;
 
   return empty;
 }
