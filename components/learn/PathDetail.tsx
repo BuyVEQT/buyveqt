@@ -49,7 +49,8 @@ export default function PathDetail({ path, articles }: PathDetailProps) {
           className="bs-display text-[2.25rem] sm:text-[3rem] lg:text-[3.75rem] leading-[0.95]"
           style={{ color: "var(--ink)" }}
         >
-          {path.title}.
+          {/* Titles in learn-paths-data.ts carry their own terminal period. */}
+          {path.title}
         </h1>
         <p
           className="bs-body italic mt-3 max-w-[54ch] text-[1rem] sm:text-[1.0625rem]"

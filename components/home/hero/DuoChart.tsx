@@ -105,12 +105,15 @@ export default function DuoChart({
     }
   }
 
-  // Extrema placement: stamp the label above the high, below the low,
-  // and clamp away from the edges so it never gets cropped.
+  // Extrema placement: stamp the label above the high, below the low.
+  // Near either edge a centered label hangs past the chart (on mobile, past
+  // the viewport), so flip its anchor the same way the hover readout does.
   const hiLeftPct = pctX(x(maxIdx));
   const hiTopPct = Math.max(2, pctY(y(closes[maxIdx])) - 8); // 8% above the point
   const loLeftPct = pctX(x(minIdx));
   const loTopPct = Math.min(92, pctY(y(closes[minIdx])) + 2); // sit just under the point
+  const edgeClass = (pct: number) =>
+    pct > 88 ? "is-edge-r" : pct < 12 ? "is-edge-l" : "";
 
   // START anchor: if it sits in the top quarter of the chart, render the
   // label BELOW it (otherwise above) so we never crash into a year tick.
@@ -259,7 +262,7 @@ export default function DuoChart({
               }}
             />
             <span
-              className="duo__hi"
+              className={`duo__hi ${edgeClass(hiLeftPct)}`}
               style={{ left: `${hiLeftPct}%`, top: `${hiTopPct}%` }}
             >
               HIGH ${closes[maxIdx].toFixed(2)}
@@ -273,7 +276,7 @@ export default function DuoChart({
               }}
             />
             <span
-              className="duo__lo"
+              className={`duo__lo ${edgeClass(loLeftPct)}`}
               style={{ left: `${loLeftPct}%`, top: `${loTopPct}%` }}
             >
               LOW ${closes[minIdx].toFixed(2)}
@@ -430,6 +433,18 @@ export default function DuoChart({
         .duo__lo {
           color: var(--stamp);
           transform: translate(-50%, 8px);
+        }
+        .duo__hi.is-edge-r {
+          transform: translate(-100%, -100%);
+        }
+        .duo__hi.is-edge-l {
+          transform: translate(0, -100%);
+        }
+        .duo__lo.is-edge-r {
+          transform: translate(-100%, 8px);
+        }
+        .duo__lo.is-edge-l {
+          transform: translate(0, 8px);
         }
 
         /* Hover crosshair dot + readout card */
