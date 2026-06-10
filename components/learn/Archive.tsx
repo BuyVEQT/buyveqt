@@ -131,8 +131,10 @@ export default function Archive({ articles }: ArchiveProps) {
       <div className="archive-v2__head">
         <div>
           <div className="ed-stamp">The archive</div>
+          {/* "The other N" — the flagship isn't in this list; it has its
+              own hero slot above. */}
           <h2 className="ed-display archive-v2__h2">
-            All{" "}
+            The other{" "}
             <em style={{ fontStyle: "italic", fontWeight: 500 }}>
               {articles.length}
             </em>{" "}

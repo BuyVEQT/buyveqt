@@ -113,7 +113,9 @@ export default function TileStreak({ historical }: TileStreakProps) {
         >
           {data.streak}
         </span>
-        <span className="almTile__big-sub">days {data.dir ?? "—"}</span>
+        <span className="almTile__big-sub">
+          {data.streak === 1 ? "day" : "days"} {data.dir ?? "—"}
+        </span>
       </div>
 
       <div

@@ -45,7 +45,8 @@ export default function InsideHero() {
   // year and is recalculating; the tooltip carries that context. (We don't read
   // the live expenseRatio feed — Yahoo reports 0 for VEQT, so it was never live.)
   const veqt = FUNDS["VEQT.TO"];
-  const mgmtFeeValue = veqt ? `${(veqt.managementFee * 100).toFixed(2)}%` : "0.17%";
+  // managementFee is stored in percent units (0.17 means 0.17%), not as a fraction.
+  const mgmtFeeValue = veqt ? `${veqt.managementFee.toFixed(2)}%` : "0.17%";
   const mgmtFeeTip = veqt?.merFootnote;
 
   const specs = [

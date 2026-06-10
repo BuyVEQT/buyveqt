@@ -79,24 +79,49 @@ export async function getHistoryYahoo(
     const defaultStart = new Date(now);
     defaultStart.setDate(defaultStart.getDate() - 120); // ~100 trading days
 
-    // IMPORTANT: End at yesterday, not today. Yahoo often returns today's
-    // row with close: null / adjclose: null before the data is finalized
-    // (especially right after market close). The yahoo-finance2 library
-    // throws on null close values, killing the entire request.
-    // Yesterday's data is always complete and reliable.
+    // IMPORTANT: End at yesterday, not today. Yahoo serves a session's row
+    // with close: null / adjclose: null until the data is finalized, and the
+    // yahoo-finance2 library throws on partial nulls, killing the request.
+    // Use END of yesterday: subtracting a day while keeping the time-of-day
+    // put period2 before yesterday's bar timestamp (13:30 UTC open) whenever
+    // the request ran before ~9:30 ET, silently dropping the most recent
+    // completed session.
     const yesterday = new Date(now);
     yesterday.setDate(yesterday.getDate() - 1);
+    yesterday.setHours(23, 59, 59, 999);
     const endDate = options?.period2 ?? yesterday;
 
-    const result = await withTimeout(
-      yf.historical(yahooSymbol, {
-        period1: options?.period1 ?? defaultStart,
-        period2: endDate,
-        interval: options?.interval ?? '1d',
-      }),
-      HISTORY_TIMEOUT_MS,
-      `Yahoo history for ${yahooSymbol}`
-    );
+    const fetchHistory = (period2: Date | string) =>
+      withTimeout(
+        yf.historical(yahooSymbol, {
+          period1: options?.period1 ?? defaultStart,
+          period2,
+          interval: options?.interval ?? '1d',
+        }),
+        HISTORY_TIMEOUT_MS,
+        `Yahoo history for ${yahooSymbol}`
+      );
+
+    let result;
+    try {
+      result = await fetchHistory(endDate);
+    } catch (error) {
+      // Yesterday's bar can itself still be unfinalized (null close), which
+      // makes the library throw before our null filter can drop the row.
+      // Retreat one more day — that bar is always final — and let the
+      // caller's live-quote append cover the most recent session.
+      if (
+        options?.period2 === undefined &&
+        error instanceof Error &&
+        /null values/i.test(error.message)
+      ) {
+        const dayBefore = new Date(yesterday);
+        dayBefore.setDate(dayBefore.getDate() - 1);
+        result = await fetchHistory(dayBefore);
+      } else {
+        throw error;
+      }
+    }
 
     if (!result || result.length === 0) return null;
 

@@ -54,22 +54,21 @@ export async function GET(request: Request) {
       .filter((d) => d.date >= cutoffStr)
       .map((d) => ({ date: d.date, close: d.adjustedClose || d.close }));
 
-    // Append (or update) today's live quote price so the chart's last point
-    // matches the price widget instead of lagging behind by a day.
+    // Append (or update) the live quote so the chart's last point matches
+    // the price widget instead of lagging behind by a day.
     if (quoteData) {
-      // Eastern (TSX) calendar date, not UTC: after ~7pm ET the UTC date has
-      // already rolled to tomorrow, which would append a future-dated point
-      // ahead of the real series.
-      const todayStr = new Date().toLocaleDateString("en-CA", {
-        timeZone: "America/Toronto",
-      });
+      // Date the point with the quote's own trading session, NOT the request
+      // wall clock. Between midnight and the next open, Yahoo's quote still
+      // carries the prior session — stamping it "today" displayed yesterday's
+      // close under tomorrow's date and left a phantom gap on yesterday.
+      const quoteDateStr = quoteData.latestTradingDay;
       const lastPoint = historical[historical.length - 1];
-      if (lastPoint && lastPoint.date === todayStr) {
-        // Today's close already in history — update it with live price
+      if (lastPoint && lastPoint.date === quoteDateStr) {
+        // Session already in history — update it with the live price
         lastPoint.close = quoteData.price;
-      } else {
-        // Today not yet in history — append live price as today's point
-        historical.push({ date: todayStr, close: quoteData.price });
+      } else if (!lastPoint || lastPoint.date < quoteDateStr) {
+        // Session not yet in history — append the live price as its point
+        historical.push({ date: quoteDateStr, close: quoteData.price });
       }
     }
   }
