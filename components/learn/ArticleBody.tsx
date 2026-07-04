@@ -29,6 +29,9 @@ import { WeightingComparison } from "@/components/mdx/WeightingComparison";
 import { PioneerTimeline } from "@/components/mdx/PioneerTimeline";
 import { VanguardEffectV2 } from "@/components/mdx/VanguardEffectV2";
 import { HomeBiasOverweight } from "@/components/mdx/HomeBiasOverweight";
+import { FactorTilt } from "@/components/mdx/FactorTilt";
+import { FactorBetOutcomes } from "@/components/mdx/FactorBetOutcomes";
+import { ValueDecade } from "@/components/mdx/ValueDecade";
 import { VerdictCard } from "@/components/mdx/VerdictCard";
 // Recharts-bearing widgets are dynamic-imported via a "use client"
 // boundary so this server component can stay RSC. See LazyChartWidgets.
@@ -83,6 +86,9 @@ const mdxComponents = {
   PioneerTimeline,
   VanguardEffectV2,
   HomeBiasOverweight,
+  FactorTilt,
+  FactorBetOutcomes,
+  ValueDecade,
   VerdictCard,
   h2: H2,
 };

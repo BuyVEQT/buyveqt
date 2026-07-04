@@ -2,8 +2,8 @@
 title: "CAGE vs VEQT: Should Canadians Buy the Avantis Factor ETF?"
 description: "Avantis CIBC's CAGE brought 40 years of DFA-style factor investing to a Canadian-dollar TSX ticker in March 2026. Here's the case for and against it vs VEQT."
 slug: "veqt-vs-cage"
-readingTime: "11 min read"
-lastUpdated: "2026-05-26"
+readingTime: "10 min read"
+lastUpdated: "2026-07-04"
 excerpt: "What the DFA-style factor portfolio looks like with the advisor gate stripped. The academic case is sound. The behavioural cost is the part nobody talks about."
 category: "comparison"
 difficulty: "intermediate"
@@ -16,7 +16,7 @@ relatedSlugs: ["what-is-veqt", "veqt-vs-xeqt", "veqt-canadian-home-bias"]
 CAGE is the new hype, and the hype is unusually well-founded. Avantis brought a factor strategy with a 40-year academic pedigree into a single Canadian-dollar TSX ticker — something Canadian retail investors couldn't access without a fee-only advisor until March 2026. That access matters. Whether you should *use* the access is a different question, and it depends almost entirely on whether you'd still hold CAGE in year eight of a decade where it trails VEQT.
 </Summary>
 
-<TableOfContents items="A new ticker, an old idea | The basics | What CAGE actually does differently | The DFA pedigree | The math of the bet | The decade that broke factor investing | The behavioural cost | Who CAGE is for | The bottom line" />
+<TableOfContents items="A new ticker, an old idea | The basics | What CAGE actually does differently | Forty years behind the advisor gate | The bet is small. The outcomes aren't. | The decade that broke factor investing | The hardest part is you | Who CAGE is for | The bottom line" />
 
 ## A new ticker, an old idea
 
@@ -61,13 +61,15 @@ CAGE makes three deliberate departures from that default:
 2. **Value tilt.** CAGE overweights companies trading at lower prices relative to their book value or earnings, and underweights expensive ones.
 3. **Profitability tilt.** CAGE overweights firms with high gross profitability and underweights low-quality businesses, a Robert Novy-Marx 2013 result that DFA and Avantis both treat as the third pillar.
 
-Repetto's own framing on Rational Reminder Episode 401: CAGE is roughly **15% underweight** the lowest-profitability and most expensive names, and **15% overweight** the higher-profitability and cheaper ones, versus a geography-matched cap benchmark. The target outperformance is **1.5–2% gross annualized**, with **3–4% tracking error**. Read that second number carefully. A 3–4% tracking error means a one-year span where CAGE trails VEQT by 6%+ is a normal event, not a bug.
+Repetto's own framing on Rational Reminder Episode 401, versus a geography-matched cap benchmark:
+
+<FactorTilt />
 
 <Callout type="info">
 **The factor framing in one line:** VEQT trusts the market to weight companies. CAGE trusts the academic literature to *re-weight* them — toward profitable, smaller, cheaper names that have historically paid a premium for the patience required to hold them.
 </Callout>
 
-## The DFA pedigree
+## Forty years behind the advisor gate
 
 CAGE is interesting because it inherits a real lineage, not just a marketing one.
 
@@ -89,38 +91,31 @@ PWL Capital — where Felix is a portfolio manager — has used Dimensional Cana
 
 He's not wrong. He's been saying it consistently since long before CAGE existed.
 
-## The math of the bet
+## The bet is small. The outcomes aren't.
 
-Most of the CAGE-vs-VEQT debate online is opinion. The math is simpler than that.
+Most of the CAGE-vs-VEQT debate online is opinion. The math is simpler than that. Compound $100,000 over 30 years at a 7% baseline equity return, and the whole argument fits in four bars:
 
-Compound $100,000 over 30 years at a 7% baseline equity return:
+<FactorBetOutcomes />
 
-- **VEQT base case** (7.0%/yr after fees): **~$761,000**
-- **CAGE with a 0.5%/yr net premium** (7.5%/yr): **~$875,000** — about $114K extra
-- **CAGE with a 1.5%/yr net premium** (8.5%/yr): **~$1.155M** — about $394K extra
-- **CAGE with zero net premium** (~6.85%/yr after the fee gap): **~$735,000** — about $26K *behind*
+Read the top and bottom bars together — that's the asymmetry of the bet. If the premium arrives at the upper end of Repetto's target, CAGE's 30-year outperformance pays for a meaningful chunk of an early retirement. If the factors deliver zero net of fees during your holding period — exactly what happened from roughly 2010 to 2020 — you end up about $26K behind VEQT on the fee gap alone.
 
-Read the third row carefully. If the factor premium shows up at the upper end of Repetto's target, CAGE's 30-year outperformance pays for a meaningful chunk of an early retirement.
-
-Read the fourth row carefully. If the factors deliver zero excess premium net of fees during your holding period — which is exactly what happened from roughly 2010 to 2020 — you end up about $26K behind VEQT on the fee gap alone.
-
-The breakeven is small. CAGE only has to capture **~10–15 basis points of annual factor premium** to justify its fee. The Fama-French historical record across nearly a century of US data suggests it should clear that bar by a wide margin. The Fama-French historical record also suggests it may take 30 years to *get* to that average — and you might hold CAGE through the wrong 15.
+The Fama-French record across nearly a century of US data says CAGE should clear its breakeven by a wide margin. The same record says it may take 30 years to *get* to that average — and you might hold CAGE through the wrong 15.
 
 ## The decade that broke factor investing
 
 Anyone selling CAGE on the size and value premia today is selling against the memory of the **2010s**.
 
-From early 2010 through March 2020, the Russell 1000 Growth Index rose roughly **264%**. The Russell 1000 Value Index rose **91%**. Large-cap value trailed large-cap growth by approximately **5.3 percentage points per year** for the decade. Small-cap value trailed small-cap growth by **4.1 percentage points per year**. The "factors are dead" obituaries arrived on schedule.
+<ValueDecade />
 
-Cliff Asness, who has run factor strategies at AQR since 1998, wrote that by late 2020 the value spread — the price gap between cheap and expensive stocks — exceeded the March 2000 dot-com extreme by some measures, sitting roughly **four standard deviations from normal**.
+The "factors are dead" obituaries arrived on schedule. Cliff Asness, who has run factor strategies at AQR since 1998, wrote that by late 2020 the value spread — the price gap between cheap and expensive stocks — exceeded the March 2000 dot-com extreme by some measures.
 
 Cam Harvey, a former editor of the *Journal of Finance*, has spent the last decade documenting what he calls the **"factor zoo"** — by his count over 300 academic factors published in top journals, of which he believes a third to half are statistical artifacts of data-snooping rather than real anomalies. Harvey's recommended significance threshold for accepting a new factor is t > 3.0, not the standard t > 2.0 most papers use.
 
-None of this is a refutation of the size, value, and profitability factors specifically — they remain the most-replicated and most-defended of the lot. But it is a warning: long stretches of factor underperformance are not a hypothetical scenario you read about in academic papers. They happened recently enough that everyone holding CAGE today should pull up the 2010–2020 chart and ask themselves an honest question about what they would have done.
+None of this is a refutation of the size, value, and profitability factors specifically — they remain the most-replicated and most-defended of the lot. But it is a warning: long stretches of factor underperformance are not a hypothetical scenario you read about in academic papers. They happened recently enough that everyone holding CAGE today should sit with the chart above and ask themselves an honest question about what they would have done.
 
-## The behavioural cost
+## The hardest part is you
 
-The hardest critique of factor investing for retail investors has nothing to do with the academic premium. It's about you.
+The strongest critique of factor investing for retail investors has nothing to do with the academic premium. It's about you.
 
 Morningstar's most recent *Mind the Gap* study (10 years to December 2024) found the average dollar earned **7.0% per year** while the funds those dollars sat in earned **8.2% per year**. The 1.2-point gap — roughly **15% of total return** — is what investors give up by buying after the runs and selling after the drawdowns.
 
@@ -137,6 +132,12 @@ Three buckets, drawn cleanly:
 **CAGE** — the investor who has actually read the 1992 and 2015 Fama-French papers (or watched Felix's *Common Sense Investing* series and understood it), who has a 30-year-plus horizon, who has war-gamed their own behaviour during a stretch like 2010–2020, and who treats the 8–15bp fee gap as a small wager on a long-run premium they understand may not show up at all during their holding period. There are real investors who fit this description and CAGE is a clean way to express it without assembling six US-listed sleeves.
 
 **Neither fund will save you** — the investor who panic-sold in March 2020, or December 2018, or any other ten-percent move. Fund flavour won't fix a behavioural problem. The 0.17% MER beats both options.
+
+<ComparisonTable
+  highlight="VEQT"
+  headers="Factor | VEQT | CAGE"
+  rows="Philosophy | Trust the market's weights | Re-weight toward factor premia ;; Management fee | 0.17% | 0.28% ;; Effective MER | ~0.20% | ~0.30%–0.40% (est.) ;; Expected edge | The market return | +1.5–2% gross target ;; Tracking error vs market | Near zero | 3–4% ;; Live track record | Since January 2019 | Since March 2026 ;; Behavioural demand | Low — a lag is everyone's lag | High — a lag feels personal ;; Built for | Almost everyone | The die-hard factor investor"
+/>
 
 ## The bottom line
 
