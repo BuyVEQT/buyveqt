@@ -40,8 +40,10 @@ function chromeForPath(pathname: string): RouteChrome {
 }
 
 /**
- * Mobile sticky top app bar. Hidden above lg (desktop uses DesktopNav).
- * Derives title/kicker/back/ticker from the current pathname.
+ * Mobile sticky top app bar — Instrument masthead. Hidden above lg
+ * (desktop uses DesktopNav). White paper, "BUYVEQT" wordmark on home,
+ * kicker + title on inner routes, live dot cluster + ☰ drawer on the
+ * right, and the 5px ink masthead bar underneath (edition-aware).
  *
  * Action-drawer (☰) holds theme toggle + secondary nav.
  */
@@ -64,120 +66,161 @@ export default function TopBar() {
   return (
     <>
       <div
-        className="shell-topbar"
+        className="shell-topbar ins-shell"
         style={{
-          background: "color-mix(in oklab, var(--paper) 94%, transparent)",
-          backdropFilter: "blur(10px)",
-          WebkitBackdropFilter: "blur(10px)",
-          borderBottom: "1px solid var(--rule-soft)",
-          padding: "12px 16px",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 12,
+          flexDirection: "column",
+          background: "var(--ins-paper)",
+          fontFamily: "var(--ins-font)",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, flex: 1 }}>
-          {!chrome.hideBack ? (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
+            padding: "12px 20px",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, flex: 1 }}>
+            {!chrome.hideBack ? (
+              <button
+                type="button"
+                onClick={handleBack}
+                aria-label="Back"
+                style={{
+                  appearance: "none",
+                  background: "transparent",
+                  border: 0,
+                  color: "var(--ins-ink)",
+                  fontSize: 24,
+                  lineHeight: 0.6,
+                  cursor: "pointer",
+                  padding: 0,
+                  marginTop: -3,
+                }}
+              >
+                ‹
+              </button>
+            ) : (
+              <Link
+                href="/"
+                style={{
+                  fontSize: 15,
+                  fontWeight: 800,
+                  letterSpacing: "0.06em",
+                  color: "var(--ins-ink)",
+                  textTransform: "uppercase",
+                  textDecoration: "none",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                BUYVEQT
+              </Link>
+            )}
+            {!chrome.hideBack && (
+              <div style={{ minWidth: 0 }}>
+                {chrome.kicker && (
+                  <div
+                    style={{
+                      fontSize: 9,
+                      fontWeight: 700,
+                      letterSpacing: "0.22em",
+                      textTransform: "uppercase",
+                      color: "var(--ins-gray-600)",
+                    }}
+                  >
+                    {chrome.kicker}
+                  </div>
+                )}
+                <div
+                  style={{
+                    fontSize: 15,
+                    fontWeight: 700,
+                    color: "var(--ins-ink)",
+                    letterSpacing: "-0.01em",
+                    lineHeight: 1.15,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {chrome.title}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {chrome.hideTicker ? (
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 7,
+                  fontSize: 10.5,
+                  fontWeight: 700,
+                  letterSpacing: "0.1em",
+                  color: "var(--ins-ink)",
+                }}
+              >
+                <span
+                  aria-hidden
+                  style={{
+                    width: 7,
+                    height: 7,
+                    borderRadius: 999,
+                    background: "var(--ins-signal)",
+                    animation: "ins-pulse 2.2s ease-in-out infinite",
+                    flexShrink: 0,
+                  }}
+                />
+                LIVE
+              </span>
+            ) : (
+              <LiveTickerPill compact />
+            )}
             <button
               type="button"
-              onClick={handleBack}
-              aria-label="Back"
+              onClick={() => setMenuOpen((v) => !v)}
+              aria-label="Menu"
+              aria-expanded={menuOpen}
               style={{
                 appearance: "none",
                 background: "transparent",
                 border: 0,
-                color: "var(--ink-soft)",
-                fontSize: 26,
-                lineHeight: 0.6,
+                color: "var(--ins-ink)",
                 cursor: "pointer",
-                padding: 0,
-                marginTop: -4,
+                padding: 4,
+                fontSize: 16,
+                lineHeight: 1,
               }}
             >
-              ‹
+              ☰
             </button>
-          ) : (
-            <Link
-              href="/"
-              style={{
-                fontFamily: "var(--font-display)",
-                fontWeight: 500,
-                fontSize: 18,
-                color: "var(--ink)",
-                letterSpacing: "-0.015em",
-                textDecoration: "none",
-              }}
-            >
-              Buy<span style={{ color: "var(--stamp)" }}>VEQT</span>
-            </Link>
-          )}
-          {!chrome.hideBack && (
-            <div style={{ minWidth: 0 }}>
-              {chrome.kicker && (
-                <div
-                  style={{
-                    fontFamily: "var(--font-sans)",
-                    fontSize: 9,
-                    fontWeight: 700,
-                    letterSpacing: "0.22em",
-                    textTransform: "uppercase",
-                    color: "var(--ink-mute)",
-                  }}
-                >
-                  {chrome.kicker}
-                </div>
-              )}
-              <div
-                style={{
-                  fontFamily: "var(--font-display)",
-                  fontWeight: 500,
-                  fontSize: 17,
-                  color: "var(--ink)",
-                  letterSpacing: "-0.01em",
-                  lineHeight: 1.1,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {chrome.title}
-              </div>
-            </div>
-          )}
+          </div>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          {!chrome.hideTicker && <LiveTickerPill compact />}
-          <button
-            type="button"
-            onClick={() => setMenuOpen((v) => !v)}
-            aria-label="Menu"
-            aria-expanded={menuOpen}
-            style={{
-              appearance: "none",
-              background: "transparent",
-              border: 0,
-              color: "var(--ink-soft)",
-              cursor: "pointer",
-              padding: 4,
-              fontSize: 18,
-              lineHeight: 1,
-            }}
-          >
-            ☰
-          </button>
-        </div>
+        {/* Masthead bar — edition-aware (ink by default, red on RALLY days). */}
+        <div
+          aria-hidden
+          style={{
+            margin: "0 20px",
+            height: 5,
+            background: "var(--ins-masthead)",
+          }}
+        />
       </div>
 
       {menuOpen && (
         <div
-          className="shell-topbar-drawer"
+          className="shell-topbar-drawer ins-shell"
           role="dialog"
           aria-modal="true"
         >
           <div
             onClick={() => setMenuOpen(false)}
-            style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.35)" }}
+            style={{ position: "absolute", inset: 0, background: "rgba(17,17,17,0.4)" }}
           />
           <div
             style={{
@@ -187,22 +230,22 @@ export default function TopBar() {
               width: 280,
               maxWidth: "85vw",
               height: "100dvh",
-              background: "var(--paper-light)",
-              borderLeft: "1px solid var(--rule-soft)",
-              padding: "16px 18px",
+              background: "var(--ins-paper)",
+              borderLeft: "1px solid var(--ins-hair)",
+              padding: "18px 20px",
               display: "flex",
               flexDirection: "column",
               gap: 14,
+              fontFamily: "var(--ins-font)",
             }}
           >
             <div
               style={{
-                fontFamily: "var(--font-sans)",
-                fontSize: 10,
-                fontWeight: 700,
+                fontSize: 9,
+                fontWeight: 800,
                 letterSpacing: "0.22em",
                 textTransform: "uppercase",
-                color: "var(--ink-mute)",
+                color: "var(--ins-gray-600)",
               }}
             >
               More
@@ -224,7 +267,7 @@ export default function TopBar() {
               style={{
                 marginTop: 12,
                 paddingTop: 14,
-                borderTop: "1px solid var(--rule-soft)",
+                borderTop: "1px solid var(--ins-hair)",
                 display: "flex",
                 flexDirection: "column",
                 gap: 10,
@@ -232,12 +275,11 @@ export default function TopBar() {
             >
               <div
                 style={{
-                  fontFamily: "var(--font-sans)",
-                  fontSize: 10,
-                  fontWeight: 700,
+                  fontSize: 9,
+                  fontWeight: 800,
                   letterSpacing: "0.22em",
                   textTransform: "uppercase",
-                  color: "var(--ink-mute)",
+                  color: "var(--ins-gray-600)",
                 }}
               >
                 Edition
@@ -253,11 +295,14 @@ export default function TopBar() {
 
 function menuLink(): React.CSSProperties {
   return {
-    fontFamily: "var(--font-sans)",
-    fontSize: 14,
-    color: "var(--ink)",
+    fontFamily: "var(--ins-font)",
+    fontSize: 11,
+    fontWeight: 600,
+    letterSpacing: "0.12em",
+    textTransform: "uppercase",
+    color: "var(--ins-ink)",
     textDecoration: "none",
-    padding: "8px 0",
-    borderBottom: "1px solid var(--rule-soft)",
+    padding: "12px 0",
+    borderBottom: "1px solid var(--ins-hair)",
   };
 }

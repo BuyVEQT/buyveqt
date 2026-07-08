@@ -1,15 +1,18 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useVeqtData } from "@/lib/useVeqtData";
 import { useRegions, type Region } from "@/lib/useRegions";
 import { computeSeverity } from "@/lib/severity";
 
 import HeroToday from "./HeroToday";
+import ConditionsBand from "./ConditionsBand";
+import DuoChart from "./hero/DuoChart";
 import RegionGrid from "./RegionGrid";
 import HeatmapCard from "./HeatmapCard";
 import InceptionBand from "./InceptionBand";
 import ArticleStrip from "./ArticleStrip";
+import Closer from "./Closer";
 
 const REGION_ORDER = ["VUN", "VCN", "VIU", "VEE"];
 
@@ -30,16 +33,24 @@ function leaderIndex(regions: readonly Region[]): number {
 }
 
 /**
- * Round 4 home V2 — Editorial Almanac hero + four-sleeves + session board + Almanac + course.
+ * The Instrument — home page composition (June 2026 redesign).
  *
- *  HeroToday        — price + 52w track + duotone chart + hybrid weather card
- *                     + period stats ribbon + 4 companion tiles
- *  RegionGrid       — leader + followers (handles mobile internally)
- *  two-up           — HeatmapCard (calendar session board) | InceptionBand (Almanac)
- *  ArticleStrip     — editor column + three course rows
+ * A Swiss-poster instrument panel: white page, Archivo grotesk, ink rules,
+ * red spent only on signal. Module order per the handoff artboard 3a:
  *
- * The hero drives its own period state from a single `useVeqtData("ALL")`
- * fetch and slices client-side — no separate period-keyed fetch.
+ *   HeroToday       — price poster + chip + micro-facts + facts column
+ *   ConditionsBand  — seven-state weather: glyph · verdict · ruler gauge ·
+ *                     week strip · verdict rail
+ *   DuoChart        — ink line chart + drag-to-scrub + $10,000 what-if row
+ *   RegionGrid      — four-sleeve ledger (leader + followers)
+ *   two-up          — HeatmapCard (session board) | InceptionBand (almanac)
+ *   ArticleStrip    — reading order, in three parts
+ *   Closer          — "You've seen the number." + THE DAILY NOTE
+ *
+ * On P98+ days the page prints an edition: data-ins-edition="red" (rally)
+ * tints the masthead/rules/chart line; "ink" (gale) inverts the page via
+ * the --ins-* token overrides in globals.css. Applied while mounted only,
+ * so other routes are untouched until the skin extends to them.
  */
 export default function HomeClient() {
   const full = useVeqtData("ALL");
@@ -63,18 +74,30 @@ export default function HomeClient() {
     return computeSeverity(full.data.historical, full.data.quote.changePercent);
   }, [full.data]);
 
+  // Print the edition. Set on <html> so the shell's masthead bar and any
+  // token-driven surface pick it up; removed on unmount / state change.
+  const edition = severity?.edition ?? null;
+  useEffect(() => {
+    const root = document.documentElement;
+    if (edition) {
+      root.setAttribute("data-ins-edition", edition);
+    } else {
+      root.removeAttribute("data-ins-edition");
+    }
+    return () => {
+      root.removeAttribute("data-ins-edition");
+    };
+  }, [edition]);
+
+  const history = full.data?.historical ?? [];
+  const quote = full.data?.quote ?? null;
+  const changePercent = quote?.changePercent ?? null;
+
   return (
-    <main
-      style={{
-        background: "var(--paper)",
-        minHeight: "100dvh",
-        color: "var(--ink)",
-      }}
-    >
-      <div className="home-stack">
-        {/* Visually hidden h1 — the dashboard layout has no natural display
-            headline, but search engines and screen readers need a top-level
-            heading to identify the page. */}
+    <main className="ins-root ins-home">
+      <div className="ins-page">
+        {/* Visually hidden h1 — the poster price is the visual headline,
+            but crawlers and screen readers need a top-level heading. */}
         <h1
           style={{
             position: "absolute",
@@ -88,62 +111,68 @@ export default function HomeClient() {
             borderWidth: 0,
           }}
         >
-          BuyVEQT — VEQT.TO live price, regional sleeves, and weather signal
-          for Canadian passive investors.
+          BuyVEQT — VEQT.TO live price, today&apos;s market weather, regional
+          sleeves, and the session board for Canadian passive investors.
         </h1>
 
-        {/* Editorial Almanac hero — price · duotone chart · weather card · tiles */}
-        <HeroToday
-          data={full.data}
-          loading={full.loading}
-          severity={severity}
-          regions={regionsLoading ? [] : orderedRegions}
-        />
+        <HeroToday data={full.data} loading={full.loading} severity={severity} />
 
-        {/* Region sleeves — leader + followers (handles mobile internally) */}
+        <ConditionsBand severity={severity} history={history} quote={quote} />
+
+        <DuoChart history={history} loading={full.loading} />
+
         <RegionGrid
           regions={regionsLoading ? [] : orderedRegions}
           leaderIndex={leaderIdx}
+          fundChangePercent={changePercent}
         />
 
-        {/* Two-up: session-board calendar + Almanac (dark band) */}
-        <div className="two-up">
+        <div className="ins-two-up">
           <HeatmapCard
-            history={full.data?.historical ?? []}
-            loading={full.loading && (full.data?.historical?.length ?? 0) === 0}
+            history={history}
+            loading={full.loading && history.length === 0}
+            todayChangePercent={changePercent}
           />
-          <InceptionBand
-            history={full.data?.historical ?? []}
-            quote={full.data?.quote ?? null}
-            loading={full.loading}
-          />
+          <InceptionBand history={history} quote={quote} loading={full.loading} />
         </div>
 
         <ArticleStrip />
+
+        <Closer changePercent={changePercent} />
       </div>
 
       <style jsx>{`
-        .home-stack {
+        .ins-home {
+          background: var(--ins-paper);
+          min-height: 100dvh;
+          color: var(--ins-ink);
+          font-family: var(--ins-font);
+        }
+        .ins-page {
           display: flex;
           flex-direction: column;
-          gap: 22px;
+          gap: 30px;
           max-width: 1400px;
           margin: 0 auto;
-          padding: 20px 14px 40px;
+          padding: 0 40px 40px;
         }
-        .two-up {
+        .ins-two-up {
           display: grid;
-          grid-template-columns: 1fr;
-          gap: 22px;
+          grid-template-columns: 1fr 420px;
+          gap: 40px;
+          align-items: stretch;
         }
 
-        @media (min-width: 1024px) {
-          .home-stack {
-            gap: 28px;
-            padding: 32px 26px 48px;
+        @media (max-width: 960px) {
+          .ins-two-up {
+            grid-template-columns: 1fr;
+            gap: 26px;
           }
-          .two-up {
-            grid-template-columns: 7fr 5fr;
+        }
+        @media (max-width: 640px) {
+          .ins-page {
+            gap: 26px;
+            padding: 0 20px 28px;
           }
         }
       `}</style>
