@@ -10,8 +10,8 @@ import { SITE_NAME, SITE_DESCRIPTION } from "@/lib/seo-config";
  * the live site. Useful for power users who pin the dashboard.
  *
  * Colors:
- *   theme_color    — vermilion stamp; sets the URL bar tint on Android
- *   background_color — paper cream; flashes before the install icon resolves
+ *   theme_color    — Instrument ink (matches the masthead); URL bar tint on Android
+ *   background_color — Instrument paper; flashes before the install icon resolves
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {
@@ -20,8 +20,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: SITE_DESCRIPTION,
     start_url: "/",
     display: "minimal-ui",
-    background_color: "#f6efdc",
-    theme_color: "#c8102e",
+    background_color: "#ffffff",
+    theme_color: "#111111",
     orientation: "any",
     icons: [
       {
