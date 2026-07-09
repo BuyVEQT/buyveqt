@@ -1,88 +1,136 @@
 "use client";
 
 import { useVeqtData } from "@/lib/useVeqtData";
-import { fmtPrice } from "@/lib/instrument-format";
+import Pill from "@/components/ui/Pill";
 
 interface LiveTickerPillProps {
-  /** Compact = mobile top bar (smaller dot + type). Full = desktop nav. */
+  /** Compact = mobile (no ticker label, single line). Full = desktop. */
   compact?: boolean;
 }
 
 /**
- * Live ticker — Instrument grammar: "51.87 LIVE" with a pulsing 7px red
- * dot. No pill chrome, no border radius, ink on paper. Single source of
- * truth for the price chrome that appears on every page.
- *
- * Reads from useVeqtData() client-side; pre-allocates space for a
- * skeleton so first-paint doesn't shift the bar layout.
+ * Sticky live ticker pill: red dot + (optional ticker label) + price + change% badge.
+ * Single source of truth for the price chrome that appears on every page.
+ * Reads from useVeqtData() client-side; pre-allocates space for a skeleton
+ * so first-paint doesn't shift the bar layout.
  */
 export default function LiveTickerPill({ compact = false }: LiveTickerPillProps) {
   const { data, loading } = useVeqtData("1Y");
   const quote = data?.quote ?? null;
-
-  const dotSize = compact ? 6 : 7;
+  const up = (quote?.changePercent ?? 0) >= 0;
 
   if (loading || !quote) {
     return (
       <span
         aria-hidden
-        className="ins-shell"
         style={{
           display: "inline-flex",
           alignItems: "center",
-          gap: compact ? 7 : 8,
-          minWidth: compact ? 64 : 72,
-          height: compact ? 14 : 15,
+          gap: 8,
+          padding: compact ? "4px 10px" : "6px 12px",
+          borderRadius: 999,
+          background: "var(--paper-light)",
+          border: "1px solid var(--rule-soft)",
+          minWidth: compact ? 110 : 200,
+          height: compact ? 26 : 32,
         }}
       >
         <span
           style={{
-            width: dotSize,
-            height: dotSize,
-            borderRadius: 999,
-            background: "var(--ins-hair)",
-            flexShrink: 0,
+            width: compact ? 5 : 7,
+            height: compact ? 5 : 7,
+            borderRadius: "50%",
+            background: "var(--rule-soft)",
+          }}
+        />
+        <span className="skeleton" style={{ flex: 1, height: 10, borderRadius: 4 }} />
+      </span>
+    );
+  }
+
+  const priceFmt = `$${quote.price.toFixed(2)}`;
+  const pctFmt = `${up ? "↑" : "↓"} ${up ? "+" : "−"}${Math.abs(quote.changePercent).toFixed(2)}%`;
+
+  if (compact) {
+    return (
+      <span
+        className="ed-numerals"
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 8,
+          padding: "4px 10px",
+          borderRadius: 999,
+          background: "var(--paper-light)",
+          border: "1px solid var(--rule-soft)",
+        }}
+      >
+        <span
+          aria-hidden
+          style={{
+            width: 5,
+            height: 5,
+            borderRadius: "50%",
+            background: "var(--stamp)",
           }}
         />
         <span
           style={{
-            flex: 1,
-            height: 9,
-            background: "var(--ins-track-soft)",
+            fontSize: 12,
+            fontWeight: 700,
+            color: "var(--ink)",
+            fontFamily: "var(--font-sans)",
           }}
-        />
+        >
+          {priceFmt}
+        </span>
+        <span
+          style={{
+            fontSize: 11,
+            fontWeight: 700,
+            color: up ? "var(--green)" : "var(--stamp)",
+            fontFamily: "var(--font-sans)",
+          }}
+        >
+          {pctFmt}
+        </span>
       </span>
     );
   }
 
   return (
     <span
-      className="ins-shell"
-      aria-label={`VEQT.TO ${fmtPrice(quote.price)}, live`}
+      className="ed-numerals"
       style={{
         display: "inline-flex",
         alignItems: "center",
-        gap: compact ? 7 : 8,
-        fontFamily: "var(--ins-font)",
-        fontSize: compact ? 10.5 : 11,
-        fontWeight: 700,
-        color: "var(--ins-ink)",
-        fontVariantNumeric: "tabular-nums",
-        whiteSpace: "nowrap",
+        gap: 10,
+        fontFamily: "var(--font-sans)",
       }}
     >
       <span
         aria-hidden
         style={{
-          width: dotSize,
-          height: dotSize,
-          borderRadius: 999,
-          background: "var(--ins-signal)",
-          animation: "ins-pulse 2.2s ease-in-out infinite",
-          flexShrink: 0,
+          display: "inline-block",
+          width: 7,
+          height: 7,
+          borderRadius: "50%",
+          background: "var(--stamp)",
+          boxShadow: "0 0 0 4px var(--stamp-soft)",
         }}
       />
-      {fmtPrice(quote.price)} LIVE
+      <span
+        style={{
+          fontSize: 12,
+          color: "var(--ink-mute)",
+          fontWeight: 600,
+          letterSpacing: "0.06em",
+        }}
+      >
+        VEQT.TO
+      </span>
+      <span style={{ fontWeight: 700, fontSize: 16, color: "var(--ink)" }}>{priceFmt}</span>
+      <Pill tone={up ? "up" : "down"}>{pctFmt}</Pill>
     </span>
   );
 }

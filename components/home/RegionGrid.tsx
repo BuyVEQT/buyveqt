@@ -2,617 +2,257 @@
 
 import { useMemo } from "react";
 import type { Region } from "@/lib/useRegions";
-import { fmtSignedPct, fmtSignedPp } from "@/lib/instrument-format";
-
-/**
- * RegionGrid — the Instrument's sleeves ledger.
- *
- * "Four sleeves, one fund." — 3px rule, eyebrow + display + right caption,
- * attribution sentence, then a `1.5fr 1fr` grid: oversized leader block
- * (rank ordinal, micro-label, 52px move, weight bar, contribution,
- * 30-day sparkline) beside three ruled follower rows ranked by
- * |contribution|.
- *
- * Mobile (<640px): leader collapses into a 1px-ink box (label + move,
- * weight bar + combined meta) above three compact follower rows, per the
- * mobile artboard. Mid (<960px): the two grid columns stack.
- */
-
-/** Sleeve names that read naturally after "The … carried today". */
-const SENTENCE_NAME: Record<string, string> = {
-  VUN: "United States",
-  VCN: "Canadian market",
-  VIU: "developed-markets sleeve",
-  VEE: "emerging-markets sleeve",
-};
-
-const SPARK_W = 200;
-const SPARK_H = 48;
-const SPARK_PAD = 3;
-
-/** Build the 30-day sparkline path (viewBox 200×48, rendered 150×48). */
-function sparkPath(history: Region["history"]): string | null {
-  if (history.length < 2) return null;
-  const closes = history.map((p) => p.close);
-  const min = Math.min(...closes);
-  const max = Math.max(...closes);
-  const span = max - min;
-  return closes
-    .map((close, i) => {
-      const x = (i / (closes.length - 1)) * SPARK_W;
-      const y =
-        span === 0
-          ? SPARK_H / 2
-          : SPARK_PAD + (1 - (close - min) / span) * (SPARK_H - SPARK_PAD * 2);
-      return `${i === 0 ? "M" : "L"}${x.toFixed(2)} ${y.toFixed(2)}`;
-    })
-    .join(" ");
-}
+import LeaderSleeveCard from "./LeaderSleeveCard";
+import FollowerSleeveRow from "./FollowerSleeveRow";
+import InSentenceHeadline from "./InSentenceHeadline";
 
 interface RegionGridProps {
   regions: Region[];
   leaderIndex: number;
-  fundChangePercent: number | null;
+  sortBy?: "weight" | "contribution";
 }
 
+/**
+ * RegionLedger — newspaper-style "Four sleeves, one fund." section.
+ *
+ * Layout:
+ *   ┌────────────────────────────── 1px ink rule ───────────────────────┐
+ *   │ TODAY'S MOVE CAME FROM                          (sub-caption)     │
+ *   │ Four sleeves, one fund. (italic on "one fund.")                   │
+ *   ├───────────────────────────────────────────────────────────────────┤
+ *   │ [ IN A SENTENCE ]  United States carried today — +0.30 pp …      │
+ *   ├──────────────────────────────────┬────────────────────────────────┤
+ *   │                                  │  2  Canada      +0.41%   ╲╱   │
+ *   │   LEADER · VUN · WEIGHT 45.6%    │     VCN · 28.4% +0.12 pp     │
+ *   │                                  ├────────────────────────────────┤
+ *   │   United States                  │  3  Developed   +0.18%   ╲╱   │
+ *   │                                  │     VIU · 16.9% +0.03 pp     │
+ *   │   +0.66%   CONTRIB +0.30 pp      ├────────────────────────────────┤
+ *   │            in today's move       │  4  Emerging    −0.48%   ╱╲   │
+ *   │   ╱╲╲   ╱╲╱╲╱╲ ╱╲                │     VEE ·  9.1% −0.03 pp     │
+ *   │   30 trading days                │                                │
+ *   └──────────────────────────────────┴────────────────────────────────┘
+ *
+ * Mobile collapses to a single column with the leader first.
+ *
+ * Every card links through to /inside-veqt#TICKER.
+ */
 export default function RegionGrid({
   regions,
-  leaderIndex,
-  fundChangePercent,
+  leaderIndex: _leaderIndex,
+  sortBy = "contribution",
 }: RegionGridProps) {
-  // Leader first (from leaderIndex), then the rest by |contribution| desc.
-  // When leaderIndex is -1 (attribution missing) fall back to sorting the
-  // whole set — stable sort keeps the VUN/VCN/VIU/VEE order for null data.
-  const ordered = useMemo(() => {
+  // Sort by |contribution| (default) or weight, descending.
+  const sorted = useMemo(() => {
     if (regions.length === 0) return [];
-    const leader =
-      leaderIndex >= 0 && leaderIndex < regions.length
-        ? regions[leaderIndex]
-        : null;
-    const byContribution = (a: Region, b: Region) =>
-      Math.abs(b.contribution ?? 0) - Math.abs(a.contribution ?? 0);
-    if (!leader) return [...regions].sort(byContribution);
-    return [leader, ...regions.filter((r) => r !== leader).sort(byContribution)];
-  }, [regions, leaderIndex]);
-
-  const leader = ordered[0] ?? null;
-  const followers = ordered.slice(1);
-
-  const leaderNegative = (leader?.changePercent ?? 0) < 0;
-  const leaderSpark = leader ? sparkPath(leader.history) : null;
-
-  // "The United States carried today — +0.30 pp of the fund's +0.43% move."
-  const sentence = useMemo(() => {
-    if (!leader || leader.contribution == null) {
-      return (
-        <>Four regional sleeves, one fund — today&rsquo;s attribution is unavailable.</>
-      );
-    }
-    const name = SENTENCE_NAME[leader.ticker] ?? leader.label;
-    const verb = leader.contribution < 0 ? "dragged" : "carried";
-    const pp = fmtSignedPp(leader.contribution).toLowerCase();
-    if (fundChangePercent == null) {
-      return (
-        <>
-          The {name} {verb} today — {pp} of the fund&rsquo;s move.
-        </>
-      );
-    }
-    return (
-      <>
-        The {name} {verb} today — {pp} of the fund&rsquo;s{" "}
-        {fmtSignedPct(fundChangePercent)} move.
-      </>
+    const arr = [...regions].filter(
+      (r) =>
+        r.changePercent !== null &&
+        r.contribution !== null &&
+        Number.isFinite(r.changePercent) &&
+        Number.isFinite(r.contribution)
     );
-  }, [leader, fundChangePercent]);
+    if (sortBy === "weight") {
+      arr.sort((a, b) => b.weight - a.weight);
+    } else {
+      arr.sort(
+        (a, b) =>
+          Math.abs(b.contribution ?? 0) - Math.abs(a.contribution ?? 0)
+      );
+    }
+    return arr;
+  }, [regions, sortBy]);
 
-  const head = (
-    <header className="sleeves__head">
-      <div>
-        <div className="sleeves__eyebrow">Today&apos;s move came from</div>
-        <h2 className="sleeves__display">Four sleeves, one fund.</h2>
-      </div>
-      <div className="sleeves__caption">
-        A weighted average of four
-        <br />
-        regional Vanguard ETFs
-      </div>
-    </header>
+  const leader = sorted[0] ?? null;
+  const others = sorted.slice(1);
+
+  // Fund-level change is the weighted sum of sleeve contributions in pp.
+  const fundChangePct = useMemo(
+    () => sorted.reduce((sum, r) => sum + (r.contribution ?? 0), 0),
+    [sorted]
   );
 
-  // Loading / empty — keep the section header, show ink-tint skeleton bars.
+  const rankBadge = sortBy === "weight" ? "Largest sleeve" : "Leader";
+
+  // Skeleton state — show placeholders while loading.
   if (regions.length === 0) {
     return (
-      <section className="sleeves" aria-label="Today's move by sleeve" aria-busy="true">
-        {head}
-        <div className="sleeves__grid" aria-hidden="true">
-          <div className="sleeves__skel-leader">
-            <span className="sleeves__skel-bar" style={{ width: "38%", height: 8 }} />
-            <span className="sleeves__skel-bar" style={{ width: "52%", height: 40 }} />
-            <span className="sleeves__skel-bar" style={{ width: "100%", height: 5 }} />
-            <span className="sleeves__skel-bar" style={{ width: "30%", height: 8 }} />
+      <section className="ledger">
+        <div className="rule-hair ledger__top-rule" />
+        <header className="ledger__head">
+          <div className="ledger__eyebrow">
+            <span className="ed-stamp">Today&apos;s move came from</span>
           </div>
-          <div className="sleeves__skel-rows">
+          <div className="ledger__headline-row">
+            <h2 className="ed-display ledger__h2">
+              Four sleeves,{" "}
+              <em
+                className="ed-display-italic"
+                style={{ fontStyle: "italic", fontWeight: 500 }}
+              >
+                one fund.
+              </em>
+            </h2>
+            <p className="ed-caption ledger__deck">
+              A weighted average of four regional Vanguard ETFs.
+            </p>
+          </div>
+        </header>
+        <div className="ledger__grid">
+          <div
+            className="skeleton ledger__leader-skel"
+            style={{ borderRadius: 22 }}
+          />
+          <div className="ledger__followers">
             {[0, 1, 2].map((i) => (
-              <div key={i} className="sleeves__skel-row">
-                <span
-                  className="sleeves__skel-bar"
-                  style={{ height: 12, width: i === 1 ? "72%" : "84%" }}
-                />
-              </div>
+              <div
+                key={i}
+                className="skeleton"
+                style={{ height: 110, borderRadius: 16 }}
+              />
             ))}
           </div>
         </div>
-        <SleevesStyles />
+        <LedgerStyles />
       </section>
     );
   }
 
   return (
-    <section className="sleeves" aria-label="Today's move by sleeve">
-      {head}
+    <section className="ledger">
+      <div className="rule-hair ledger__top-rule" />
+      <header className="ledger__head">
+        <div className="ledger__eyebrow">
+          <span className="ed-stamp">Today&apos;s move came from</span>
+        </div>
+        <div className="ledger__headline-row">
+          <h2 className="ed-display ledger__h2">
+            Four sleeves,{" "}
+            <em
+              className="ed-display-italic"
+              style={{ fontStyle: "italic", fontWeight: 500 }}
+            >
+              one fund.
+            </em>
+          </h2>
+          <p className="ed-caption ledger__deck">
+            A weighted average of four regional Vanguard ETFs.
+          </p>
+        </div>
+      </header>
 
-      <p className="sleeves__sentence">{sentence}</p>
+      {leader && (
+        <InSentenceHeadline
+          leader={leader}
+          others={others}
+          fundChangePct={fundChangePct}
+        />
+      )}
 
-      <div className="sleeves__grid">
+      <div className="ledger__grid">
         {leader && (
-          <div>
-            {/* Desktop / tablet leader block */}
-            <article className="sleeves__leader-desk">
-              <span className="sleeves__ord" aria-hidden="true">
-                01
-              </span>
-              <div>
-                <div className="sleeves__microlabel">
-                  Leader · {leader.ticker} · {leader.fullName}
-                </div>
-                <div
-                  className={`sleeves__value${leaderNegative ? " is-neg" : ""}`}
-                >
-                  {leader.changePercent != null
-                    ? fmtSignedPct(leader.changePercent)
-                    : "—"}
-                </div>
-                <div className="sleeves__bar-row">
-                  <div className="sleeves__track">
-                    <div
-                      className="sleeves__fill"
-                      style={{ width: `${leader.weight}%` }}
-                    />
-                  </div>
-                  <span className="sleeves__weight">
-                    Weight {leader.weight.toFixed(1)}%
-                  </span>
-                </div>
-                <div className="sleeves__contrib">
-                  Contribution{" "}
-                  {leader.contribution != null
-                    ? fmtSignedPp(leader.contribution)
-                    : "—"}
-                </div>
-              </div>
-              {leaderSpark ? (
-                <svg
-                  className="sleeves__spark"
-                  width="150"
-                  height="48"
-                  viewBox={`0 0 ${SPARK_W} ${SPARK_H}`}
-                  aria-label={`${leader.label} 30-day trend`}
-                  role="img"
-                >
-                  <path
-                    d={leaderSpark}
-                    fill="none"
-                    stroke="var(--ins-ink)"
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    vectorEffect="non-scaling-stroke"
-                  />
-                </svg>
-              ) : (
-                <span aria-hidden="true" />
-              )}
-            </article>
-
-            {/* Mobile boxed leader */}
-            <article className="sleeves__leader-mob">
-              <div className="sleeves__mob-top">
-                <span className="sleeves__mob-label">
-                  Leader · {leader.ticker} · {leader.fullName}
-                </span>
-                <span
-                  className={`sleeves__mob-value${leaderNegative ? " is-neg" : ""}`}
-                >
-                  {leader.changePercent != null
-                    ? fmtSignedPct(leader.changePercent)
-                    : "—"}
-                </span>
-              </div>
-              <div className="sleeves__mob-bar">
-                <div className="sleeves__track sleeves__track--mob">
-                  <div
-                    className="sleeves__fill"
-                    style={{ width: `${leader.weight}%` }}
-                  />
-                </div>
-                <span className="sleeves__mob-meta">
-                  {leader.weight.toFixed(1)}%
-                  {leader.contribution != null
-                    ? ` · ${fmtSignedPp(leader.contribution)}`
-                    : ""}
-                </span>
-              </div>
-            </article>
+          <div className="ledger__leader-wrap">
+            <LeaderSleeveCard region={leader} rankBadge={rankBadge} />
           </div>
         )}
-
-        <div className="sleeves__followers">
-          {followers.map((r, i) => {
-            const negative = (r.changePercent ?? 0) < 0;
-            const isFirst = i === 0;
-            const isLast = i === followers.length - 1;
-            return (
-              <div
-                key={r.ticker}
-                className={`sleeves__row${isFirst ? " is-first" : ""}${
-                  isLast ? " is-last" : ""
-                }`}
-              >
-                <span className="sleeves__rank" aria-hidden="true">
-                  {`0${i + 2}`}
-                </span>
-                <span className="sleeves__name">
-                  {r.label}{" "}
-                  <span className="sleeves__name-sub">
-                    {r.ticker} · {r.weight.toFixed(1)}%
-                  </span>
-                </span>
-                <span className="sleeves__pp">
-                  {r.contribution != null ? fmtSignedPp(r.contribution) : "—"}
-                </span>
-                <span className={`sleeves__pct${negative ? " is-neg" : ""}`}>
-                  {r.changePercent != null ? fmtSignedPct(r.changePercent) : "—"}
-                </span>
-              </div>
-            );
-          })}
+        <div className="ledger__followers">
+          {others.map((r, i) => (
+            <FollowerSleeveRow key={r.ticker} region={r} rank={i + 2} />
+          ))}
         </div>
       </div>
-      <SleevesStyles />
+
+      <LedgerStyles />
     </section>
   );
 }
 
-function SleevesStyles() {
+function LedgerStyles() {
   return (
     <style jsx global>{`
-      .sleeves {
-        font-family: var(--ins-font);
-        color: var(--ins-ink);
-        font-variant-numeric: tabular-nums;
-      }
-
-      /* ── Header ─────────────────────────────────────────────── */
-      .sleeves__head {
+      .ledger {
+        padding: 18px 0 10px;
         display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-        border-top: 3px solid var(--ins-rule-strong);
-        padding-top: 12px;
-      }
-      .sleeves__eyebrow {
-        font-size: 9.5px;
-        font-weight: 600;
-        letter-spacing: 0.22em;
-        color: var(--ins-gray-600);
-        text-transform: uppercase;
-      }
-      .sleeves__display {
-        font-size: 40px;
-        font-weight: 700;
-        letter-spacing: -0.03em;
-        line-height: 1.05;
-        color: var(--ins-ink);
-        margin: 6px 0 0;
-      }
-      .sleeves__caption {
-        font-size: 9.5px;
-        font-weight: 600;
-        letter-spacing: 0.2em;
-        color: var(--ins-gray-600);
-        text-align: right;
-        text-transform: uppercase;
-        line-height: 1.6;
-      }
-
-      /* ── Sentence ───────────────────────────────────────────── */
-      .sleeves__sentence {
-        margin: 14px 0 0;
-        font-size: 19px;
-        font-weight: 600;
-        letter-spacing: -0.01em;
-        color: var(--ins-ink);
-      }
-
-      /* ── Grid ───────────────────────────────────────────────── */
-      .sleeves__grid {
-        display: grid;
-        grid-template-columns: 1.5fr 1fr;
-        gap: 40px;
-        margin-top: 18px;
-      }
-
-      /* ── Leader (desktop) ───────────────────────────────────── */
-      .sleeves__leader-desk {
-        border-top: 1px solid var(--ins-ink);
-        padding-top: 16px;
-        display: grid;
-        grid-template-columns: auto 1fr auto;
-        gap: 24px;
-        align-items: start;
-      }
-      .sleeves__ord {
-        font-size: 64px;
-        font-weight: 700;
-        line-height: 0.8;
-        color: var(--ins-ordinal);
-      }
-      .sleeves__microlabel {
-        font-size: 9.5px;
-        font-weight: 600;
-        letter-spacing: 0.18em;
-        color: var(--ins-gray-600);
-        text-transform: uppercase;
-      }
-      .sleeves__value {
-        font-size: 52px;
-        font-weight: 700;
-        letter-spacing: -0.03em;
-        line-height: 1.05;
-        margin-top: 8px;
-        color: var(--ins-ink);
-      }
-      .sleeves__value.is-neg {
-        color: var(--ins-signal);
-      }
-      .sleeves__bar-row {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-top: 14px;
-      }
-      .sleeves__track {
-        flex: 1;
-        height: 5px;
-        background: var(--ins-track-soft);
-      }
-      .sleeves__fill {
-        height: 100%;
-        background: var(--ins-ink);
-      }
-      .sleeves__weight {
-        font-size: 10px;
-        font-weight: 700;
-        letter-spacing: 0.12em;
-        color: var(--ins-gray-600);
-        text-transform: uppercase;
-        white-space: nowrap;
-      }
-      .sleeves__contrib {
-        font-size: 10.5px;
-        font-weight: 700;
-        letter-spacing: 0.14em;
-        color: var(--ins-ink);
-        text-transform: uppercase;
-        margin-top: 10px;
-      }
-      .sleeves__spark {
-        margin-top: 26px;
-        display: block;
-      }
-
-      /* ── Leader (mobile box) ────────────────────────────────── */
-      .sleeves__leader-mob {
-        display: none;
-        border: 1px solid var(--ins-ink);
-        padding: 14px 16px;
-      }
-      .sleeves__mob-top {
-        display: flex;
-        justify-content: space-between;
-        align-items: baseline;
+        flex-direction: column;
         gap: 12px;
       }
-      .sleeves__mob-label {
-        font-size: 9px;
-        font-weight: 600;
-        letter-spacing: 0.16em;
-        color: var(--ins-gray-600);
-        text-transform: uppercase;
+      .ledger__top-rule {
+        margin-bottom: 2px;
       }
-      .sleeves__mob-value {
-        font-size: 20px;
-        font-weight: 700;
-        color: var(--ins-ink);
+      .ledger__head {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
       }
-      .sleeves__mob-value.is-neg {
-        color: var(--ins-signal);
-      }
-      .sleeves__mob-bar {
+      .ledger__eyebrow {
         display: flex;
         align-items: center;
         gap: 10px;
-        margin-top: 10px;
       }
-      .sleeves__track--mob {
-        height: 4px;
-      }
-      .sleeves__mob-meta {
-        font-size: 8.5px;
-        font-weight: 700;
-        letter-spacing: 0.1em;
-        color: var(--ins-gray-600);
-        text-transform: uppercase;
-        white-space: nowrap;
-      }
-
-      /* ── Followers ──────────────────────────────────────────── */
-      .sleeves__followers {
-        display: flex;
-        flex-direction: column;
-      }
-      .sleeves__row {
+      .ledger__headline-row {
         display: grid;
-        grid-template-columns: 30px 1fr auto auto;
-        gap: 14px;
-        align-items: baseline;
-        padding: 13px 0;
-        border-top: 1px solid var(--ins-hair);
+        grid-template-columns: 1fr;
+        gap: 8px;
+        align-items: end;
       }
-      .sleeves__row.is-first {
-        border-top-color: var(--ins-ink);
+      .ledger__h2 {
+        font-size: clamp(2rem, 3.6vw, 2.6rem);
+        line-height: 1.02;
+        letter-spacing: -0.024em;
+        margin: 0;
+        color: var(--ink);
       }
-      .sleeves__row.is-last {
-        border-bottom: 1px solid var(--ins-ink);
+      .ledger__deck {
+        margin: 0;
+        font-family: var(--font-serif);
+        font-style: italic;
+        font-size: clamp(13px, 1.15vw, 15px);
+        line-height: 1.45;
+        color: var(--ink-mute);
+        max-width: 32ch;
       }
-      .sleeves__rank {
-        font-size: 15px;
-        font-weight: 700;
-        color: rgba(17, 17, 17, 0.3);
+      .ledger__grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+        align-items: stretch;
       }
-      .sleeves__name {
-        font-size: 13px;
-        font-weight: 700;
-        color: var(--ins-ink);
-        text-transform: uppercase;
-        min-width: 0;
-      }
-      .sleeves__name-sub {
-        font-size: 10px;
-        font-weight: 600;
-        letter-spacing: 0.1em;
-        color: var(--ins-gray-600);
-      }
-      .sleeves__pp {
-        font-size: 10px;
-        font-weight: 600;
-        letter-spacing: 0.1em;
-        color: var(--ins-gray-600);
-        white-space: nowrap;
-      }
-      .sleeves__pct {
-        font-size: 16px;
-        font-weight: 700;
-        color: var(--ins-ink);
-        white-space: nowrap;
-      }
-      .sleeves__pct.is-neg {
-        color: var(--ins-signal);
-      }
-
-      /* ── Skeleton (loading) ─────────────────────────────────── */
-      .sleeves__skel-leader {
-        border-top: 1px solid var(--ins-ink);
-        padding-top: 16px;
+      .ledger__leader-wrap {
         display: flex;
-        flex-direction: column;
-        gap: 14px;
       }
-      .sleeves__skel-rows {
-        display: flex;
-        flex-direction: column;
+      .ledger__leader-skel {
+        min-height: 320px;
       }
-      .sleeves__skel-row {
-        padding: 13px 0;
-        border-top: 1px solid var(--ins-hair);
-      }
-      .sleeves__skel-row:first-child {
-        border-top-color: var(--ins-ink);
-      }
-      .sleeves__skel-row:last-child {
-        border-bottom: 1px solid var(--ins-ink);
-      }
-      .sleeves__skel-bar {
-        display: block;
-        background: rgba(17, 17, 17, 0.08);
+      .ledger__followers {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        align-content: stretch;
       }
 
-      /* ── Mid: stack the two grid columns ────────────────────── */
-      @media (max-width: 960px) {
-        .sleeves__grid {
-          grid-template-columns: 1fr;
-          gap: 28px;
+      @media (min-width: 760px) {
+        .ledger__headline-row {
+          grid-template-columns: minmax(0, 1fr) auto;
+          gap: 24px;
+        }
+        .ledger__deck {
+          text-align: right;
+          max-width: 28ch;
+          justify-self: end;
         }
       }
 
-      /* ── Mobile ─────────────────────────────────────────────── */
-      @media (max-width: 640px) {
-        .sleeves__head {
-          display: block;
-          border-top-width: 2px;
-          padding-top: 10px;
+      @media (min-width: 960px) {
+        .ledger__grid {
+          /* Leader card ~62%, followers column ~38%. Tweak via fr units. */
+          grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr);
+          gap: 14px;
         }
-        .sleeves__caption {
-          display: none;
-        }
-        .sleeves__eyebrow {
-          font-size: 8.5px;
-          letter-spacing: 0.2em;
-        }
-        .sleeves__display {
-          font-size: 28px;
-          letter-spacing: -0.02em;
-          margin-top: 4px;
-        }
-        .sleeves__sentence {
-          display: none;
-        }
-        .sleeves__grid {
-          margin-top: 12px;
-          gap: 0;
-        }
-        .sleeves__leader-desk {
-          display: none;
-        }
-        .sleeves__leader-mob {
-          display: block;
-        }
-        .sleeves__row {
-          grid-template-columns: 1fr auto auto;
-          gap: 12px;
-          padding: 11px 2px;
-          border-top: none;
-          border-bottom: 1px solid var(--ins-hair);
-        }
-        .sleeves__row.is-first {
-          border-top: none;
-        }
-        .sleeves__row.is-last {
-          border-bottom: 1px solid var(--ins-ink);
-        }
-        .sleeves__rank {
-          display: none;
-        }
-        .sleeves__name {
-          font-size: 12px;
-        }
-        .sleeves__name-sub {
-          font-size: 9px;
-          letter-spacing: 0;
-        }
-        .sleeves__pp {
-          font-size: 9px;
-          letter-spacing: 0;
-        }
-        .sleeves__pct {
-          font-size: 14px;
-        }
-        .sleeves__skel-leader {
-          border-top: none;
-          border: 1px solid var(--ins-ink);
-          padding: 14px 16px;
-          margin-bottom: 0;
+        .ledger__followers {
+          gap: 10px;
+          /* Stretch each follower to fill the leader card's intrinsic height
+             — the leader's tall sparkline tends to drive the column. */
+          grid-template-rows: 1fr 1fr 1fr;
         }
       }
     `}</style>

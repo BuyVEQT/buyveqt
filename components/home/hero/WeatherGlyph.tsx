@@ -1,368 +1,632 @@
 "use client";
 
-import type { CSSProperties } from "react";
-import type { WeatherState } from "@/lib/severity";
+import type { SeverityZone } from "@/lib/severity";
 
 /**
- * WeatherGlyph — the Instrument's seven-state weather mark.
+ * WeatherGlyph — illustrated weather scene with **6** conditions, one
+ * per cell of the 3-zone × 2-direction severity matrix:
  *
- * Escalation grammar (README §3): up days escalate by *filling* the sun
- * (8% → 22% → 50% → solid red) while down days escalate by weather
- * (cloud → rain → bolt). One glyph per state, all inline SVG,
- * stroke-based, `stroke-linecap: round`:
+ *               ↑ up day        ↓ down day
+ *   Typical     clear           clear
+ *   Notable     breeze          overcast
+ *   Rare        radiant (NEW)   storm
  *
- *   calm    outline sun, 12 rays          raySpin 90s
- *   bright  sun r28, fill 0.22            raySpin 60s + ray shimmer 3.2s
- *   breezy  cloud before a small sun      cloud drift 7s
- *   surge   sun, longer rays, fill 0.50,
- *           white inner dashed ring       raySpin 34s + shimmer 2.2s
- *   squall  cloud + red rain              rainFall 1.1s (2 groups, ½-phase)
- *   rally   solid red disc, ink rays,
- *           red halo                      raySpin 22s + ringPulse 2.2s
- *   gale    cloud + red bolt + heavy rain boltFlash 3.8s + rainFall 0.9s
+ * `rainy` is preserved as the Unusual-down slot.
  *
- * Geometry is ground truth from the "5a — seven-state weather system"
- * state cards in `Home Refresh Directions.dc.html`. Sun states use
- * viewBox 120; cloud states keep the prototype's 32/40-unit canvases.
+ *   • clear     — bright sun, rotating rays + slow breathe   (Typical)
+ *   • breeze    — sun + drifting wispy streaks + cloud drift (Notable up / Unusual up)
+ *   • overcast  — clouds dominant, sun dim, sway + bob       (Notable down)
+ *   • rainy     — cloud + per-drop staggered rainfall        (Unusual down)
+ *   • radiant   — centred sun, pulse + halo + 4 sparkles     (Rare up, NEW)
+ *   • storm     — dark cloud, hard shake, fast staggered rain,
+ *                 lightning flash with drop-shadow halo      (Rare down)
  *
- * Ink/paper are tokens, so the gale glyph (designed to sit on ink)
- * renders white-stroked automatically under the Ink Edition
- * (`[data-ins-edition="ink"]` flips --ins-ink/--ins-paper).
+ * Direction tints the warm accent: up → amber, down → stamp.
  *
- * `animated={false}` renders identical geometry with no animation —
- * used at 16–19px in the Conditions band week strip. Stroke widths get
- * a rendered-pixel floor so the mark stays legible at those sizes.
+ * All motion is CSS keyframes — no rAF / no JS animation loop, so the
+ * animations fire reliably under React StrictMode and on first paint.
+ * Reduced-motion is honoured: every `.wxg *` animation slows to 8s so
+ * the glyph still reads as "alive" but doesn't draw the eye.
+ *
+ * Ported from `design_handoff_round5/.../Weather Glyphs Plan.html`.
  */
+export type WxCondition =
+  | "clear"
+  | "breeze"
+  | "overcast"
+  | "rainy"
+  | "radiant"
+  | "storm";
+
+export const WX_CONDITIONS: readonly WxCondition[] = [
+  "clear",
+  "breeze",
+  "overcast",
+  "rainy",
+  "radiant",
+  "storm",
+] as const;
+
+/**
+ * Map a SeverityZone + direction to a glyph condition. Direction
+ * symmetric at every zone — a quiet-down day still reads visually
+ * "down" even when the magnitude is small.
+ *
+ *   Typical   → clear / overcast      (overcast keeps Typical-down honest
+ *                                       with the "passing cloud" copy)
+ *   Notable   → breeze / overcast
+ *   Unusual   → breeze / rainy        (mild up shares with Notable)
+ *   Rare      → radiant / storm       (radiant is the new celebratory glyph)
+ */
+export function zoneToCondition(zone: SeverityZone, up: boolean): WxCondition {
+  if (zone === "Typical") return up ? "clear" : "overcast";
+  if (zone === "Notable") return up ? "breeze" : "overcast";
+  if (zone === "Unusual") return up ? "breeze" : "rainy";
+  if (zone === "Rare") return up ? "radiant" : "storm";
+  return "clear";
+}
 
 interface WeatherGlyphProps {
-  state: WeatherState;
-  size: number;
-  animated?: boolean;
+  zone?: SeverityZone;
+  up?: boolean;
+  /** Override the condition picker (mostly for storybook/QA). */
+  condition?: WxCondition;
+  size?: number;
 }
-
-const RAY_ANGLES = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330];
-
-interface SunSpec {
-  /** ins-raySpin duration, seconds. */
-  spin: number;
-  /** ins-hintShimmer duration on the ray group, seconds (null = none). */
-  shimmer: number | null;
-  rayW: number;
-  longY1: number;
-  shortY1: number;
-  rayY2: number;
-  r: number;
-  circleW: number;
-  fill: string;
-}
-
-const SUN_SPECS: Partial<Record<WeatherState, SunSpec>> = {
-  calm: {
-    spin: 90,
-    shimmer: null,
-    rayW: 2.6,
-    longY1: 6,
-    shortY1: 10,
-    rayY2: 17,
-    r: 27,
-    circleW: 2.8,
-    fill: "rgba(232, 68, 46, 0.08)",
-  },
-  bright: {
-    spin: 60,
-    shimmer: 3.2,
-    rayW: 2.8,
-    longY1: 5,
-    shortY1: 9,
-    rayY2: 16,
-    r: 28,
-    circleW: 2.8,
-    fill: "rgba(232, 68, 46, 0.22)",
-  },
-  surge: {
-    spin: 34,
-    shimmer: 2.2,
-    rayW: 3,
-    longY1: 3,
-    shortY1: 8,
-    rayY2: 16,
-    r: 28,
-    circleW: 3,
-    fill: "rgba(232, 68, 46, 0.5)",
-  },
-  rally: {
-    spin: 22,
-    shimmer: null,
-    rayW: 3,
-    longY1: 3,
-    shortY1: 8,
-    rayY2: 15,
-    r: 28,
-    circleW: 0, // solid disc, no outline
-    fill: "var(--ins-signal)",
-  },
-};
-
-/**
- * Keep every stroke ≥ ~1px on screen. At the spec sizes (84/64/56px)
- * this is a no-op; at week-strip sizes (16–19px) it thickens strokes
- * to roughly the proportions the prototype's simplified minis used.
- */
-const MIN_STROKE_PX = 1.05;
 
 export default function WeatherGlyph({
-  state,
-  size,
-  animated = true,
+  zone,
+  up = true,
+  condition,
+  size = 132,
 }: WeatherGlyphProps) {
-  const sun = SUN_SPECS[state];
+  const cond: WxCondition =
+    condition ?? (zone ? zoneToCondition(zone, up) : "clear");
+  const accent = up ? "var(--amber)" : "var(--stamp)";
+  const r = size / 2;
+  const cx = r;
+  const cy = r;
 
-  // Largest viewBox dimension — the square render box scales by it.
-  const vb = sun ? 120 : state === "breezy" ? 40 : 32;
-  const sw = (spec: number) => Math.max(spec, (MIN_STROKE_PX * vb) / size);
+  // Sun lives off-centre for the cloud-bearing conditions, but radiant
+  // gets a centred, slightly larger sun — clouds aren't in that scene.
+  const sunCx = cond === "radiant" ? cx : cx - 10;
+  const sunCy = cond === "radiant" ? cy - 4 : cy - 8;
+  const sunR = cond === "radiant" ? size * 0.22 : size * 0.2;
 
-  const anim = (value: string): CSSProperties | undefined =>
-    animated ? { animation: value } : undefined;
+  const showSun =
+    cond === "clear" ||
+    cond === "breeze" ||
+    cond === "overcast" ||
+    cond === "radiant";
+  const showRays =
+    cond === "clear" || cond === "breeze" || cond === "radiant";
+  const showStreaks = cond === "breeze";
+  const showClouds =
+    cond === "breeze" ||
+    cond === "overcast" ||
+    cond === "rainy" ||
+    cond === "storm";
+  const showDarkCloud = cond === "rainy" || cond === "storm";
+  const showRain = cond === "rainy" || cond === "storm";
+  const showLightning = cond === "storm";
+  const showHalo = cond === "radiant";
+  const showSparkles = cond === "radiant";
 
-  /* ── Sun family: calm / bright / surge / rally ─────────────────── */
-  if (sun) {
-    const spinStyle: CSSProperties | undefined = animated
-      ? {
-          transformOrigin: "60px 60px",
-          animation: `ins-raySpin ${sun.spin}s linear infinite`,
-        }
-      : undefined;
-    const shimmerStyle: CSSProperties | undefined =
-      animated && sun.shimmer !== null
-        ? { animation: `ins-hintShimmer ${sun.shimmer}s ease-in-out infinite` }
-        : undefined;
+  const sunOpacity =
+    cond === "clear"
+      ? 1
+      : cond === "breeze"
+      ? 0.95
+      : cond === "overcast"
+      ? 0.55
+      : cond === "radiant"
+      ? 1
+      : 0;
 
-    return (
-      <svg
-        className="wg"
-        viewBox="0 0 120 120"
-        width={size}
-        height={size}
-        fill="none"
-        role="img"
-        aria-label={`Weather: ${state}`}
-      >
-        {state === "rally" && (
-          <circle
-            cx={60}
-            cy={60}
-            r={34}
-            stroke="var(--ins-signal)"
-            strokeWidth={sw(1.5)}
-            fill="none"
-            style={
-              animated
-                ? {
-                    transformOrigin: "60px 60px",
-                    animation: "ins-ringPulse 2.2s ease-out infinite",
-                  }
-                : undefined
-            }
-          />
-        )}
-        <g style={spinStyle}>
-          <g
-            stroke="var(--ins-ink)"
-            strokeWidth={sw(sun.rayW)}
-            strokeLinecap="round"
-            style={shimmerStyle}
-          >
-            {RAY_ANGLES.map((angle, i) => (
-              <line
-                key={angle}
-                x1={60}
-                y1={i % 2 === 0 ? sun.longY1 : sun.shortY1}
-                x2={60}
-                y2={sun.rayY2}
-                transform={`rotate(${angle} 60 60)`}
-              />
-            ))}
-          </g>
-        </g>
-        {state === "rally" ? (
-          <circle cx={60} cy={60} r={sun.r} fill={sun.fill} />
-        ) : (
-          <circle
-            cx={60}
-            cy={60}
-            r={sun.r}
-            stroke="var(--ins-ink)"
-            strokeWidth={sw(sun.circleW)}
-            fill={sun.fill}
-          />
-        )}
-        {state === "surge" && (
-          <circle
-            cx={60}
-            cy={60}
-            r={20}
-            stroke="rgba(255, 255, 255, 0.85)"
-            strokeWidth={sw(1.2)}
-            fill="none"
-            strokeDasharray="2 4"
-          />
-        )}
-        <style jsx>{`
-          @media (prefers-reduced-motion: reduce) {
-            .wg,
-            .wg :global(*) {
-              animation: none !important;
-            }
-          }
-        `}</style>
-      </svg>
-    );
-  }
+  // Ray count + radii vary by condition. Radiant gets 12 longer, thicker
+  // rays; the rest keep the existing 8-ray pattern.
+  const rayCount = cond === "radiant" ? 12 : 8;
+  const rayInner = size * (cond === "radiant" ? 0.3 : 0.27);
+  const rayOuter = size * (cond === "radiant" ? 0.42 : 0.36);
+  const rayStroke = cond === "radiant" ? 2.2 : 1.8;
+  const rayOpacity =
+    cond === "clear" || cond === "radiant" ? 0.92 : 0.55;
+  const rayIndices = Array.from({ length: rayCount }, (_, i) => i);
 
-  /* ── Breezy: cloud drifting before a small sun ─────────────────── */
-  if (state === "breezy") {
-    return (
-      <svg
-        className="wg"
-        viewBox="0 0 40 30"
-        width={size}
-        height={size}
-        fill="none"
-        role="img"
-        aria-label="Weather: breezy"
-      >
-        <g stroke="var(--ins-ink)" strokeWidth={sw(1.5)} strokeLinecap="round">
-          <circle
-            cx={28}
-            cy={9}
-            r={4}
-            fill="rgba(232, 68, 46, 0.06)"
-            strokeWidth={sw(1.7)}
-          />
-          <line x1={28} y1={1.5} x2={28} y2={3.6} />
-          <line x1={35.4} y1={9} x2={33.3} y2={9} />
-          <line x1={33.2} y1={3.8} x2={31.7} y2={5.3} />
-          <line x1={33.2} y1={14.2} x2={31.7} y2={12.7} />
-        </g>
-        <g style={anim("ins-drift 7s ease-in-out infinite")}>
-          <path
-            d="M10 24 h15 a4.6 4.6 0 0 0 0 -9.2 a7.2 7.2 0 0 0 -13.9 -1.9 A5.6 5.6 0 0 0 10 24 Z"
-            stroke="var(--ins-ink)"
-            strokeWidth={sw(1.9)}
-            fill="var(--ins-paper)"
-            strokeLinejoin="round"
-          />
-        </g>
-        <style jsx>{`
-          @media (prefers-reduced-motion: reduce) {
-            .wg,
-            .wg :global(*) {
-              animation: none !important;
-            }
-          }
-        `}</style>
-      </svg>
-    );
-  }
+  // Sparkle positions — 4 corners, staggered animation delays. Shape is
+  // a 4-point star (8-vertex diamond with inset midpoints).
+  const sparkles = showSparkles
+    ? [
+        { x: cx - size * 0.32, y: cy - size * 0.28, s: 5, d: "0s" },
+        { x: cx + size * 0.3, y: cy - size * 0.3, s: 4, d: "0.45s" },
+        { x: cx - size * 0.3, y: cy + size * 0.3, s: 3.5, d: "0.9s" },
+        { x: cx + size * 0.32, y: cy + size * 0.26, s: 4.5, d: "1.35s" },
+      ]
+    : [];
 
-  /* ── Squall: cloud + red rain, two groups phase-offset by ½ ────── */
-  if (state === "squall") {
-    return (
-      <svg
-        className="wg"
-        viewBox="0 0 32 30"
-        width={size}
-        height={size}
-        fill="none"
-        role="img"
-        aria-label="Weather: squall"
-      >
-        <path
-          d="M9 16 h14 a4.5 4.5 0 0 0 0 -9 a7 7 0 0 0 -13.5 -1.8 A5.4 5.4 0 0 0 9 16 Z"
-          stroke="var(--ins-ink)"
-          strokeWidth={sw(1.9)}
-          fill="var(--ins-paper)"
-          strokeLinejoin="round"
-        />
-        <g
-          stroke="var(--ins-signal)"
-          strokeWidth={sw(1.7)}
-          strokeLinecap="round"
-          style={anim("ins-rainFall 1.1s linear infinite")}
-        >
-          <line x1={12} y1={19} x2={10.9} y2={22.4} />
-          <line x1={17} y1={19} x2={15.9} y2={22.4} />
-          <line x1={22} y1={19} x2={20.9} y2={22.4} />
-        </g>
-        <g
-          stroke="var(--ins-signal)"
-          strokeWidth={sw(1.7)}
-          strokeLinecap="round"
-          style={anim("ins-rainFall 1.1s linear 0.55s infinite")}
-        >
-          <line x1={14.5} y1={21} x2={13.4} y2={24.4} />
-          <line x1={19.5} y1={21} x2={18.4} y2={24.4} />
-        </g>
-        <style jsx>{`
-          @media (prefers-reduced-motion: reduce) {
-            .wg,
-            .wg :global(*) {
-              animation: none !important;
-            }
-          }
-        `}</style>
-      </svg>
-    );
-  }
+  // Unique ids per instance so multiple glyphs on the page don't clash
+  // on `<defs>`. `accent` is part of the id because the halo gradient
+  // depends on the direction-tint.
+  const uidSuffix = `${cond}-${size}-${up ? "u" : "d"}`;
+  const sunGradId = `wxc-sun-${uidSuffix}`;
+  const haloGradId = `wxc-halo-${uidSuffix}`;
 
-  /* ── Gale: cloud + red bolt + heavy rain — designed to sit on ink.
-     Stroke/fill are tokens, so the Ink Edition renders it white-stroked
-     exactly like the prototype's Gale card. ─────────────────────────── */
   return (
     <svg
-      className="wg"
-      viewBox="0 0 32 30"
+      viewBox={`0 0 ${size} ${size}`}
       width={size}
       height={size}
-      fill="none"
       role="img"
-      aria-label="Weather: gale"
+      aria-label={`Weather: ${cond}`}
+      className={`wxg wxg--${cond}`}
     >
-      <path
-        d="M9 15 h14 a4.5 4.5 0 0 0 0 -9 a7 7 0 0 0 -13.5 -1.8 A5.4 5.4 0 0 0 9 15 Z"
-        stroke="var(--ins-ink)"
-        strokeWidth={sw(1.9)}
-        fill="var(--ins-paper)"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M17 15.5 L13.5 21.5 L16.3 21.5 L14.3 27 L20.8 19.8 L17.8 19.8 L20.3 15.5 Z"
-        fill="var(--ins-signal)"
-        style={anim("ins-boltFlash 3.8s linear infinite")}
-      />
-      <g
-        stroke="var(--ins-signal)"
-        strokeWidth={sw(1.7)}
-        strokeLinecap="round"
-        style={anim("ins-rainFall 0.9s linear infinite")}
-      >
-        <line x1={10.5} y1={18} x2={9.4} y2={21.4} />
-        <line x1={24} y1={18} x2={22.9} y2={21.4} />
-      </g>
-      <g
-        stroke="var(--ins-signal)"
-        strokeWidth={sw(1.7)}
-        strokeLinecap="round"
-        style={anim("ins-rainFall 0.9s linear 0.45s infinite")}
-      >
-        <line x1={12} y1={20.5} x2={10.9} y2={23.9} />
-        <line x1={25.5} y1={20.5} x2={24.4} y2={23.9} />
-      </g>
+      <defs>
+        <radialGradient id={sunGradId} cx="0.4" cy="0.4" r="0.65">
+          <stop offset="0%" stopColor={accent} stopOpacity="0.95" />
+          <stop offset="100%" stopColor={accent} stopOpacity="0.55" />
+        </radialGradient>
+        {showHalo && (
+          <radialGradient id={haloGradId} cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0%" stopColor={accent} stopOpacity="0" />
+            <stop offset="60%" stopColor={accent} stopOpacity="0.35" />
+            <stop offset="100%" stopColor={accent} stopOpacity="0" />
+          </radialGradient>
+        )}
+      </defs>
+
+      {/* Halo (radiant only) — sits BEHIND the sun so the sun reads on top.
+          Two circles, phase-offset by 1.2s, expand from 0.6× → 2× and fade. */}
+      {showHalo && (
+        <g className="wxg-halo-wrap">
+          <circle
+            className="wxg-halo wxg-halo--a"
+            cx={sunCx}
+            cy={sunCy}
+            r={sunR * 1.4}
+            fill={`url(#${haloGradId})`}
+          />
+          <circle
+            className="wxg-halo wxg-halo--b"
+            cx={sunCx}
+            cy={sunCy}
+            r={sunR * 1.4}
+            fill={`url(#${haloGradId})`}
+          />
+        </g>
+      )}
+
+      {/* Sun + rays */}
+      {showSun && (
+        <g style={{ opacity: sunOpacity, transition: "opacity 0.5s ease" }}>
+          {showRays && (
+            <g className="wxg-rays">
+              {rayIndices.map((i) => {
+                const a = (i / rayCount) * Math.PI * 2;
+                const x1 = sunCx + Math.cos(a) * rayInner;
+                const y1 = sunCy + Math.sin(a) * rayInner;
+                const x2 = sunCx + Math.cos(a) * rayOuter;
+                const y2 = sunCy + Math.sin(a) * rayOuter;
+                return (
+                  <line
+                    key={i}
+                    x1={x1}
+                    y1={y1}
+                    x2={x2}
+                    y2={y2}
+                    stroke={accent}
+                    strokeWidth={rayStroke}
+                    strokeLinecap="round"
+                    opacity={rayOpacity}
+                  />
+                );
+              })}
+            </g>
+          )}
+          <circle
+            className="wxg-sun"
+            cx={sunCx}
+            cy={sunCy}
+            r={sunR}
+            fill={`url(#${sunGradId})`}
+          />
+          <circle
+            cx={sunCx - 4}
+            cy={sunCy - 4}
+            r={size * 0.06}
+            fill="var(--paper-light)"
+            opacity="0.4"
+          />
+        </g>
+      )}
+
+      {/* Sparkles (radiant only) — 4 corners, twinkle on staggered delays.
+          `transform-origin` points at each sparkle's own centre so the
+          scale animation pulses outward from that point. */}
+      {showSparkles && (
+        <g className="wxg-sparkles">
+          {sparkles.map((sp, i) => (
+            <g
+              key={i}
+              className="wxg-sparkle"
+              // transform-box: fill-box + transform-origin: 50% 50%
+              // live in the global rule block below. The sparkle path
+              // is symmetric around (sp.x, sp.y), so the fill-box centre
+              // matches the inline-pixel origin without the iOS quirk.
+              style={{ animationDelay: sp.d }}
+            >
+              <path
+                d={`M ${sp.x} ${sp.y - sp.s} L ${sp.x + sp.s * 0.3} ${
+                  sp.y - sp.s * 0.3
+                } L ${sp.x + sp.s} ${sp.y} L ${sp.x + sp.s * 0.3} ${
+                  sp.y + sp.s * 0.3
+                } L ${sp.x} ${sp.y + sp.s} L ${sp.x - sp.s * 0.3} ${
+                  sp.y + sp.s * 0.3
+                } L ${sp.x - sp.s} ${sp.y} L ${sp.x - sp.s * 0.3} ${
+                  sp.y - sp.s * 0.3
+                } Z`}
+                fill={accent}
+                stroke="none"
+              />
+            </g>
+          ))}
+        </g>
+      )}
+
+      {/* Wind streaks (breeze) */}
+      {showStreaks && (
+        <g
+          className="wxg-streaks"
+          stroke="var(--ink-mute)"
+          strokeLinecap="round"
+          opacity="0.6"
+        >
+          <line x1={cx - 14} y1={cy + 18} x2={cx + 14} y2={cy + 18} strokeWidth="1.2" />
+          <line x1={cx - 6} y1={cy + 26} x2={cx + 22} y2={cy + 26} strokeWidth="1" />
+          <line x1={cx - 18} y1={cy + 10} x2={cx + 4} y2={cy + 10} strokeWidth="0.8" />
+        </g>
+      )}
+
+      {/* Clouds */}
+      {showClouds && (
+        <g className={`wxg-clouds wxg-clouds--${cond}`}>
+          <ellipse
+            cx={cx + 14}
+            cy={cy + 4}
+            rx={size * 0.32}
+            ry={size * 0.14}
+            fill="var(--paper-warm)"
+            stroke="var(--ink-mute)"
+            strokeWidth="1"
+          />
+          <ellipse
+            cx={cx + 2}
+            cy={cy - 4}
+            rx={size * 0.2}
+            ry={size * 0.14}
+            fill="var(--paper)"
+            stroke="var(--ink-mute)"
+            strokeWidth="1"
+          />
+          <ellipse
+            cx={cx + 26}
+            cy={cy - 2}
+            rx={size * 0.17}
+            ry={size * 0.12}
+            fill="var(--paper)"
+            stroke="var(--ink-mute)"
+            strokeWidth="1"
+          />
+          {showDarkCloud && (
+            <ellipse
+              cx={cx + 14}
+              cy={cy + 10}
+              rx={size * 0.26}
+              ry={size * 0.1}
+              fill="var(--ink)"
+              opacity={cond === "storm" ? 0.32 : 0.16}
+            />
+          )}
+        </g>
+      )}
+
+      {/* Rain dashes — 4 base lines (rainy & storm), +3 more for storm.
+          Per-line stagger lives in the CSS via :nth-child selectors below. */}
+      {showRain && (
+        <g
+          className={`wxg-rain wxg-rain--${cond}`}
+          stroke="var(--stamp)"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          opacity="0.9"
+        >
+          <line x1={cx - 4} y1={cy + 22} x2={cx - 8} y2={cy + 32} />
+          <line x1={cx + 6} y1={cy + 22} x2={cx + 2} y2={cy + 32} />
+          <line x1={cx + 16} y1={cy + 22} x2={cx + 12} y2={cy + 32} />
+          <line x1={cx + 26} y1={cy + 22} x2={cx + 22} y2={cy + 32} />
+          {cond === "storm" && (
+            <>
+              <line x1={cx + 0} y1={cy + 34} x2={cx - 4} y2={cy + 44} />
+              <line x1={cx + 10} y1={cy + 34} x2={cx + 6} y2={cy + 44} />
+              <line x1={cx + 20} y1={cy + 34} x2={cx + 16} y2={cy + 44} />
+            </>
+          )}
+        </g>
+      )}
+
+      {/* Lightning (storm) */}
+      {showLightning && (
+        <g className="wxg-lightning">
+          <path
+            d={`M ${cx + 8} ${cy + 14} L ${cx - 4} ${cy + 30} L ${
+              cx + 4
+            } ${cy + 30} L ${cx - 6} ${cy + 46} L ${cx + 16} ${
+              cy + 26
+            } L ${cx + 8} ${cy + 26} L ${cx + 14} ${cy + 14} Z`}
+            fill="var(--amber)"
+            stroke="var(--ink)"
+            strokeWidth="0.7"
+          />
+        </g>
+      )}
+
+      {/* Per-condition CSS animations — keyframes only, no JS loop.
+          Every animated element uses `transform-box: fill-box;
+          transform-origin: 50% 50%` so the pivot point is each
+          element's own bounding-box centre. iOS Safari interprets
+          the `${sunCx}px` form as CSS pixels (not viewBox user
+          units), which lands off-centre at any rendered size other
+          than 1:1. PR #246 caught this for the sleeve gauges; this
+          block had been regressing the same fix. */}
       <style jsx>{`
+        /* Reduced-motion: hold every animation to a slow, gentle pace so
+           the glyph still reads as "alive" but doesn't draw the eye.
+           Don't override individual rules — let duration scaling do it. */
         @media (prefers-reduced-motion: reduce) {
-          .wg,
-          .wg :global(*) {
-            animation: none !important;
+          .wxg :global(*) {
+            animation-duration: 8s !important;
+          }
+        }
+
+        /* Every animated SVG element pivots around its own bounding box. */
+        .wxg :global(.wxg-rays),
+        .wxg :global(.wxg-sun),
+        .wxg :global(.wxg-halo),
+        .wxg :global(.wxg-streaks),
+        .wxg :global(.wxg-lightning),
+        .wxg :global(.wxg-sparkle) {
+          transform-box: fill-box;
+          transform-origin: 50% 50%;
+        }
+
+        @keyframes wxg-spin {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
+        /* CLEAR — rotating rays + sun breathes */
+        .wxg--clear :global(.wxg-rays) {
+          animation: wxg-spin 24s linear infinite;
+        }
+        .wxg--clear :global(.wxg-sun) {
+          animation: wxg-breathe 3.6s ease-in-out infinite;
+        }
+        @keyframes wxg-breathe {
+          0%,
+          100% {
+            transform: scale(1);
+            opacity: 1;
+          }
+          50% {
+            transform: scale(1.08);
+            opacity: 0.92;
+          }
+        }
+
+        /* BREEZE — fast rays, fast streaks, wide cloud drift */
+        .wxg--breeze :global(.wxg-rays) {
+          animation: wxg-spin 30s linear infinite;
+        }
+        .wxg--breeze :global(.wxg-streaks) {
+          animation: wxg-streak 1.8s ease-in-out infinite;
+        }
+        @keyframes wxg-streak {
+          0% {
+            transform: translateX(-12px);
+            opacity: 0;
+          }
+          25%,
+          75% {
+            opacity: 0.85;
+          }
+          100% {
+            transform: translateX(16px);
+            opacity: 0;
+          }
+        }
+        .wxg--breeze :global(.wxg-clouds) {
+          animation: wxg-drift-fast 3.2s ease-in-out infinite alternate;
+        }
+        @keyframes wxg-drift-fast {
+          from {
+            transform: translateX(-7px);
+          }
+          to {
+            transform: translateX(7px);
+          }
+        }
+
+        /* OVERCAST — sway with vertical bob for depth */
+        .wxg--overcast :global(.wxg-clouds) {
+          animation: wxg-drift-sway 4.5s ease-in-out infinite alternate;
+        }
+        @keyframes wxg-drift-sway {
+          0% {
+            transform: translate(-5px, 0);
+          }
+          50% {
+            transform: translate(0, -2px);
+          }
+          100% {
+            transform: translate(5px, 0);
+          }
+        }
+
+        /* RAINY — sway clouds + per-drop staggered rainfall */
+        .wxg--rainy :global(.wxg-clouds) {
+          animation: wxg-drift-sway 4s ease-in-out infinite alternate;
+        }
+        .wxg--rainy :global(.wxg-rain > line) {
+          animation: wxg-rainfall 0.55s linear infinite;
+        }
+        .wxg--rainy :global(.wxg-rain > line:nth-child(1)) {
+          animation-delay: 0s;
+        }
+        .wxg--rainy :global(.wxg-rain > line:nth-child(2)) {
+          animation-delay: -0.13s;
+        }
+        .wxg--rainy :global(.wxg-rain > line:nth-child(3)) {
+          animation-delay: -0.26s;
+        }
+        .wxg--rainy :global(.wxg-rain > line:nth-child(4)) {
+          animation-delay: -0.4s;
+        }
+        @keyframes wxg-rainfall {
+          0% {
+            transform: translateY(-6px);
+            opacity: 0;
+          }
+          20%,
+          80% {
+            opacity: 1;
+          }
+          100% {
+            transform: translateY(14px);
+            opacity: 0;
+          }
+        }
+
+        /* STORM — hard shake (with rotation), fast staggered rain,
+           lightning flash with drop-shadow halo at peak */
+        .wxg--storm :global(.wxg-clouds) {
+          animation: wxg-shake 0.35s ease-in-out infinite;
+        }
+        @keyframes wxg-shake {
+          0%,
+          100% {
+            transform: translateX(0) rotate(0deg);
+          }
+          20% {
+            transform: translateX(-2px) rotate(-0.6deg);
+          }
+          50% {
+            transform: translateX(2.5px) rotate(0.7deg);
+          }
+          80% {
+            transform: translateX(-1.5px) rotate(-0.4deg);
+          }
+        }
+        .wxg--storm :global(.wxg-rain > line) {
+          animation: wxg-rainfall 0.38s linear infinite;
+        }
+        .wxg--storm :global(.wxg-rain > line:nth-child(odd)) {
+          animation-delay: 0s;
+        }
+        .wxg--storm :global(.wxg-rain > line:nth-child(even)) {
+          animation-delay: -0.18s;
+        }
+        .wxg--storm :global(.wxg-lightning) {
+          animation: wxg-flash 2.1s ease-in-out infinite;
+        }
+        @keyframes wxg-flash {
+          0%,
+          7%,
+          100% {
+            opacity: 0;
+            transform: scale(0.9);
+          }
+          8% {
+            opacity: 1;
+            transform: scale(1.15);
+            filter: drop-shadow(0 0 6px var(--amber));
+          }
+          11% {
+            opacity: 0.2;
+            transform: scale(1);
+          }
+          14% {
+            opacity: 1;
+            transform: scale(1.05);
+          }
+          22% {
+            opacity: 0;
+          }
+        }
+
+        /* RADIANT — celebratory glyph for rare up days. Pulse + halo +
+           4 sparkles + 12 fast rays. All the loudest motion in the suite. */
+        .wxg--radiant :global(.wxg-rays) {
+          animation: wxg-spin 14s linear infinite;
+        }
+        .wxg--radiant :global(.wxg-sun) {
+          animation: wxg-pulse 1.6s ease-in-out infinite;
+        }
+        @keyframes wxg-pulse {
+          0%,
+          100% {
+            transform: scale(1);
+            opacity: 1;
+          }
+          50% {
+            transform: scale(1.12);
+            opacity: 0.96;
+          }
+        }
+        .wxg--radiant :global(.wxg-halo) {
+          opacity: 0;
+        }
+        .wxg--radiant :global(.wxg-halo--a) {
+          animation: wxg-halo 2.4s ease-out infinite;
+        }
+        .wxg--radiant :global(.wxg-halo--b) {
+          animation: wxg-halo 2.4s ease-out infinite 1.2s;
+        }
+        @keyframes wxg-halo {
+          0% {
+            transform: scale(0.6);
+            opacity: 0.7;
+          }
+          80% {
+            opacity: 0.05;
+          }
+          100% {
+            transform: scale(2);
+            opacity: 0;
+          }
+        }
+        .wxg--radiant :global(.wxg-sparkle) {
+          animation: wxg-twinkle 1.8s ease-in-out infinite;
+        }
+        @keyframes wxg-twinkle {
+          0%,
+          100% {
+            transform: scale(0);
+            opacity: 0;
+          }
+          40% {
+            transform: scale(1.2);
+            opacity: 1;
+          }
+          60% {
+            transform: scale(1);
+            opacity: 0.85;
+          }
+          80% {
+            transform: scale(0.4);
+            opacity: 0;
           }
         }
       `}</style>

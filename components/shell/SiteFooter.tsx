@@ -1,17 +1,16 @@
 "use client";
 
 /**
- * SiteFooter — Instrument grammar. Renders on every page via
- * app/layout.tsx.
+ * SiteFooter — quiet site-wide footer.
  *
- * Two layers:
- *   1. Link columns (desktop-only, ≥lg): 1px ink top rule, uppercase
- *      micro-label links (Reference: Distributions / Weekly / Methodology;
- *      Sections: Community / Compare / Learn / Calculators) + colophon.
- *   2. The INK BAND — the signature sign-off. Ink background, white
- *      9.5px w600 0.22em uppercase: "BUYVEQT — ONE FUND. THE WHOLE
- *      WORLD." / "EST. 2019 · TSX: VEQT". Renders on ALL viewports;
- *      on mobile it sits above the fixed TabBar (cleared via margin).
+ * Holds the secondary nav links that used to crowd the desktop top bar
+ * (Distributions / Weekly / Methodology) plus a thin colophon line. The
+ * goal is editorial restraint — a single hairline rule, sparse typography,
+ * no marketing CTAs. Renders on every page via app/layout.tsx.
+ *
+ * The Round-4 nav lost the ☰ overflow so the secondary links have lived
+ * top-right since then; with the theme toggle in the same cluster the
+ * row got too dense. The footer is the natural editorial home for them.
  */
 import Link from "next/link";
 
@@ -31,178 +30,152 @@ const LEGAL = [
 export default function SiteFooter() {
   const year = new Date().getFullYear();
   return (
-    <footer className="ins-footer ins-shell">
-      <div className="ins-footer__links">
-        <div className="ins-footer__rule" aria-hidden />
-        <div className="ins-footer__row">
-          <div className="ins-footer__brand">
-            <Link href="/" className="ins-footer__logo">
-              BUYVEQT
-            </Link>
+    <footer className="site-footer">
+      <div className="site-footer__rule" aria-hidden />
+      <div className="site-footer__row">
+        <div className="site-footer__brand">
+          <Link href="/" className="site-footer__logo">
+            Buy<span style={{ color: "var(--stamp)" }}>VEQT</span>
+          </Link>
+          <span className="site-footer__tagline">
+            <em>The VEQT Daily</em> &mdash; an independent broadsheet on the boring fund.
+          </span>
+        </div>
+
+        <nav aria-label="Site sections" className="site-footer__nav">
+          <div className="site-footer__col">
+            <div className="site-footer__col-head">Reference</div>
+            {SECONDARY.map((l) => (
+              <Link key={l.href} href={l.href} className="site-footer__link">
+                {l.label}
+              </Link>
+            ))}
           </div>
-
-          <nav aria-label="Site sections" className="ins-footer__nav">
-            <div className="ins-footer__col">
-              <div className="ins-footer__col-head">Reference</div>
-              {SECONDARY.map((l) => (
-                <Link key={l.href} href={l.href} className="ins-footer__link">
-                  {l.label}
-                </Link>
-              ))}
-            </div>
-            <div className="ins-footer__col">
-              <div className="ins-footer__col-head">Sections</div>
-              {LEGAL.map((l) => (
-                <Link key={l.href} href={l.href} className="ins-footer__link">
-                  {l.label}
-                </Link>
-              ))}
-            </div>
-          </nav>
-        </div>
-
-        <div className="ins-footer__colophon">
-          <span>
-            &copy; {year} BuyVEQT. Not investment advice. Data from Vanguard
-            Canada &amp; Yahoo Finance.
-          </span>
-          <span className="ins-tnum">
-            Vol. I &middot; Edition {year - 2018}
-          </span>
-        </div>
+          <div className="site-footer__col">
+            <div className="site-footer__col-head">Sections</div>
+            {LEGAL.map((l) => (
+              <Link key={l.href} href={l.href} className="site-footer__link">
+                {l.label}
+              </Link>
+            ))}
+          </div>
+        </nav>
       </div>
 
-      <div className="ins-footer__band">
-        <span>BUYVEQT — ONE FUND. THE WHOLE WORLD.</span>
-        <span className="ins-tnum">EST. 2019 · TSX: VEQT</span>
+      <div className="site-footer__colophon">
+        <span>
+          &copy; {year} BuyVEQT. Not investment advice. Data from Vanguard
+          Canada &amp; Yahoo Finance.
+        </span>
+        <span className="site-footer__edition">
+          Vol. I &middot; Edition {year - 2018}
+        </span>
       </div>
 
-      {/* Global (not scoped) on purpose: styled-jsx doesn't attach its
-          scope class to <Link> components, which left every footer link
-          unstyled. Selectors all carry the unique ins-footer prefix. */}
-      <style jsx global>{`
-        .ins-footer {
-          font-family: var(--ins-font);
-          background: var(--ins-paper);
-          /* Breathing room ABOVE the rule stays on the white footer
-             itself (padding, not margin) — a transparent margin let the
-             themed body color show through as a dark band between the
-             page and the footer. */
-          padding-top: 0;
-          /* Mobile: clear the fixed TabBar so the ink band sits above
-             it instead of underneath. */
-          margin-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
-        }
-        @media (min-width: 1024px) {
-          .ins-footer {
-            padding-top: 60px;
-            margin-bottom: 0;
-          }
-        }
-
-        /* Link columns — desktop only. */
-        .ins-footer__links {
+      <style jsx>{`
+        .site-footer {
+          /* Hidden on mobile — TabBar already crowds the bottom edge.
+             Show on lg+ where the desktop nav sits. */
           display: none;
+          padding: 0 32px 32px;
+          margin-top: 60px;
+          max-width: 1400px;
+          margin-left: auto;
+          margin-right: auto;
+          font-family: var(--font-sans);
+          color: var(--ink-mute);
         }
         @media (min-width: 1024px) {
-          .ins-footer__links {
+          .site-footer {
             display: block;
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 40px 26px;
           }
         }
-        .ins-footer__rule {
+        .site-footer__rule {
           height: 1px;
-          background: var(--ins-ink);
-          margin-bottom: 26px;
+          background: var(--rule-soft);
+          margin-bottom: 28px;
         }
-        .ins-footer__row {
+        .site-footer__row {
           display: grid;
           grid-template-columns: 1fr auto;
           gap: 48px;
           align-items: start;
-          margin-bottom: 26px;
+          margin-bottom: 24px;
         }
-        .ins-footer__brand {
+        .site-footer__brand {
           display: flex;
           flex-direction: column;
           gap: 6px;
+          max-width: 48ch;
         }
-        .ins-footer__logo {
-          font-size: 15px;
-          font-weight: 800;
-          letter-spacing: 0.06em;
-          text-transform: uppercase;
-          color: var(--ins-ink);
+        .site-footer__logo {
+          font-family: var(--font-display);
+          font-weight: 500;
+          font-size: 22px;
+          color: var(--ink);
           text-decoration: none;
-          align-self: flex-start;
+          letter-spacing: -0.015em;
         }
-        .ins-footer__nav {
+        .site-footer__tagline {
+          font-family: var(--font-serif);
+          font-style: italic;
+          font-size: 13.5px;
+          color: var(--ink-soft);
+          line-height: 1.45;
+        }
+        .site-footer__tagline em {
+          font-family: var(--font-display);
+          font-style: italic;
+          font-weight: 500;
+          color: var(--ink);
+        }
+        .site-footer__nav {
           display: grid;
-          grid-template-columns: repeat(2, minmax(150px, auto));
-          gap: 40px;
+          grid-template-columns: repeat(2, minmax(140px, auto));
+          gap: 36px;
           align-items: start;
         }
-        .ins-footer__col {
+        .site-footer__col {
           display: flex;
           flex-direction: column;
-          gap: 10px;
+          gap: 8px;
         }
-        .ins-footer__col-head {
-          font-size: 9px;
-          font-weight: 800;
+        .site-footer__col-head {
+          font-family: var(--font-sans);
+          font-size: 10px;
+          font-weight: 700;
           letter-spacing: 0.22em;
           text-transform: uppercase;
-          color: var(--ins-gray-600);
-          margin-bottom: 2px;
+          color: var(--ink-mute);
+          margin-bottom: 4px;
         }
-        .ins-footer__link {
-          font-size: 10px;
-          font-weight: 600;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          color: var(--ins-gray-700);
+        .site-footer__link {
+          font-family: var(--font-serif);
+          font-size: 14px;
+          color: var(--ink-soft);
           text-decoration: none;
           transition: color 0.15s;
-          align-self: flex-start;
         }
-        .ins-footer__link:hover {
-          color: var(--ins-ink);
+        .site-footer__link:hover {
+          color: var(--ink);
+          border-bottom: 1px solid var(--stamp);
+          padding-bottom: 1px;
+          margin-bottom: -2px;
         }
-        .ins-footer__colophon {
-          padding-top: 14px;
-          border-top: 1px solid var(--ins-hair-soft);
+        .site-footer__colophon {
+          padding-top: 20px;
+          border-top: 1px solid var(--rule-hair);
           display: flex;
           justify-content: space-between;
           gap: 16px;
           flex-wrap: wrap;
-          font-size: 9.5px;
-          font-weight: 500;
+          font-size: 11px;
+          color: var(--ink-mute);
           letter-spacing: 0.04em;
-          color: var(--ins-gray-600);
         }
-
-        /* The ink band — all viewports. Text prints in --ins-paper so
-           the band inverts correctly under the Ink Edition. */
-        .ins-footer__band {
-          background: var(--ins-ink);
-          color: var(--ins-paper);
-          padding: 13px 20px;
-          display: flex;
-          justify-content: space-between;
-          gap: 6px 24px;
-          flex-wrap: wrap;
-          font-size: 9.5px;
-          font-weight: 600;
-          letter-spacing: 0.22em;
-          text-transform: uppercase;
-          line-height: 1.5;
-        }
-        @media (min-width: 1024px) {
-          .ins-footer__band {
-            padding: 13px 40px;
-          }
+        .site-footer__edition {
+          font-family: var(--font-display);
+          font-style: italic;
         }
       `}</style>
     </footer>

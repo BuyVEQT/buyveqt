@@ -1,688 +1,537 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useId, useState } from "react";
 import type { HistoricalDataPoint } from "@/lib/types";
-import {
-  fmtChipDate,
-  fmtMoney,
-  fmtPrice,
-  fmtSignedPct,
-  parseSessionDate,
-} from "@/lib/instrument-format";
+
+interface DuoChartProps {
+  data: readonly HistoricalDataPoint[];
+  width?: number;
+  height?: number;
+  showExtrema?: boolean;
+}
 
 /**
- * The Instrument — ink-line chart + drag-to-scrub + $10,000 what-if row.
+ * Duotone area chart — green fill above the period's first close, stamp
+ * (vermilion) fill below. A dashed ink reference line marks the start.
  *
- * Self-contained chart module per handoff §1.4: owns its period state
- * (1M/3M/1Y/5Y/ALL, default 1Y), slices the full since-2019 series, draws a
- * single ink line (var(--ins-chart-line) so editions can repaint it), and
- * exposes one interaction — scrub. Scrubbing shows a vline + red dot +
- * tooltip (desktop only) and live-reprices the what-if row; entry reverts
- * to the period start on pointerleave. Keyboard: focus the plot, ←/→ steps
- * one session, Esc/blur clears.
+ * Architecture
+ * ────────────
+ * SVG holds only the **chart geometry** (paths, fills, hover line, dots).
+ * All **text labels** (year ticks, START anchor, HIGH/LOW extrema, hover
+ * readout) live in an HTML overlay positioned via percent. This was the
+ * fix for the round-4 text squish: when SVG uses
+ * `preserveAspectRatio="none"` (so the chart line fills the container
+ * crisply via `vector-effect: non-scaling-stroke`), any inline `<text>`
+ * stretches with the viewBox transform and collides with the chart line
+ * on both desktop and mobile. HTML overlay keeps text crisp at any size,
+ * lets us back labels with `var(--paper)` for legibility over the line,
+ * and gives clean off-edge clamping.
  *
- * Geometry mirrors the prototype: viewBox 920×220 with
- * `preserveAspectRatio="none"` + `vector-effect: non-scaling-stroke`, and
- * a 10% vertical pad above the high / below the low. All in-plot text is
- * HTML positioned by percent so it never stretches with the viewBox.
+ * Coords: container coords come from `(svgCoord / viewBoxSize) * 100%`.
+ *
+ * Ported from `design_handoff_round4/.../hero-almanac.jsx`, text-layer
+ * refactor by the implementer.
  */
-
-type Period = "1M" | "3M" | "1Y" | "5Y" | "ALL";
-
-const PERIODS: readonly {
-  id: Period;
-  sessions: number | null; // trading sessions to slice; null = all
-  label: string; // desktop header, joined with " · MM.YYYY — MM.YYYY"
-  short: string; // mobile header (no date range, per the mobile artboard)
-}[] = [
-  { id: "1M", sessions: 21, label: "TRAILING MONTH", short: "TRAILING 1M" },
-  { id: "3M", sessions: 63, label: "TRAILING QUARTER", short: "TRAILING 3M" },
-  {
-    id: "1Y",
-    sessions: 252,
-    label: "TRAILING TWELVE MONTHS",
-    short: "TRAILING 12M",
-  },
-  { id: "5Y", sessions: 1260, label: "FIVE YEARS", short: "FIVE YEARS" },
-  { id: "ALL", sessions: null, label: "SINCE LAUNCH", short: "SINCE LAUNCH" },
-];
-
-const VB_W = 920;
-const VB_H = 220;
-
-/** "06.2025" — header range stamp. */
-function fmtMY(date: Date): string {
-  const mm = String(date.getMonth() + 1).padStart(2, "0");
-  return `${mm}.${date.getFullYear()}`;
-}
-
-/** Flip a centered in-plot label inward when it sits near either edge. */
-function edgeClass(leftPct: number): string {
-  if (leftPct > 88) return "is-edge-r";
-  if (leftPct < 12) return "is-edge-l";
-  return "";
-}
-
 export default function DuoChart({
-  history,
-  loading,
-}: {
-  history: HistoricalDataPoint[];
-  loading: boolean;
-}) {
-  const [period, setPeriod] = useState<Period>("1Y");
-  const [scrub, setScrub] = useState<number | null>(null);
+  data,
+  width = 920,
+  height = 220,
+  showExtrema = true,
+}: DuoChartProps) {
+  const uid = useId().replace(/:/g, "");
+  const clipUp = `duo-clip-up-${uid}`;
+  const clipDown = `duo-clip-down-${uid}`;
+  const gradUp = `duo-grad-up-${uid}`;
+  const gradDown = `duo-grad-down-${uid}`;
 
-  const meta = PERIODS.find((p) => p.id === period) ?? PERIODS[2];
+  const [hover, setHover] = useState<number | null>(null);
 
-  const geom = useMemo(() => {
-    const sliced =
-      meta.sessions === null
-        ? history
-        : history.slice(Math.max(0, history.length - meta.sessions));
-    if (sliced.length < 2) return null;
+  if (!data || data.length < 2) return null;
 
-    const closes = sliced.map((d) => d.close);
-    let minIdx = 0;
-    let maxIdx = 0;
-    closes.forEach((c, i) => {
-      if (c < closes[minIdx]) minIdx = i;
-      if (c > closes[maxIdx]) maxIdx = i;
-    });
-    const min = closes[minIdx];
-    const max = closes[maxIdx];
-    const pad = (max - min) * 0.1 || 0.5; // flat-series guard
-    const yMin = min - pad;
-    const yMax = max + pad;
-    const yR = yMax - yMin;
-    const n = closes.length - 1;
+  const closes = data.map((d) => d.close);
+  const ref = closes[0];
+  const min = Math.min(...closes);
+  const max = Math.max(...closes);
+  const span = Math.max(max, ref) - Math.min(min, ref);
+  const pad = span * 0.1 || 0.5;
+  const yMin = Math.min(min, ref) - pad;
+  const yMax = Math.max(max, ref) + pad;
+  const yRange = yMax - yMin || 1;
 
-    const X = (i: number) => (i / n) * VB_W;
-    const Y = (v: number) => VB_H - ((v - yMin) / yR) * VB_H;
-    let path = `M ${X(0).toFixed(1)} ${Y(closes[0]).toFixed(1)}`;
-    for (let i = 1; i <= n; i++) {
-      path += ` L ${X(i).toFixed(1)} ${Y(closes[i]).toFixed(1)}`;
-    }
+  const x = (i: number) => (i / (data.length - 1)) * width;
+  const y = (v: number) => height - ((v - yMin) / yRange) * height;
+  const refY = y(ref);
 
-    // Container-relative percents for the HTML label/dot layer.
-    const xPct = (i: number) => (i / n) * 100;
-    const yPct = (v: number) => ((yMax - v) / yR) * 100;
+  // Period extrema indices.
+  let minIdx = 0;
+  let maxIdx = 0;
+  closes.forEach((c, i) => {
+    if (c < closes[minIdx]) minIdx = i;
+    if (c > closes[maxIdx]) maxIdx = i;
+  });
 
-    return { sliced, closes, minIdx, maxIdx, n, path, xPct, yPct };
-  }, [history, meta.sessions]);
+  // Container-relative percentages — these are what the HTML overlay uses.
+  const pctX = (svgX: number) => (svgX / width) * 100;
+  const pctY = (svgY: number) => (svgY / height) * 100;
 
-  // Clamp a stale scrub index if the slice shrank under it.
-  const scrubIdx =
-    geom !== null && scrub !== null ? Math.min(scrub, geom.n) : null;
+  // Main line path.
+  let line = `M ${x(0)} ${y(closes[0])}`;
+  for (let i = 1; i < closes.length; i++) {
+    line += ` L ${x(i)} ${y(closes[i])}`;
+  }
+  const closedPath = line + ` L ${width} ${refY} L 0 ${refY} Z`;
 
-  const rangeStamp = geom
-    ? ` · ${fmtMY(parseSessionDate(geom.sliced[0].date))} — ${fmtMY(
-        parseSessionDate(geom.sliced[geom.n].date)
-      )}`
-    : "";
-
-  const selectPeriod = (id: Period) => {
-    setPeriod(id);
-    setScrub(null);
-  };
-
-  const onScrub = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!geom) return;
+  const onMove: React.MouseEventHandler<HTMLDivElement> = (e) => {
     const r = e.currentTarget.getBoundingClientRect();
-    const f = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
-    setScrub(Math.round(f * geom.n));
+    const px = ((e.clientX - r.left) / r.width) * width;
+    const idx = Math.min(
+      data.length - 1,
+      Math.max(0, Math.round((px / width) * (data.length - 1)))
+    );
+    setHover(idx);
   };
 
-  const clearScrub = () => setScrub(null);
-
-  const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (!geom) return;
-    if (e.key === "ArrowLeft") {
-      e.preventDefault();
-      setScrub((s) => Math.max(0, (s ?? geom.n + 1) - 1));
-    } else if (e.key === "ArrowRight") {
-      e.preventDefault();
-      setScrub((s) => Math.min(geom.n, (s ?? -1) + 1));
-    } else if (e.key === "Escape") {
-      setScrub(null);
+  // Year ticks — only emit when the year actually crosses, and thin them
+  // out below a threshold so tight slices (1M, 3M) don't get any.
+  const ticks: { x: number; year: number }[] = [];
+  if (data[0]?.date) {
+    let prev = new Date(data[0].date).getFullYear();
+    for (let i = 1; i < data.length; i++) {
+      const yr = new Date(data[i].date).getFullYear();
+      if (yr !== prev) {
+        ticks.push({ x: x(i), year: yr });
+        prev = yr;
+      }
     }
-  };
-
-  // ── Derived render values ────────────────────────────────────────────
-  // NOTE: plot labels + scrub overlay are rendered inline in the return —
-  // styled-jsx does not add its scope class to JSX stored in variables,
-  // which left them unstyled (unpositioned) in an earlier cut.
-  let whatIf: {
-    chip: string;
-    value: string;
-    pct: string;
-    neg: boolean;
-  } | null = null;
-
-  if (geom) {
-    const { sliced, closes, n } = geom;
-    const entryIdx = scrubIdx ?? 0;
-    const last = closes[n];
-    const entry = closes[entryIdx];
-    const wiPct = (last / entry - 1) * 100;
-    whatIf = {
-      chip: fmtChipDate(parseSessionDate(sliced[entryIdx].date)),
-      value: fmtMoney((10000 * last) / entry),
-      pct: fmtSignedPct(wiPct, 1),
-      neg: wiPct < 0,
-    };
   }
 
-  return (
-    <section className="chart">
-      {/* Header: period stamp · drag hint · period tabs */}
-      <div className="hd">
-        <span className="hd-label">
-          <span className="hd-full">
-            {meta.label}
-            {rangeStamp}
-          </span>
-          <span className="hd-short">{meta.short}</span>
-        </span>
-        <div className="hd-right">
-          <span className="hint" aria-hidden>
-            ◂ DRAG ▸
-          </span>
-          <div className="tabs" role="group" aria-label="Chart period">
-            {PERIODS.map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                className={`tab ${p.id === period ? "is-active" : ""}`}
-                aria-pressed={p.id === period}
-                onClick={() => selectPeriod(p.id)}
-              >
-                {p.id}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+  // Extrema placement: stamp the label above the high, below the low.
+  // Near either edge a centered label hangs past the chart (on mobile, past
+  // the viewport), so flip its anchor the same way the hover readout does.
+  const hiLeftPct = pctX(x(maxIdx));
+  const hiTopPct = Math.max(2, pctY(y(closes[maxIdx])) - 8); // 8% above the point
+  const loLeftPct = pctX(x(minIdx));
+  const loTopPct = Math.min(92, pctY(y(closes[minIdx])) + 2); // sit just under the point
+  const edgeClass = (pct: number) =>
+    pct > 88 ? "is-edge-r" : pct < 12 ? "is-edge-l" : "";
 
-      {/* Plot — scrubbable, keyboard-steppable */}
-      <div
-        className="plot"
-        tabIndex={0}
-        aria-label={`VEQT closing price, ${meta.label.toLowerCase()}${rangeStamp}. Drag to inspect a session; left and right arrow keys step one session; Escape clears.`}
-        aria-busy={loading && !geom}
-        onPointerDown={onScrub}
-        onPointerMove={onScrub}
-        onPointerLeave={clearScrub}
-        onPointerCancel={clearScrub}
-        onKeyDown={onKeyDown}
-        onBlur={clearScrub}
+  // START anchor: if it sits in the top quarter of the chart, render the
+  // label BELOW it (otherwise above) so we never crash into a year tick.
+  const refTopPct = pctY(refY);
+  const startBelow = refTopPct < 25;
+  const startTopPct = startBelow ? refTopPct + 3 : refTopPct - 14;
+
+  // Hover readout horizontal placement — flip to the left of the
+  // crosshair when it would otherwise overflow the right edge.
+  const hoverLeftPct = hover !== null ? pctX(x(hover)) : 0;
+  const hoverFlip = hoverLeftPct > 78;
+
+  return (
+    <div
+      className="duo"
+      onMouseMove={onMove}
+      onMouseLeave={() => setHover(null)}
+    >
+      <svg
+        viewBox={`0 0 ${width} ${height}`}
+        preserveAspectRatio="none"
+        className="duo__svg"
+        role="img"
+        aria-label="VEQT duotone chart"
       >
-        {geom ? (
-          /* Keyed by period so the draw-in restarts on every re-slice */
-          <div className="geom" key={period} aria-hidden>
-            <svg
-              className="svg"
-              viewBox={`0 0 ${VB_W} ${VB_H}`}
-              preserveAspectRatio="none"
-            >
-              <path
-                className="line"
-                d={geom.path}
-                pathLength={1}
-                vectorEffect="non-scaling-stroke"
-              />
-            </svg>
-            <span
-              className={`lbl lbl-start ${
-                geom.yPct(geom.closes[0]) < 10 ? "is-flip" : ""
-              }`}
-              style={{ top: `${geom.yPct(geom.closes[0])}%` }}
-            >
-              {fmtPrice(geom.closes[0])}
-            </span>
-            {geom.maxIdx !== geom.minIdx && (
-              <>
-                <span
-                  className={`lbl lbl-h ${edgeClass(geom.xPct(geom.maxIdx))}`}
-                  style={{
-                    left: `${geom.xPct(geom.maxIdx)}%`,
-                    top: `${geom.yPct(geom.closes[geom.maxIdx])}%`,
-                  }}
-                >
-                  H {fmtPrice(geom.closes[geom.maxIdx])}
-                </span>
-                <span
-                  className={`lbl lbl-l ${edgeClass(geom.xPct(geom.minIdx))}`}
-                  style={{
-                    left: `${geom.xPct(geom.minIdx)}%`,
-                    top: `${geom.yPct(geom.closes[geom.minIdx])}%`,
-                  }}
-                >
-                  L {fmtPrice(geom.closes[geom.minIdx])}
-                </span>
-              </>
-            )}
-            <span
-              className="edot"
-              style={{ top: `${geom.yPct(geom.closes[geom.n])}%` }}
-            />
-          </div>
-        ) : (
-          <div className="skeleton" aria-hidden />
+        <defs>
+          <clipPath id={clipUp}>
+            <rect x="0" y="0" width={width} height={refY} />
+          </clipPath>
+          <clipPath id={clipDown}>
+            <rect x="0" y={refY} width={width} height={height - refY} />
+          </clipPath>
+          <linearGradient id={gradUp} x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor="var(--green)" stopOpacity="0.28" />
+            <stop offset="100%" stopColor="var(--green)" stopOpacity="0.02" />
+          </linearGradient>
+          <linearGradient id={gradDown} x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor="var(--stamp)" stopOpacity="0.02" />
+            <stop offset="100%" stopColor="var(--stamp)" stopOpacity="0.28" />
+          </linearGradient>
+        </defs>
+
+        {/* Reference line (period start) */}
+        <line
+          x1={0}
+          x2={width}
+          y1={refY}
+          y2={refY}
+          stroke="var(--ink-mute)"
+          strokeWidth="0.6"
+          strokeDasharray="3 3"
+          vectorEffect="non-scaling-stroke"
+        />
+
+        {/* Duotone fills */}
+        <path d={closedPath} fill={`url(#${gradUp})`} clipPath={`url(#${clipUp})`} />
+        <path d={closedPath} fill={`url(#${gradDown})`} clipPath={`url(#${clipDown})`} />
+
+        {/* Year tick LINES (text is in HTML overlay below) */}
+        {ticks.map((t, i) => (
+          <line
+            key={i}
+            x1={t.x}
+            x2={t.x}
+            y1={0}
+            y2={height}
+            stroke="var(--rule-soft)"
+            strokeWidth="0.5"
+            strokeDasharray="2 4"
+            vectorEffect="non-scaling-stroke"
+          />
+        ))}
+
+        {/* Main line */}
+        <path
+          d={line}
+          fill="none"
+          stroke="var(--ink)"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          vectorEffect="non-scaling-stroke"
+        />
+
+        {/* Hover crosshair line (the dot + readout sit in the HTML overlay) */}
+        {hover !== null && (
+          <line
+            x1={x(hover)}
+            x2={x(hover)}
+            y1={0}
+            y2={height}
+            stroke="var(--ink)"
+            strokeWidth="0.6"
+            opacity="0.4"
+            vectorEffect="non-scaling-stroke"
+            pointerEvents="none"
+          />
         )}
-        {geom && scrubIdx !== null && (
-          <div className="scrub" aria-hidden>
-            <div
-              className="vline"
-              style={{ left: `${geom.xPct(scrubIdx)}%` }}
-            />
-            <div
-              className="sdot"
+      </svg>
+
+      {/* HTML overlay — all text + circles that need to stay round.
+          Pointer-events: none on the wrapper so the SVG below still
+          receives mouse-move events. Individual labels can re-enable
+          interactivity if they ever need it. */}
+      <div className="duo__overlay" aria-hidden>
+        {/* Year ticks */}
+        {ticks.map((t, i) => (
+          <span
+            key={i}
+            className="duo__year"
+            style={{ left: `${pctX(t.x)}%` }}
+          >
+            {t.year}
+          </span>
+        ))}
+
+        {/* START anchor: SVG ring + HTML label */}
+        <span
+          className="duo__start-dot"
+          style={{ top: `${refTopPct}%` }}
+        />
+        <span
+          className={`duo__start ${startBelow ? "is-below" : ""}`}
+          style={{ top: `${startTopPct}%` }}
+        >
+          START ${ref.toFixed(2)}
+        </span>
+
+        {/* End dot */}
+        <span
+          className="duo__end-dot"
+          style={{
+            left: `${pctX(x(data.length - 1))}%`,
+            top: `${pctY(y(closes[closes.length - 1]))}%`,
+          }}
+        />
+
+        {/* Period extrema — only when min ≠ max */}
+        {showExtrema && minIdx !== maxIdx && (
+          <>
+            <span
+              className="duo__hi-dot"
               style={{
-                left: `${geom.xPct(scrubIdx)}%`,
-                top: `${geom.yPct(geom.closes[scrubIdx])}%`,
+                left: `${pctX(x(maxIdx))}%`,
+                top: `${pctY(y(closes[maxIdx]))}%`,
               }}
             />
-            <div
-              className="tip"
-              style={{
-                left: `${Math.min(84, Math.max(16, geom.xPct(scrubIdx)))}%`,
-              }}
+            <span
+              className={`duo__hi ${edgeClass(hiLeftPct)}`}
+              style={{ left: `${hiLeftPct}%`, top: `${hiTopPct}%` }}
             >
-              <span className="tip-date">
-                {fmtChipDate(parseSessionDate(geom.sliced[scrubIdx].date))}
-              </span>
-              <span className="tip-price">
-                ${fmtPrice(geom.closes[scrubIdx])}
-              </span>
-              <span
-                className={`tip-delta ${
-                  geom.closes[scrubIdx] < geom.closes[0] ? "is-neg" : ""
-                }`}
-              >
-                {fmtSignedPct(
-                  (geom.closes[scrubIdx] / geom.closes[0] - 1) * 100,
-                  1
-                )}{" "}
-                vs. start
+              HIGH ${closes[maxIdx].toFixed(2)}
+            </span>
+
+            <span
+              className="duo__lo-dot"
+              style={{
+                left: `${pctX(x(minIdx))}%`,
+                top: `${pctY(y(closes[minIdx]))}%`,
+              }}
+            />
+            <span
+              className={`duo__lo ${edgeClass(loLeftPct)}`}
+              style={{ left: `${loLeftPct}%`, top: `${loTopPct}%` }}
+            >
+              LOW ${closes[minIdx].toFixed(2)}
+            </span>
+          </>
+        )}
+
+        {/* Hover readout — flips left of the crosshair near the right edge */}
+        {hover !== null && (
+          <>
+            <span
+              className={`duo__hover-dot ${
+                closes[hover] >= ref ? "is-up" : "is-down"
+              }`}
+              style={{
+                left: `${pctX(x(hover))}%`,
+                top: `${pctY(y(closes[hover]))}%`,
+              }}
+            />
+            <div
+              className={`duo__readout ${hoverFlip ? "is-flipped" : ""}`}
+              style={{ left: `${hoverLeftPct}%` }}
+            >
+              <span className="duo__readout-date">{data[hover].date}</span>
+              <span className="duo__readout-row">
+                <span className="duo__readout-price">
+                  ${closes[hover].toFixed(2)}
+                </span>
+                <span
+                  className="duo__readout-delta"
+                  style={{
+                    color:
+                      closes[hover] >= ref ? "var(--green)" : "var(--stamp)",
+                  }}
+                >
+                  {closes[hover] >= ref ? "+" : "−"}
+                  {Math.abs(((closes[hover] - ref) / ref) * 100).toFixed(1)}%
+                </span>
               </span>
             </div>
-          </div>
+          </>
         )}
       </div>
 
-      {/* What-if row — reprices live while scrubbing */}
-      {whatIf && (
-        <>
-          <div className="wif">
-            <span className="wif-lead">WHAT IF —</span>
-            <span>$10,000 PLACED</span>
-            <span className="wif-chip">{whatIf.chip}</span>
-            <span>IS</span>
-            <span className="wif-val">{whatIf.value}</span>
-            <span>TODAY ·</span>
-            <span className={`wif-pct ${whatIf.neg ? "is-neg" : ""}`}>
-              {whatIf.pct}
-            </span>
-            <span className="wif-hint">
-              DRAG THE CHART TO RE-RUN ANY ENTRY POINT
-            </span>
-          </div>
-          <div className="wif-m">
-            <span className="wif-lead">WHAT IF —</span> $10,000 ON{" "}
-            <span className="wif-chip wif-chip-sm">{whatIf.chip}</span> IS{" "}
-            <span className="wif-m-val">{whatIf.value}</span> ·{" "}
-            <span className={`wif-m-pct ${whatIf.neg ? "is-neg" : ""}`}>
-              {whatIf.pct}
-            </span>
-          </div>
-        </>
-      )}
-
       <style jsx>{`
-        .chart {
-          font-family: var(--ins-font);
-          color: var(--ins-ink);
-          font-variant-numeric: tabular-nums;
-        }
-
-        /* ── Header ─────────────────────────────────────────────── */
-        .hd {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          flex-wrap: wrap;
-          gap: 8px 18px;
-          padding-bottom: 10px;
-        }
-        .hd-label {
-          font-size: 9.5px;
-          font-weight: 600;
-          letter-spacing: 0.22em;
-          color: var(--ins-gray-600);
-          text-transform: uppercase;
-        }
-        .hd-short {
-          display: none;
-        }
-        .hd-right {
-          display: flex;
-          align-items: center;
-          gap: 18px;
-          margin-left: auto;
-        }
-        .hint {
-          font-size: 9.5px;
-          font-weight: 700;
-          letter-spacing: 0.2em;
-          color: var(--ins-gray-600);
-          animation: ins-hintShimmer 2.6s ease-in-out infinite;
-        }
-        .tabs {
-          display: flex;
-          gap: 2px;
-        }
-        .tab {
-          appearance: none;
-          background: none;
-          border: 1px solid transparent;
-          border-radius: 0;
-          padding: 5px 11px;
-          font-family: inherit;
-          font-size: 10px;
-          font-weight: 700;
-          letter-spacing: 0.08em;
-          color: var(--ins-gray-600);
-          cursor: pointer;
-          font-variant-numeric: tabular-nums;
-        }
-        .tab:hover {
-          border-color: var(--ins-hair);
-        }
-        .tab.is-active {
-          background: var(--ins-ink);
-          color: var(--ins-paper);
-          border-color: var(--ins-ink);
-        }
-
-        /* ── Plot ───────────────────────────────────────────────── */
-        .plot {
+        .duo {
           position: relative;
-          height: 210px;
-          border-bottom: 1px solid var(--ins-ink);
-          touch-action: none;
-          cursor: crosshair;
-          user-select: none;
-          -webkit-user-select: none;
+          width: 100%;
+          height: 100%;
+          font-family: var(--font-sans);
         }
-        .plot:focus-visible {
-          outline: 1px dashed var(--ins-hair);
-          outline-offset: 3px;
-        }
-        .geom {
-          position: absolute;
-          inset: 0 0 1px;
-          pointer-events: none;
-        }
-        .svg {
+        .duo__svg {
           width: 100%;
           height: 100%;
           display: block;
         }
-        .line {
-          fill: none;
-          stroke: var(--ins-chart-line);
-          stroke-width: 1.7;
-          stroke-linecap: round;
-          stroke-linejoin: round;
-          stroke-dasharray: 1;
-          stroke-dashoffset: 1;
-          animation: ins-drawIn 1.8s cubic-bezier(0.45, 0, 0.25, 1) 0.3s
-            forwards;
-        }
-        /* The global .ins-root reduced-motion rule kills the animation,
-           which would strand the line at dashoffset 1 (invisible) — pin
-           the end state here. */
-        @media (prefers-reduced-motion: reduce) {
-          .line {
-            stroke-dasharray: none;
-            stroke-dashoffset: 0;
-          }
-        }
-
-        /* In-plot labels: start price, H, L */
-        .lbl {
-          position: absolute;
-          font-size: 9.5px;
-          font-weight: 600;
-          letter-spacing: 0.14em;
-          color: var(--ins-gray-600);
-          line-height: 1;
-          white-space: nowrap;
-        }
-        .lbl-start {
-          left: 0;
-          transform: translateY(-140%);
-        }
-        .lbl-start.is-flip {
-          transform: translateY(30%);
-        }
-        .lbl-h {
-          transform: translate(-50%, -140%);
-        }
-        .lbl-h.is-edge-r {
-          transform: translate(-104%, -140%);
-        }
-        .lbl-h.is-edge-l {
-          transform: translate(4px, -140%);
-        }
-        .lbl-l {
-          transform: translate(-50%, 6px);
-        }
-        .lbl-l.is-edge-r {
-          transform: translate(-104%, 6px);
-        }
-        .lbl-l.is-edge-l {
-          transform: translate(4px, 6px);
-        }
-
-        /* End dot — the only ambient red on the plot */
-        .edot {
-          position: absolute;
-          left: 100%;
-          width: 9px;
-          height: 9px;
-          border-radius: 999px;
-          background: var(--ins-signal);
-          transform: translate(-50%, -50%);
-          animation: ins-pulse 2.2s ease-in-out infinite;
-        }
-
-        /* Scrub: vline + red dot on the line + tooltip */
-        .scrub {
+        .duo__overlay {
           position: absolute;
           inset: 0;
           pointer-events: none;
+          /* Reserve a sliver of top/bottom space so year labels and
+             extrema labels never bleed past the chart's visual edge. */
         }
-        .vline {
+
+        /* Year tick labels — small caps top-left of each crossover */
+        .duo__year {
           position: absolute;
           top: 0;
-          bottom: 0;
-          width: 1px;
-          background: var(--ins-ink);
+          transform: translate(4px, 0);
+          font-size: 9px;
+          font-weight: 600;
+          letter-spacing: 0.1em;
+          color: var(--ink-mute);
+          line-height: 1;
+          padding: 2px 3px 0;
+          background: color-mix(in oklab, var(--paper) 80%, transparent);
+          border-radius: 2px;
+          white-space: nowrap;
         }
-        .sdot {
+
+        /* START anchor */
+        .duo__start-dot {
           position: absolute;
-          width: 10px;
-          height: 10px;
-          border-radius: 999px;
-          background: var(--ins-signal);
-          border: 2px solid var(--ins-paper);
-          box-shadow: 0 0 0 1px var(--ins-ink);
+          left: 0;
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: var(--paper);
+          border: 1.2px solid var(--ink);
           transform: translate(-50%, -50%);
         }
-        .tip {
+        .duo__start {
           position: absolute;
-          top: 6px;
-          transform: translateX(-50%);
-          background: var(--ins-paper);
-          border: 1px solid var(--ins-ink);
-          padding: 5px 10px;
-          white-space: nowrap;
-          line-height: 1;
-        }
-        .tip-date {
+          left: 8px;
           font-size: 9px;
           font-weight: 700;
-          letter-spacing: 0.14em;
-          color: var(--ins-gray-600);
-          text-transform: uppercase;
+          letter-spacing: 0.16em;
+          color: var(--ink-mute);
+          background: color-mix(in oklab, var(--paper) 88%, transparent);
+          padding: 1px 4px;
+          border-radius: 2px;
+          line-height: 1;
+          white-space: nowrap;
         }
-        .tip-price {
-          font-size: 13px;
-          font-weight: 700;
-          margin-left: 8px;
-        }
-        .tip-delta {
-          font-size: 10.5px;
-          font-weight: 700;
-          margin-left: 6px;
-        }
-        .tip-delta.is-neg {
-          color: var(--ins-signal);
+        .duo__start.is-below {
+          /* top is already moved below the reference line by the parent,
+             so no extra offset here. The class is kept as a hook for
+             future tweaks (e.g. a stamp accent when sitting below). */
         }
 
-        /* Loading — ink-tint skeleton, no spinner */
-        .skeleton {
+        /* End dot */
+        .duo__end-dot {
           position: absolute;
-          inset: 0 0 1px;
-          background: color-mix(in srgb, var(--ins-ink) 6%, transparent);
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: var(--ink);
+          transform: translate(-50%, -50%);
         }
 
-        /* ── What-if row ────────────────────────────────────────── */
-        .wif {
+        /* HIGH / LOW extrema */
+        .duo__hi-dot,
+        .duo__lo-dot {
+          position: absolute;
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          transform: translate(-50%, -50%);
+          border: 1.2px solid var(--paper);
+        }
+        .duo__hi-dot {
+          background: var(--green);
+        }
+        .duo__lo-dot {
+          background: var(--stamp);
+        }
+        .duo__hi,
+        .duo__lo {
+          position: absolute;
+          transform: translate(-50%, -100%);
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.04em;
+          line-height: 1;
+          padding: 2px 5px;
+          border-radius: 3px;
+          background: var(--paper);
+          border: 1px solid var(--rule-hair);
+          white-space: nowrap;
+        }
+        .duo__hi {
+          color: var(--green);
+        }
+        .duo__lo {
+          color: var(--stamp);
+          transform: translate(-50%, 8px);
+        }
+        .duo__hi.is-edge-r {
+          transform: translate(-100%, -100%);
+        }
+        .duo__hi.is-edge-l {
+          transform: translate(0, -100%);
+        }
+        .duo__lo.is-edge-r {
+          transform: translate(-100%, 8px);
+        }
+        .duo__lo.is-edge-l {
+          transform: translate(0, 8px);
+        }
+
+        /* Hover crosshair dot + readout card */
+        .duo__hover-dot {
+          position: absolute;
+          width: 9px;
+          height: 9px;
+          border-radius: 50%;
+          transform: translate(-50%, -50%);
+          border: 1.5px solid var(--paper);
+          box-shadow: 0 1px 2px rgba(15, 13, 10, 0.18);
+        }
+        .duo__hover-dot.is-up {
+          background: var(--green);
+        }
+        .duo__hover-dot.is-down {
+          background: var(--stamp);
+        }
+        .duo__readout {
+          position: absolute;
+          top: 4px;
+          transform: translate(8px, 0);
+          background: var(--paper);
+          border: 0.6px solid var(--ink);
+          border-radius: 4px;
+          padding: 4px 8px;
+          min-width: 90px;
+          line-height: 1.05;
+          box-shadow: 0 1px 2px rgba(15, 13, 10, 0.06);
+        }
+        .duo__readout.is-flipped {
+          transform: translate(calc(-100% - 8px), 0);
+        }
+        .duo__readout-date {
+          display: block;
+          font-size: 9px;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+          color: var(--ink-mute);
+          text-transform: uppercase;
+          margin-bottom: 2px;
+        }
+        .duo__readout-row {
           display: flex;
           align-items: baseline;
-          gap: 12px;
-          padding-top: 14px;
-          font-size: 11px;
-          font-weight: 600;
-          letter-spacing: 0.14em;
-          color: var(--ins-gray-600);
+          gap: 6px;
         }
-        .wif-lead {
-          font-weight: 800;
-          color: var(--ins-ink);
+        .duo__readout-price {
+          font-family: var(--font-display);
+          font-weight: 500;
+          font-size: 13px;
+          color: var(--ink);
+          font-variant-numeric: tabular-nums lining-nums;
         }
-        .wif-chip {
-          border: 1px solid var(--ins-ink);
-          padding: 2px 8px;
+        .duo__readout-delta {
+          font-size: 10px;
           font-weight: 700;
-          color: var(--ins-ink);
-          text-transform: uppercase;
+          letter-spacing: 0.04em;
           font-variant-numeric: tabular-nums;
         }
-        .wif-val {
-          font-size: 20px;
-          font-weight: 700;
-          color: var(--ins-ink);
-          letter-spacing: 0;
-        }
-        .wif-pct {
-          font-size: 15px;
-          font-weight: 700;
-          letter-spacing: 0;
-          color: var(--ins-ink);
-        }
-        .wif-pct.is-neg {
-          color: var(--ins-signal);
-        }
-        .wif-hint {
-          margin-left: auto;
-          font-weight: 600;
-        }
 
-        /* Mobile what-if — flowing text block (per the mobile artboard) */
-        .wif-m {
-          display: none;
-          padding-top: 12px;
-          font-size: 10px;
-          font-weight: 600;
-          letter-spacing: 0.12em;
-          color: var(--ins-gray-600);
-          line-height: 1.8;
-        }
-        .wif-chip-sm {
-          padding: 1px 6px;
-        }
-        .wif-m-val {
-          font-size: 15px;
-          font-weight: 700;
-          color: var(--ins-ink);
-          letter-spacing: 0;
-        }
-        .wif-m-pct {
-          font-weight: 700;
-          letter-spacing: 0;
-          color: var(--ins-ink);
-        }
-        .wif-m-pct.is-neg {
-          color: var(--ins-signal);
-        }
-
-        /* ── Mobile deltas (handoff §2) ─────────────────────────── */
+        /* Mobile — thin out crowded labels + tighten the readout card */
         @media (max-width: 640px) {
-          .hd {
-            gap: 8px 12px;
+          .duo__year {
+            font-size: 8px;
           }
-          .hd-full {
-            display: none;
+          .duo__start {
+            font-size: 8px;
+            letter-spacing: 0.12em;
           }
-          .hd-short {
-            display: inline;
+          .duo__hi,
+          .duo__lo {
+            font-size: 9px;
+            padding: 1px 4px;
           }
-          .hd-label {
-            font-size: 8.5px;
-            letter-spacing: 0.18em;
+          .duo__readout {
+            min-width: 78px;
+            padding: 3px 6px;
           }
-          .hint {
-            font-size: 8.5px;
-            letter-spacing: 0.16em;
+          .duo__readout-price {
+            font-size: 12px;
           }
-          .hd-right {
-            gap: 12px;
-          }
-          .tab {
-            padding: 5px 9px;
-          }
-          .plot {
-            height: 140px;
-          }
-          .line {
-            stroke-width: 1.5;
-          }
-          .lbl {
-            display: none; /* mobile plot carries the line + dots only */
-          }
-          .edot {
-            width: 8px;
-            height: 8px;
-          }
-          .sdot {
-            width: 9px;
-            height: 9px;
-          }
-          .tip {
-            display: none; /* scrub keeps working — dot + vline only */
-          }
-          .wif {
-            display: none;
-          }
-          .wif-m {
-            display: block;
+          .duo__readout-delta {
+            font-size: 9px;
           }
         }
       `}</style>
-    </section>
+    </div>
   );
 }
