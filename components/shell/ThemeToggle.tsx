@@ -1,15 +1,18 @@
 "use client";
 
 /**
- * ThemeToggle — tri-state Morning · Auto · Evening segmented control,
- * restyled to the Instrument grammar: square chrome (no pill radius),
- * uppercase micro-labels in Archivo, 1px hairline border, active segment
- * prints ink-on-paper inverted.
+ * ThemeToggle — tri-state Morning · Auto · Evening segmented control.
+ *
+ * The Late Edition deployment lives behind a single user-facing
+ * control. We deliberately avoid sun/moon emoji — a small editorial
+ * pill matches the broadsheet voice better and keeps the chrome quiet
+ * on dense nav surfaces.
  *
  * Two variants:
- *   - default: full 3-segment control (used in DesktopNav)
- *   - compact: single button that cycles auto → light → dark on tap
- *              (used in the mobile drawer where space is tight)
+ *   - default: full 3-segment pill (used in DesktopNav)
+ *   - compact: icon-only single button that cycles auto → light →
+ *              dark on tap (used in the mobile drawer where space is
+ *              tight)
  */
 import { useTheme, type ThemePref } from "@/components/ThemeProvider";
 
@@ -47,18 +50,18 @@ export default function ThemeToggle({ compact = false, className }: ThemeToggleP
         style={{
           appearance: "none",
           background: "transparent",
-          border: "1px solid var(--ins-hair)",
-          borderRadius: 0,
-          padding: "6px 10px",
+          border: "1px solid var(--rule-soft)",
+          borderRadius: 999,
+          padding: "4px 10px",
           display: "inline-flex",
           alignItems: "center",
           gap: 6,
           cursor: "pointer",
-          color: "var(--ins-gray-700)",
-          fontFamily: "var(--ins-font)",
-          fontSize: 10,
+          color: "var(--ink-soft)",
+          fontFamily: "var(--font-sans)",
+          fontSize: 11,
           fontWeight: 700,
-          letterSpacing: "0.14em",
+          letterSpacing: "0.12em",
           textTransform: "uppercase",
           lineHeight: 1,
         }}
@@ -96,21 +99,21 @@ export default function ThemeToggle({ compact = false, className }: ThemeToggleP
       <style jsx>{`
         .tt-pill {
           display: inline-flex;
-          background: transparent;
-          border: 1px solid var(--ins-hair);
-          border-radius: 0;
-          padding: 0;
-          gap: 0;
+          background: var(--paper-warm);
+          border: 1px solid var(--rule-soft);
+          border-radius: 999px;
+          padding: 2px;
+          gap: 1px;
         }
         .tt-seg {
           appearance: none;
           background: transparent;
-          color: var(--ins-gray-700);
+          color: var(--ink-soft);
           border: 0;
-          border-radius: 0;
-          padding: 6px 9px;
-          font-family: var(--ins-font);
-          font-size: 9.5px;
+          border-radius: 999px;
+          padding: 4px 9px;
+          font-family: var(--font-sans);
+          font-size: 10px;
           font-weight: 700;
           letter-spacing: 0.14em;
           text-transform: uppercase;
@@ -121,12 +124,9 @@ export default function ThemeToggle({ compact = false, className }: ThemeToggleP
           line-height: 1;
           transition: background 0.15s, color 0.15s;
         }
-        .tt-seg:hover {
-          color: var(--ins-ink);
-        }
         .tt-seg.is-active {
-          background: var(--ins-ink);
-          color: var(--ins-paper);
+          background: var(--ink);
+          color: var(--band-paper);
         }
         .tt-seg__label {
           margin-top: 1px;
@@ -140,16 +140,16 @@ export default function ThemeToggle({ compact = false, className }: ThemeToggleP
             display: none;
           }
           .tt-seg {
-            padding: 6px 7px;
+            padding: 4px 7px;
           }
         }
-        /* Below 1140px drop ALL labels — glyph-only control. */
+        /* Below 1140px drop ALL labels — glyph-only pill. */
         @media (max-width: 1139px) {
           .tt-seg .tt-seg__label {
             display: none;
           }
           .tt-seg {
-            padding: 6px 7px;
+            padding: 4px 6px;
           }
         }
       `}</style>

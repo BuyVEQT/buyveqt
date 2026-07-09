@@ -15,15 +15,16 @@ interface NavLink {
 
 const NAV: NavLink[] = [
   { id: "today", label: "Today", href: "/" },
-  { id: "inside", label: "Inside", href: "/inside-veqt" },
+  { id: "inside", label: "Inside VEQT", href: "/inside-veqt" },
   { id: "compare", label: "Compare", href: "/compare" },
   { id: "learn", label: "Learn", href: "/learn" },
   { id: "calc", label: "Calculators", href: "/calculators" },
   { id: "comm", label: "Community", href: "/community" },
 ];
 
-/* Secondary links (Distributions / Weekly / Methodology) live in
-   <SiteFooter>. */
+/* Secondary links (Distributions / Weekly / Methodology) moved to
+   <SiteFooter> after the theme toggle joined the nav right cluster
+   and crowded the row. */
 
 function activeFromPath(pathname: string): NavId | null {
   if (pathname === "/") return "today";
@@ -36,10 +37,12 @@ function activeFromPath(pathname: string): NavId | null {
 }
 
 /**
- * Desktop sticky nav — the Instrument masthead. White paper, Archivo,
- * uppercase micro-label links, live ticker + theme toggle on the right,
- * and the signature 6px ink masthead bar underneath (edition-aware via
- * --ins-masthead). No blur, no radius, no shadows.
+ * Desktop sticky nav. ONE navigation surface on desktop:
+ *   logo + primary nav | centered live ticker | theme toggle.
+ *
+ * Secondary links (Distributions / Weekly / Methodology) used to sit
+ * in the right cluster but moved to <SiteFooter> after the theme
+ * toggle joined the nav and the row got too dense at < 1500px.
  */
 export default function DesktopNav() {
   const pathname = usePathname() ?? "/";
@@ -47,43 +50,44 @@ export default function DesktopNav() {
 
   return (
     <nav
-      className="hidden lg:block ins-shell ins-desktopnav"
+      className="hidden lg:block"
       aria-label="Primary"
       style={{
         position: "sticky",
         top: 0,
         zIndex: 40,
-        background: "var(--ins-paper)",
-        fontFamily: "var(--ins-font)",
+        background: "color-mix(in oklab, var(--paper) 94%, transparent)",
+        backdropFilter: "blur(10px)",
+        WebkitBackdropFilter: "blur(10px)",
+        borderBottom: "1px solid var(--rule-soft)",
       }}
     >
-      <div style={{ maxWidth: 1400, margin: "0 auto" }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: 28,
-            padding: "18px 40px",
-          }}
-        >
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "auto 1fr auto",
+          gap: 28,
+          alignItems: "center",
+          padding: "14px 32px",
+          maxWidth: 1400,
+          margin: "0 auto",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 28 }}>
           <Link
             href="/"
             style={{
-              fontSize: 15,
-              fontWeight: 800,
-              letterSpacing: "0.06em",
-              color: "var(--ins-ink)",
+              fontFamily: "var(--font-display)",
+              fontWeight: 500,
+              fontSize: 22,
+              letterSpacing: "-0.015em",
+              color: "var(--ink)",
               textDecoration: "none",
-              textTransform: "uppercase",
-              whiteSpace: "nowrap",
-              flexShrink: 0,
             }}
           >
-            BUYVEQT
+            Buy<span style={{ color: "var(--stamp)" }}>VEQT</span>
           </Link>
-
-          <div style={{ display: "flex", gap: 24, minWidth: 0 }}>
+          <div style={{ display: "flex", gap: 22 }}>
             {NAV.map((l) => {
               const isActive = l.id === active;
               return (
@@ -91,16 +95,12 @@ export default function DesktopNav() {
                   key={l.id}
                   href={l.href}
                   aria-current={isActive ? "page" : undefined}
-                  className="ins-nav-link"
                   style={{
-                    fontSize: 11,
-                    fontWeight: 600,
-                    letterSpacing: "0.12em",
-                    textTransform: "uppercase",
-                    color: isActive ? "var(--ins-ink)" : "var(--ins-gray-700)",
-                    borderBottom: isActive
-                      ? "2px solid var(--ins-signal)"
-                      : "2px solid transparent",
+                    fontFamily: "var(--font-sans)",
+                    fontSize: 13,
+                    fontWeight: isActive ? 600 : 500,
+                    color: isActive ? "var(--ink)" : "var(--ink-soft)",
+                    borderBottom: isActive ? "2px solid var(--stamp)" : "2px solid transparent",
                     paddingBottom: 3,
                     textDecoration: "none",
                     transition: "color 0.15s",
@@ -112,36 +112,25 @@ export default function DesktopNav() {
               );
             })}
           </div>
-
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 18,
-              flexShrink: 0,
-            }}
-          >
-            <LiveTickerPill />
-            <ThemeToggle />
-          </div>
         </div>
 
-        {/* Masthead bar — edition-aware (ink by default, red on RALLY days). */}
-        <div
-          aria-hidden
-          style={{
-            margin: "0 40px",
-            height: 6,
-            background: "var(--ins-masthead)",
-          }}
-        />
-      </div>
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+          <LiveTickerPill />
+        </div>
 
-      <style jsx global>{`
-        .ins-desktopnav a.ins-nav-link:hover {
-          color: var(--ins-ink) !important;
-        }
-      `}</style>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            fontFamily: "var(--font-sans)",
+            fontSize: 12,
+            color: "var(--ink-mute)",
+          }}
+        >
+          <ThemeToggle />
+        </div>
+      </div>
     </nav>
   );
 }
