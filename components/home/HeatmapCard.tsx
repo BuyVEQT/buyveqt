@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import type { HistoricalDataPoint } from "@/lib/types";
 import {
@@ -104,6 +105,7 @@ export default function HeatmapCard({
   loading,
   todayChangePercent,
 }: HeatmapCardProps) {
+  const router = useRouter();
   const [range, setRange] = useState<SessionRange>("90D");
   const [hover, setHover] = useState<number | null>(null);
 
@@ -262,6 +264,7 @@ export default function HeatmapCard({
                 boxShadow: i === cells.length - 1 ? TODAY_RING : undefined,
               }}
               onPointerEnter={() => setHover(i)}
+              onClick={() => router.push(`/inside-veqt?date=${c.date}#heatmap`)}
             />
           ))}
         </div>
@@ -441,7 +444,7 @@ export default function HeatmapCard({
         }
         .board__cell {
           border-radius: 2px;
-          cursor: crosshair;
+          cursor: pointer;
         }
         .board__skeleton {
           height: 112px; /* 5 × 20px rows + 4 × 3px gaps */

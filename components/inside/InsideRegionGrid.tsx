@@ -121,6 +121,8 @@ export default function InsideRegionGrid() {
 
   return (
     <section className="ird-grid-section">
+      <div id="sleeves" style={{ scrollMarginTop: 96 }} />
+
       {/* V2 section header: ed-stamp kicker + ed-display h2 with italic em */}
       <div className="ird-grid-section__head">
         <div>

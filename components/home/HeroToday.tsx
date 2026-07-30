@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo } from "react";
 import type {
   VeqtApiResponse,
@@ -127,9 +128,9 @@ export default function HeroToday({
           <span>
             MER <b>{MER_LABEL}</b>
           </span>
-          <span>
+          <Link href="/distributions" className="ihero__micro-link">
             NEXT DISTRIBUTION <b>{distLabel}</b>
-          </span>
+          </Link>
           <span>
             STREAK <b>{streakLabel}</b>
           </span>
@@ -440,6 +441,16 @@ function HeroStyles() {
   .ihero__micro b {
     color: var(--ins-ink);
     font-weight: 700;
+  }
+  /* The distribution fact is a link into /distributions — same typography as
+     its sibling spans; on hover the value takes a 2px ink underline. */
+  .ihero__micro-link {
+    color: inherit;
+    text-decoration: none;
+  }
+  .ihero__micro-link:hover b {
+    border-bottom: 2px solid var(--ins-ink);
+    padding-bottom: 1px;
   }
   .ihero__facts {
     display: flex;

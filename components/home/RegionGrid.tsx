@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo } from "react";
 import type { Region } from "@/lib/useRegions";
 import { fmtSignedPct, fmtSignedPp } from "@/lib/instrument-format";
@@ -158,7 +159,7 @@ export default function RegionGrid({
         {leader && (
           <div>
             {/* Desktop / tablet leader block */}
-            <article className="sleeves__leader-desk">
+            <Link href="/inside-veqt#sleeves" className="sleeves__leader-desk">
               <span className="sleeves__ord" aria-hidden="true">
                 01
               </span>
@@ -213,10 +214,10 @@ export default function RegionGrid({
               ) : (
                 <span aria-hidden="true" />
               )}
-            </article>
+            </Link>
 
             {/* Mobile boxed leader */}
-            <article className="sleeves__leader-mob">
+            <Link href="/inside-veqt#sleeves" className="sleeves__leader-mob">
               <div className="sleeves__mob-top">
                 <span className="sleeves__mob-label">
                   Leader · {leader.ticker} · {leader.fullName}
@@ -243,7 +244,7 @@ export default function RegionGrid({
                     : ""}
                 </span>
               </div>
-            </article>
+            </Link>
           </div>
         )}
 
@@ -253,8 +254,9 @@ export default function RegionGrid({
             const isFirst = i === 0;
             const isLast = i === followers.length - 1;
             return (
-              <div
+              <Link
                 key={r.ticker}
+                href="/inside-veqt#sleeves"
                 className={`sleeves__row${isFirst ? " is-first" : ""}${
                   isLast ? " is-last" : ""
                 }`}
@@ -274,7 +276,7 @@ export default function RegionGrid({
                 <span className={`sleeves__pct${negative ? " is-neg" : ""}`}>
                   {r.changePercent != null ? fmtSignedPct(r.changePercent) : "—"}
                 </span>
-              </div>
+              </Link>
             );
           })}
         </div>
@@ -351,6 +353,18 @@ function SleevesStyles() {
         grid-template-columns: auto 1fr auto;
         gap: 24px;
         align-items: start;
+        color: inherit;
+        text-decoration: none;
+        cursor: pointer;
+      }
+      /* Desktop leader is an open ledger row (top rule only) — hover
+         doubles that rule via an inset shadow, zero layout shift. The
+         mobile leader is a boxed card, so its whole ring doubles. */
+      .sleeves__leader-desk:hover {
+        box-shadow: inset 0 1px 0 var(--ins-ink);
+      }
+      .sleeves__leader-mob:hover {
+        box-shadow: 0 0 0 1px var(--ins-ink);
       }
       .sleeves__ord {
         font-size: 64px;
@@ -417,6 +431,9 @@ function SleevesStyles() {
         display: none;
         border: 1px solid var(--ins-ink);
         padding: 14px 16px;
+        color: inherit;
+        text-decoration: none;
+        cursor: pointer;
       }
       .sleeves__mob-top {
         display: flex;
@@ -469,6 +486,14 @@ function SleevesStyles() {
         align-items: baseline;
         padding: 13px 0;
         border-top: 1px solid var(--ins-hair);
+        color: inherit;
+        text-decoration: none;
+        cursor: pointer;
+        transition: padding-left 0.15s;
+      }
+      /* Reading-row grammar: the row indents into the click. */
+      .sleeves__row:hover {
+        padding-left: 8px;
       }
       .sleeves__row.is-first {
         border-top-color: var(--ins-ink);

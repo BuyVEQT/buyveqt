@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { HistoricalDataPoint } from "@/lib/types";
 import {
   fmtChipDate,
@@ -16,15 +16,28 @@ import {
  * Self-contained chart module per handoff §1.4: owns its period state
  * (1M/3M/1Y/5Y/ALL, default 1Y), slices the full since-2019 series, draws a
  * single ink line (var(--ins-chart-line) so editions can repaint it), and
- * exposes one interaction — scrub. Scrubbing shows a vline + red dot +
- * tooltip (desktop only) and live-reprices the what-if row; entry reverts
- * to the period start on pointerleave. Keyboard: focus the plot, ←/→ steps
- * one session, Esc/blur clears.
+ * exposes two interactions:
  *
- * Geometry mirrors the prototype: viewBox 920×220 with
- * `preserveAspectRatio="none"` + `vector-effect: non-scaling-stroke`, and
- * a 10% vertical pad above the high / below the low. All in-plot text is
- * HTML positioned by percent so it never stretches with the viewBox.
+ *   scrub — hover/drag shows a vline + red dot + tooltip (desktop only)
+ *           and live-reprices the what-if row; reverts to the period
+ *           start on pointerleave.
+ *   pin   — click (or a drag released on a session) pins the what-if
+ *           entry so it survives the pointer leaving. Click the pinned
+ *           session again, the date chip's ×, or press Esc to release.
+ *           Period switches clear the pin.
+ *
+ * Keyboard: focus the plot, ←/→ steps one session (moves the pin when
+ * pinned), Enter/Space toggles the pin, Esc clears, blur clears the
+ * ephemeral scrub but keeps a pin.
+ *
+ * Geometry renders in true pixel space: a ResizeObserver measures the
+ * plot and the path is rebuilt at 1:1 CSS pixels (no stretched viewBox),
+ * with a 10% vertical pad above the high / below the low. Dense periods
+ * (5Y/ALL push ~1,900 sessions into ~1,200px) are downsampled to a
+ * per-bucket min/max envelope so the line stays a crisp stroke instead
+ * of anti-aliased mush — H/L labels, scrub, and the what-if row always
+ * read the full-resolution series. 920×220 remains only as the
+ * pre-measurement fallback.
  */
 
 type Period = "1M" | "3M" | "1Y" | "5Y" | "ALL";
@@ -71,7 +84,34 @@ export default function DuoChart({
   loading: boolean;
 }) {
   const [period, setPeriod] = useState<Period>("1Y");
-  const [scrub, setScrub] = useState<number | null>(null);
+  const [scrub, setScrub] = useState<number | null>(null); // ephemeral hover/drag
+  const [pinned, setPinned] = useState<number | null>(null); // sticky entry
+  const [plotSize, setPlotSize] = useState<{ w: number; h: number } | null>(
+    null
+  );
+  const plotRef = useRef<HTMLDivElement | null>(null);
+  // Pointer-gesture bookkeeping: where the press started and whether it
+  // travelled far enough to count as a drag rather than a click.
+  const downRef = useRef<{ x: number; idx: number; moved: boolean } | null>(
+    null
+  );
+
+  // Measure the plot so the path renders at 1:1 CSS pixels — the
+  // sharpness half of this module. Fires once on mount and on resize.
+  useEffect(() => {
+    const el = plotRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      const r = entries[0].contentRect;
+      setPlotSize((s) =>
+        s && Math.abs(s.w - r.width) < 1 && Math.abs(s.h - r.height) < 1
+          ? s
+          : { w: r.width, h: r.height }
+      );
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   const meta = PERIODS.find((p) => p.id === period) ?? PERIODS[2];
 
@@ -97,23 +137,64 @@ export default function DuoChart({
     const yR = yMax - yMin;
     const n = closes.length - 1;
 
-    const X = (i: number) => (i / n) * VB_W;
-    const Y = (v: number) => VB_H - ((v - yMin) / yR) * VB_H;
-    let path = `M ${X(0).toFixed(1)} ${Y(closes[0]).toFixed(1)}`;
-    for (let i = 1; i <= n; i++) {
-      path += ` L ${X(i).toFixed(1)} ${Y(closes[i]).toFixed(1)}`;
-    }
-
     // Container-relative percents for the HTML label/dot layer.
     const xPct = (i: number) => (i / n) * 100;
     const yPct = (v: number) => ((yMax - v) / yR) * 100;
 
-    return { sliced, closes, minIdx, maxIdx, n, path, xPct, yPct };
+    return { sliced, closes, minIdx, maxIdx, n, yMin, yR, xPct, yPct };
   }, [history, meta.sessions]);
 
-  // Clamp a stale scrub index if the slice shrank under it.
+  // The path, in measured pixel space. Dense slices are decimated to a
+  // per-bucket min/max envelope (~2px per segment) — the crisp way to
+  // draw more sessions than there are pixel columns. Data-facing
+  // consumers (scrub, what-if, H/L labels) never read this.
+  const pathD = useMemo(() => {
+    if (!geom) return null;
+    const W = plotSize?.w ?? VB_W;
+    const H = plotSize?.h ?? VB_H;
+    const { closes, n, yMin, yR } = geom;
+
+    const maxSegments = Math.max(120, Math.floor(W / 2));
+    let idxs: number[];
+    if (n + 1 <= maxSegments) {
+      idxs = Array.from({ length: n + 1 }, (_, i) => i);
+    } else {
+      const buckets = Math.max(60, Math.floor(maxSegments / 2));
+      idxs = [0];
+      for (let b = 0; b < buckets; b++) {
+        const s = Math.max(1, Math.floor((b / buckets) * (n - 1)) + 1);
+        const e = Math.min(n, Math.floor(((b + 1) / buckets) * (n - 1)) + 1);
+        if (e <= s) continue;
+        let lo = s;
+        let hi = s;
+        for (let i = s; i < e; i++) {
+          if (closes[i] < closes[lo]) lo = i;
+          if (closes[i] > closes[hi]) hi = i;
+        }
+        // Chronological order inside the bucket keeps the stroke honest.
+        const first = Math.min(lo, hi);
+        const second = Math.max(lo, hi);
+        if (idxs[idxs.length - 1] !== first) idxs.push(first);
+        if (second !== first) idxs.push(second);
+      }
+      if (idxs[idxs.length - 1] !== n) idxs.push(n);
+    }
+
+    const X = (i: number) => (i / n) * W;
+    const Y = (v: number) => H - ((v - yMin) / yR) * H;
+    let d = `M ${X(idxs[0]).toFixed(2)} ${Y(closes[idxs[0]]).toFixed(2)}`;
+    for (let k = 1; k < idxs.length; k++) {
+      const i = idxs[k];
+      d += ` L ${X(i).toFixed(2)} ${Y(closes[i]).toFixed(2)}`;
+    }
+    return d;
+  }, [geom, plotSize]);
+
+  // Live scrub wins over a pin for display; clamp a stale index if the
+  // slice shrank under it.
+  const activeIdx = scrub ?? pinned;
   const scrubIdx =
-    geom !== null && scrub !== null ? Math.min(scrub, geom.n) : null;
+    geom !== null && activeIdx !== null ? Math.min(activeIdx, geom.n) : null;
 
   const rangeStamp = geom
     ? ` · ${fmtMY(parseSessionDate(geom.sliced[0].date))} — ${fmtMY(
@@ -124,27 +205,90 @@ export default function DuoChart({
   const selectPeriod = (id: Period) => {
     setPeriod(id);
     setScrub(null);
+    setPinned(null);
   };
 
-  const onScrub = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!geom) return;
+  const idxFromEvent = (e: React.PointerEvent<HTMLDivElement>): number => {
     const r = e.currentTarget.getBoundingClientRect();
     const f = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
-    setScrub(Math.round(f * geom.n));
+    return Math.round(f * (geom?.n ?? 0));
   };
 
-  const clearScrub = () => setScrub(null);
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!geom) return;
+    // Capture so a drag that leaves the plot keeps scrubbing and still
+    // delivers its pointerup (which pins) back here. Best-effort: capture
+    // can throw (InvalidPointerId) and the gesture works without it.
+    try {
+      e.currentTarget.setPointerCapture?.(e.pointerId);
+    } catch {
+      /* gesture proceeds uncaptured */
+    }
+    const idx = idxFromEvent(e);
+    downRef.current = { x: e.clientX, idx, moved: false };
+    setScrub(idx);
+  };
+
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!geom) return;
+    if (downRef.current) {
+      if (Math.abs(e.clientX - downRef.current.x) > 5)
+        downRef.current.moved = true;
+      setScrub(idxFromEvent(e));
+    } else if (pinned === null) {
+      // Hover-scrub stays ephemeral; while pinned the pin holds.
+      setScrub(idxFromEvent(e));
+    }
+  };
+
+  const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    const info = downRef.current;
+    downRef.current = null;
+    if (!geom || !info) return;
+    const idx = idxFromEvent(e);
+    if (info.moved) {
+      // A drag released on a session keeps it — pin there.
+      setPinned(idx);
+    } else {
+      // A click toggles: same session releases, anywhere else pins.
+      setPinned((p) => (p === idx ? null : idx));
+    }
+    setScrub(null);
+  };
+
+  const clearScrub = () => {
+    downRef.current = null;
+    setScrub(null);
+  };
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (!geom) return;
+    const step = (delta: number) => {
+      e.preventDefault();
+      if (pinned !== null && scrub === null) {
+        setPinned(Math.min(geom.n, Math.max(0, pinned + delta)));
+      } else {
+        setScrub((s) =>
+          Math.min(
+            geom.n,
+            Math.max(0, (s ?? (delta < 0 ? geom.n + 1 : -1)) + delta)
+          )
+        );
+      }
+    };
     if (e.key === "ArrowLeft") {
-      e.preventDefault();
-      setScrub((s) => Math.max(0, (s ?? geom.n + 1) - 1));
+      step(-1);
     } else if (e.key === "ArrowRight") {
+      step(1);
+    } else if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
-      setScrub((s) => Math.min(geom.n, (s ?? -1) + 1));
+      const idx = scrub ?? pinned;
+      if (idx === null) return;
+      setPinned(pinned === idx && scrub === null ? null : idx);
+      setScrub(null);
     } else if (e.key === "Escape") {
       setScrub(null);
+      setPinned(null);
     }
   };
 
@@ -204,30 +348,32 @@ export default function DuoChart({
         </div>
       </div>
 
-      {/* Plot — scrubbable, keyboard-steppable */}
+      {/* Plot — scrubbable, click-to-pin, keyboard-steppable */}
       <div
+        ref={plotRef}
         className="plot"
         tabIndex={0}
-        aria-label={`VEQT closing price, ${meta.label.toLowerCase()}${rangeStamp}. Drag to inspect a session; left and right arrow keys step one session; Escape clears.`}
+        aria-label={`VEQT closing price, ${meta.label.toLowerCase()}${rangeStamp}. Drag to inspect a session; click, Enter, or Space pins the what-if entry point; left and right arrow keys step one session; Escape clears.`}
         aria-busy={loading && !geom}
-        onPointerDown={onScrub}
-        onPointerMove={onScrub}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
         onPointerLeave={clearScrub}
         onPointerCancel={clearScrub}
         onKeyDown={onKeyDown}
         onBlur={clearScrub}
       >
-        {geom ? (
+        {geom && pathD ? (
           /* Keyed by period so the draw-in restarts on every re-slice */
           <div className="geom" key={period} aria-hidden>
             <svg
               className="svg"
-              viewBox={`0 0 ${VB_W} ${VB_H}`}
+              viewBox={`0 0 ${plotSize?.w ?? VB_W} ${plotSize?.h ?? VB_H}`}
               preserveAspectRatio="none"
             >
               <path
                 className="line"
-                d={geom.path}
+                d={pathD}
                 pathLength={1}
                 vectorEffect="non-scaling-stroke"
               />
@@ -311,13 +457,26 @@ export default function DuoChart({
         )}
       </div>
 
-      {/* What-if row — reprices live while scrubbing */}
+      {/* What-if row — reprices live while scrubbing; the date chip
+          becomes the release control while an entry is pinned */}
       {whatIf && (
         <>
           <div className="wif">
             <span className="wif-lead">WHAT IF —</span>
             <span>$10,000 PLACED</span>
-            <span className="wif-chip">{whatIf.chip}</span>
+            {pinned !== null ? (
+              <button
+                type="button"
+                className="wif-chip is-pinned"
+                onClick={() => setPinned(null)}
+                aria-label={`Release pinned entry ${whatIf.chip}`}
+                title="Release pinned entry"
+              >
+                {whatIf.chip} <span aria-hidden>×</span>
+              </button>
+            ) : (
+              <span className="wif-chip">{whatIf.chip}</span>
+            )}
             <span>IS</span>
             <span className="wif-val">{whatIf.value}</span>
             <span>TODAY ·</span>
@@ -325,13 +484,26 @@ export default function DuoChart({
               {whatIf.pct}
             </span>
             <span className="wif-hint">
-              DRAG THE CHART TO RE-RUN ANY ENTRY POINT
+              {pinned !== null
+                ? "ENTRY PINNED — CLICK THE DATE CHIP OR PRESS ESC TO RELEASE"
+                : "DRAG THE CHART TO RE-RUN ANY ENTRY POINT · CLICK TO PIN"}
             </span>
           </div>
           <div className="wif-m">
             <span className="wif-lead">WHAT IF —</span> $10,000 ON{" "}
-            <span className="wif-chip wif-chip-sm">{whatIf.chip}</span> IS{" "}
-            <span className="wif-m-val">{whatIf.value}</span> ·{" "}
+            {pinned !== null ? (
+              <button
+                type="button"
+                className="wif-chip wif-chip-sm is-pinned"
+                onClick={() => setPinned(null)}
+                aria-label={`Release pinned entry ${whatIf.chip}`}
+              >
+                {whatIf.chip} <span aria-hidden>×</span>
+              </button>
+            ) : (
+              <span className="wif-chip wif-chip-sm">{whatIf.chip}</span>
+            )}{" "}
+            IS <span className="wif-m-val">{whatIf.value}</span> ·{" "}
             <span className={`wif-m-pct ${whatIf.neg ? "is-neg" : ""}`}>
               {whatIf.pct}
             </span>
@@ -435,6 +607,7 @@ export default function DuoChart({
           stroke-width: 1.7;
           stroke-linecap: round;
           stroke-linejoin: round;
+          shape-rendering: geometricPrecision;
           stroke-dasharray: 1;
           stroke-dashoffset: 1;
           animation: ins-drawIn 1.8s cubic-bezier(0.45, 0, 0.25, 1) 0.3s
@@ -581,6 +754,24 @@ export default function DuoChart({
           color: var(--ins-ink);
           text-transform: uppercase;
           font-variant-numeric: tabular-nums;
+        }
+        /* Pinned — the chip becomes the release control. Border doubles
+           (ink grammar for "active"), padding compensates so the box
+           doesn't shift, and the × invites the click. */
+        button.wif-chip.is-pinned {
+          appearance: none;
+          background: none;
+          font-family: inherit;
+          font-size: inherit;
+          letter-spacing: inherit;
+          line-height: inherit;
+          border-width: 2px;
+          padding: 1px 7px;
+          cursor: pointer;
+        }
+        button.wif-chip.is-pinned:hover {
+          border-color: var(--ins-signal);
+          color: var(--ins-signal);
         }
         .wif-val {
           font-size: 20px;
