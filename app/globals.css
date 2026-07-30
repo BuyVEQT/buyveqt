@@ -214,16 +214,6 @@
   --shadow-band: 0 0 0 1px rgba(184, 166, 110, 0.28);
 }
 
-/* Auto: respect the OS preference on first paint when no
-   localStorage value has been set yet. The no-FOUC head script
-   resolves auto → light/dark synchronously, but this fallback
-   covers the (rare) case where JS is disabled. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) {
-    color-scheme: dark;
-  }
-}
-
 /* Force light when printing — nobody prints a black newspaper. */
 @media print {
   :root,
@@ -248,16 +238,6 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Smooth theme swap. Only body — animating shadows/borders
-     globally looks junky. Everything else inherits the new var
-     values instantly. */
-  transition: background-color 220ms ease, color 220ms ease;
-}
-
-/* Skip the body transition during the first paint so the no-FOUC
-   script's data-theme write doesn't fade in the page background. */
-html:not(.theme-ready) body {
-  transition: none;
 }
 
 /* Film grain overlay — subtle texture */

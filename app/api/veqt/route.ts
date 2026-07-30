@@ -98,6 +98,7 @@ export async function GET(request: Request) {
       currency: "CAD",
       exchange: "TSX",
       lastUpdated: quoteData.fetchedAt,
+      latestTradingDay: quoteData.latestTradingDay,
       isFallback: quoteData.source === "cache",
     };
     isFallback = quoteData.source === "cache";
@@ -113,6 +114,7 @@ export async function GET(request: Request) {
     quote = {
       ...FALLBACK_QUOTE,
       lastUpdated: FALLBACK_QUOTE.lastUpdated,
+      latestTradingDay: FALLBACK_QUOTE.lastUpdated.slice(0, 10),
       isFallback: true,
     };
     isFallback = true;

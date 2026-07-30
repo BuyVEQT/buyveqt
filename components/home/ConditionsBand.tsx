@@ -238,7 +238,10 @@ export default function ConditionsBand({
   const weekRows = useMemo(() => {
     if (sessions.length === 0) return sessions;
     const last = sessions[sessions.length - 1];
-    const quoteDay = quote?.lastUpdated?.slice(0, 10);
+    const quoteDay = (quote?.latestTradingDay ?? quote?.lastUpdated)?.slice(
+      0,
+      10
+    );
     if (severity && quoteDay && quoteDay === last.date.slice(0, 10)) {
       return [
         ...sessions.slice(0, -1),

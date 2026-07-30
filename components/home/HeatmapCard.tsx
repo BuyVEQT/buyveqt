@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { HistoricalDataPoint } from "@/lib/types";
 import {
@@ -276,6 +277,9 @@ export default function HeatmapCard({
         <span className="board__caption">
           EACH CELL IS ONE TRADING DAY · WEEKS AS COLUMNS · HOVER FOR THE DATE
         </span>
+        <Link href="/inside-veqt#heatmap" className="board__open-link">
+          OPEN THE FULL BOARD <span aria-hidden>→</span>
+        </Link>
       </div>
 
       {/* Mobile 2×2 stat strip — below the grid (08/09-ref) */}
@@ -296,6 +300,9 @@ export default function HeatmapCard({
           </b>
         </span>
         <span>EACH CELL = ONE DAY</span>
+        <Link href="/inside-veqt#heatmap" className="board__open-link">
+          OPEN THE FULL BOARD <span aria-hidden>→</span>
+        </Link>
       </div>
 
       <style jsx>{`
@@ -489,6 +496,23 @@ export default function HeatmapCard({
           text-align: right;
         }
 
+        /* --- cross-link (styled-jsx skips <Link>, so :global under .board) -- */
+        .board :global(.board__open-link) {
+          font-size: 10px;
+          font-weight: 800;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: var(--ins-ink);
+          text-decoration: none;
+          border-bottom: 2px solid var(--ins-ink);
+          padding-bottom: 4px;
+          white-space: nowrap;
+        }
+        .board :global(.board__open-link:hover) {
+          color: var(--ins-signal);
+          border-bottom-color: var(--ins-signal);
+        }
+
         /* --- mobile stat strip --------------------------------------------- */
         .board__stats-m {
           display: none;
@@ -547,6 +571,10 @@ export default function HeatmapCard({
           }
           .board__stats-m b.is-signal {
             color: var(--ins-signal);
+          }
+          .board__stats-m :global(.board__open-link) {
+            grid-column: 1 / -1;
+            justify-self: end;
           }
         }
       `}</style>

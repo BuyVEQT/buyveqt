@@ -1,7 +1,11 @@
 "use client";
 
 import { useMemo } from "react";
-import type { VeqtApiResponse, HistoricalDataPoint } from "@/lib/types";
+import type {
+  VeqtApiResponse,
+  VeqtQuote,
+  HistoricalDataPoint,
+} from "@/lib/types";
 import type { SeverityReading } from "@/lib/severity";
 import { FUNDS } from "@/data/funds";
 import { getNextDistributionEstimate } from "@/lib/distributions-calendar";
@@ -53,57 +57,17 @@ export default function HeroToday({
   /* ── Derivations (all from the single ALL fetch) ── */
 
   const dateline = useMemo(() => {
-    const raw = quote?.lastUpdated;
+    // Session date, not the fetch clock: between midnight and the next
+    // open the quote still belongs to the prior session and must be
+    // datelined as such (lastUpdated is the fetch timestamp).
+    const raw = quote?.latestTradingDay ?? quote?.lastUpdated;
     if (!raw) return null;
     const d = raw.length <= 10 ? parseSessionDate(raw) : new Date(raw);
     return Number.isNaN(d.getTime()) ? null : fmtDateline(d);
-  }, [quote?.lastUpdated]);
-
-  /** Trailing-year return: last close vs. close ~252 sessions back. */
-  const oneYear = useMemo(() => {
-    const n = historical.length;
-    if (n < 240) return null;
-    const last = historical[n - 1].close;
-    const base = historical[Math.max(0, n - 1 - 252)].close;
-    if (!(base > 0) || !Number.isFinite(last)) return null;
-    return (last / base - 1) * 100;
-  }, [historical]);
-
-  /** Since launch: last close / first close — "×2.27". */
-  const sinceLaunch = useMemo(() => {
-    const n = historical.length;
-    if (n < 2) return null;
-    const first = historical[0].close;
-    const last = historical[n - 1].close;
-    if (!(first > 0) || !Number.isFinite(last)) return null;
-    return last / first;
-  }, [historical]);
-
-  const launchYear = useMemo(
-    () =>
-      historical.length
-        ? parseSessionDate(historical[0].date).getUTCFullYear()
-        : 2019,
-    [historical]
-  );
+  }, [quote?.latestTradingDay, quote?.lastUpdated]);
 
   /** Consecutive most-recent green (or red) sessions, from closes. */
   const streak = useMemo(() => computeStreak(historical), [historical]);
-
-  /** Month of the minimum close in the trailing 365 days — "OCT". */
-  const lowMonth = useMemo(() => {
-    const n = historical.length;
-    if (n < 2) return null;
-    const lastTime = parseSessionDate(historical[n - 1].date).getTime();
-    const cutoff = lastTime - 365 * 24 * 60 * 60 * 1000;
-    let min: HistoricalDataPoint | null = null;
-    for (let i = n - 1; i >= 0; i -= 1) {
-      const p = historical[i];
-      if (parseSessionDate(p.date).getTime() < cutoff) break;
-      if (!min || p.close < min.close) min = p;
-    }
-    return min ? MONTHS[parseSessionDate(min.date).getUTCMonth()] : null;
-  }, [historical]);
 
   /** "DEC 2026" from the estimator's "December 2026". */
   const distLabel = useMemo(() => {
@@ -123,11 +87,6 @@ export default function HeroToday({
   const changeMoney = `${quote.change < 0 ? MINUS : "+"}$${Math.abs(
     quote.change
   ).toFixed(2)}`;
-
-  const low = quote.fiftyTwoWeekLow;
-  const high = quote.fiftyTwoWeekHigh;
-  const hasRange = high > low && low > 0;
-  const rangeLabel = hasRange ? `${fmtPrice(low)}–${fmtPrice(high)}` : "—";
 
   const streakLabel = streak
     ? `${streak.count} ${streak.dir} SESSION${streak.count === 1 ? "" : "S"}`
@@ -180,59 +139,152 @@ export default function HeroToday({
         </div>
       </div>
 
-      {/* ── RIGHT — facts column (2×2 grid below 960px) ── */}
-      <div className="ihero__facts">
-        <div className="ihero__fact ihero__fact--f1">
-          <div className="ihero__fact-label">ONE YEAR</div>
-          <div
-            className={`ihero__fact-value${
-              oneYear !== null && oneYear < 0 ? " is-neg" : ""
-            }`}
-          >
-            {oneYear !== null ? fmtSignedPct(oneYear) : "—"}
-          </div>
-        </div>
-
-        <div className="ihero__fact ihero__fact--f2">
-          <div className="ihero__fact-label">
-            <span className="ihero-desk">SINCE LAUNCH · {launchYear}</span>
-            <span className="ihero-mob">SINCE {launchYear}</span>
-          </div>
-          <div className="ihero__fact-value">
-            {sinceLaunch !== null ? `×${sinceLaunch.toFixed(2)}` : "—"}
-          </div>
-        </div>
-
-        <div className="ihero__fact ihero__fact--f3">
-          <div className="ihero__fact-label">TYPICAL DAY</div>
-          <div className="ihero__fact-value">
-            {severity ? fmtPlusMinusPct(severity.typicalMovePercent) : "—"}
-          </div>
-        </div>
-
-        <div className="ihero__fact ihero__fact--f4">
-          <div className="ihero__fact-label">
-            <span className="ihero-desk">52-WEEK RANGE</span>
-            <span className="ihero-mob">52-WK RANGE</span>
-          </div>
-          <div className="ihero__fact-value ihero__fact-value--range">
-            {rangeLabel}
-          </div>
-          {hasRange && (
-            <div className="ihero__trackwrap">
-              <FiftyTwoTrack
-                price={quote.price}
-                low={low}
-                high={high}
-                lowMonth={lowMonth}
-              />
-            </div>
-          )}
-        </div>
+      {/* ── RIGHT — facts column (2×2 grid below 960px). Hidden on
+          phones, where the artboard orders the facts AFTER the
+          conditions band — HomeClient renders HeroFactsMobile there. ── */}
+      <div className="ihero__facts ihero__facts--desk">
+        <FactsRows historical={historical} quote={quote} severity={severity} />
       </div>
 
       <HeroStyles />
     </section>
+  );
+}
+
+/* ── Facts rows — shared by the in-hero column and the phone-only
+ * instance below the conditions band (3a mobile order: price →
+ * conditions → facts → chart). ── */
+
+function FactsRows({
+  historical,
+  quote,
+  severity,
+}: {
+  historical: readonly HistoricalDataPoint[];
+  quote: VeqtQuote;
+  severity: SeverityReading | null;
+}) {
+  /** Trailing-year return: last close vs. close ~252 sessions back. */
+  const oneYear = useMemo(() => {
+    const n = historical.length;
+    if (n < 240) return null;
+    const last = historical[n - 1].close;
+    const base = historical[Math.max(0, n - 1 - 252)].close;
+    if (!(base > 0) || !Number.isFinite(last)) return null;
+    return (last / base - 1) * 100;
+  }, [historical]);
+
+  /** Since launch: last close / first close — "×2.27". */
+  const sinceLaunch = useMemo(() => {
+    const n = historical.length;
+    if (n < 2) return null;
+    const first = historical[0].close;
+    const last = historical[n - 1].close;
+    if (!(first > 0) || !Number.isFinite(last)) return null;
+    return last / first;
+  }, [historical]);
+
+  const launchYear = useMemo(
+    () =>
+      historical.length
+        ? parseSessionDate(historical[0].date).getUTCFullYear()
+        : 2019,
+    [historical]
+  );
+
+  /** Month of the minimum close in the trailing 365 days — "OCT". */
+  const lowMonth = useMemo(() => {
+    const n = historical.length;
+    if (n < 2) return null;
+    const lastTime = parseSessionDate(historical[n - 1].date).getTime();
+    const cutoff = lastTime - 365 * 24 * 60 * 60 * 1000;
+    let min: HistoricalDataPoint | null = null;
+    for (let i = n - 1; i >= 0; i -= 1) {
+      const p = historical[i];
+      if (parseSessionDate(p.date).getTime() < cutoff) break;
+      if (!min || p.close < min.close) min = p;
+    }
+    return min ? MONTHS[parseSessionDate(min.date).getUTCMonth()] : null;
+  }, [historical]);
+
+  const low = quote.fiftyTwoWeekLow;
+  const high = quote.fiftyTwoWeekHigh;
+  const hasRange = high > low && low > 0;
+  const rangeLabel = hasRange ? `${fmtPrice(low)}–${fmtPrice(high)}` : "—";
+
+  return (
+    <>
+      <div className="ihero__fact ihero__fact--f1">
+        <div className="ihero__fact-label">ONE YEAR</div>
+        <div
+          className={`ihero__fact-value${
+            oneYear !== null && oneYear < 0 ? " is-neg" : ""
+          }`}
+        >
+          {oneYear !== null ? fmtSignedPct(oneYear) : "—"}
+        </div>
+      </div>
+
+      <div className="ihero__fact ihero__fact--f2">
+        <div className="ihero__fact-label">
+          <span className="ihero-desk">SINCE LAUNCH · {launchYear}</span>
+          <span className="ihero-mob">SINCE {launchYear}</span>
+        </div>
+        <div className="ihero__fact-value">
+          {sinceLaunch !== null ? `×${sinceLaunch.toFixed(2)}` : "—"}
+        </div>
+      </div>
+
+      <div className="ihero__fact ihero__fact--f3">
+        <div className="ihero__fact-label">TYPICAL DAY</div>
+        <div className="ihero__fact-value">
+          {severity ? fmtPlusMinusPct(severity.typicalMovePercent) : "—"}
+        </div>
+      </div>
+
+      <div className="ihero__fact ihero__fact--f4">
+        <div className="ihero__fact-label">
+          <span className="ihero-desk">52-WEEK RANGE</span>
+          <span className="ihero-mob">52-WK RANGE</span>
+        </div>
+        <div className="ihero__fact-value ihero__fact-value--range">
+          {rangeLabel}
+        </div>
+        {hasRange && (
+          <div className="ihero__trackwrap">
+            <FiftyTwoTrack
+              price={quote.price}
+              low={low}
+              high={high}
+              lowMonth={lowMonth}
+            />
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+/**
+ * Phone-only facts grid, rendered by HomeClient between the conditions
+ * band and the chart — the 3a mobile artboard's module order. Hidden at
+ * ≥640px, where the facts live in the hero column above.
+ */
+export function HeroFactsMobile({
+  data,
+  severity,
+}: {
+  data: VeqtApiResponse | null;
+  severity: SeverityReading | null;
+}) {
+  const historical = data?.historical ?? EMPTY_HISTORY;
+  const quote = data?.quote ?? null;
+  if (!quote) return null;
+  return (
+    <div className="ihero__facts ihero__facts--mobile">
+      <FactsRows historical={historical} quote={quote} severity={severity} />
+      <HeroStyles />
+    </div>
   );
 }
 
@@ -247,7 +299,7 @@ function HeroSkeleton() {
         <div className="ihero-skel" style={{ height: 31, width: 340, maxWidth: "90%", marginTop: 28 }} />
         <div className="ihero-skel" style={{ height: 41, marginTop: 26 }} />
       </div>
-      <div className="ihero__facts">
+      <div className="ihero__facts ihero__facts--desk">
         {(["f1", "f2", "f3", "f4"] as const).map((f) => (
           <div key={f} className={`ihero__fact ihero__fact--${f}`}>
             <div className="ihero-skel" style={{ height: 9, width: 90 }} />
@@ -463,6 +515,12 @@ function HeroStyles() {
     }
   }
 
+  /* The phone-only facts instance (after the conditions band) stays
+     out of the document until the mobile deltas kick in. */
+  .ihero__facts.ihero__facts--mobile {
+    display: none;
+  }
+
   /* Mobile deltas — 3a mobile artboard. */
   @media (max-width: 639px) {
     .ihero-desk {
@@ -470,6 +528,16 @@ function HeroStyles() {
     }
     .ihero-mob {
       display: inline;
+    }
+    /* Artboard order on phones: price → conditions → facts → chart.
+       The in-hero column bows out; HomeClient's instance takes over. */
+    .ihero__facts.ihero__facts--desk {
+      display: none;
+    }
+    .ihero__facts.ihero__facts--mobile {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0 20px;
     }
     .ihero {
       padding-top: 24px;

@@ -4,7 +4,6 @@ import { useRouter, usePathname } from "next/navigation";
 import { useState, useCallback } from "react";
 import Link from "next/link";
 import LiveTickerPill from "./LiveTickerPill";
-import ThemeToggle from "./ThemeToggle";
 
 interface RouteChrome {
   title: string;
@@ -45,7 +44,7 @@ function chromeForPath(pathname: string): RouteChrome {
  * kicker + title on inner routes, live dot cluster + ☰ drawer on the
  * right, and the 5px ink masthead bar underneath (edition-aware).
  *
- * Action-drawer (☰) holds theme toggle + secondary nav.
+ * Action-drawer (☰) holds the secondary nav.
  */
 export default function TopBar() {
   const router = useRouter();
@@ -262,30 +261,6 @@ export default function TopBar() {
             <Link href="/methodology" onClick={() => setMenuOpen(false)} style={menuLink()}>
               Methodology
             </Link>
-
-            <div
-              style={{
-                marginTop: 12,
-                paddingTop: 14,
-                borderTop: "1px solid var(--ins-hair)",
-                display: "flex",
-                flexDirection: "column",
-                gap: 10,
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 9,
-                  fontWeight: 800,
-                  letterSpacing: "0.22em",
-                  textTransform: "uppercase",
-                  color: "var(--ins-gray-600)",
-                }}
-              >
-                Edition
-              </div>
-              <ThemeToggle />
-            </div>
           </div>
         </div>
       )}

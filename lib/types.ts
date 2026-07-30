@@ -14,6 +14,11 @@ export interface VeqtQuote {
   currency: string;
   exchange: string;
   lastUpdated: string;
+  /** Session date (YYYY-MM-DD) the quote belongs to — from the exchange's
+      regularMarketTime, NOT the fetch clock. Between midnight and the next
+      open the quote still carries the prior session; datelines must use
+      this, never lastUpdated. */
+  latestTradingDay?: string;
   isFallback?: boolean;
 }
 

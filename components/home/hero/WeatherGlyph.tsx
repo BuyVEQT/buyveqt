@@ -17,8 +17,9 @@ import type { WeatherState } from "@/lib/severity";
  *   surge   sun, longer rays, fill 0.50,
  *           white inner dashed ring       raySpin 34s + shimmer 2.2s
  *   squall  cloud + red rain              rainFall 1.1s (2 groups, ½-phase)
- *   rally   solid red disc, ink rays,
- *           red halo                      raySpin 22s + ringPulse 2.2s
+ *   rally   solid red disc, red flame-
+ *           wedge rays, twin red halo     raySpin 16s + shimmer 1.8s
+ *                                         + ringPulse 2.2s ×2 (½-phase)
  *   gale    cloud + red bolt + heavy rain boltFlash 3.8s + rainFall 0.9s
  *
  * Geometry is ground truth from the "5a — seven-state weather system"
@@ -42,11 +43,20 @@ interface WeatherGlyphProps {
 
 const RAY_ANGLES = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330];
 
+/**
+ * Rally rays are sharp flame wedges — filled paths, not the shared ink
+ * lines — alternating long (0/60/120/…) and short (30/90/150/…) about
+ * (60, 60). Being fills, they need no MIN_STROKE_PX floor at mini sizes.
+ */
+const RALLY_WEDGE_LONG = "M56.9 16 L60 2 L63.1 16 Z";
+const RALLY_WEDGE_SHORT = "M57.5 16 L60 7 L62.5 16 Z";
+
 interface SunSpec {
   /** ins-raySpin duration, seconds. */
   spin: number;
   /** ins-hintShimmer duration on the ray group, seconds (null = none). */
   shimmer: number | null;
+  /** Line-ray geometry — ignored by rally, which draws flame wedges. */
   rayW: number;
   longY1: number;
   shortY1: number;
@@ -91,12 +101,13 @@ const SUN_SPECS: Partial<Record<WeatherState, SunSpec>> = {
     fill: "rgba(232, 68, 46, 0.5)",
   },
   rally: {
-    spin: 22,
-    shimmer: null,
-    rayW: 3,
-    longY1: 3,
-    shortY1: 8,
-    rayY2: 15,
+    spin: 16,
+    shimmer: 1.8,
+    // Line-ray fields unused — rally rays are RALLY_WEDGE_* fill paths.
+    rayW: 0,
+    longY1: 0,
+    shortY1: 0,
+    rayY2: 0,
     r: 28,
     circleW: 0, // solid disc, no outline
     fill: "var(--ins-signal)",
@@ -148,41 +159,76 @@ export default function WeatherGlyph({
         aria-label={`Weather: ${state}`}
       >
         {state === "rally" && (
-          <circle
-            cx={60}
-            cy={60}
-            r={34}
-            stroke="var(--ins-signal)"
-            strokeWidth={sw(1.5)}
-            fill="none"
-            style={
-              animated
-                ? {
-                    transformOrigin: "60px 60px",
-                    animation: "ins-ringPulse 2.2s ease-out infinite",
-                  }
-                : undefined
-            }
-          />
+          <>
+            {/* Twin halo, half a phase apart. */}
+            <circle
+              cx={60}
+              cy={60}
+              r={34}
+              stroke="var(--ins-signal)"
+              strokeWidth={sw(1.5)}
+              fill="none"
+              style={
+                animated
+                  ? {
+                      transformOrigin: "60px 60px",
+                      animation: "ins-ringPulse 2.2s ease-out infinite",
+                    }
+                  : undefined
+              }
+            />
+            <circle
+              cx={60}
+              cy={60}
+              r={34}
+              stroke="var(--ins-signal)"
+              /* Spec is 1.5 / 1 — derive the thin ring from the thick one
+                 so the asymmetry survives sw()'s small-size floor (a plain
+                 sw(1) clamps to 1.5 at the 84px hero size). */
+              strokeWidth={(sw(1.5) * 2) / 3}
+              fill="none"
+              style={
+                animated
+                  ? {
+                      transformOrigin: "60px 60px",
+                      animation: "ins-ringPulse 2.2s ease-out infinite",
+                      animationDelay: "-1.1s",
+                    }
+                  : undefined
+              }
+            />
+          </>
         )}
         <g style={spinStyle}>
-          <g
-            stroke="var(--ins-ink)"
-            strokeWidth={sw(sun.rayW)}
-            strokeLinecap="round"
-            style={shimmerStyle}
-          >
-            {RAY_ANGLES.map((angle, i) => (
-              <line
-                key={angle}
-                x1={60}
-                y1={i % 2 === 0 ? sun.longY1 : sun.shortY1}
-                x2={60}
-                y2={sun.rayY2}
-                transform={`rotate(${angle} 60 60)`}
-              />
-            ))}
-          </g>
+          {state === "rally" ? (
+            <g fill="var(--ins-signal)" stroke="none" style={shimmerStyle}>
+              {RAY_ANGLES.map((angle, i) => (
+                <path
+                  key={angle}
+                  d={i % 2 === 0 ? RALLY_WEDGE_LONG : RALLY_WEDGE_SHORT}
+                  transform={`rotate(${angle} 60 60)`}
+                />
+              ))}
+            </g>
+          ) : (
+            <g
+              stroke="var(--ins-ink)"
+              strokeWidth={sw(sun.rayW)}
+              strokeLinecap="round"
+              style={shimmerStyle}
+            >
+              {RAY_ANGLES.map((angle, i) => (
+                <line
+                  key={angle}
+                  x1={60}
+                  y1={i % 2 === 0 ? sun.longY1 : sun.shortY1}
+                  x2={60}
+                  y2={sun.rayY2}
+                  transform={`rotate(${angle} 60 60)`}
+                />
+              ))}
+            </g>
+          )}
         </g>
         {state === "rally" ? (
           <circle cx={60} cy={60} r={sun.r} fill={sun.fill} />

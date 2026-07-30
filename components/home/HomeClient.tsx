@@ -5,7 +5,7 @@ import { useVeqtData } from "@/lib/useVeqtData";
 import { useRegions, type Region } from "@/lib/useRegions";
 import { computeSeverity } from "@/lib/severity";
 
-import HeroToday from "./HeroToday";
+import HeroToday, { HeroFactsMobile } from "./HeroToday";
 import ConditionsBand from "./ConditionsBand";
 import DuoChart from "./hero/DuoChart";
 import RegionGrid from "./RegionGrid";
@@ -118,6 +118,10 @@ export default function HomeClient() {
         <HeroToday data={full.data} loading={full.loading} severity={severity} />
 
         <ConditionsBand severity={severity} history={history} quote={quote} />
+
+        {/* Phones only — the 3a mobile artboard orders the facts grid
+            between the conditions band and the chart. */}
+        <HeroFactsMobile data={full.data} severity={severity} />
 
         <DuoChart history={history} loading={full.loading} />
 

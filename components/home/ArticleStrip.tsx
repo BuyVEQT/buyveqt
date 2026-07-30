@@ -252,7 +252,7 @@ export default function ArticleStrip() {
             twenty-three minutes. In order.
           </p>
           <div className="ins-read__editor-meta">
-            &mdash; Syllabus updated weekly
+            &mdash; Round 4 syllabus, updated weekly
           </div>
         </aside>
 

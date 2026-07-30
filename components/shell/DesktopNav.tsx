@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import LiveTickerPill from "./LiveTickerPill";
-import ThemeToggle from "./ThemeToggle";
 
 type NavId = "today" | "inside" | "compare" | "learn" | "calc" | "comm";
 
@@ -37,8 +36,8 @@ function activeFromPath(pathname: string): NavId | null {
 
 /**
  * Desktop sticky nav — the Instrument masthead. White paper, Archivo,
- * uppercase micro-label links, live ticker + theme toggle on the right,
- * and the signature 6px ink masthead bar underneath (edition-aware via
+ * uppercase micro-label links, live ticker on the right, and the
+ * signature 6px ink masthead bar underneath (edition-aware via
  * --ins-masthead). No blur, no radius, no shadows.
  */
 export default function DesktopNav() {
@@ -122,7 +121,6 @@ export default function DesktopNav() {
             }}
           >
             <LiveTickerPill />
-            <ThemeToggle />
           </div>
         </div>
 
