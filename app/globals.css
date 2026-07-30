@@ -214,16 +214,6 @@
   --shadow-band: 0 0 0 1px rgba(184, 166, 110, 0.28);
 }
 
-/* Auto: respect the OS preference on first paint when no
-   localStorage value has been set yet. The no-FOUC head script
-   resolves auto → light/dark synchronously, but this fallback
-   covers the (rare) case where JS is disabled. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) {
-    color-scheme: dark;
-  }
-}
-
 /* Force light when printing — nobody prints a black newspaper. */
 @media print {
   :root,
@@ -248,16 +238,6 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Smooth theme swap. Only body — animating shadows/borders
-     globally looks junky. Everything else inherits the new var
-     values instantly. */
-  transition: background-color 220ms ease, color 220ms ease;
-}
-
-/* Skip the body transition during the first paint so the no-FOUC
-   script's data-theme write doesn't fade in the page background. */
-html:not(.theme-ready) body {
-  transition: none;
 }
 
 /* Film grain overlay — subtle texture */
@@ -2677,3 +2657,97 @@ label {
   }
 }
 
+
+/* ════════════════════════════════════════════════════════════════════════
+ * 14 — The Instrument (home redesign) — tokens + keyframes
+ *
+ * Swiss-poster instrument panel: white page, Archivo grotesk, ink rules,
+ * red spent only on signal. Tokens are THEME-INVARIANT (like --band-*):
+ * the Instrument is its own theme context — white paper in both themes,
+ * with the rare "Ink Edition" (P98+ down day) handling full inversion.
+ * Spec: design_handoff_instrument README (June 2026).
+ * ════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --ins-ink: #111111;
+  --ins-paper: #ffffff;
+  --ins-signal: #e8442e; /* THE red — live dot, today chip, negatives, editions */
+  --ins-gray-700: #555555; /* nav links */
+  --ins-gray-600: #767676; /* micro-labels, captions — AA only ≥8.5px at w600+ */
+  --ins-gray-400: #999999; /* mobile inactive tabs */
+  --ins-hair: rgba(17, 17, 17, 0.25); /* soft hairlines */
+  --ins-hair-soft: rgba(17, 17, 17, 0.2); /* footnote rules */
+  --ins-track: rgba(17, 17, 17, 0.14); /* bar tracks */
+  --ins-track-soft: rgba(17, 17, 17, 0.12);
+  --ins-ordinal: rgba(17, 17, 17, 0.18); /* oversized rank numerals */
+  /* Inverse — ink panels (Almanac, Gale card, footer band) */
+  --ins-inv-text: #ffffff;
+  --ins-inv-mute: rgba(255, 255, 255, 0.55);
+  --ins-inv-border: rgba(255, 255, 255, 0.28);
+  --ins-inv-border-strong: rgba(255, 255, 255, 0.35);
+  --ins-inv-border-soft: rgba(255, 255, 255, 0.2);
+  --ins-font: var(--font-archivo, "Archivo"), ui-sans-serif, system-ui,
+    -apple-system, sans-serif;
+}
+
+.ins-tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Animation spec — copied exactly from the handoff; `ins-` prefix avoids
+   collision with the legacy fadeUp/pulse names elsewhere in this file. */
+@keyframes ins-pulse       { 0%, 100% { opacity: 1 } 50% { opacity: 0.35 } }
+@keyframes ins-fadeUp      { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: none } }
+@keyframes ins-drawIn      { to { stroke-dashoffset: 0 } }
+@keyframes ins-tickPop     { 0% { opacity: 0; transform: scale(0.7) } 70% { transform: scale(1.07) } 100% { opacity: 1; transform: scale(1) } }
+@keyframes ins-hintShimmer { 0%, 100% { opacity: 0.4 } 50% { opacity: 1 } }
+@keyframes ins-gaugeIn     { from { left: 3%; opacity: 0 } }
+@keyframes ins-raySpin     { to { transform: rotate(360deg) } }
+@keyframes ins-drift       { 0%, 100% { transform: translateX(0) } 50% { transform: translateX(6px) } }
+@keyframes ins-rainFall    { from { transform: translateY(-2px); opacity: 0.95 } to { transform: translateY(5px); opacity: 0 } }
+@keyframes ins-boltFlash   { 0%, 100% { opacity: 1 } 6% { opacity: 0.15 } 10% { opacity: 1 } 13% { opacity: 0.3 } 16% { opacity: 1 } }
+@keyframes ins-ringPulse   { from { transform: scale(0.8); opacity: 0.8 } to { transform: scale(1.35); opacity: 0 } }
+
+/* Reduced motion — kill loops AND entrances; show end states. Scoped to
+   Instrument surfaces so the rest of the site keeps its own handling. */
+@media (prefers-reduced-motion: reduce) {
+  .ins-root *,
+  .ins-root *::before,
+  .ins-root *::after,
+  .ins-shell *,
+  .ins-shell *::before,
+  .ins-shell *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ── Editions — page-level effects on P98+ days ─────────────────────────
+ * Set via data attribute on <html> by the home page while mounted:
+ *   data-ins-edition="red"  (RALLY) — red masthead + section rules + chart
+ *   data-ins-edition="ink"  (GALE)  — the whole page inverts to ink
+ * Components opt in through the tokens below rather than per-element
+ * selectors, so the edition cascades everywhere the tokens are used. */
+[data-ins-edition="red"] {
+  --ins-masthead: var(--ins-signal);
+  --ins-rule-strong: var(--ins-signal);
+  --ins-chart-line: var(--ins-signal);
+}
+[data-ins-edition="ink"] {
+  --ins-ink: #ffffff;
+  --ins-paper: #111111;
+  --ins-gray-700: rgba(255, 255, 255, 0.7);
+  --ins-gray-600: rgba(255, 255, 255, 0.55);
+  --ins-gray-400: rgba(255, 255, 255, 0.4);
+  --ins-hair: rgba(255, 255, 255, 0.28);
+  --ins-hair-soft: rgba(255, 255, 255, 0.2);
+  --ins-track: rgba(255, 255, 255, 0.2);
+  --ins-track-soft: rgba(255, 255, 255, 0.16);
+  --ins-ordinal: rgba(255, 255, 255, 0.25);
+}
+/* Defaults for the edition-aware slots. */
+:root {
+  --ins-masthead: var(--ins-ink);
+  --ins-rule-strong: var(--ins-ink);
+  --ins-chart-line: var(--ins-ink);
+}

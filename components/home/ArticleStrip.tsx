@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 interface CourseEntry {
-  step: number | string;
+  step: number;
   slug: string;
   title: string;
   kicker: string;
@@ -10,7 +10,6 @@ interface CourseEntry {
 
 /**
  * Course 1 — the home page's primary reading order.
- * V2: editor's-note column on left + three article rows with Fraunces ordinals.
  * Hardcoded so it stays independent of /learn syllabus changes.
  */
 const COURSE_1: CourseEntry[] = [
@@ -37,69 +36,241 @@ const COURSE_1: CourseEntry[] = [
   },
 ];
 
+const css = `
+.ins-read {
+  border-top: 3px solid var(--ins-rule-strong, #111111);
+  padding-top: 12px;
+  font-family: var(--ins-font);
+  color: var(--ins-ink, #111111);
+}
+.ins-read__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+}
+.ins-read__eyebrow {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ins-gray-600);
+}
+.ins-read__display {
+  margin: 6px 0 0;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.ins-read__all {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ins-ink);
+  text-decoration: none;
+  border-bottom: 2px solid var(--ins-ink);
+  padding-bottom: 4px;
+  white-space: nowrap;
+}
+.ins-read__grid {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 40px;
+  margin-top: 16px;
+}
+.ins-read__editor {
+  border-right: 1px solid var(--ins-hair);
+  padding-right: 28px;
+}
+.ins-read__editor-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ins-signal);
+}
+.ins-read__editor-body {
+  margin: 10px 0 0;
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 1.55;
+  color: #333333;
+}
+.ins-read__editor-meta {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--ins-hair);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ins-gray-600);
+}
+.ins-read__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.ins-read__row {
+  display: grid;
+  grid-template-columns: 64px 1fr auto;
+  gap: 20px;
+  align-items: end;
+  padding: 14px 0;
+  text-decoration: none;
+  color: var(--ins-ink);
+  transition: padding-left 0.18s ease;
+}
+.ins-read__item:not(:last-child) .ins-read__row {
+  border-bottom: 1px solid var(--ins-hair);
+}
+.ins-read__row:hover {
+  padding-left: 8px;
+}
+.ins-read__ordinal {
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ins-ordinal);
+  font-variant-numeric: tabular-nums;
+}
+.ins-read__body {
+  display: block;
+  min-width: 0;
+}
+.ins-read__kicker {
+  display: block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ins-gray-600);
+  font-variant-numeric: tabular-nums;
+}
+.ins-read__title {
+  display: block;
+  margin-top: 4px;
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+}
+.ins-read__arrow {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ins-ink);
+  align-self: center;
+  transition: color 0.18s ease;
+}
+.ins-read__row:hover .ins-read__arrow {
+  color: var(--ins-signal);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ins-read__row,
+  .ins-read__arrow {
+    transition: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .ins-read__editor {
+    display: none;
+  }
+  .ins-read__all {
+    display: none;
+  }
+  .ins-read__grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+    margin-top: 0;
+  }
+  .ins-read__eyebrow {
+    font-size: 8.5px;
+    letter-spacing: 0.2em;
+  }
+  .ins-read__display {
+    margin-top: 4px;
+    font-size: 20px;
+  }
+  .ins-read__row {
+    grid-template-columns: 40px 1fr auto;
+    gap: 14px;
+    padding: 12px 0;
+  }
+  .ins-read__ordinal {
+    font-size: 30px;
+  }
+  .ins-read__kicker {
+    font-size: 8px;
+    letter-spacing: 0.16em;
+  }
+  .ins-read__title {
+    margin-top: 3px;
+    font-size: 15px;
+  }
+  .ins-read__arrow {
+    font-size: 15px;
+  }
+}
+`;
+
 /**
- * CourseStrip V2 — editor's note on the left (drop-cap T, stamp header,
- * hairline divider, byline footer) + three article rows with Fraunces ordinals.
- * Server component — no client state.
+ * ArticleStrip — "Reading order" module of the Instrument (handoff §1.7).
+ *
+ * 3px rule · eyebrow + display · syllabus link, then a `300px 1fr` grid:
+ * editor's note (the module's single red label) beside three ordinal rows.
+ * Row hover: 8px indent + the arrow turns signal red.
+ *
+ * Server component — zero props, no client state; plain <style> (not
+ * styled-jsx) keeps it server-safe.
  */
 export default function ArticleStrip() {
   return (
-    <section className="course">
-      <div className="course__head">
+    <section className="ins-read" aria-labelledby="ins-read-display">
+      <header className="ins-read__head">
         <div>
-          <div className="ed-stamp">Read up · Course one</div>
-          <div className="ed-display course__h">
-            A reading order,{" "}
-            <em style={{ fontStyle: "italic", fontWeight: 500 }}>
-              in three parts.
-            </em>
-          </div>
+          <div className="ins-read__eyebrow">Read up · Course one</div>
+          <h2 id="ins-read-display" className="ins-read__display">
+            A reading order, in three parts.
+          </h2>
         </div>
-        <Link href="/learn" className="course__all">
-          The full syllabus{" "}
-          <span style={{ color: "var(--stamp)" }}>→</span>
+        <Link href="/learn" className="ins-read__all">
+          The full syllabus <span aria-hidden>→</span>
         </Link>
-      </div>
+      </header>
 
-      <div className="course__layout">
-        {/* Editor column */}
-        <aside className="course__editor">
-          <div
-            className="ed-stamp"
-            style={{ color: "var(--stamp)", marginBottom: 8 }}
-          >
-            From the editor
-          </div>
-          <p className="ed-body course__editor-body">
+      <div className="ins-read__grid">
+        {/* Editor column — hidden on mobile (rows only, per 13-ref) */}
+        <aside className="ins-read__editor">
+          <div className="ins-read__editor-label">From the editor</div>
+          <p className="ins-read__editor-body">
             The shortest path from &ldquo;I keep hearing about VEQT&rdquo; to
-            &ldquo;I understand what I&apos;d be holding.&rdquo; Three reads,
+            &ldquo;I understand what I&rsquo;d be holding.&rdquo; Three reads,
             twenty-three minutes. In order.
           </p>
-          <div className="course__editor-meta">
-            <span className="ed-caption">
-              — Round 4 syllabus, updated weekly
-            </span>
+          <div className="ins-read__editor-meta">
+            &mdash; Round 4 syllabus, updated weekly
           </div>
         </aside>
 
-        {/* Article rows */}
-        <ol className="course__list">
+        <ol className="ins-read__list">
           {COURSE_1.map((a) => (
-            <li key={a.slug}>
-              <Link href={`/learn/${a.slug}`} className="course__row">
-                <span className="course__num ed-display">{a.step}</span>
-                <div className="course__row-body">
-                  <div className="course__kicker">
-                    <span className="ed-label">{a.kicker}</span>
-                    <span className="ed-caption" style={{ fontSize: 12 }}>
-                      {" "}
-                      · {a.readingTime}
-                    </span>
-                  </div>
-                  <div className="ed-display course__title">{a.title}</div>
-                </div>
-                <span className="course__chev" aria-hidden>
-                  ›
+            <li key={a.slug} className="ins-read__item">
+              <Link href={`/learn/${a.slug}`} className="ins-read__row">
+                <span className="ins-read__ordinal" aria-hidden>
+                  {String(a.step).padStart(2, "0")}
+                </span>
+                <span className="ins-read__body">
+                  <span className="ins-read__kicker">
+                    {a.kicker} · {a.readingTime}
+                  </span>
+                  <span className="ins-read__title">{a.title}</span>
+                </span>
+                <span className="ins-read__arrow" aria-hidden>
+                  →
                 </span>
               </Link>
             </li>
@@ -107,152 +278,7 @@ export default function ArticleStrip() {
         </ol>
       </div>
 
-      <style jsx global>{`
-        .course {
-          padding: 28px 0 12px;
-        }
-        .course__head {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-end;
-          gap: 24px;
-          margin-bottom: 14px;
-          flex-wrap: wrap;
-        }
-        .course__h {
-          font-size: clamp(2rem, 3.6vw, 2.6rem);
-          line-height: 1;
-          letter-spacing: -0.02em;
-          margin-top: 6px;
-        }
-        .course__all {
-          font-family: var(--font-sans);
-          font-size: 11px;
-          font-weight: 700;
-          letter-spacing: 0.16em;
-          text-transform: uppercase;
-          color: var(--ink-soft);
-          text-decoration: none;
-        }
-
-        .course__layout {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: var(--gap, 22px);
-          border-top: 2px solid var(--ink);
-          padding-top: 6px;
-        }
-        @media (min-width: 880px) {
-          .course__layout {
-            grid-template-columns: 0.7fr 2fr;
-            gap: 32px;
-          }
-        }
-
-        /* Editor column */
-        .course__editor {
-          padding: 18px 18px 0 4px;
-          border-right: none;
-        }
-        @media (min-width: 880px) {
-          .course__editor {
-            border-right: 1px solid var(--rule-soft);
-            padding-right: 24px;
-          }
-        }
-        .course__editor-body {
-          font-family: var(--font-serif);
-          font-size: 16px;
-          line-height: 1.55;
-          color: var(--ink-soft);
-          margin-bottom: 14px;
-          max-width: 30ch;
-        }
-        /* Drop-cap T */
-        .course__editor-body::first-letter {
-          font-family: var(--font-display);
-          font-weight: 700;
-          font-size: 2.6em;
-          line-height: 0.88;
-          float: left;
-          padding: 0.06em 0.12em 0 0;
-          color: var(--ink);
-        }
-        .course__editor-meta {
-          padding-top: 12px;
-          border-top: 1px solid var(--rule-soft);
-        }
-
-        /* Article list */
-        .course__list {
-          list-style: none;
-          margin: 0;
-          padding: 0;
-        }
-        .course__row {
-          display: grid;
-          grid-template-columns: 56px 1fr 24px;
-          /* Bottom-align so the big Fraunces ordinal's baseline sits on
-             the same line as the article title; the small kicker label
-             just rides above it. align-items center left the digits
-             floating against the kicker instead of the title. */
-          align-items: end;
-          gap: 18px;
-          padding: 18px 4px;
-          border-bottom: 1px solid var(--rule-soft);
-          text-decoration: none;
-          color: var(--ink);
-          transition: padding 0.18s;
-        }
-        .course__row:hover {
-          padding-left: 12px;
-        }
-        .course__row:hover .course__chev {
-          transform: translateX(4px);
-          color: var(--stamp);
-        }
-        .course__list li:last-child .course__row {
-          border-bottom: none;
-        }
-
-        .course__num {
-          font-size: 48px;
-          /* line-height: 1 so the digit's bottom edge sits on the row's
-             bottom edge; combined with align-items end this lines the
-             numeral up with the article title's baseline. */
-          line-height: 1;
-          letter-spacing: -0.04em;
-          color: var(--stamp);
-          font-feature-settings: "ss01", "lnum";
-          /* Visual baseline trim: Fraunces lining figures sit a few px
-             above the descender line, so nudge down so the bottom of the
-             digit reads as flush with the title text below it. */
-          position: relative;
-          top: 4px;
-        }
-        .course__row-body {
-          min-width: 0;
-        }
-        .course__kicker {
-          display: flex;
-          align-items: baseline;
-          gap: 8px;
-          margin-bottom: 4px;
-        }
-        .course__title {
-          font-size: clamp(1.1rem, 1.8vw, 1.4rem);
-          line-height: 1.1;
-          letter-spacing: -0.01em;
-          margin: 0;
-        }
-        .course__chev {
-          color: var(--ink-mute);
-          font-size: 24px;
-          font-family: var(--font-display);
-          transition: transform 0.18s, color 0.18s;
-          align-self: center;
-        }
-      `}</style>
+      <style dangerouslySetInnerHTML={{ __html: css }} />
     </section>
   );
 }

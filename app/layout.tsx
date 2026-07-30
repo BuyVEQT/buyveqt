@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { Newsreader, Inter, Fraunces } from "next/font/google";
+import { Newsreader, Inter, Fraunces, Archivo } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
-import ThemeProvider, { NoFoucThemeScript } from "@/components/ThemeProvider";
 import DesktopNav from "@/components/shell/DesktopNav";
 import TopBar from "@/components/shell/TopBar";
 import TabBar from "@/components/shell/TabBar";
@@ -51,6 +50,15 @@ const fraunces = Fraunces({
   variable: "--font-fraunces",
   weight: ["400", "500", "700"],
   style: ["normal", "italic"],
+});
+
+// Archivo — the Instrument (home redesign + site shell) grotesk. No italic
+// by design: the Instrument's emphasis grammar is weight + red, never slant.
+const archivo = Archivo({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-archivo",
+  weight: ["500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
@@ -125,9 +133,10 @@ export const metadata: Metadata = {
 
 // Pairs with app/manifest.ts. The theme-color meta is what sets the URL bar
 // tint on Android Chrome and the Add-to-Home-Screen splash; manifest carries
-// the same value for installed PWAs.
+// the same value for installed PWAs. Instrument signal red — the one colour
+// the system uses to announce itself.
 export const viewport: import("next").Viewport = {
-  themeColor: "#c8102e",
+  themeColor: "#e8442e",
 };
 
 export default function RootLayout({
@@ -136,15 +145,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${newsreader.variable} ${inter.variable} ${fraunces.variable}`} suppressHydrationWarning>
-      <head>
-        {/* No-FOUC theme init — MUST run before globals.css loads.
-            Reads localStorage.veqt-theme, resolves "auto" via
-            prefers-color-scheme, and writes data-theme on <html>
-            synchronously so dark-mode users don't see a cream flash
-            on cold loads. */}
-        <NoFoucThemeScript />
-      </head>
+    <html lang="en" className={`${newsreader.variable} ${inter.variable} ${fraunces.variable} ${archivo.variable}`}>
       <body className="min-h-dvh bg-[var(--color-base)] text-[var(--color-text-primary)]">
         <JsonLd
           data={{
@@ -173,28 +174,17 @@ export default function RootLayout({
           root layout. FAQPage + InvestmentFund render on / and /inside-veqt
           where they describe the actual page content. See lib/seo-config.ts.
         */}
-        <ThemeProvider>
-          <DesktopNav />
-          <TopBar />
-          {/*
-            Mobile reserves room for the fixed TabBar at the bottom of the
-            shell. Desktop (lg+) hides the TabBar, so the pad collapses to 0.
-            The extra `env(safe-area-inset-bottom)` handles iPhone home-
-            indicator devices — without it, the last ~34 px of content sat
-            under the indicator on the X-and-newer hardware.
-          */}
-          <div
-            style={{
-              paddingBottom:
-                "calc(var(--shell-bottom-pad, 0) + env(safe-area-inset-bottom))",
-            }}
-            className="[--shell-bottom-pad:90px] lg:[--shell-bottom-pad:0]"
-          >
-            {children}
-          </div>
-          <SiteFooter />
-          <TabBar />
-        </ThemeProvider>
+        <DesktopNav />
+        <TopBar />
+        {/*
+          The Instrument footer's ink band renders on mobile and carries
+          its own TabBar clearance (margin-bottom + safe-area inset), so
+          the old 90px content pad here would just read as dead white
+          space between the page and the band.
+        */}
+        <div>{children}</div>
+        <SiteFooter />
+        <TabBar />
         <Analytics />
         <SpeedInsights />
         <Script

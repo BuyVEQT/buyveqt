@@ -3,263 +3,342 @@
 import Link from "next/link";
 import { useMemo } from "react";
 import type { HistoricalDataPoint, VeqtQuote } from "@/lib/types";
-import Card from "@/components/ui/Card";
+import {
+  fmtMoney,
+  fmtSignedPct,
+  parseSessionDate,
+} from "@/lib/instrument-format";
 
 interface InceptionBandProps {
-  history: readonly HistoricalDataPoint[];
+  history: HistoricalDataPoint[];
   quote: VeqtQuote | null;
   loading: boolean;
 }
 
-const ILLUSTRATIVE_AMOUNT = 10000;
-
-function fmtCAD(n: number): string {
-  return `$${n.toLocaleString("en-CA", { maximumFractionDigits: 0 })}`;
-}
+const AMOUNT = 10_000;
+const LAUNCH_YEAR = 2019;
+const LAUNCH_MONTH_INDEX = 0; // January
 
 /**
- * Almanac — dark band that answers "what if you bought $10,000 at launch?"
- *
- * Layout matches prototypes/session.jsx Almanac:
- *  - Top eyebrow: "Almanac · since {year}" left, "Entry № {n}" right
- *  - Hairline rule
- *  - "If you'd bought" italic lede
- *  - $10,000 with 2px vermilion bottom border + "at launch, {year}…"
- *  - Two tiles: Today (neutral) + Total Return (green-tinted)
- *  - Italic takeaway with 2px vermilion left border
- *  - "MORE CALCULATORS →" CTA at bottom
+ * The Almanac — ink panel (stays literal #111111 under editions).
+ * "If you'd bought $10,000 at launch, January 2019…" → today's market value,
+ * total return + CAGR, takeaway, MORE CALCULATORS CTA pinned to the bottom.
  */
 export default function InceptionBand({
   history,
-  quote,
+  quote, // eslint-disable-line @typescript-eslint/no-unused-vars -- contract prop; values derive from history per spec
   loading,
 }: InceptionBandProps) {
   const calc = useMemo(() => {
-    if (!quote || history.length < 2) return null;
+    if (history.length < 2) return null;
     const firstClose = history[0].close;
-    if (!Number.isFinite(firstClose) || firstClose <= 0) return null;
-    const today = (ILLUSTRATIVE_AMOUNT * quote.price) / firstClose;
-    const returnPct = ((quote.price - firstClose) / firstClose) * 100;
-    const inceptionYear = new Date(history[0].date).getFullYear();
-    const lastDate = history[history.length - 1].date;
-    const yearsHeld = Math.max(
+    const lastClose = history[history.length - 1].close;
+    if (
+      !Number.isFinite(firstClose) ||
+      firstClose <= 0 ||
+      !Number.isFinite(lastClose) ||
+      lastClose <= 0
+    ) {
+      return null;
+    }
+    const today = (AMOUNT * lastClose) / firstClose;
+    const totalPct = (lastClose / firstClose - 1) * 100;
+    const years = Math.max(
       0.08,
-      (new Date(lastDate).getTime() - new Date(history[0].date).getTime()) /
-        (1000 * 60 * 60 * 24 * 365.25)
+      (parseSessionDate(history[history.length - 1].date).getTime() -
+        parseSessionDate(history[0].date).getTime()) /
+        (365.25 * 86_400_000)
     );
-    const cagr =
-      (Math.pow(quote.price / firstClose, 1 / yearsHeld) - 1) * 100;
-    const monthsSinceInception = Math.round(yearsHeld * 12);
-    return {
-      today,
-      returnPct,
-      inceptionYear,
-      firstClose,
-      cagr,
-      monthsSinceInception,
-    };
-  }, [history, quote]);
+    const cagr = (Math.pow(lastClose / firstClose, 1 / years) - 1) * 100;
+    return { today, totalPct, cagr };
+  }, [history]);
+
+  // Entry № — months since January 2019 (June 2026 → 89), from the clock.
+  const entryNo = useMemo(() => {
+    const now = new Date();
+    return (
+      (now.getFullYear() - LAUNCH_YEAR) * 12 +
+      (now.getMonth() - LAUNCH_MONTH_INDEX)
+    );
+  }, []);
+
+  const showSkeleton = loading && !calc;
 
   return (
-    <Card dark padding={0}>
-      <div className="almanac">
-        {/* Eyebrow */}
-        <div className="almanac__top">
-          <span
-            className="ed-stamp"
-            style={{ color: "rgba(246,239,220,0.55)" }}
-          >
-            Almanac · since {calc?.inceptionYear ?? "2019"}
-          </span>
-          <span
-            className="ed-stamp"
-            style={{ color: "rgba(246,239,220,0.55)" }}
-          >
-            Entry № {calc?.monthsSinceInception ?? ""}
-          </span>
+    <section className="almanac" aria-label="Almanac">
+      {/* Top row */}
+      <div className="almanac__top">
+        <span>ALMANAC · SINCE 2019</span>
+        <span>
+          <span className="almanac__no-word">ENTRY </span>№ {entryNo}
+        </span>
+      </div>
+      <div className="almanac__rule" aria-hidden />
+
+      {showSkeleton ? (
+        <div aria-hidden>
+          <div className="almanac__bar" style={{ width: "38%", height: 22 }} />
+          <div
+            className="almanac__bar"
+            style={{ width: "64%", height: 58, marginTop: 12 }}
+          />
+          <div className="almanac__bar-pair">
+            <div className="almanac__bar" style={{ height: 84 }} />
+            <div className="almanac__bar" style={{ height: 84 }} />
+          </div>
+          <div
+            className="almanac__bar"
+            style={{ width: "88%", height: 40, marginTop: 22 }}
+          />
         </div>
-
-        {/* Hairline rule */}
-        <div className="almanac__rule" />
-
-        {/* Lede */}
-        <div className="ed-display-italic almanac__lede">If you&apos;d bought</div>
-
-        {/* Amount block */}
-        <div className="almanac__amount">
-          <span className="almanac__currency">$</span>
-          <span className="ed-display ed-numerals almanac__num">
-            {ILLUSTRATIVE_AMOUNT.toLocaleString("en-CA")}
-          </span>
-          <span className="almanac__qualifier">
-            at launch, {calc?.inceptionYear ?? "2019"}…
-          </span>
-        </div>
-
-        {/* Two-tile grid */}
-        <div className="almanac__grid">
-          <div className="almanac__tile">
-            <div
-              className="ed-stamp"
-              style={{ color: "rgba(246,239,220,0.55)" }}
-            >
-              Today
-            </div>
-            <div className="ed-display ed-numerals almanac__tile-val">
-              {loading && !calc ? "—" : calc ? fmtCAD(calc.today) : "—"}
-            </div>
-            <div className="almanac__tile-cap">market value</div>
+      ) : (
+        <>
+          <div className="almanac__lede">If you&rsquo;d bought</div>
+          <div className="almanac__amount">
+            <span className="almanac__sum">$10,000</span>
+            <span className="almanac__qualifier">
+              AT LAUNCH, JANUARY 2019…
+            </span>
           </div>
 
-          <div className="almanac__tile almanac__tile--accent">
-            <div
-              className="ed-stamp"
-              style={{ color: "rgba(124,192,149,0.75)" }}
-            >
-              Total return
+          {/* Two tiles */}
+          <div className="almanac__tiles">
+            <div className="almanac__tile">
+              <div className="almanac__tile-label">TODAY</div>
+              <div className="almanac__tile-value">
+                {calc ? fmtMoney(calc.today) : "—"}
+              </div>
+              <div className="almanac__tile-sub">MARKET VALUE</div>
             </div>
-            <div className="ed-display ed-numerals almanac__tile-val almanac__tile-val--green">
-              {loading && !calc
-                ? "—"
-                : calc
-                ? `${calc.returnPct >= 0 ? "+" : "−"}${Math.abs(
-                    calc.returnPct
-                  ).toFixed(1)}%`
-                : "—"}
-            </div>
-            <div className="almanac__tile-cap">
-              {calc ? `≈ ${calc.cagr.toFixed(1)}% per year, compounded` : ""}
+            <div className="almanac__tile">
+              <div className="almanac__tile-label">
+                <span className="almanac__tile-label-full">TOTAL RETURN</span>
+                <span className="almanac__tile-label-short">RETURN</span>
+              </div>
+              <div className="almanac__tile-value">
+                {calc ? fmtSignedPct(calc.totalPct, 1) : "—"}
+              </div>
+              <div className="almanac__tile-sub">
+                {calc ? `≈ ${calc.cagr.toFixed(1)}% / YR COMPOUNDED` : "—"}
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Italic takeaway */}
-        <p className="ed-body almanac__takeaway">
-          <em>
+          {/* Takeaway */}
+          <p className="almanac__takeaway">
             Sat through one pandemic, two rate cycles, and the rumour of a
             recession that never showed.
-          </em>
-        </p>
+          </p>
+        </>
+      )}
 
-        {/* CTA */}
+      {/* Bottom CTA — pinned */}
+      <div className="almanac__cta-row">
         <Link href="/calculators?tab=lookback" className="almanac__cta">
-          More calculators
-          <span style={{ color: "var(--stamp)" }} aria-hidden>
-            →
-          </span>
+          MORE CALCULATORS →
         </Link>
       </div>
 
       <style jsx>{`
         .almanac {
-          padding: 26px;
+          background: #111111; /* literal ink — stays ink under editions */
+          color: var(--ins-inv-text);
+          padding: 26px 28px;
           display: flex;
           flex-direction: column;
-          min-height: 100%;
+          height: 100%;
+          font-family: var(--ins-font);
+          font-variant-numeric: tabular-nums;
         }
+
         .almanac__top {
           display: flex;
           justify-content: space-between;
-          align-items: baseline;
-          margin-bottom: 12px;
           gap: 10px;
-          flex-wrap: wrap;
+          font-size: 9px;
+          font-weight: 600;
+          letter-spacing: 0.18em;
+          text-transform: uppercase;
+          color: var(--ins-inv-mute);
         }
         .almanac__rule {
           height: 1px;
-          background: rgba(246, 239, 220, 0.25);
-          margin-bottom: 18px;
+          background: rgba(255, 255, 255, 0.25);
+          margin: 14px 0 20px;
         }
+
         .almanac__lede {
-          font-size: clamp(1.5rem, 2.6vw, 1.9rem);
-          line-height: 1.05;
-          color: var(--band-paper);
-          margin-bottom: 14px;
+          font-size: 22px;
+          font-weight: 600;
+          letter-spacing: -0.01em;
+          color: var(--ins-inv-text);
         }
         .almanac__amount {
           display: flex;
           align-items: baseline;
-          gap: 6px;
-          margin-bottom: 22px;
+          gap: 10px;
           flex-wrap: wrap;
+          margin-top: 10px;
         }
-        .almanac__currency {
-          font-family: var(--font-display);
-          font-size: 28px;
-          color: rgba(246, 239, 220, 0.55);
-        }
-        .almanac__num {
-          font-size: clamp(2.6rem, 6vw, 3.6rem);
-          line-height: 0.95;
-          color: var(--band-paper);
-          border-bottom: 2px solid var(--stamp);
-          padding-bottom: 2px;
-          padding-right: 6px;
+        .almanac__sum {
+          display: inline-block;
+          font-size: 58px;
+          font-weight: 700;
+          letter-spacing: -0.04em;
+          line-height: 0.9;
+          color: var(--ins-inv-text);
+          border-bottom: 3px solid var(--ins-signal);
+          padding-bottom: 6px;
         }
         .almanac__qualifier {
-          font-family: var(--font-serif);
-          font-style: italic;
-          font-size: 14px;
-          color: rgba(246, 239, 220, 0.6);
-          margin-left: 8px;
+          font-size: 11px;
+          font-weight: 600;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: var(--ins-inv-mute);
         }
-        .almanac__grid {
+
+        .almanac__tiles {
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 14px;
-          margin-bottom: 18px;
+          margin-top: 24px;
         }
         .almanac__tile {
+          border: 1px solid var(--ins-inv-border);
+          background: none;
           padding: 14px 16px;
-          background: rgba(246, 239, 220, 0.06);
-          border-radius: 12px;
-          border: 1px solid rgba(246, 239, 220, 0.08);
+          min-width: 0;
         }
-        .almanac__tile--accent {
-          background: rgba(124, 192, 149, 0.1);
-          border-color: rgba(124, 192, 149, 0.18);
+        .almanac__tile-label {
+          font-size: 8.5px;
+          font-weight: 600;
+          letter-spacing: 0.18em;
+          text-transform: uppercase;
+          color: var(--ins-inv-mute);
         }
-        .almanac__tile-val {
-          font-size: clamp(1.6rem, 3.6vw, 2.2rem);
-          margin-top: 6px;
-          color: var(--band-paper);
-          letter-spacing: -0.02em;
+        .almanac__tile-label-short {
+          display: none;
         }
-        .almanac__tile-val--green {
-          color: #7cc095;
-        }
-        .almanac__tile-cap {
-          font-family: var(--font-serif);
-          font-style: italic;
-          font-size: 12px;
-          color: rgba(246, 239, 220, 0.55);
-          margin-top: 4px;
-        }
-        .almanac__takeaway {
-          font-size: 14px;
-          line-height: 1.55;
-          color: rgba(246, 239, 220, 0.72);
-          padding-left: 14px;
-          border-left: 2px solid var(--stamp);
-          margin: 4px 0 22px;
-        }
-        .almanac__cta {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          color: var(--band-paper);
-          font-family: var(--font-sans);
-          font-size: 12px;
+        .almanac__tile-value {
+          margin-top: 5px;
+          font-size: 27px;
           font-weight: 700;
+          line-height: 1.1;
+          color: var(--ins-inv-text);
+        }
+        .almanac__tile-sub {
+          margin-top: 3px;
+          font-size: 9px;
+          font-weight: 600;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: var(--ins-inv-mute);
+        }
+
+        .almanac__takeaway {
+          margin: 22px 0 0;
+          border-left: 3px solid var(--ins-signal);
+          padding-left: 14px;
+          font-size: 13px;
+          font-weight: 500;
+          line-height: 1.55;
+          color: rgba(255, 255, 255, 0.78);
+        }
+
+        .almanac__cta-row {
+          margin-top: auto;
+          padding-top: 22px;
+        }
+        .almanac :global(.almanac__cta) {
+          display: inline-block;
+          font-size: 10.5px;
+          font-weight: 800;
           letter-spacing: 0.16em;
           text-transform: uppercase;
           text-decoration: none;
-          border-bottom: 1px solid rgba(246, 239, 220, 0.35);
-          padding-bottom: 5px;
-          align-self: flex-start;
-          margin-top: auto;
+          color: var(--ins-inv-text);
+          border-bottom: 2px solid rgba(255, 255, 255, 0.4);
+          padding-bottom: 4px;
+        }
+        .almanac :global(.almanac__cta:hover) {
+          border-bottom-color: var(--ins-inv-text);
+        }
+
+        /* loading — white-tint skeleton bars */
+        .almanac__bar {
+          background: rgba(255, 255, 255, 0.08);
+          animation: ins-pulse 2.2s ease-in-out infinite;
+        }
+        .almanac__bar-pair {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 14px;
+          margin-top: 24px;
+        }
+
+        /* --- mobile (09-ref) ------------------------------------------------ */
+        @media (max-width: 640px) {
+          .almanac {
+            padding: 20px;
+          }
+          .almanac__top {
+            letter-spacing: 0.2em;
+            font-size: 8.5px;
+          }
+          .almanac__no-word {
+            display: none;
+          }
+          .almanac__lede {
+            font-size: 17px;
+          }
+          .almanac__amount {
+            display: block;
+            margin-top: 8px;
+          }
+          .almanac__sum {
+            font-size: 44px;
+            padding-bottom: 5px;
+          }
+          .almanac__qualifier {
+            display: block;
+            margin-top: 8px;
+            font-size: 9.5px;
+          }
+          .almanac__tiles {
+            gap: 10px;
+            margin-top: 16px;
+          }
+          .almanac__tile {
+            padding: 12px;
+          }
+          .almanac__tile-label {
+            font-size: 8px;
+          }
+          .almanac__tile-label-full {
+            display: none;
+          }
+          .almanac__tile-label-short {
+            display: inline;
+          }
+          .almanac__tile-value {
+            margin-top: 4px;
+            font-size: 21px;
+          }
+          .almanac__tile-sub {
+            display: none;
+          }
+          .almanac__takeaway {
+            margin-top: 16px;
+            padding-left: 12px;
+            font-size: 11.5px;
+            line-height: 1.5;
+          }
+          .almanac__cta-row {
+            padding-top: 18px;
+          }
         }
       `}</style>
-    </Card>
+    </section>
   );
 }
