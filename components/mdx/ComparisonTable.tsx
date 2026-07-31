@@ -1,9 +1,86 @@
+const css = `
+.mcmp {
+  margin: 26px 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  font-family: var(--ins-font);
+}
+.mcmp__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+.mcmp__th {
+  padding: 10px 14px 9px;
+  text-align: left;
+  white-space: nowrap;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ins-gray-600);
+  border-bottom: 1px solid var(--ins-ink);
+  background: var(--ins-paper);
+}
+/* The highlighted column wears the red — a 3px rule over its head and the
+   only bold cells in the body. */
+.mcmp__th--hl {
+  color: var(--ins-signal);
+  border-top: 3px solid var(--ins-signal);
+}
+.mcmp__td {
+  padding: 11px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: var(--ins-gray-700);
+  border-bottom: 1px solid var(--ins-hair);
+  background: var(--ins-paper);
+}
+.mcmp__td--hl {
+  font-weight: 700;
+  color: var(--ins-ink);
+}
+/* First column stays put while the rest scrolls under it. */
+.mcmp__th--stick,
+.mcmp__td--stick {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  font-weight: 700;
+  color: var(--ins-ink);
+}
+@media (max-width: 640px) {
+  .mcmp {
+    margin: 18px 0;
+  }
+  .mcmp__th {
+    padding: 9px 11px 8px;
+    font-size: 8.5px;
+    letter-spacing: 0.14em;
+  }
+  .mcmp__td {
+    padding: 9px 11px;
+    font-size: 13px;
+  }
+}
+`;
+
 interface ComparisonTableProps {
   headers: string;
   rows: string;
   highlight?: string;
 }
 
+/**
+ * Pipe-and-semicolon table used across the comparison dispatches. Turn 7
+ * restyles it to the Instrument's ruled grammar — square corners, ink
+ * hairlines, Archivo labels, red reserved for the highlighted column — and
+ * leaves the `headers` / `rows` / `highlight` contract untouched, so no MDX
+ * call site changes.
+ *
+ * Server component: nothing here needed client JS.
+ */
 export function ComparisonTable({
   headers: headerStr,
   rows: rowsStr,
@@ -13,7 +90,12 @@ export function ComparisonTable({
   const rows = rowsStr
     .trim()
     .split(";;")
-    .map((line) => line.trim().split("|").map((s) => s.trim()))
+    .map((line) =>
+      line
+        .trim()
+        .split("|")
+        .map((s) => s.trim())
+    )
     .filter((row) => row.length > 1 || row[0] !== "");
 
   const highlightIndex = highlight
@@ -21,70 +103,49 @@ export function ComparisonTable({
     : -1;
 
   return (
-    <div className="my-6 rounded-lg border border-[var(--color-border)] overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-sm" style={{ display: "table" }}>
-          <thead>
-            <tr>
-              {headers.map((header, i) => (
-                <th
-                  key={i}
-                  className={`px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-[var(--color-text-primary)] whitespace-nowrap ${
-                    i === 0 ? "sticky left-0 z-10" : ""
-                  }`}
-                  style={{
-                    backgroundColor:
-                      i === highlightIndex
-                        ? "rgba(200, 16, 46, 0.08)"
-                        : "var(--color-card-hover)",
-                    ...(i === 0 ? { backgroundColor: "var(--color-card-hover)" } : {}),
-                  }}
+    <div className="mcmp">
+      <table className="mcmp__table">
+        <thead>
+          <tr>
+            {headers.map((header, i) => (
+              <th
+                key={header + i}
+                scope="col"
+                className={[
+                  "mcmp__th",
+                  i === highlightIndex ? "mcmp__th--hl" : "",
+                  i === 0 ? "mcmp__th--stick" : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+              >
+                {header}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, rowIndex) => (
+            <tr key={row[0] + rowIndex}>
+              {row.map((cell, cellIndex) => (
+                <td
+                  key={cell + cellIndex}
+                  className={[
+                    "mcmp__td",
+                    cellIndex === highlightIndex ? "mcmp__td--hl" : "",
+                    cellIndex === 0 ? "mcmp__td--stick" : "",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
                 >
-                  {header}
-                </th>
+                  {cell}
+                </td>
               ))}
             </tr>
-          </thead>
-          <tbody>
-            {rows.map((row, rowIndex) => (
-              <tr key={rowIndex}>
-                {row.map((cell, cellIndex) => (
-                  <td
-                    key={cellIndex}
-                    className={`px-3 py-2.5 text-[var(--color-text-secondary)] border-t border-[var(--color-border)] whitespace-nowrap ${
-                      cellIndex === 0
-                        ? "sticky left-0 z-10 font-medium text-[var(--color-text-primary)]"
-                        : ""
-                    }`}
-                    style={{
-                      backgroundColor:
-                        cellIndex === highlightIndex
-                          ? "rgba(200, 16, 46, 0.04)"
-                          : cellIndex === 0
-                            ? rowIndex % 2 === 0
-                              ? "var(--color-card)"
-                              : "var(--color-card-hover)"
-                            : rowIndex % 2 === 0
-                              ? "transparent"
-                              : "var(--color-card-hover)",
-                      ...(cellIndex === 0 && cellIndex === highlightIndex
-                        ? {
-                            backgroundColor:
-                              rowIndex % 2 === 0
-                                ? "var(--color-card)"
-                                : "var(--color-card-hover)",
-                          }
-                        : {}),
-                    }}
-                  >
-                    {cell}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          ))}
+        </tbody>
+      </table>
+      <style dangerouslySetInnerHTML={{ __html: css }} />
     </div>
   );
 }

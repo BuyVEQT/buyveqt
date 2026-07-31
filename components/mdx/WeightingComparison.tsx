@@ -1,293 +1,269 @@
 "use client";
 
-import { useContainerWidth } from "@/lib/useContainerWidth";
+import { FUNDS } from "@/data/funds";
+import ExhibitFrame from "./ExhibitFrame";
+import { useExhibit } from "./useExhibit";
 
-interface WeightingComparisonProps {
-  compact?: boolean;
+const css = `
+.exb {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 40px;
+  font-variant-numeric: tabular-nums;
+}
+.exb__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.exb__state {
+  color: var(--ins-signal);
+}
+.exb__head--frozen .exb__who {
+  color: color-mix(in srgb, var(--ins-ink) 45%, transparent);
+}
+.exb__method {
+  color: var(--ins-gray-600);
+  text-align: right;
+}
+.exb__rows {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.exb__row {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) 46px;
+  gap: 10px;
+  align-items: center;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.exb__region {
+  color: var(--ins-gray-600);
+}
+.exb__pct {
+  text-align: right;
+  color: var(--ins-ink);
+}
+.exb__track {
+  display: block;
+  height: 10px;
+  background: var(--ins-track);
+}
+.exb__fill {
+  display: block;
+  height: 10px;
+  background: var(--ins-ink);
+  transform-origin: left center;
+}
+.exb__fill--pinned {
+  background: var(--ins-signal);
+}
+.exb__cap {
+  margin: 10px 0 0;
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1.6;
+  color: var(--ins-gray-600);
 }
 
-type Slice = { name: string; pct: number; color: string; sub: string };
+/* ── Frozen side — dashed track, committee-set fill, never moves. ── */
+.exb__row--frozen,
+.exb__row--frozen .exb__pct {
+  color: color-mix(in srgb, var(--ins-ink) 45%, transparent);
+}
+.exb__track--frozen {
+  display: block;
+  height: 10px;
+  background: color-mix(in srgb, var(--ins-ink) 8%, transparent);
+  border: 1px dashed color-mix(in srgb, var(--ins-ink) 30%, transparent);
+}
+.exb__fill--frozen {
+  display: block;
+  height: 100%;
+  background: color-mix(in srgb, var(--ins-ink) 35%, transparent);
+}
 
-const COMPACT_THRESHOLD = 600;
+/* ── The one idea: VEQT's sleeves breathe, XEQT's don't. Canada is
+   pinned at its 30% target, so it holds still in red while the other
+   70% flexes with the market. ────────────────────────────────────── */
+.exb[data-live="true"] .exb__fill--alive {
+  animation: ins-art-breathe 4s ease-in-out infinite;
+}
+.exb[data-run="false"] .exb__fill--alive {
+  animation-play-state: paused;
+}
 
-const VEQT_SLICES: Slice[] = [
-  { name: "US", pct: 44, color: "var(--stamp)", sub: "follows market" },
-  { name: "Canada", pct: 31, color: "var(--ink)", sub: "30% target" },
-  { name: "Dev", pct: 18, color: "var(--amber)", sub: "follows market" },
-  { name: "EM", pct: 7, color: "var(--rule)", sub: "follows market" },
-];
-
-const XEQT_SLICES: Slice[] = [
-  { name: "US", pct: 45, color: "var(--stamp)", sub: "fixed" },
-  { name: "Canada", pct: 25, color: "var(--ink)", sub: "fixed" },
-  { name: "Dev", pct: 25, color: "var(--amber)", sub: "fixed" },
-  { name: "EM", pct: 5, color: "var(--rule)", sub: "fixed" },
-];
-
-function Donut({
-  slices,
-  label,
-  sub,
-  size,
-}: {
-  slices: Slice[];
-  label: string;
-  sub: string;
-  size: number;
-}) {
-  const cx = size;
-  const cy = size;
-  const r = size * 0.74;
-  // Pre-compute cumulative angles so the JSX map() doesn't reassign a
-  // closure-captured accumulator (which React's compiler rule
-  // `react-hooks/immutability` flags as impure).
-  const angles: number[] = [];
-  let running = -90;
-  for (const s of slices) {
-    angles.push(running);
-    running += (s.pct / 100) * 360;
+@media (max-width: 760px) {
+  .exb {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 22px;
   }
-  return (
-    <svg
-      width={size * 2}
-      height={size * 2}
-      viewBox={`0 0 ${size * 2} ${size * 2}`}
-      style={{ flexShrink: 0 }}
-      aria-hidden
-    >
-      {slices.map((s, i) => {
-        const start = angles[i];
-        const end = i + 1 < angles.length ? angles[i + 1] : running;
-        const sa = (start * Math.PI) / 180;
-        const ea = (end * Math.PI) / 180;
-        const x1 = cx + r * Math.cos(sa);
-        const y1 = cy + r * Math.sin(sa);
-        const x2 = cx + r * Math.cos(ea);
-        const y2 = cy + r * Math.sin(ea);
-        const large = end - start > 180 ? 1 : 0;
-        return (
-          <path
-            key={s.name}
-            d={`M ${cx},${cy} L ${x1.toFixed(1)},${y1.toFixed(1)} A ${r.toFixed(1)},${r.toFixed(1)} 0 ${large} 1 ${x2.toFixed(1)},${y2.toFixed(1)} Z`}
-            fill={s.color}
-            stroke="var(--paper-light)"
-            strokeWidth="2"
-          />
-        );
-      })}
-      <circle cx={cx} cy={cy} r={r * 0.55} fill="var(--paper-light)" />
-      <text
-        x={cx}
-        y={cy - 4}
-        textAnchor="middle"
-        fontFamily="var(--font-sans)"
-        fontSize="10"
-        fontWeight={700}
-        letterSpacing="0.22em"
-        fill="var(--ink-mute)"
-      >
-        {label}
-      </text>
-      <text
-        x={cx}
-        y={cy + 12}
-        textAnchor="middle"
-        fontFamily="var(--font-serif)"
-        fontStyle="italic"
-        fontSize="13"
-        fill="var(--ink)"
-      >
-        {sub}
-      </text>
-    </svg>
-  );
+}
+@media (max-width: 640px) {
+  .exb__head {
+    font-size: 8.5px;
+    letter-spacing: 0.12em;
+  }
+  .exb__row {
+    grid-template-columns: 50px minmax(0, 1fr) 42px;
+    gap: 8px;
+    font-size: 8px;
+  }
+  .exb__track,
+  .exb__fill {
+    height: 8px;
+  }
+  .exb__cap {
+    font-size: 8px;
+    letter-spacing: 0.1em;
+  }
+}
+`;
+
+/** Factsheet region names → the exhibit's four-across shorthand. */
+const SHORT: Record<string, string> = {
+  "United States": "US",
+  Canada: "Canada",
+  "International Developed": "Dev",
+  "Emerging Markets": "EM",
+};
+
+/** 30.6 → "30.6", 25 → "25". Keeps the factsheet's precision without noise. */
+function fmtPct(n: number): string {
+  return `${Number.isInteger(n) ? n : n.toFixed(1)}%`;
 }
 
-function Legend({ slices }: { slices: Slice[] }) {
-  return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "auto auto auto 1fr",
-        columnGap: 8,
-        rowGap: 4,
-        alignItems: "baseline",
-      }}
-    >
-      {slices.map((s) => (
-        <div key={s.name} style={{ display: "contents" }}>
-          <span
-            style={{
-              width: 9,
-              height: 9,
-              background: s.color,
-              alignSelf: "center",
-            }}
-          />
-          <span
-            style={{
-              fontFamily: "var(--font-sans)",
-              fontSize: 11.5,
-              fontWeight: 700,
-              letterSpacing: "0.06em",
-              color: "var(--ink)",
-            }}
-          >
-            {s.name}
-          </span>
-          <span
-            style={{
-              fontFamily: "var(--font-display)",
-              fontWeight: 500,
-              fontSize: 17,
-              fontVariantNumeric: "tabular-nums",
-              color: "var(--ink)",
-            }}
-          >
-            {s.pct}%
-          </span>
-          <span
-            style={{
-              fontFamily: "var(--font-serif)",
-              fontStyle: "italic",
-              fontSize: 12.5,
-              color: "var(--ink-mute)",
-            }}
-          >
-            {s.sub}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
+function sleeves(ticker: string) {
+  return FUNDS[ticker].geographyAllocation.map((g) => ({
+    label: SHORT[g.region] ?? g.region,
+    pct: g.weight,
+  }));
 }
 
-export function WeightingComparison({ compact }: WeightingComparisonProps = {}) {
-  const { ref, width } = useContainerWidth<HTMLDivElement>();
-  const auto = width > 0 && width < COMPACT_THRESHOLD;
-  const mobile = compact ?? auto;
-  const donutSize = mobile ? 56 : 82;
-  const panelPad = mobile ? "18px 16px 20px" : "32px 32px";
+/** Canada is VEQT's pinned 30% target — the only sleeve that doesn't move. */
+const PINNED = "Canada";
+
+/**
+ * Pre-compute the stagger outside the render map: the delay counter only
+ * advances on breathing sleeves, and reassigning a closure-captured
+ * accumulator inside .map() trips `react-hooks/immutability`.
+ */
+function withStagger(rows: { label: string; pct: number }[]) {
+  const delays = ["0s", "-1.3s", "-2.6s"];
+  const out: { label: string; pct: number; pinned: boolean; delay: string | null }[] = [];
+  let breathing = 0;
+  for (const row of rows) {
+    const pinned = row.label === PINNED;
+    out.push({
+      ...row,
+      pinned,
+      delay: pinned ? null : delays[breathing % delays.length],
+    });
+    if (!pinned) breathing += 1;
+  }
+  return out;
+}
+
+/**
+ * Exhibit B — two ways to slice the world.
+ *
+ * One idea: VEQT's sleeves move and XEQT's don't. VEQT pins Canada at its
+ * 30% target (the red bar, held still) and lets the other 70% track global
+ * market cap, so those three bars breathe on a staggered loop. XEQT's four
+ * bars sit inside dashed tracks at fixed 45/25/25/5 targets and never move —
+ * the dash is the point.
+ *
+ * Weights come from data/funds.ts (Vanguard's and BlackRock's own
+ * factsheets), so a quarterly update moves the bars. Only scaleX is
+ * animated; the bars' widths are set in percent and never re-laid out.
+ */
+export function WeightingComparison() {
+  const { ref, props } = useExhibit<HTMLDivElement>();
+  const veqt = withStagger(sleeves("VEQT.TO"));
+  const xeqt = sleeves("XEQT.TO");
 
   return (
-    <div ref={ref} className="flagship-bleed" style={{ fontFamily: "var(--font-sans)" }}>
-      <div style={{ marginBottom: mobile ? 14 : 22 }}>
-        <p className="ed-label" style={{ margin: 0 }}>
-          Two ways to slice the world
-        </p>
-        <h3
-          style={{
-            fontFamily: "var(--font-display)",
-            fontWeight: 500,
-            fontStyle: "italic",
-            fontSize: mobile ? "clamp(20px, 5vw, 22px)" : "clamp(28px, 3.4vw, 34px)",
-            lineHeight: 1.1,
-            letterSpacing: "-0.018em",
-            margin: "8px 0 0",
-            color: "var(--ink)",
-          }}
-        >
-          One breathes. One is frozen.
-        </h3>
-      </div>
-
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: mobile ? "1fr" : "1fr 1fr",
-          gap: 0,
-          background: "var(--paper-light)",
-          border: "1px solid var(--ink)",
-        }}
-      >
-        <div
-          style={{
-            padding: panelPad,
-            borderRight: mobile ? "none" : "1px solid var(--ink)",
-            borderBottom: mobile ? "1px solid var(--ink)" : "none",
-            position: "relative",
-          }}
-        >
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              height: 4,
-              background: "var(--stamp)",
-            }}
-          />
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: mobile ? 14 : 22,
-              flexWrap: "wrap",
-            }}
-          >
-            <Donut slices={VEQT_SLICES} label="VEQT" sub="alive" size={donutSize} />
-            <Legend slices={VEQT_SLICES} />
+    <ExhibitFrame
+      letter="B"
+      name="Two ways to slice the world"
+      headline="One breathes. One is frozen."
+      caption="Solid bars follow global market cap · Dashed bars are targets — they move only when a committee says so"
+    >
+      <div className="exb" ref={ref} {...props}>
+        {/* ── VEQT — alive ───────────────────────────────────────── */}
+        <div>
+          <div className="exb__head">
+            <span className="exb__who">
+              VEQT <span className="exb__state">· Alive</span>
+            </span>
+            <span className="exb__method">Follows the market</span>
           </div>
-          <p
-            style={{
-              fontFamily: "var(--font-serif)",
-              fontSize: mobile ? 14.5 : 15.5,
-              lineHeight: 1.55,
-              color: "var(--ink-soft)",
-              marginTop: mobile ? 14 : 20,
-              marginBottom: 0,
-            }}
-          >
-            VEQT pins Canada at 30%, then lets the non-Canadian 70% breathe
-            with the global market. If the US shrinks, VEQT&rsquo;s US sleeve
-            shrinks with it.{" "}
-            <em
-              style={{
-                color: "var(--stamp)",
-                fontStyle: "italic",
-                fontWeight: 600,
-              }}
-            >
-              It&rsquo;s the more passive of the two passive funds.
-            </em>
+          <ul className="exb__rows">
+            {veqt.map((s) => (
+              <li className="exb__row" key={s.label}>
+                <span className="exb__region">{s.label}</span>
+                <span className="exb__track">
+                  <span
+                    className={`exb__fill${s.pinned ? " exb__fill--pinned" : " exb__fill--alive"}`}
+                    style={{
+                      width: `${s.pct}%`,
+                      ...(s.delay ? { animationDelay: s.delay } : null),
+                    }}
+                  />
+                </span>
+                <span className="exb__pct">{fmtPct(s.pct)}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="exb__cap">
+            Canada pinned at its 30% target (red) — the other 70% breathes with
+            the market
           </p>
         </div>
 
-        <div
-          style={{
-            padding: panelPad,
-            background: "color-mix(in oklab, var(--ink) 4%, transparent)",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: mobile ? 14 : 22,
-              flexWrap: "wrap",
-            }}
-          >
-            <Donut slices={XEQT_SLICES} label="XEQT" sub="frozen" size={donutSize} />
-            <Legend slices={XEQT_SLICES} />
+        {/* ── XEQT — frozen ──────────────────────────────────────── */}
+        <div>
+          <div className="exb__head exb__head--frozen">
+            <span className="exb__who">XEQT · Frozen</span>
+            <span className="exb__method">
+              Fixed targets · {xeqt.map((s) => s.pct).join("/")}
+            </span>
           </div>
-          <p
-            style={{
-              fontFamily: "var(--font-serif)",
-              fontSize: mobile ? 14.5 : 15.5,
-              lineHeight: 1.55,
-              color: "var(--ink-soft)",
-              marginTop: mobile ? 14 : 20,
-              marginBottom: 0,
-            }}
-          >
-            XEQT uses fixed targets — 45/25/25/5. They are an active
-            allocation choice wearing passive clothing. If global market
-            dynamics shift, the targets only move when BlackRock decides
-            they should.
+          <ul className="exb__rows">
+            {xeqt.map((s) => (
+              <li className="exb__row exb__row--frozen" key={s.label}>
+                <span>{s.label}</span>
+                <span className="exb__track--frozen">
+                  <span
+                    className="exb__fill--frozen"
+                    style={{ width: `${s.pct}%` }}
+                  />
+                </span>
+                <span className="exb__pct">{fmtPct(s.pct)}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="exb__cap">
+            Dashed = set by committee — moves only when BlackRock decides
           </p>
         </div>
       </div>
-    </div>
+
+      <style dangerouslySetInnerHTML={{ __html: css }} />
+    </ExhibitFrame>
   );
 }

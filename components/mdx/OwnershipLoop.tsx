@@ -1,434 +1,268 @@
 "use client";
 
-import { useContainerWidth } from "@/lib/useContainerWidth";
+import ExhibitFrame from "./ExhibitFrame";
+import { useExhibit } from "./useExhibit";
 
-interface OwnershipLoopProps {
-  compact?: boolean;
+const css = `
+.exa {
+  border: 1px solid var(--ins-ink);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.exa__panel {
+  padding: 22px 20px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.exa__panel + .exa__panel {
+  border-left: 1px solid var(--ins-ink);
+}
+.exa__svg {
+  display: block;
+  width: 100%;
+  max-width: 340px;
+  height: auto;
+  overflow: visible;
 }
 
-const COMPACT_THRESHOLD = 600;
+/* Diagram labels. Uppercase is written into the strings rather than set in
+   CSS — SVG text ignores text-transform in some engines. */
+.exa__label {
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.9px;
+  fill: var(--ins-ink);
+}
+.exa__label--mute {
+  fill: var(--ins-gray-600);
+}
+.exa__chip {
+  fill: var(--ins-paper);
+}
+.exa__centre {
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 1.1px;
+  fill: var(--ins-signal);
+}
+.exa__centre--mute {
+  fill: var(--ins-gray-600);
+}
 
-export function OwnershipLoop({ compact }: OwnershipLoopProps = {}) {
-  const { ref, width } = useContainerWidth<HTMLDivElement>();
-  const auto = width > 0 && width < COMPACT_THRESHOLD;
-  const mobile = compact ?? auto;
+/* ── The one idea: VEQT's fee orbits home, XEQT's leaks out. Both
+   animations are declared only under [data-live], so the frame before
+   the exhibit scrolls into view — and the frame under
+   prefers-reduced-motion — is the static end state. ─────────────── */
+.exa__orbit {
+  transform-box: view-box;
+  transform-origin: 150px 88px;
+}
+.exa[data-live="true"] .exa__orbit {
+  animation: ins-art-orbit 5s linear infinite;
+}
+.exa[data-live="true"] .exa__escape {
+  animation: ins-art-exitFlow 3.2s ease-in infinite;
+}
+.exa[data-run="false"] .exa__orbit,
+.exa[data-run="false"] .exa__escape {
+  animation-play-state: paused;
+}
 
-  const panelPad = mobile ? "20px 18px 22px" : "32px 30px 34px";
-  const svgH = mobile ? 200 : 300;
+@media (max-width: 640px) {
+  .exa__panel {
+    padding: 16px 10px 14px;
+    gap: 8px;
+  }
+  .exa[data-live="true"] .exa__escape {
+    animation-name: ins-art-exitFlowSm;
+  }
+}
+`;
+
+/** Ring geometry, shared by both panels so the pair reads as one figure. */
+const R = 62;
+const CY = 88;
+
+/**
+ * Exhibit A — the ownership loop.
+ *
+ * One idea, told twice: follow the $200 fee. On the VEQT side the ring is
+ * closed and a red fee dot orbits back to where it started, because the
+ * manager is owned by the funds and the funds are owned by their investors.
+ * On the XEQT side the same ring is broken open at the upper right and the
+ * fee escapes along an arrow to NYSE: BLK shareholders.
+ *
+ * Both panels sit on one shared viewBox so the rings stay the same size
+ * beside each other at any width, and both animations are pure transform
+ * (rotate, translateX) — no layout, no paint.
+ */
+export function OwnershipLoop() {
+  const { ref, props } = useExhibit<HTMLDivElement>();
 
   return (
-    <div ref={ref} className="flagship-bleed" style={{ fontFamily: "var(--font-sans)" }}>
-      <div style={{ marginBottom: mobile ? 14 : 22 }}>
-        <p className="ed-label" style={{ margin: 0 }}>
-          The Ownership Loop · who answers to whom
-        </p>
-        <h3
-          style={{
-            fontFamily: "var(--font-display)",
-            fontWeight: 500,
-            fontStyle: "italic",
-            fontSize: mobile ? "clamp(20px, 5vw, 22px)" : "clamp(28px, 3.4vw, 34px)",
-            lineHeight: 1.1,
-            letterSpacing: "-0.018em",
-            margin: "8px 0 0",
-            color: "var(--ink)",
-          }}
-        >
-          Follow your $200 management fee.
-        </h3>
-      </div>
-
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: mobile ? "1fr" : "1fr 1fr",
-          gap: 0,
-          border: "1px solid var(--ink)",
-          background: "var(--paper-light)",
-        }}
-      >
-        {/* Vanguard panel */}
-        <div
-          style={{
-            padding: panelPad,
-            borderRight: mobile ? "none" : "1px solid var(--ink)",
-            borderBottom: mobile ? "1px solid var(--ink)" : "none",
-            position: "relative",
-          }}
-        >
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              height: 4,
-              background: "var(--stamp)",
-            }}
-          />
-          <div
-            style={{
-              display: "flex",
-              alignItems: "baseline",
-              gap: 10,
-              marginBottom: 4,
-            }}
+    <ExhibitFrame
+      letter="A"
+      name="The ownership loop"
+      headline="Follow your $200 fee."
+      caption="On a $100,000 position both funds take about $200 a year — only one of them has somewhere else for it to go"
+    >
+      <div className="exa" ref={ref} {...props}>
+        {/* ── VEQT — the loop closes ─────────────────────────────── */}
+        <div className="exa__panel">
+          <svg
+            className="exa__svg"
+            viewBox="0 0 300 180"
+            role="img"
+            aria-label="VEQT's fee travels a closed loop — you, the fund, Vanguard — and returns to you, because Vanguard is owned by its own funds."
           >
-            <span
-              style={{
-                fontFamily: "var(--font-display)",
-                fontWeight: 500,
-                fontSize: mobile ? 22 : 28,
-                letterSpacing: "-0.01em",
-                color: "var(--ink)",
-              }}
-            >
-              Vanguard
-            </span>
-            <span
-              style={{
-                fontFamily: "var(--font-sans)",
-                fontSize: 10,
-                fontWeight: 700,
-                letterSpacing: "0.22em",
-                textTransform: "uppercase",
-                color: "var(--stamp)",
-                border: "1px solid var(--stamp)",
-                padding: "3px 7px",
-                borderRadius: 2,
-              }}
-            >
-              Mutual
-            </span>
-          </div>
-          <p
-            style={{
-              fontFamily: "var(--font-serif)",
-              fontStyle: "italic",
-              fontSize: 14,
-              color: "var(--ink-mute)",
-              margin: `0 0 ${mobile ? 14 : 22}px`,
-              lineHeight: 1.4,
-            }}
-          >
-            No ticker. No outside shareholders.
-          </p>
+            <circle
+              cx={150}
+              cy={CY}
+              r={R}
+              fill="none"
+              stroke="var(--ins-ink)"
+              strokeWidth="1.5"
+            />
+            <g className="exa__orbit">
+              <circle cx={150} cy={CY - R} r="5" fill="var(--ins-signal)" />
+            </g>
 
-          <div
-            style={{
-              position: "relative",
-              height: svgH,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <svg
-              width="100%"
-              height="100%"
-              viewBox="0 0 360 280"
-              preserveAspectRatio="xMidYMid meet"
-              role="img"
-              aria-label="Vanguard ownership loop: investor pays fee to fund, fund pays manager, manager returns ownership to investors."
-              style={{ position: "absolute", inset: 0 }}
-            >
-              <defs>
-                <marker
-                  id="vg-arrow-ink"
-                  viewBox="0 0 10 10"
-                  refX="8"
-                  refY="5"
-                  markerWidth="6"
-                  markerHeight="6"
-                  orient="auto-start-reverse"
-                >
-                  <path d="M0,0 L10,5 L0,10 z" fill="var(--ink)" />
-                </marker>
-                <marker
-                  id="vg-arrow-stamp"
-                  viewBox="0 0 10 10"
-                  refX="8"
-                  refY="5"
-                  markerWidth="6"
-                  markerHeight="6"
-                  orient="auto-start-reverse"
-                >
-                  <path d="M0,0 L10,5 L0,10 z" fill="var(--stamp)" />
-                </marker>
-              </defs>
+            <text className="exa__centre" x={150} y={80} textAnchor="middle">
+              $200/YR
+            </text>
+            <text className="exa__centre" x={150} y={93} textAnchor="middle">
+              ORBITS
+            </text>
+            <text className="exa__centre" x={150} y={106} textAnchor="middle">
+              HOME
+            </text>
 
-              <ellipse
-                cx="180"
-                cy="140"
-                rx="140"
-                ry="100"
-                fill="none"
-                stroke="var(--stamp)"
-                strokeWidth="2.5"
-                strokeDasharray="6 5"
-                opacity="0.5"
-              />
+            <rect className="exa__chip" x={132} y={19} width={36} height={14} />
+            <text className="exa__label" x={150} y={29.5} textAnchor="middle">
+              YOU
+            </text>
 
-              <path d="M 180,40 L 195,40" stroke="var(--stamp)" strokeWidth="2.5" fill="none" markerEnd="url(#vg-arrow-stamp)" />
-              <path d="M 320,140 L 320,155" stroke="var(--stamp)" strokeWidth="2.5" fill="none" markerEnd="url(#vg-arrow-stamp)" />
-              <path d="M 180,240 L 165,240" stroke="var(--stamp)" strokeWidth="2.5" fill="none" markerEnd="url(#vg-arrow-stamp)" />
-              <path d="M 40,140 L 40,125" stroke="var(--stamp)" strokeWidth="2.5" fill="none" markerEnd="url(#vg-arrow-stamp)" />
+            <rect className="exa__chip" x={72} y={128} width={40} height={14} />
+            <text className="exa__label" x={92} y={138.5} textAnchor="middle">
+              VEQT
+            </text>
 
-              <g>
-                <rect x="135" y="22" width="90" height="40" fill="var(--ink)" stroke="var(--ink)" strokeWidth="1.5" />
-                <text x="180" y="40" textAnchor="middle" fontFamily="var(--font-sans)" fontSize="10" fontWeight="700" letterSpacing="0.18em" fill="var(--paper)">YOU</text>
-                <text x="180" y="54" textAnchor="middle" fontFamily="var(--font-serif)" fontStyle="italic" fontSize="12" fill="var(--paper)" opacity="0.78">the investor</text>
-              </g>
-
-              <g>
-                <rect x="135" y="120" width="90" height="40" fill="var(--paper-light)" stroke="var(--ink)" strokeWidth="1.5" />
-                <text x="180" y="138" textAnchor="middle" fontFamily="var(--font-sans)" fontSize="10" fontWeight="700" letterSpacing="0.18em" fill="var(--ink)">VEQT</text>
-                <text x="180" y="152" textAnchor="middle" fontFamily="var(--font-serif)" fontStyle="italic" fontSize="12" fill="var(--ink-mute)">the fund</text>
-              </g>
-
-              <g>
-                <rect x="115" y="218" width="130" height="40" fill="var(--paper-light)" stroke="var(--ink)" strokeWidth="1.5" />
-                <text x="180" y="236" textAnchor="middle" fontFamily="var(--font-sans)" fontSize="10" fontWeight="700" letterSpacing="0.18em" fill="var(--ink)">VANGUARD</text>
-                <text x="180" y="250" textAnchor="middle" fontFamily="var(--font-serif)" fontStyle="italic" fontSize="12" fill="var(--ink-mute)">the manager</text>
-              </g>
-
-              <path d="M 180,68 L 180,114" stroke="var(--ink)" strokeWidth="2" fill="none" markerEnd="url(#vg-arrow-ink)" />
-              <path d="M 180,166 L 180,212" stroke="var(--ink)" strokeWidth="2" fill="none" markerEnd="url(#vg-arrow-ink)" />
-
-              <path
-                d="M 115,238 C 50,238 30,140 50,90 C 70,55 105,50 135,50"
-                stroke="var(--stamp)"
-                strokeWidth="2.5"
-                fill="none"
-                markerEnd="url(#vg-arrow-stamp)"
-                strokeLinecap="round"
-              />
-
-              <text x="234" y="94" fontFamily="var(--font-sans)" fontSize="10" fontWeight="700" letterSpacing="0.16em" fill="var(--ink-mute)">$200/yr</text>
-              <text x="234" y="192" fontFamily="var(--font-sans)" fontSize="10" fontWeight="700" letterSpacing="0.16em" fill="var(--ink-mute)">MER</text>
-              <text fontFamily="var(--font-serif)" fontStyle="italic" fontSize="12" fill="var(--stamp)">
-                <tspan x="58" y="158">closes</tspan>
-                <tspan x="58" dy="14">the loop</tspan>
-              </text>
-            </svg>
-          </div>
-
-          <p
-            style={{
-              fontFamily: "var(--font-serif)",
-              fontSize: mobile ? 14.5 : 15.5,
-              lineHeight: 1.55,
-              color: "var(--ink-soft)",
-              marginTop: mobile ? 10 : 16,
-              marginBottom: 0,
-            }}
-          >
-            Vanguard is owned by its US funds. Those funds are owned by their
-            investors. The fee pays the manager — and the manager is, in
-            effect,{" "}
-            <em style={{ color: "var(--stamp)", fontStyle: "italic", fontWeight: 600 }}>
-              you
-            </em>
-            .
+            <rect className="exa__chip" x={182} y={128} width={72} height={14} />
+            <text className="exa__label" x={218} y={138.5} textAnchor="middle">
+              VANGUARD
+            </text>
+          </svg>
+          <p className="exh__panelCap">
+            No ticker · No outside shareholders
+            <br />
+            The manager is, in effect, you
           </p>
         </div>
 
-        {/* BlackRock panel */}
-        <div
-          style={{
-            padding: panelPad,
-            position: "relative",
-            background: "color-mix(in oklab, var(--ink) 4%, transparent)",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 4 }}>
-            <span
-              style={{
-                fontFamily: "var(--font-display)",
-                fontWeight: 500,
-                fontSize: mobile ? 22 : 28,
-                letterSpacing: "-0.01em",
-                color: "var(--ink)",
-              }}
+        {/* ── XEQT — the loop doesn't close ──────────────────────── */}
+        <div className="exa__panel">
+          <svg
+            className="exa__svg"
+            viewBox="0 0 300 180"
+            role="img"
+            aria-label="XEQT's ring is broken open at the upper right: the same fee exits through the gap toward NYSE-listed BlackRock shareholders."
+          >
+            {/* 324 on, 66 off — an SVG circle's dash pattern starts at three
+                o'clock and runs clockwise, so the gap lands upper-right. */}
+            <circle
+              cx={100}
+              cy={CY}
+              r={R}
+              fill="none"
+              stroke="var(--ins-gray-600)"
+              strokeWidth="1.5"
+              strokeDasharray="324 66"
+            />
+
+            <text
+              className="exa__centre exa__centre--mute"
+              x={100}
+              y={84}
+              textAnchor="middle"
             >
-              BlackRock
-            </span>
-            <span
-              style={{
-                fontFamily: "var(--font-sans)",
-                fontSize: 10,
-                fontWeight: 700,
-                letterSpacing: "0.22em",
-                textTransform: "uppercase",
-                color: "var(--ink-mute)",
-                border: "1px solid var(--ink-mute)",
-                padding: "3px 7px",
-                borderRadius: 2,
-              }}
+              $200/YR
+            </text>
+            <text
+              className="exa__centre exa__centre--mute"
+              x={100}
+              y={97}
+              textAnchor="middle"
             >
+              LEAKS OUT
+            </text>
+
+            {/* Escape route out of the gap. Rotating the group lets the dot
+                translate along a plain X axis and still track the arrow. */}
+            <g transform="rotate(-15 158 54)">
+              <line
+                x1={158}
+                y1={54}
+                x2={214}
+                y2={54}
+                stroke="var(--ins-gray-600)"
+                strokeWidth="1.5"
+              />
+              <path d="M216 54 L208 50 L208 58 Z" fill="var(--ins-gray-600)" />
+              <circle
+                className="exa__escape"
+                cx={158}
+                cy={54}
+                r="4.5"
+                fill="var(--ins-gray-600)"
+              />
+            </g>
+
+            <text className="exa__label exa__label--mute" x={222} y={36}>
               NYSE: BLK
-            </span>
-          </div>
-          <p
-            style={{
-              fontFamily: "var(--font-serif)",
-              fontStyle: "italic",
-              fontSize: 14,
-              color: "var(--ink-mute)",
-              margin: `0 0 ${mobile ? 14 : 22}px`,
-              lineHeight: 1.4,
-            }}
-          >
-            Publicly traded. $12T under management. Two masters.
-          </p>
+            </text>
+            <text className="exa__label exa__label--mute" x={222} y={47}>
+              SHAREHOLDERS
+            </text>
 
-          <div style={{ position: "relative", height: svgH }}>
-            <svg
-              width="100%"
-              height="100%"
-              viewBox="0 0 360 280"
-              preserveAspectRatio="xMidYMid meet"
-              role="img"
-              aria-label="BlackRock outflow: investor pays fee to fund, fund pays manager, profits flow up and out to outside shareholders."
-              style={{ position: "absolute", inset: 0 }}
+            <rect className="exa__chip" x={82} y={19} width={36} height={14} />
+            <text className="exa__label" x={100} y={29.5} textAnchor="middle">
+              YOU
+            </text>
+
+            <rect className="exa__chip" x={22} y={128} width={40} height={14} />
+            <text className="exa__label" x={42} y={138.5} textAnchor="middle">
+              XEQT
+            </text>
+
+            <rect className="exa__chip" x={132} y={128} width={74} height={14} />
+            <text
+              className="exa__label exa__label--mute"
+              x={169}
+              y={138.5}
+              textAnchor="middle"
             >
-              <defs>
-                <marker id="br-arrow-ink" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                  <path d="M0,0 L10,5 L0,10 z" fill="var(--ink)" />
-                </marker>
-                <marker id="br-arrow-mute" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                  <path d="M0,0 L10,5 L0,10 z" fill="var(--ink-mute)" />
-                </marker>
-              </defs>
-
-              <g>
-                <rect x="135" y="218" width="90" height="40" fill="var(--ink)" stroke="var(--ink)" strokeWidth="1.5" />
-                <text x="180" y="236" textAnchor="middle" fontFamily="var(--font-sans)" fontSize="10" fontWeight="700" letterSpacing="0.18em" fill="var(--paper)">YOU</text>
-                <text x="180" y="250" textAnchor="middle" fontFamily="var(--font-serif)" fontStyle="italic" fontSize="12" fill="var(--paper)" opacity="0.78">the investor</text>
-              </g>
-
-              <g>
-                <rect x="135" y="150" width="90" height="40" fill="var(--paper-light)" stroke="var(--ink)" strokeWidth="1.5" />
-                <text x="180" y="168" textAnchor="middle" fontFamily="var(--font-sans)" fontSize="10" fontWeight="700" letterSpacing="0.18em" fill="var(--ink)">XEQT</text>
-                <text x="180" y="182" textAnchor="middle" fontFamily="var(--font-serif)" fontStyle="italic" fontSize="12" fill="var(--ink-mute)">the fund</text>
-              </g>
-
-              <g>
-                <rect x="115" y="82" width="130" height="40" fill="var(--paper-light)" stroke="var(--ink)" strokeWidth="1.5" />
-                <text x="180" y="100" textAnchor="middle" fontFamily="var(--font-sans)" fontSize="10" fontWeight="700" letterSpacing="0.18em" fill="var(--ink)">BLACKROCK</text>
-                <text x="180" y="114" textAnchor="middle" fontFamily="var(--font-serif)" fontStyle="italic" fontSize="12" fill="var(--ink-mute)">the manager</text>
-              </g>
-
-              <g>
-                <rect x="40" y="10" width="280" height="46" fill="none" stroke="var(--ink-mute)" strokeWidth="1" strokeDasharray="4 3" />
-                <text x="180" y="26" textAnchor="middle" fontFamily="var(--font-sans)" fontSize="9" fontWeight="700" letterSpacing="0.22em" fill="var(--ink-mute)">
-                  OUTSIDE SHAREHOLDERS · NYSE: BLK
-                </text>
-                {[60, 100, 140, 180, 220, 260, 300].map((x, i) => {
-                  const h = [14, 22, 18, 26, 16, 24, 20][i];
-                  return (
-                    <rect
-                      key={x}
-                      x={x - 8}
-                      y={52 - h}
-                      width="14"
-                      height={h}
-                      fill="var(--ink-mute)"
-                      opacity="0.5"
-                    />
-                  );
-                })}
-              </g>
-
-              <path d="M 180,212 L 180,196" stroke="var(--ink)" strokeWidth="2" fill="none" markerEnd="url(#br-arrow-ink)" />
-              <path d="M 180,144 L 180,128" stroke="var(--ink)" strokeWidth="2" fill="none" markerEnd="url(#br-arrow-ink)" />
-
-              <path d="M 140,82 L 110,60" stroke="var(--ink-mute)" strokeWidth="2" fill="none" markerEnd="url(#br-arrow-mute)" />
-              <path d="M 180,82 L 180,60" stroke="var(--ink-mute)" strokeWidth="2" fill="none" markerEnd="url(#br-arrow-mute)" />
-              <path d="M 220,82 L 250,60" stroke="var(--ink-mute)" strokeWidth="2" fill="none" markerEnd="url(#br-arrow-mute)" />
-
-              <text x="234" y="208" fontFamily="var(--font-sans)" fontSize="10" fontWeight="700" letterSpacing="0.16em" fill="var(--ink-mute)">$200/yr</text>
-              <text x="234" y="140" fontFamily="var(--font-sans)" fontSize="10" fontWeight="700" letterSpacing="0.16em" fill="var(--ink-mute)">MER</text>
-              <text x="68" y="74" fontFamily="var(--font-serif)" fontStyle="italic" fontSize="12" fill="var(--ink-mute)">profits flow out</text>
-            </svg>
-          </div>
-
-          <p
-            style={{
-              fontFamily: "var(--font-serif)",
-              fontSize: mobile ? 14.5 : 15.5,
-              lineHeight: 1.55,
-              color: "var(--ink-soft)",
-              marginTop: mobile ? 10 : 16,
-              marginBottom: 0,
-            }}
-          >
-            BlackRock is a public company. Pension funds, hedge funds, and
-            retail traders own BLK stock and expect it to grow. Your fee pays
-            the manager — and the manager, in turn, must answer to{" "}
-            <em style={{ fontStyle: "italic" }}>them</em>.
+              BLACKROCK
+            </text>
+          </svg>
+          <p className="exh__panelCap">
+            Publicly traded · Two masters
+            <br />
+            The loop doesn&rsquo;t close — the fee exits
           </p>
         </div>
       </div>
 
-      <div
-        style={{
-          marginTop: -1,
-          padding: mobile ? "18px 18px 20px" : "28px 32px",
-          background: "#0f0d0a",
-          color: "#f6efdc",
-          display: "grid",
-          gridTemplateColumns: mobile ? "1fr" : "minmax(0, 1fr) minmax(0, 2fr)",
-          gap: mobile ? 10 : 22,
-          alignItems: "center",
-        }}
-      >
-        <div>
-          <p
-            style={{
-              fontFamily: "var(--font-sans)",
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: "0.22em",
-              textTransform: "uppercase",
-              color: "rgba(246,239,220,0.55)",
-              margin: 0,
-            }}
-          >
-            The structural difference
-          </p>
-          <p
-            style={{
-              fontFamily: "var(--font-display)",
-              fontWeight: 500,
-              fontStyle: "italic",
-              fontSize: mobile ? 20 : 26,
-              lineHeight: 1.12,
-              marginTop: 6,
-              marginBottom: 0,
-              letterSpacing: "-0.015em",
-              color: "#f6efdc",
-            }}
-          >
-            One company has one master.
-          </p>
-        </div>
-        <p
-          style={{
-            fontFamily: "var(--font-serif)",
-            fontSize: mobile ? 14.5 : 15.5,
-            lineHeight: 1.55,
-            color: "rgba(246,239,220,0.86)",
-            margin: 0,
-          }}
-        >
-          When Vanguard cuts a fee, its owners get the savings — because its
-          owners are the investors. When BlackRock cuts a fee, BLK shares
-          take the hit. That&rsquo;s not a moral failing on BlackRock&rsquo;s
-          part. It&rsquo;s a different architecture — and over thirty years,
-          the architecture is what compounds.
-        </p>
+      <div className="exh__verdict">
+        <span className="exh__verdictSq" aria-hidden />
+        <span className="exh__verdictCopy">
+          One company has one master — the architecture is what compounds
+        </span>
       </div>
-    </div>
+
+      <style dangerouslySetInnerHTML={{ __html: css }} />
+    </ExhibitFrame>
   );
 }

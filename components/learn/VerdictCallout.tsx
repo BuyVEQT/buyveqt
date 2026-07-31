@@ -1,52 +1,77 @@
 import type { ReactNode } from "react";
-import Card from "@/components/ui/Card";
-import SectionLabel from "@/components/ui/SectionLabel";
+
+const css = `
+.vcall {
+  /* Literal ink so the panel survives the Ink Edition's token inversion —
+     same ground as the MDX <VerdictCard>. */
+  background: #111111;
+  color: #ffffff;
+  padding: 20px 22px 22px;
+  font-family: var(--ins-font);
+}
+.vcall__kicker {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ins-signal);
+}
+.vcall__headline {
+  margin: 8px 0 0;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.012em;
+  line-height: 1.2;
+  color: #ffffff;
+  text-wrap: pretty;
+}
+.vcall__body {
+  margin: 12px 0 0;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.78);
+  text-wrap: pretty;
+}
+@media (max-width: 640px) {
+  .vcall {
+    padding: 16px 18px 18px;
+  }
+  .vcall__headline {
+    font-size: 17px;
+  }
+  .vcall__body {
+    font-size: 12.5px;
+  }
+}
+`;
 
 interface VerdictCalloutProps {
-  /** Italic short headline — "We lean VEQT, narrowly." */
+  /** Short headline — "Our verdict, in one line." */
   headline: ReactNode;
   /** Supporting body — 1–2 sentences. */
   children?: ReactNode;
 }
 
 /**
- * Inline dark "Our verdict" card. Used in the article reader's marginal
- * sidecar AND optionally inline within MDX bodies. The headline is
- * Fraunces italic; the body is Newsreader italic-light over a muted
- * paper tone.
+ * The reader's own verdict panel, built from frontmatter for editorial
+ * dispatches that don't already close on an MDX <VerdictCard>.
+ *
+ * Turn 7 makes it the ink slab and — the fix for the flagged bug — renders
+ * it exactly once. It used to appear twice in the DOM: inline for mobile and
+ * again inside the desktop sidecar, toggled by CSS. Now the page's grid moves
+ * this single node between the rail and the flow.
  */
 export default function VerdictCallout({
   headline,
   children,
 }: VerdictCalloutProps) {
   return (
-    <Card dark>
-      <SectionLabel dark>Our verdict</SectionLabel>
-      <div
-        className="ed-display-italic"
-        style={{
-          fontSize: "clamp(1.5rem, 2.2vw, 1.75rem)",
-          lineHeight: 1.15,
-          marginTop: 12,
-          color: "var(--paper)",
-        }}
-      >
-        {headline}
-      </div>
-      {children && (
-        <p
-          style={{
-            fontFamily: "var(--font-serif)",
-            fontSize: 14.5,
-            lineHeight: 1.55,
-            color: "rgba(246, 239, 220, 0.78)",
-            marginTop: 14,
-            marginBottom: 0,
-          }}
-        >
-          {children}
-        </p>
-      )}
-    </Card>
+    <aside className="vcall">
+      <div className="vcall__kicker">Our verdict</div>
+      <p className="vcall__headline">{headline}</p>
+      {children && <p className="vcall__body">{children}</p>}
+      <style dangerouslySetInnerHTML={{ __html: css }} />
+    </aside>
   );
 }

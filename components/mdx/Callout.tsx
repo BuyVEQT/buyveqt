@@ -1,10 +1,8 @@
 import type { ReactNode } from "react";
 
-type CalloutType = "info" | "warning" | "tip";
-
 const SVG = {
-  width: 14,
-  height: 14,
+  width: 13,
+  height: 13,
   viewBox: "0 0 24 24",
   fill: "none",
   stroke: "currentColor",
@@ -15,9 +13,8 @@ const SVG = {
   style: { flexShrink: 0 },
 };
 
-// Token-driven SVG marks replace the previous clip-art emoji (no emoji per
-// the editorial house style). Each inherits its callout's accent via
-// stroke="currentColor" on the parent <p> color.
+// Token-driven SVG marks (no emoji, per the editorial house style). Each
+// inherits its callout's accent through stroke="currentColor".
 const ICONS: Record<CalloutType, ReactNode> = {
   info: (
     <svg {...SVG}>
@@ -42,63 +39,101 @@ const ICONS: Record<CalloutType, ReactNode> = {
   ),
 };
 
+const css = `
+.mcal {
+  margin: 22px 0;
+  padding: 12px 0 12px 16px;
+  border-left: 3px solid var(--ins-ink);
+  font-family: var(--ins-font);
+}
+/* Red is the signal colour, so only "watch out" spends it. */
+.mcal--warning {
+  border-left-color: var(--ins-signal);
+}
+.mcal__label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ins-ink);
+}
+.mcal--warning .mcal__label {
+  color: var(--ins-signal);
+}
+.mcal__body {
+  margin-top: 8px;
+  max-width: 68ch;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.6;
+  color: var(--ins-gray-700);
+}
+.mcal__body p {
+  margin: 0 0 12px;
+}
+.mcal__body > :last-child {
+  margin-bottom: 0;
+}
+.mcal__body strong {
+  font-weight: 700;
+  color: var(--ins-ink);
+}
+.mcal__body a {
+  color: var(--ins-ink);
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 4px;
+}
+.mcal__body a:hover {
+  color: var(--ins-signal);
+}
+@media (max-width: 640px) {
+  .mcal {
+    margin: 18px 0;
+    padding-left: 13px;
+  }
+  .mcal__label {
+    font-size: 8.5px;
+    letter-spacing: 0.16em;
+  }
+  .mcal__body {
+    font-size: 14px;
+  }
+}
+`;
+
+type CalloutType = "info" | "warning" | "tip";
+
+const LABELS: Record<CalloutType, string> = {
+  info: "Good to know",
+  warning: "Watch out",
+  tip: "Pro tip",
+};
+
 interface CalloutProps {
   type?: CalloutType;
   children: ReactNode;
 }
 
-const config: Record<
-  CalloutType,
-  { label: string; borderColor: string; bg: string }
-> = {
-  info: {
-    label: "Good to know",
-    borderColor: "#2563eb",
-    bg: "rgba(37, 99, 235, 0.06)",
-  },
-  warning: {
-    label: "Watch out",
-    borderColor: "var(--color-chart-orange)",
-    bg: "rgba(217, 119, 6, 0.06)",
-  },
-  tip: {
-    label: "Pro tip",
-    borderColor: "#16a34a",
-    bg: "rgba(22, 163, 74, 0.06)",
-  },
-};
-
-const darkBg: Record<CalloutType, string> = {
-  info: "rgba(37, 99, 235, 0.10)",
-  warning: "rgba(217, 119, 6, 0.10)",
-  tip: "rgba(22, 163, 74, 0.10)",
-};
-
+/**
+ * Inline aside. Turn 7 swaps the tinted rounded card for the Instrument's
+ * ruled grammar: a 3px ink rule down the left, an Archivo micro-label, and
+ * no fill. The three types keep their labels and marks; only "watch out"
+ * spends red, since red carries signal everywhere else on the site.
+ */
 export function Callout({ type = "info", children }: CalloutProps) {
-  const c = config[type];
-
   return (
-    <aside
-      className="callout rounded-lg border-l-4 p-4 my-5"
-      style={
-        {
-          borderLeftColor: c.borderColor,
-          "--callout-bg": c.bg,
-          "--callout-bg-dark": darkBg[type],
-          backgroundColor: "var(--callout-bg)",
-        } as React.CSSProperties
-      }
-    >
-      <p
-        className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider mb-1.5"
-        style={{ color: c.borderColor }}
-      >
+    <aside className={`mcal mcal--${type}`}>
+      <p className="mcal__label">
         {ICONS[type]}
-        {c.label}
+        {LABELS[type]}
       </p>
-      <div className="text-sm text-[var(--color-text-secondary)] leading-relaxed [&>p]:mb-0 [&>p:last-child]:mb-0">
-        {children}
-      </div>
+      <div className="mcal__body">{children}</div>
+      <style dangerouslySetInnerHTML={{ __html: css }} />
     </aside>
   );
 }
