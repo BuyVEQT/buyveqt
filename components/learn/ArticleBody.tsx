@@ -5,6 +5,7 @@ import { Summary } from "@/components/mdx/Summary";
 import { Callout } from "@/components/mdx/Callout";
 import { ComparisonTable } from "@/components/mdx/ComparisonTable";
 import { TableOfContents } from "@/components/mdx/TableOfContents";
+import { MdxLink } from "@/components/mdx/MdxLink";
 import { AccountFlowchart } from "@/components/mdx/AccountFlowchart";
 import { FHSATimeline } from "@/components/mdx/FHSATimeline";
 import { ProgressTracker } from "@/components/mdx/ProgressTracker";
@@ -91,6 +92,7 @@ const mdxComponents = {
   ValueDecade,
   VerdictCard,
   h2: H2,
+  a: MdxLink,
 };
 
 interface ArticleBodyProps {

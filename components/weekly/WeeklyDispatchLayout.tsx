@@ -7,11 +7,13 @@ import ReadingProgress from "@/components/broadsheet/dispatch/ReadingProgress";
 import { Pullquote } from "@/components/mdx/Pullquote";
 import { Callout } from "@/components/mdx/Callout";
 import { Summary } from "@/components/mdx/Summary";
+import { MdxLink } from "@/components/mdx/MdxLink";
 
 const mdxComponents = {
   Pullquote,
   Callout,
   Summary,
+  a: MdxLink,
 };
 
 function formatLongRange(weekStart: string, weekEnd: string): string {

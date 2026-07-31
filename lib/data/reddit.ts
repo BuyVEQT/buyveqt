@@ -28,6 +28,13 @@ export interface SubredditStats {
 
 const SUBREDDIT = 'JustBuyVEQT';
 const REDDIT_FETCH_TIMEOUT = 8000;
+/* Every upstream read below is tagged with this instead of `cache: 'no-store'`.
+ * It matches `export const revalidate = 1800` on app/community/page.tsx, so the
+ * two agree on freshness — and, more importantly, an uncached fetch during
+ * render forced /community to render dynamically on every request. With a
+ * revalidate tag the route prerenders and serves from the ISR cache, which is
+ * what its own 30-minute revalidate always intended. */
+const REDDIT_REVALIDATE_S = 1800; // 30 minutes
 const OAUTH_UA = 'web:BuyVEQT:1.0 (by /u/buyveqt)';
 // A real browser UA. Reddit blocks API-style UAs on anonymous reads, so the
 // proxied/direct .json path presents itself as a normal browser.
@@ -60,7 +67,7 @@ function redditFetch(targetUrl: string, signal: AbortSignal): Promise<Response> 
       'User-Agent': BROWSER_UA,
       Accept: 'application/json, text/plain, */*',
     },
-    cache: 'no-store',
+    next: { revalidate: REDDIT_REVALIDATE_S },
   });
 }
 
@@ -92,7 +99,11 @@ async function getOAuthToken(): Promise<string | null> {
         'User-Agent': OAUTH_UA,
       },
       body: 'grant_type=client_credentials',
-      cache: 'no-store',
+      // POST bodies are never stored in the Next data cache, so this tag
+      // doesn't cache the token (the module-level `oauthToken` above does
+      // that, with the real expiry). It just keeps the request from being
+      // read as an uncached fetch that opts the whole route out of ISR.
+      next: { revalidate: REDDIT_REVALIDATE_S },
     });
     if (!res.ok) {
       console.warn(`[reddit] OAuth token request returned HTTP ${res.status}`);
@@ -186,7 +197,7 @@ async function getRedditPostsRss(
     if (sort === 'top' && timeFilter) rssUrl += `?t=${timeFilter}`;
     const res = await fetch(
       `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`,
-      { cache: 'no-store' }
+      { next: { revalidate: REDDIT_REVALIDATE_S } }
     );
     if (!res.ok) return [];
 
@@ -279,7 +290,7 @@ export async function getRedditPosts(
       const res = await fetch(url, {
         signal: controller.signal,
         headers: { Authorization: `Bearer ${token}`, 'User-Agent': OAUTH_UA },
-        cache: 'no-store',
+        next: { revalidate: REDDIT_REVALIDATE_S },
       });
       clearTimeout(timeout);
 
@@ -340,7 +351,7 @@ export async function getSubredditStats(): Promise<SubredditStats> {
         {
           signal: controller.signal,
           headers: { Authorization: `Bearer ${token}`, 'User-Agent': OAUTH_UA },
-          cache: 'no-store',
+          next: { revalidate: REDDIT_REVALIDATE_S },
         }
       );
       clearTimeout(timeout);

@@ -1,5 +1,4 @@
 // Client-safe path data — no Node.js imports.
-// Server-side slug validation lives in lib/learn-paths.ts.
 
 export interface LearnPath {
   id: string;

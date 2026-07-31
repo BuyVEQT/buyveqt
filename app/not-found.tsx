@@ -6,6 +6,10 @@ export const metadata: Metadata = {
   title: "Page Not Found",
   description: "The page you're looking for has been moved or doesn't exist.",
   robots: { index: false, follow: true },
+  // The root layout sets a site-wide canonical at the homepage. Inheriting
+  // it here told crawlers this 404 *is* the homepage — a contradiction with
+  // the noindex above. Null drops the tag; the noindex stands alone.
+  alternates: { canonical: null },
 };
 
 /**

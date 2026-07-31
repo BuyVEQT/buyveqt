@@ -1,6 +1,5 @@
 import { renderInstrumentOG, OG_SIZE, OG_CONTENT_TYPE } from "@/lib/og/instrument";
 
-export const runtime = "edge";
 export const alt =
   "BuyVEQT — One fund. The whole world. An independent broadsheet on the boring fund.";
 export const size = OG_SIZE;

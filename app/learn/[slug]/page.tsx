@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   getArticleBySlug,
@@ -367,10 +366,6 @@ const css = `
 }
 .artc__tag {
   color: var(--ins-gray-600);
-  text-decoration: none;
-}
-.artc__tag:hover {
-  color: var(--ins-signal);
 }
 .artc__position {
   margin-left: auto;
@@ -583,12 +578,11 @@ export default async function LearnArticlePage({
                   {tags.map((t, i) => (
                     <span key={t}>
                       {i > 0 && <span aria-hidden>· </span>}
-                      <Link
-                        className="artc__tag"
-                        href={`/learn?tag=${encodeURIComponent(t)}`}
-                      >
-                        #{t}
-                      </Link>
+                      {/* Plain text, not links: nothing reads ?tag since the
+                          filter rail was retired, so a chip would be a dead
+                          navigation promise. Kept as the colophon's subject
+                          line. */}
+                      <span className="artc__tag">#{t}</span>
                     </span>
                   ))}
                 </div>

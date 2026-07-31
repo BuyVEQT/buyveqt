@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
 import LiveTickerPill from "./LiveTickerPill";
 
@@ -51,6 +51,10 @@ export default function TopBar() {
   const pathname = usePathname() ?? "/";
   const chrome = chromeForPath(pathname);
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  // Guards the focus restore so the first render doesn't yank focus to ☰.
+  const wasOpenRef = useRef(false);
 
   const handleBack = useCallback(() => {
     if (typeof window !== "undefined" && window.history.length > 1) {
@@ -59,6 +63,27 @@ export default function TopBar() {
       router.push("/");
     }
   }, [router]);
+
+  // Escape dismisses the drawer — the scrim used to be the only way out.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [menuOpen]);
+
+  // Focus enters at the ✕ on open and returns to ☰ on close.
+  useEffect(() => {
+    if (menuOpen) {
+      wasOpenRef.current = true;
+      closeButtonRef.current?.focus();
+    } else if (wasOpenRef.current) {
+      wasOpenRef.current = false;
+      menuButtonRef.current?.focus();
+    }
+  }, [menuOpen]);
 
   if (chrome.hide) return null;
 
@@ -180,10 +205,12 @@ export default function TopBar() {
               <LiveTickerPill compact />
             )}
             <button
+              ref={menuButtonRef}
               type="button"
               onClick={() => setMenuOpen((v) => !v)}
               aria-label="Menu"
               aria-expanded={menuOpen}
+              aria-controls="topbar-drawer"
               style={{
                 appearance: "none",
                 background: "transparent",
@@ -213,11 +240,14 @@ export default function TopBar() {
 
       {menuOpen && (
         <div
+          id="topbar-drawer"
           className="shell-topbar-drawer ins-shell"
           role="dialog"
           aria-modal="true"
+          aria-label="More sections"
         >
           <div
+            role="presentation"
             onClick={() => setMenuOpen(false)}
             style={{ position: "absolute", inset: 0, background: "rgba(17,17,17,0.4)" }}
           />
@@ -240,14 +270,48 @@ export default function TopBar() {
           >
             <div
               style={{
-                fontSize: 9,
-                fontWeight: 800,
-                letterSpacing: "0.22em",
-                textTransform: "uppercase",
-                color: "var(--ins-gray-600)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 12,
               }}
             >
-              More
+              <div
+                style={{
+                  fontSize: 9,
+                  fontWeight: 800,
+                  letterSpacing: "0.22em",
+                  textTransform: "uppercase",
+                  color: "var(--ins-gray-600)",
+                }}
+              >
+                More
+              </div>
+              <button
+                ref={closeButtonRef}
+                type="button"
+                onClick={() => setMenuOpen(false)}
+                aria-label="Close menu"
+                style={{
+                  appearance: "none",
+                  width: 44,
+                  height: 44,
+                  flexShrink: 0,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: "transparent",
+                  border: "1px solid var(--ins-ink)",
+                  borderRadius: 0,
+                  color: "var(--ins-ink)",
+                  fontSize: 13,
+                  lineHeight: 1,
+                  cursor: "pointer",
+                  padding: 0,
+                }}
+              >
+                ✕
+              </button>
             </div>
             <Link href="/community" onClick={() => setMenuOpen(false)} style={menuLink()}>
               Community

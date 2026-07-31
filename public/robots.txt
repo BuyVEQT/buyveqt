@@ -3,6 +3,10 @@
 
 User-Agent: *
 Allow: /
+# OG card images for calculator/share links — must stay crawlable so
+# social + search previews can fetch them. Listed before the blanket
+# /api/ block; the more specific Allow wins.
+Allow: /api/og/
 Disallow: /api/
 
 Sitemap: https://www.buyveqt.ca/sitemap.xml

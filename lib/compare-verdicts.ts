@@ -27,7 +27,7 @@ export interface Verdict {
   summary: string;
   /** Recommendation sentence — shown with vermilion left border. */
   recommendation: string;
-  /** Round-by-round scoring for the Scorecard component. */
+  /** Round-by-round scoring rendered by the BottomLine component. */
   points: VerdictPoint[];
   /** @deprecated Use summary instead. Kept for backwards compatibility. */
   body?: string;

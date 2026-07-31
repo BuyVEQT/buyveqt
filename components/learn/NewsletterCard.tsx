@@ -1,5 +1,8 @@
 "use client";
 
+import { useState } from "react";
+import { track } from "@vercel/analytics";
+
 const css = `
 .anews {
   margin-top: 26px;
@@ -93,6 +96,32 @@ const css = `
 .anews__submit:hover {
   background: #c8331f;
 }
+.anews__submit:disabled {
+  opacity: 0.62;
+  cursor: default;
+}
+.anews__submit:disabled:hover {
+  background: var(--ins-signal);
+}
+/* Confirmation strip — echoes the form's 1px ink box. */
+.anews__done {
+  margin-top: 14px;
+  border: 1px solid var(--ins-ink);
+  padding: 13px 14px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ins-ink);
+}
+.anews__msg {
+  margin: 9px 0 0;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ins-signal);
+}
 .anews__legal {
   margin: 10px 0 0;
   font-size: 8.5px;
@@ -141,11 +170,45 @@ interface NewsletterCardProps {
  * supposed to move on to the next dispatch. The capture is kept; the
  * furniture is not.
  *
- * Still visual-only: wire the submit handler when a backend exists.
+ * Posts to /api/subscribe (Buttondown) — the same endpoint and request
+ * shape as components/NewsletterSignup, so both capture points land in one
+ * list.
  */
 export default function NewsletterCard({
   compact = false,
 }: NewsletterCardProps = {}) {
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
+  const [errorMessage, setErrorMessage] = useState("");
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setStatus("loading");
+    setErrorMessage("");
+
+    try {
+      const res = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        setStatus("success");
+        track("newsletter_signup", { source: "article_card" });
+      } else {
+        setStatus("error");
+        setErrorMessage(data.error || "Something went wrong");
+      }
+    } catch {
+      setStatus("error");
+      setErrorMessage("Could not connect. Please try again.");
+    }
+  }
+
   return (
     <section
       className={`anews${compact ? " anews--compact" : ""}`}
@@ -153,33 +216,52 @@ export default function NewsletterCard({
     >
       <div className="anews__top">
         <span id="anews-title">The weekly dispatch</span>
-        <span className="anews__edition">Edition 47 · Shipped Sun</span>
+        {/* No fabricated edition numbers — the weekly hasn't shipped its
+            first issue yet; say the honest thing. */}
+        <span className="anews__edition">Ships Sundays</span>
       </div>
       <p className="anews__pitch">
         One letter every Sunday — about 600 words for the VEQT holder who
         hasn&rsquo;t given up on understanding what they own. Independent, no
         affiliate links, unsubscribe in one click.
       </p>
-      <form
-        className="anews__form"
-        onSubmit={(e) => e.preventDefault()}
-        aria-label="Subscribe to the weekly dispatch"
-      >
-        <label>
-          <span className="anews__sr">Email address</span>
-          <input
-            className="anews__input"
-            type="email"
-            inputMode="email"
-            autoComplete="email"
-            placeholder="you@example.com"
-            required
-          />
-        </label>
-        <button type="submit" className="anews__submit">
-          Join 4,238 readers
-        </button>
-      </form>
+      {status === "success" ? (
+        <p className="anews__done" role="status">
+          You&rsquo;re on the list &mdash; first letter lands Sunday
+        </p>
+      ) : (
+        <form
+          className="anews__form"
+          onSubmit={handleSubmit}
+          aria-label="Subscribe to the weekly dispatch"
+        >
+          <label>
+            <span className="anews__sr">Email address</span>
+            <input
+              className="anews__input"
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </label>
+          <button
+            type="submit"
+            className="anews__submit"
+            disabled={status === "loading"}
+          >
+            {status === "loading" ? "Sending…" : "Join the list"}
+          </button>
+        </form>
+      )}
+      {status === "error" && (
+        <p className="anews__msg" role="alert">
+          {errorMessage}
+        </p>
+      )}
       <p className="anews__legal">
         Independent · We don&rsquo;t share your email
       </p>

@@ -18,21 +18,32 @@ interface CommunityHeroProps {
  * Kicker · display · dek · a 1px-ink-ruled micro-fact row. No red: the
  * route spends its signal on the mood bar and the closer CTA.
  *
- * The stats wiring is unchanged from the broadsheet build — server-rendered
- * `stats` land first, then a client refetch of the Edge route `/api/reddit`
- * corrects them (Node SSR frequently can't reach the Reddit proxy, Edge
- * can). What changed is what we're willing to print: `topPostScore` and
- * `avgComments` are engagement counts, which the Instrument recipe bans, so
- * only the member count survives — and only when it is a real number.
+ * Server-rendered `stats` land first, then a client refetch of the Edge route
+ * `/api/reddit` corrects them (Node SSR frequently can't reach the Reddit
+ * proxy, Edge can) — but ONLY when the server render came back without a
+ * real subscriber count, mirroring how CommunityContent gates its own
+ * refetch on `serverEmpty`. When SSR already produced a number, the refetch
+ * was pure waste: an Edge round-trip on every single page view that resolved
+ * to the same value the markup already had.
+ *
+ * What we're willing to print is narrower than the payload: `topPostScore`
+ * and `avgComments` are engagement counts, which the Instrument recipe bans,
+ * so only the member count survives — and only when it is a real number.
  */
 export default function CommunityHero({
   stats,
   threadCount,
   latestIso,
 }: CommunityHeroProps) {
+  // `getSubredditStats` returns `{ subscribers: 0 }` when every tier failed,
+  // so a zero here means "SSR got nothing", not "the sub has no members".
+  const serverStatsEmpty = !stats || stats.subscribers <= 0;
+
   const [liveStats, setLiveStats] = useState<SubredditStats | null>(stats);
 
   useEffect(() => {
+    if (!serverStatsEmpty) return;
+
     let cancelled = false;
     fetch("/api/reddit")
       .then((res) => (res.ok ? res.json() : null))
@@ -47,7 +58,7 @@ export default function CommunityHero({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [serverStatsEmpty]);
 
   const members = liveStats?.subscribers ?? 0;
 

@@ -6,7 +6,8 @@
  *
  * The whole footer is ONE INK BAND with two tiers, on all viewports:
  *   Tier 1 — three columns: the brand blurb ("THE VEQT DAILY — …"),
- *     a REFERENCE column (Distributions / Weekly / Methodology) and a
+ *     a REFERENCE column (Distributions / Weekly / Methodology /
+ *     Almanac) and a
  *     SECTIONS column (Community / Compare / Learn / Calculators).
  *     Closed by a 1px white-tint rule. On mobile the blurb sits on top
  *     and the two link columns sit side by side beneath it, so every
@@ -27,6 +28,9 @@ const REFERENCE = [
   { label: "Distributions", href: "/distributions" },
   { label: "Weekly", href: "/weekly" },
   { label: "Methodology", href: "/methodology" },
+  // /almanac's only other inbound link is the home rally module, which
+  // shows conditionally — this is the route's permanent entry point.
+  { label: "Almanac", href: "/almanac" },
 ];
 
 const SECTIONS = [

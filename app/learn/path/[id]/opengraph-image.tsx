@@ -1,8 +1,6 @@
 import { renderBroadsheetOG, OG_SIZE, OG_CONTENT_TYPE } from "@/lib/og/broadsheet";
 import { LEARN_PATHS } from "@/lib/learn-paths-data";
 
-// Edge-safe: LEARN_PATHS is a pure static array with no fs imports.
-export const runtime = "edge";
 export const alt = "Learn Path — BuyVEQT";
 export const size = OG_SIZE;
 export const contentType = OG_CONTENT_TYPE;

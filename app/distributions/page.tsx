@@ -659,26 +659,29 @@ export default async function DistributionsPage() {
      accounted for, so "no missed years" is safe to print. */
   const noGaps = yearsPaid === latestYear - inceptionYear + 1;
 
-  /* Live price — the trailing-yield fact. Renders "—" when unavailable. */
-  let currentPrice = 0;
-  try {
-    const quote = await getQuote("VEQT");
-    currentPrice = quote?.price ?? 0;
-  } catch {
-    /* Trailing-yield fact degrades to "—"; nothing else depends on it. */
-  }
-
-  /* Daily closes — the only honest source for yield-at-the-time. When the
+  /* Live price — the trailing-yield fact. Renders "—" when unavailable.
+     Daily closes — the only honest source for yield-at-the-time. When the
      history is unavailable the per-row yield micro-label omits itself
-     rather than being estimated from anything else. */
+     rather than being estimated from anything else.
+
+     The two reads are independent, so they run concurrently rather than
+     serially; `allSettled` keeps each one's failure isolated exactly as the
+     two separate try/catch blocks did. */
+  const [quoteResult, historyResult] = await Promise.allSettled([
+    getQuote("VEQT"),
+    getDailyHistory("VEQT", "full"),
+  ]);
+
+  /* Trailing-yield fact degrades to "—"; nothing else depends on it. */
+  const currentPrice =
+    quoteResult.status === "fulfilled" ? quoteResult.value?.price ?? 0 : 0;
+
+  /* Yield micro-labels omit themselves — see above. */
   const closeByDate = new Map<string, number>();
-  try {
-    const history = await getDailyHistory("VEQT", "full");
-    for (const bar of history.data) {
+  if (historyResult.status === "fulfilled") {
+    for (const bar of historyResult.value.data) {
       if (bar.close > 0) closeByDate.set(bar.date, bar.close);
     }
-  } catch {
-    /* Yield micro-labels omit themselves — see above. */
   }
 
   /** Close on the ex-date, or the last session in the week before it. */

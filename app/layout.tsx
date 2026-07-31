@@ -19,6 +19,19 @@ import {
 // Total payload was 27 font files (2×4 + 5 + 2×6); now 13. Each `weight × style`
 // combination is a separate file fetch on first paint.
 //
+// PRELOAD POLICY — Archivo is the only font that preloads.
+//   Archivo is the Instrument's face: it renders the shell (nav, top bar,
+//   tab bar, footer) plus every migrated route, so it is on the critical
+//   path of literally every page and earns its <link rel="preload">.
+//   Newsreader / Inter / Fraunces are the legacy broadsheet trio. They now
+//   serve only the ~9 routes still on the old typography — /learn/path*,
+//   /weekly/[slug], and /not-found — so preloading them cost every visitor
+//   ~247 KB of font bytes for faces most pages never paint a glyph with.
+//   `preload: false` keeps the @font-face declarations (the CSS variables
+//   still resolve, display:swap still applies) but drops the preload hints;
+//   the browser fetches these lazily, and only when a page actually uses
+//   them.
+//
 // Newsreader (body serif): paragraph text + italic emphasis only.
 //   Used: 400, 400 italic, 500, 500 italic. Bolder body text uses Inter.
 // Inter (sans / labels / UI): never below 500 — labels are uppercase
@@ -30,6 +43,7 @@ import {
 const newsreader = Newsreader({
   subsets: ["latin"],
   display: "swap",
+  preload: false,
   variable: "--font-newsreader",
   weight: ["400", "500"],
   style: ["normal", "italic"],
@@ -38,6 +52,7 @@ const newsreader = Newsreader({
 const inter = Inter({
   subsets: ["latin"],
   display: "swap",
+  preload: false,
   // Keep --font-outfit for back-compat (some legacy components reference it)
   // and add --font-inter as the new workhorse for the editorial system.
   variable: "--font-inter",
@@ -47,6 +62,7 @@ const inter = Inter({
 const fraunces = Fraunces({
   subsets: ["latin"],
   display: "swap",
+  preload: false,
   variable: "--font-fraunces",
   weight: ["400", "500", "700"],
   style: ["normal", "italic"],
@@ -146,6 +162,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${newsreader.variable} ${inter.variable} ${fraunces.variable} ${archivo.variable}`}>
+      <head>
+        {/*
+          GoatCounter's count.js loads `afterInteractive`, so its DNS lookup +
+          TLS handshake would otherwise start well after first paint. The
+          preconnect warms the connection during head parse; the script then
+          only pays for the transfer.
+        */}
+        <link rel="preconnect" href="https://gc.zgo.at" />
+      </head>
       <body className="min-h-dvh bg-[var(--color-base)] text-[var(--color-text-primary)]">
         <JsonLd
           data={{
