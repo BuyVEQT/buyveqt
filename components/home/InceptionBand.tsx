@@ -134,7 +134,7 @@ export default function InceptionBand({
 
       {/* Bottom CTA — pinned */}
       <div className="almanac__cta-row">
-        <Link href="/calculators?tab=lookback" className="almanac__cta">
+        <Link href="/calculators?tab=historical" className="almanac__cta">
           MORE CALCULATORS →
         </Link>
       </div>

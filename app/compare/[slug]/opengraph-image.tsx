@@ -1,8 +1,6 @@
 import { renderBroadsheetOG, OG_SIZE, OG_CONTENT_TYPE } from "@/lib/og/broadsheet";
 import { COMPARISON_PAGES } from "@/data/comparisons";
 
-// Edge-safe: COMPARISON_PAGES is a pure static object with no fs/path use.
-export const runtime = "edge";
 export const alt = "Fund Comparison — BuyVEQT";
 export const size = OG_SIZE;
 export const contentType = OG_CONTENT_TYPE;

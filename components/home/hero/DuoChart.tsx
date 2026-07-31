@@ -725,11 +725,18 @@ export default function DuoChart({
           color: var(--ins-signal);
         }
 
-        /* Loading — ink-tint skeleton, no spinner */
+        /* Loading — ink-tint skeleton, no spinner.
+           The "animation: none" matters: this class name collides with the
+           global .skeleton in globals.css, which runs an infinite
+           background-position shimmer. That gradient is fully painted over
+           by the flat ink tint below, so the animation was invisible — but
+           still repainting this element every frame for as long as the
+           chart was loading. */
         .skeleton {
           position: absolute;
           inset: 0 0 1px;
           background: color-mix(in srgb, var(--ins-ink) 6%, transparent);
+          animation: none;
         }
 
         /* ── What-if row ────────────────────────────────────────── */

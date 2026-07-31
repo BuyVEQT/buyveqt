@@ -637,6 +637,16 @@ export default function ConditionsBand({
         .num--end {
           transform: translateX(-100%);
         }
+        /* left POSITIONS the marker (set inline, as a percentage of the
+           gauge); translateX(-50%) centres it on that point. The entrance
+           is transform-only — ins-gaugeIn used to animate left, which
+           relayouts the gauge every frame for 1.3s on first paint. The
+           keyframe now composes both jobs into one transform:
+             from translateX(calc(-50% - 40px)) to translateX(-50%)
+           so if this centring value ever changes, the "to" frame in
+           globals.css has to change with it. Mobile only overrides
+           bottom/gap below, never the transform, so one keyframe covers
+           both variants. */
         .marker {
           position: absolute;
           bottom: 10px;
