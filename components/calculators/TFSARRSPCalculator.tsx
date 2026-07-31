@@ -93,7 +93,7 @@ export default function TFSARRSPCalculator() {
   const [birthYear, setBirthYear] = useState(DEFAULTS.birthYear);
   const [pastTFSA, setPastTFSA] = useState(DEFAULTS.pastTFSA);
   const [pastFHSA, setPastFHSA] = useState(DEFAULTS.pastFHSA);
-  const { pinned, pin, remove, restore } = usePinnedScenarios<TFSAInputs>(3);
+  const { pinned, pin, remove, restore } = usePinnedScenarios<TFSAInputs>(4);
 
   // Hydrate from URL (share-link landings + OG previews).
   useEffect(() => {
@@ -229,12 +229,13 @@ export default function TFSARRSPCalculator() {
   const exceedsFHSARoom =
     account === "FHSA" && pastFHSA + annual > fhsaRoom.lifetimeLimit;
 
+  // Pre-uppercased — prints as the section's micro tagline.
   const accountCaption =
     account === "TFSA"
-      ? `Tax-free growth · ${fmtCAD(tfsaRoom.currentYearLimit, 0)}/yr cap`
+      ? `TAX-FREE GROWTH · ${fmtCAD(tfsaRoom.currentYearLimit, 0)}/YR CAP`
       : account === "RRSP"
-      ? `Tax-deferred · ~${fmtCAD(annualRefund, 0)}/yr refund at ${marginalRate}% bracket`
-      : `Tax-free for first home · ${fmtCAD(FHSA_ANNUAL_LIMIT, 0)}/yr to ${fmtCAD(40000, 0)} lifetime`;
+      ? `TAX-DEFERRED · ~${fmtCAD(annualRefund, 0)}/YR REFUND AT ${marginalRate}% BRACKET`
+      : `TAX-FREE FOR A FIRST HOME · ${fmtCAD(FHSA_ANNUAL_LIMIT, 0)}/YR TO ${fmtCAD(40000, 0)} LIFETIME`;
 
   // ─── Per-account "above chart" panels ─────────────────────────
   const aboveChart = (() => {
@@ -242,7 +243,7 @@ export default function TFSARRSPCalculator() {
       return (
         <div className={`room${tfsaRoom.isOverContributed ? " is-over" : exceedsTFSARoom ? " is-warn" : ""}`}>
           <div className="room__top">
-            <span className="ed-label room__lab">
+            <span className="room__lab">
               TFSA contribution room
             </span>
             <span className="room__pct">
@@ -256,7 +257,7 @@ export default function TFSARRSPCalculator() {
             />
           </div>
           <div className="room__row">
-            <span className="room__num ed-numerals">
+            <span className="room__num">
               {fmtCAD(tfsaRoom.remaining, 0)}
             </span>
             <span className="room__cap">
@@ -283,27 +284,27 @@ export default function TFSARRSPCalculator() {
         <div className="rrsp-callouts">
           <div className="rrsp-callouts__grid">
             <div className="rrsp-callout">
-              <div className="ed-label rrsp-callout__lab">Annual refund</div>
-              <div className="rrsp-callout__val ed-numerals">
+              <div className="rrsp-callout__lab">Annual refund</div>
+              <div className="rrsp-callout__val">
                 {fmtCAD(annualRefund, 0)}
               </div>
-              <div className="ed-caption rrsp-callout__cap">
+              <div className="rrsp-callout__cap">
                 {fmtCAD(annual, 0)} × {marginalRate}% bracket
               </div>
             </div>
             <div className="rrsp-callout">
-              <div className="ed-label rrsp-callout__lab">
+              <div className="rrsp-callout__lab">
                 Bracket spread
               </div>
               <div
-                className={`rrsp-callout__val ed-numerals${
+                className={`rrsp-callout__val${
                   bracketSpread >= 0 ? " is-good" : " is-bad"
                 }`}
               >
                 {bracketSpread >= 0 ? "+" : ""}
                 {bracketSpread}%
               </div>
-              <div className="ed-caption rrsp-callout__cap">
+              <div className="rrsp-callout__cap">
                 {bracketSpread > 0
                   ? "RRSP advantage — save at a higher rate"
                   : bracketSpread === 0
@@ -326,7 +327,7 @@ export default function TFSARRSPCalculator() {
       return (
         <div className={`room${fhsaRoom.isOverContributed ? " is-over" : exceedsFHSARoom ? " is-warn" : ""}`}>
           <div className="room__top">
-            <span className="ed-label room__lab">
+            <span className="room__lab">
               FHSA lifetime room
             </span>
             <span className="room__pct">
@@ -340,7 +341,7 @@ export default function TFSARRSPCalculator() {
             />
           </div>
           <div className="room__row">
-            <span className="room__num ed-numerals">
+            <span className="room__num">
               {fmtCAD(fhsaRoom.remaining, 0)}
             </span>
             <span className="room__cap">
@@ -371,29 +372,29 @@ export default function TFSARRSPCalculator() {
       {account === "RRSP" ? (
         <>
           <div className="tax-depth__cell">
-            <div className="ed-label">Refunds over horizon</div>
+            <div className="tax-depth__lab">Refunds over horizon</div>
             <div className="tax-depth__val tax-depth__val--green">
               {fmtCAD(totalRefund, 0)}
             </div>
-            <div className="ed-caption tax-depth__cap">
+            <div className="tax-depth__cap">
               {horizon} years × {fmtCAD(annualRefund, 0)}/yr at {marginalRate}%
             </div>
           </div>
           <div className="tax-depth__cell">
-            <div className="ed-label">After-tax value</div>
+            <div className="tax-depth__lab">After-tax value</div>
             <div className="tax-depth__val">
               {fmtCAD(afterTaxValue, 0)}
             </div>
-            <div className="ed-caption tax-depth__cap">
+            <div className="tax-depth__cap">
               At {retirementRate}% retirement bracket · keeps {(100 - retirementRate)}¢ per dollar
             </div>
           </div>
           <div className="tax-depth__cell">
-            <div className="ed-label">Tax owed at withdrawal</div>
+            <div className="tax-depth__lab">Tax owed at withdrawal</div>
             <div className="tax-depth__val tax-depth__val--stamp">
               {fmtCAD(taxOwed, 0)}
             </div>
-            <div className="ed-caption tax-depth__cap">
+            <div className="tax-depth__cap">
               {fmtCAD(finalValue, 0)} pre-tax × {retirementRate}%
             </div>
           </div>
@@ -401,29 +402,29 @@ export default function TFSARRSPCalculator() {
       ) : account === "TFSA" ? (
         <>
           <div className="tax-depth__cell">
-            <div className="ed-label">Tax saved vs taxable</div>
+            <div className="tax-depth__lab">Tax saved vs taxable</div>
             <div className="tax-depth__val tax-depth__val--green">
               {fmtCAD(taxSavedTFSA, 0)}
             </div>
-            <div className="ed-caption tax-depth__cap">
+            <div className="tax-depth__cap">
               50% inclusion × {marginalRate}% bracket × {fmtCAD(growth, 0)} growth
             </div>
           </div>
           <div className="tax-depth__cell">
-            <div className="ed-label">Take-home (TFSA)</div>
+            <div className="tax-depth__lab">Take-home (TFSA)</div>
             <div className="tax-depth__val">
               {fmtCAD(finalValue, 0)}
             </div>
-            <div className="ed-caption tax-depth__cap">
+            <div className="tax-depth__cap">
               All of it. No tax on withdrawal.
             </div>
           </div>
           <div className="tax-depth__cell">
-            <div className="ed-label">Effective annual rate</div>
+            <div className="tax-depth__lab">Effective annual rate</div>
             <div className="tax-depth__val tax-depth__val--stamp">
               {fmtCAD(annual, 0)}/yr
             </div>
-            <div className="ed-caption tax-depth__cap">
+            <div className="tax-depth__cap">
               At {fmtCAD(annual / 12, 0)}/mo · {((annual / (tfsaRoom.currentYearLimit || 7000)) * 100).toFixed(0)}% of {new Date().getFullYear()} cap
             </div>
           </div>
@@ -431,29 +432,29 @@ export default function TFSARRSPCalculator() {
       ) : (
         <>
           <div className="tax-depth__cell">
-            <div className="ed-label">Years to fill</div>
+            <div className="tax-depth__lab">Years to fill</div>
             <div className="tax-depth__val">
               {annual > 0 ? Math.ceil(fhsaRoom.remaining / annual) : "—"} yrs
             </div>
-            <div className="ed-caption tax-depth__cap">
+            <div className="tax-depth__cap">
               At {fmtCAD(annual, 0)}/yr until you hit {fmtCAD(40000, 0)}
             </div>
           </div>
           <div className="tax-depth__cell">
-            <div className="ed-label">Down-payment power</div>
+            <div className="tax-depth__lab">Down-payment power</div>
             <div className="tax-depth__val tax-depth__val--green">
               {fmtCAD(finalValue, 0)}
             </div>
-            <div className="ed-caption tax-depth__cap">
+            <div className="tax-depth__cap">
               Tax-free withdrawal for a qualifying first home
             </div>
           </div>
           <div className="tax-depth__cell">
-            <div className="ed-label">Tax saved vs taxable</div>
+            <div className="tax-depth__lab">Tax saved vs taxable</div>
             <div className="tax-depth__val tax-depth__val--stamp">
               {fmtCAD(growth * 0.5 * (marginalRate / 100), 0)}
             </div>
-            <div className="ed-caption tax-depth__cap">
+            <div className="tax-depth__cap">
               ~{marginalRate}% bracket × 50% inclusion on {fmtCAD(growth, 0)} growth
             </div>
           </div>
@@ -466,14 +467,9 @@ export default function TFSARRSPCalculator() {
   return (
     <CalculatorCard<TFSAInputs>
       number="03"
-      name="Account growth"
+      name="Shelter"
       anchorId="tfsa"
-      title={
-        <>
-          Your{" "}
-          <em style={{ fontStyle: "italic", fontWeight: 500 }}>{account}</em> with VEQT.
-        </>
-      }
+      title={`Your ${account} with VEQT.`}
       tagline={accountCaption}
       paths={paths}
       activeKey={active}
@@ -633,19 +629,15 @@ function RoomStyles() {
   return (
     <style jsx global>{`
       .room {
-        margin: -2px 0 18px;
-        padding: 14px 16px 12px;
-        background: var(--paper);
-        border: 1px solid var(--rule-soft);
-        border-radius: 10px;
+        margin: 0 0 18px;
+        padding: 12px 14px;
+        border: 1px solid var(--ins-hair);
+        font-family: var(--ins-font);
+        color: var(--ins-ink);
       }
-      .room.is-warn {
-        border-color: rgba(178, 110, 19, 0.4);
-        background: rgba(255, 244, 220, 0.45);
-      }
+      .room.is-warn,
       .room.is-over {
-        border-color: rgba(155, 27, 27, 0.45);
-        background: rgba(252, 234, 234, 0.5);
+        border-color: var(--ins-signal);
       }
       .room__top {
         display: flex;
@@ -655,32 +647,30 @@ function RoomStyles() {
         margin-bottom: 8px;
       }
       .room__lab {
-        color: var(--ink-mute);
+        font-size: 8.5px;
+        font-weight: 700;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--ins-gray-600);
       }
       .room__pct {
-        font-family: var(--font-sans);
-        font-size: 12px;
+        font-size: 11px;
         font-weight: 700;
         letter-spacing: 0.06em;
-        color: var(--ink);
-        font-variant-numeric: tabular-nums lining-nums;
+        font-variant-numeric: tabular-nums;
       }
       .room__bar {
         width: 100%;
-        height: 8px;
-        background: var(--paper-warm);
-        border: 1px solid var(--rule-soft);
-        border-radius: 999px;
-        overflow: hidden;
+        height: 6px;
+        background: var(--ins-track-soft);
       }
       .room__fill {
         height: 100%;
-        background: var(--stamp);
-        border-radius: 999px;
+        background: var(--ins-ink);
         transition: width 0.35s ease;
       }
       .room.is-over .room__fill {
-        background: #9b1b1b;
+        background: var(--ins-signal);
       }
       .room__row {
         margin-top: 8px;
@@ -690,35 +680,31 @@ function RoomStyles() {
         flex-wrap: wrap;
       }
       .room__num {
-        font-family: var(--font-display);
-        font-weight: 500;
-        font-size: clamp(1.2rem, 2vw, 1.5rem);
+        font-size: 20px;
+        font-weight: 700;
         line-height: 1;
-        color: var(--ink);
         letter-spacing: -0.02em;
+        font-variant-numeric: tabular-nums;
       }
       .room__cap {
-        font-family: var(--font-sans);
-        font-size: 12px;
-        color: var(--ink-mute);
+        font-size: 10.5px;
+        font-weight: 500;
+        color: var(--ins-gray-600);
       }
       .room__alert {
         margin-top: 10px;
         padding: 8px 10px;
-        font-family: var(--font-serif);
-        font-style: italic;
-        font-size: 13px;
-        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 600;
+        line-height: 1.5;
+        border: 1px solid var(--ins-hair);
       }
       .room__alert--warn {
-        background: rgba(178, 110, 19, 0.12);
-        color: #6f4310;
-        border: 1px solid rgba(178, 110, 19, 0.25);
+        color: var(--ins-ink);
       }
       .room__alert--err {
-        background: rgba(155, 27, 27, 0.1);
-        color: #7a1414;
-        border: 1px solid rgba(155, 27, 27, 0.25);
+        border-color: var(--ins-signal);
+        color: var(--ins-signal);
       }
     `}</style>
   );
@@ -729,68 +715,69 @@ function RRSPStyles() {
   return (
     <style jsx global>{`
       .rrsp-callouts {
-        margin: -2px 0 18px;
+        margin: 0 0 18px;
         display: flex;
         flex-direction: column;
         gap: 10px;
+        font-family: var(--ins-font);
+        color: var(--ins-ink);
       }
       .rrsp-callouts__grid {
         display: grid;
         grid-template-columns: 1fr;
-        gap: 10px;
       }
       @media (min-width: 640px) {
         .rrsp-callouts__grid {
           grid-template-columns: repeat(2, 1fr);
         }
+        .rrsp-callouts__grid .rrsp-callout + .rrsp-callout {
+          border-left: 0;
+        }
       }
       .rrsp-callout {
         padding: 12px 14px;
-        background: var(--paper);
-        border: 1px solid var(--rule-soft);
-        border-left: 3px solid var(--stamp);
-        border-radius: 8px;
+        border: 1px solid var(--ins-hair);
         display: flex;
         flex-direction: column;
         gap: 4px;
       }
       .rrsp-callout__lab {
-        color: var(--ink-mute);
+        font-size: 8.5px;
+        font-weight: 700;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--ins-gray-600);
       }
       .rrsp-callout__val {
-        font-family: var(--font-display);
-        font-weight: 500;
-        font-size: clamp(1.3rem, 2.2vw, 1.6rem);
+        font-size: 22px;
+        font-weight: 700;
         line-height: 1.05;
-        color: var(--stamp);
         letter-spacing: -0.02em;
+        font-variant-numeric: tabular-nums;
         margin-top: 2px;
       }
-      .rrsp-callout__val.is-good {
-        color: var(--green, #4a7c47);
-      }
       .rrsp-callout__val.is-bad {
-        color: var(--stamp);
+        color: var(--ins-signal);
       }
       .rrsp-callout__cap {
         margin-top: 2px;
-        font-size: 12px;
+        font-size: 10.5px;
+        font-weight: 500;
+        color: var(--ins-gray-600);
+        line-height: 1.45;
       }
       .rrsp-callouts__chip {
         padding: 10px 14px;
-        background: rgba(73, 122, 64, 0.08);
-        border: 1px solid rgba(73, 122, 64, 0.25);
-        border-radius: 8px;
-        font-family: var(--font-serif);
-        font-style: italic;
-        font-size: 13.5px;
-        color: var(--ink-soft);
+        border: 1px solid var(--ins-hair);
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--ins-gray-700);
+        line-height: 1.5;
       }
       .rrsp-callouts__chip strong {
-        font-style: normal;
-        color: var(--green, #4a7c47);
-        font-weight: 600;
-        font-variant-numeric: tabular-nums lining-nums;
+        font-weight: 700;
+        color: var(--ins-ink);
+        font-variant-numeric: tabular-nums;
       }
     `}</style>
   );
@@ -802,11 +789,13 @@ function TaxDepthStyles() {
     <style jsx global>{`
       .tax-depth {
         margin-top: 24px;
-        padding-top: 20px;
-        border-top: 1px solid var(--rule-soft);
+        padding-top: 18px;
+        border-top: 1px solid var(--ins-hair);
         display: grid;
         grid-template-columns: 1fr;
         gap: 16px;
+        font-family: var(--ins-font);
+        color: var(--ins-ink);
       }
       @media (min-width: 720px) {
         .tax-depth {
@@ -818,26 +807,31 @@ function TaxDepthStyles() {
         display: flex;
         flex-direction: column;
         gap: 4px;
+        min-width: 0;
+      }
+      .tax-depth__lab {
+        font-size: 8.5px;
+        font-weight: 700;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--ins-gray-600);
       }
       .tax-depth__val {
-        font-family: var(--font-display);
-        font-weight: 500;
-        font-size: clamp(1.4rem, 2.2vw, 1.7rem);
+        font-size: 22px;
+        font-weight: 700;
         line-height: 1.05;
         letter-spacing: -0.02em;
         margin-top: 4px;
-        color: var(--ink);
-        font-variant-numeric: tabular-nums lining-nums;
-      }
-      .tax-depth__val--green {
-        color: var(--green);
+        font-variant-numeric: tabular-nums;
       }
       .tax-depth__val--stamp {
-        color: var(--stamp);
+        color: var(--ins-signal);
       }
       .tax-depth__cap {
-        font-size: 12px;
-        color: var(--ink-mute);
+        font-size: 10.5px;
+        font-weight: 500;
+        color: var(--ins-gray-600);
+        line-height: 1.45;
       }
     `}</style>
   );

@@ -1,0 +1,290 @@
+"use client";
+
+import Link from "next/link";
+import { FUNDS } from "@/data/funds";
+import { MINUS } from "@/lib/instrument-format";
+import { BOUTS, type Bout } from "./bouts";
+import type { PairMetrics } from "./compare-math";
+
+const css = `
+.ins-cmp-others {
+  border-top: 3px solid var(--ins-rule-strong, #111111);
+  padding-top: 16px;
+  font-family: var(--ins-font);
+  color: var(--ins-ink, #111111);
+}
+.ins-cmp-others__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 24px;
+}
+.ins-cmp-others__eyebrow {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ins-gray-600);
+}
+.ins-cmp-others__display {
+  margin: 8px 0 0;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.ins-cmp-others__note {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ins-gray-600);
+  white-space: nowrap;
+}
+.ins-cmp-others__grid {
+  margin-top: 14px;
+  border-top: 1px solid var(--ins-ink);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 56px;
+}
+.ins-cmp-others__col > *:not(:last-child) {
+  border-bottom: 1px solid var(--ins-hair);
+}
+
+.ins-cmp-bout {
+  appearance: none;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  color: var(--ins-ink);
+  font-family: inherit;
+  display: grid;
+  grid-template-columns: 52px 1fr auto auto;
+  gap: 18px;
+  align-items: end;
+  padding: 14px 0;
+  transition: padding-left 0.18s ease;
+}
+.ins-cmp-bout:hover {
+  padding-left: 8px;
+}
+.ins-cmp-bout__ordinal {
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 0.85;
+  color: var(--ins-ordinal);
+  font-variant-numeric: tabular-nums;
+}
+.ins-cmp-bout__body {
+  min-width: 0;
+}
+.ins-cmp-bout__kicker {
+  display: block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ins-gray-600);
+}
+.ins-cmp-bout__title {
+  display: block;
+  margin-top: 4px;
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+.ins-cmp-bout__spread {
+  text-align: right;
+  align-self: center;
+}
+.ins-cmp-bout__spread-label {
+  display: block;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ins-gray-600);
+}
+.ins-cmp-bout__spread-val {
+  display: block;
+  margin-top: 2px;
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ins-cmp-bout__spread-val--down {
+  color: var(--ins-signal);
+}
+.ins-cmp-bout__arrow {
+  font-size: 18px;
+  font-weight: 700;
+  align-self: center;
+  transition: color 0.18s ease;
+}
+.ins-cmp-bout:hover .ins-cmp-bout__arrow {
+  color: var(--ins-signal);
+}
+
+.ins-cmp-others__request {
+  padding: 14px 0;
+  display: flex;
+  align-items: center;
+}
+.ins-cmp-others__request-link {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ins-ink);
+  text-decoration: none;
+  border-bottom: 2px solid var(--ins-ink);
+  padding-bottom: 3px;
+}
+.ins-cmp-others__request-link:hover {
+  color: var(--ins-signal);
+  border-bottom-color: var(--ins-signal);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ins-cmp-bout,
+  .ins-cmp-bout__arrow { transition: none; }
+}
+
+@media (max-width: 900px) {
+  .ins-cmp-others__grid {
+    grid-template-columns: 1fr;
+    column-gap: 0;
+  }
+  .ins-cmp-others__col:first-child > *:last-child {
+    border-bottom: 1px solid var(--ins-hair);
+  }
+  .ins-cmp-others__note { display: none; }
+}
+
+@media (max-width: 640px) {
+  .ins-cmp-others { padding-top: 12px; }
+  .ins-cmp-others__eyebrow { font-size: 9px; letter-spacing: 0.18em; }
+  .ins-cmp-others__display { margin-top: 6px; font-size: 20px; }
+  .ins-cmp-others__grid { margin-top: 8px; }
+  .ins-cmp-bout {
+    grid-template-columns: 34px 1fr auto auto;
+    gap: 12px;
+    padding: 12px 0;
+    min-height: 44px;
+  }
+  .ins-cmp-bout__ordinal { font-size: 26px; }
+  .ins-cmp-bout__kicker { font-size: 8.5px; letter-spacing: 0.14em; }
+  .ins-cmp-bout__title { margin-top: 3px; font-size: 14px; }
+  .ins-cmp-bout__house { display: none; }
+  .ins-cmp-bout__spread-label { display: none; }
+  .ins-cmp-bout__spread-val { margin-top: 0; font-size: 12px; }
+  .ins-cmp-bout__arrow { font-size: 15px; }
+}
+`;
+
+const DASH = "—";
+
+function providerLabel(ticker: string): string {
+  return (FUNDS[ticker]?.provider ?? "").replace(/\s*\([^)]*\)\s*/g, "").trim();
+}
+
+function spreadLabel(spread: number | null | undefined): string {
+  if (spread == null || !Number.isFinite(spread)) return DASH;
+  const sign = spread < 0 ? MINUS : "+";
+  return `${sign}${Math.abs(spread).toFixed(1)} PP`;
+}
+
+/**
+ * The other bouts (artboard 6b) — the five contenders not currently on
+ * the scoreboard, numbered 02–06 in card order, each carrying its own
+ * common-tape spread. A negative spread (VEQT behind) is the only red on
+ * the module. Clicking a row swaps the bout in place.
+ */
+export default function OtherBouts({
+  contender,
+  metricsByBout,
+  onSelect,
+}: {
+  contender: string;
+  metricsByBout: Record<string, PairMetrics>;
+  onSelect: (ticker: string) => void;
+}) {
+  const others = BOUTS.filter((b) => b.ticker !== contender);
+
+  const renderRow = (bout: Bout, index: number) => {
+    const spread = metricsByBout[bout.ticker]?.spreadPp ?? null;
+    const down = spread != null && spread < 0;
+    return (
+      <button
+        key={bout.ticker}
+        type="button"
+        className="ins-cmp-bout"
+        onClick={() => onSelect(bout.ticker)}
+      >
+        <span className="ins-cmp-bout__ordinal" aria-hidden>
+          {String(index + 2).padStart(2, "0")}
+        </span>
+        <span className="ins-cmp-bout__body">
+          <span className="ins-cmp-bout__kicker">
+            {bout.category} · {providerLabel(bout.ticker)}
+          </span>
+          <span className="ins-cmp-bout__title">
+            <span className="ins-cmp-bout__house">VEQT </span>&times;{" "}
+            {bout.short} &mdash; {bout.tagline}
+          </span>
+        </span>
+        <span className="ins-cmp-bout__spread">
+          <span className="ins-cmp-bout__spread-label">Spread</span>
+          <span
+            className={`ins-cmp-bout__spread-val${
+              down ? " ins-cmp-bout__spread-val--down" : ""
+            }`}
+          >
+            {spreadLabel(spread)}
+          </span>
+        </span>
+        <span className="ins-cmp-bout__arrow" aria-hidden>
+          &rarr;
+        </span>
+      </button>
+    );
+  };
+
+  return (
+    <section className="ins-cmp-others" aria-labelledby="ins-cmp-others-display">
+      <header className="ins-cmp-others__head">
+        <div>
+          <div className="ins-cmp-others__eyebrow">The other bouts</div>
+          <h2 id="ins-cmp-others-display" className="ins-cmp-others__display">
+            Five more on the card.
+          </h2>
+        </div>
+        <span className="ins-cmp-others__note">
+          Same arithmetic · Same rail
+        </span>
+      </header>
+
+      <div className="ins-cmp-others__grid">
+        <div className="ins-cmp-others__col">
+          {others.slice(0, 3).map((bout, i) => renderRow(bout, i))}
+        </div>
+        <div className="ins-cmp-others__col">
+          {others.slice(3).map((bout, i) => renderRow(bout, i + 3))}
+          <div className="ins-cmp-others__request">
+            <Link href="/community" className="ins-cmp-others__request-link">
+              Request a bout <span aria-hidden>&rarr;</span>
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      <style dangerouslySetInnerHTML={{ __html: css }} />
+    </section>
+  );
+}

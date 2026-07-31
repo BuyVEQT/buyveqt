@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import CalcMasthead from "@/components/calculators/CalcMasthead";
-import FinePrint from "@/components/calculators/FinePrint";
 import CalculatorsClient from "@/components/calculators/CalculatorsClient";
 import { getDailyHistory } from "@/lib/data";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -136,9 +135,11 @@ export default async function CalculatorsPage() {
 
   return (
     <main
+      className="ins-root ins-calc"
       style={{
-        background: "var(--paper)",
-        color: "var(--ink)",
+        background: "var(--ins-paper)",
+        color: "var(--ins-ink)",
+        fontFamily: "var(--ins-font)",
         minHeight: "100dvh",
       }}
     >
@@ -173,24 +174,24 @@ export default async function CalculatorsPage() {
 
         <CalcMasthead sessionsCount={sessionsCount} />
         <CalculatorsClient history={historyResult} />
-        <FinePrint />
       </div>
 
       <style>{`
+        /* Same measure and gutters as the Instrument shell (nav + footer)
+           so the masthead bar, the tab strip, and the footer band all line
+           up on one grid. */
         .calc-stack {
-          /* Calculators are dashboards, not articles — give them the
-             screen. Wider container lets the charts fill the page and
-             keeps the controls comfortable side-by-side. */
-          max-width: min(1600px, calc(100% - 48px));
+          max-width: 1400px;
           margin: 0 auto;
-          padding: 8px 0 60px;
+          padding: 0 40px 40px;
           display: flex;
           flex-direction: column;
+          gap: 30px;
         }
-        @media (max-width: 720px) {
+        @media (max-width: 640px) {
           .calc-stack {
-            max-width: 100%;
-            padding: 4px 18px 60px;
+            padding: 0 20px 28px;
+            gap: 22px;
           }
         }
       `}</style>

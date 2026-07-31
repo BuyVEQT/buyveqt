@@ -10,7 +10,9 @@ interface CourseEntry {
 
 /**
  * Course 1 — the home page's primary reading order.
- * Hardcoded so it stays independent of /learn syllabus changes.
+ * Titles/kickers are editorial (the handoff blessed the short titles);
+ * reading times are FACTS and must match the article registry — /learn
+ * derives them live, so keep these in sync with lib/articles.
  */
 const COURSE_1: CourseEntry[] = [
   {
@@ -18,21 +20,21 @@ const COURSE_1: CourseEntry[] = [
     slug: "what-is-veqt",
     title: "What VEQT actually is",
     kicker: "Foundation",
-    readingTime: "8 min",
+    readingTime: "5 min",
   },
   {
     step: 2,
     slug: "veqt-vs-diy-portfolio",
     title: "Why one fund and hold forever",
     kicker: "Strategy",
-    readingTime: "9 min",
+    readingTime: "6 min",
   },
   {
     step: 3,
     slug: "veqt-is-down",
     title: "What to do when it's down",
     kicker: "Behaviour",
-    readingTime: "6 min",
+    readingTime: "5 min",
   },
 ];
 
@@ -249,7 +251,7 @@ export default function ArticleStrip() {
           <p className="ins-read__editor-body">
             The shortest path from &ldquo;I keep hearing about VEQT&rdquo; to
             &ldquo;I understand what I&rsquo;d be holding.&rdquo; Three reads,
-            twenty-three minutes. In order.
+            sixteen minutes. In order.
           </p>
           <div className="ins-read__editor-meta">
             &mdash; Round 4 syllabus, updated weekly

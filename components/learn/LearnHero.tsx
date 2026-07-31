@@ -1,90 +1,93 @@
-"use client";
+import { capitalize, numberWord } from "./learn-syllabus";
 
-interface LearnHeroProps {
-  /** Number of articles in the library, surfaced in the eyebrow + lede. */
-  articleCount: number;
+const css = `
+.lrn-hero {
+  padding-top: 34px;
+  font-family: var(--ins-font);
+  color: var(--ins-ink);
+}
+.lrn-hero__kicker {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ins-gray-600);
+  font-variant-numeric: tabular-nums;
+}
+.lrn-hero__display {
+  margin: 16px 0 0;
+  font-size: 64px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+.lrn-hero__dek {
+  margin: 16px 0 0;
+  max-width: 64ch;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.6;
+  color: var(--ins-gray-700);
+  text-wrap: pretty;
 }
 
+@media (max-width: 960px) {
+  .lrn-hero__display {
+    font-size: 52px;
+    letter-spacing: -0.035em;
+  }
+}
+@media (max-width: 640px) {
+  .lrn-hero {
+    padding-top: 24px;
+  }
+  .lrn-hero__kicker {
+    font-size: 9px;
+    letter-spacing: 0.24em;
+  }
+  .lrn-hero__kicker-long {
+    display: none;
+  }
+  .lrn-hero__display {
+    margin-top: 12px;
+    font-size: 40px;
+    letter-spacing: -0.035em;
+    line-height: 1.02;
+  }
+  .lrn-hero__dek {
+    margin-top: 12px;
+    font-size: 12.5px;
+    line-height: 1.55;
+  }
+}
+`;
+
 /**
- * V2 compact masthead: stamp row (archive count + date), then a 2-col
- * grid with thick ink top rule and hairline bottom rule containing
- * the "Learn." italic h1 and a short lede.
+ * /learn masthead — artboard 6c.
  *
- * Replaces the verbose 4-way navigation explainer with a brief deck
- * that defers to the surfaces below (FlagshipPromo / WhereToStart /
- * EditorsPicks / Archive).
+ * Kicker (dispatch count from the registry) · 64px display · one dek.
+ * The dek's leading numeral is spelled out and derived, so adding an
+ * article to content/learn updates the sentence.
+ *
+ * Server-safe: no client state; plain <style>, not styled-jsx.
  */
-export default function LearnHero({ articleCount }: LearnHeroProps) {
-  const dateStr = new Intl.DateTimeFormat("en-CA", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  }).format(new Date());
-
+export default function LearnHero({ count }: { count: number }) {
   return (
-    <header className="learn-hero-v2">
-      <div className="learn-hero-v2__top">
-        <span className="ed-stamp">
-          The archive · {articleCount} dispatches · Updated weekly
-        </span>
-        <span className="ed-stamp" style={{ color: "var(--ink-mute)" }}>
-          {dateStr}
+    <header className="lrn-hero">
+      <div className="lrn-hero__kicker">
+        Read up · {count} dispatches
+        <span className="lrn-hero__kicker-long">
+          {" "}
+          · Plain English · New every Thursday
         </span>
       </div>
-      <div className="learn-hero-v2__lockup">
-        <h1 className="ed-display-italic learn-hero-v2__h1">Learn.</h1>
-        <p className="ed-body learn-hero-v2__lede">
-          {articleCount} dispatches on owning VEQT well. Pick a path, read
-          what the editor recommends, or browse the full archive.
-        </p>
-      </div>
-
-      <style jsx global>{`
-        .learn-hero-v2 {
-          padding: 26px 0 22px;
-        }
-        .learn-hero-v2__top {
-          display: flex;
-          justify-content: space-between;
-          align-items: baseline;
-          gap: 12px;
-          flex-wrap: wrap;
-          padding-bottom: 10px;
-        }
-        .learn-hero-v2__lockup {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 18px;
-          padding: 18px 0 8px;
-          border-top: 3px solid var(--ink);
-          border-bottom: 1px solid var(--ink);
-          align-items: end;
-        }
-        @media (min-width: 720px) {
-          .learn-hero-v2__lockup {
-            grid-template-columns: auto 1fr;
-            gap: 40px;
-            padding: 22px 0 12px;
-          }
-        }
-        .learn-hero-v2__h1 {
-          font-size: clamp(3rem, 8vw, 6rem);
-          line-height: 1;
-          letter-spacing: -0.035em;
-          margin: 0;
-          color: var(--ink);
-          white-space: nowrap;
-        }
-        .learn-hero-v2__lede {
-          font-size: clamp(15px, 1.6vw, 17.5px);
-          line-height: 1.55;
-          color: var(--ink-soft);
-          margin: 0;
-          max-width: 52ch;
-          padding-bottom: 8px;
-        }
-      `}</style>
+      <h1 className="lrn-hero__display">Learn the boring fund.</h1>
+      <p className="lrn-hero__dek">
+        {capitalize(numberWord(count))} dispatches on VEQT, the accounts that
+        shelter it, and the behaviour that ruins it. Read in order, or raid the
+        index.
+      </p>
+      <style dangerouslySetInnerHTML={{ __html: css }} />
     </header>
   );
 }

@@ -1,38 +1,50 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, Suspense } from "react";
-import dynamic from "next/dynamic";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { getVerdict } from "@/lib/compare-verdicts";
-import CompareSetup from "./CompareSetup";
-import FaceoffBanner from "./FaceoffBanner";
-import type { ComparePeriod } from "./PerformanceChart";
-import CompareGap from "./CompareGap";
-import StatsTable from "./StatsTable";
-import Verdict from "./Verdict";
-import AllocationBars from "./AllocationBars";
-import WhoThisSuits from "./WhoThisSuits";
+import {
+  BOUTS,
+  DEFAULT_BOUT,
+  HOUSE_TICKER,
+  boutFromFunds,
+  getBout,
+} from "./bouts";
+import { pairMetrics, type PairMetrics } from "./compare-math";
+import useBoutData from "./useBoutData";
+import CompareHero from "./CompareHero";
+import Scoreboard from "./Scoreboard";
+import EditorVerdict from "./EditorVerdict";
+import OtherBouts from "./OtherBouts";
+import CompareCloser from "./CompareCloser";
 import FAQSection from "./FAQSection";
-import Scorecard from "./Scorecard";
 
-// Custom SVG chart — no recharts. Still lazy-loaded because it fetches data
-// on mount and lives below-the-fold. ssr:false because it uses mouse events.
-const PerformanceChart = dynamic(() => import("./PerformanceChart"), {
-  ssr: false,
-  loading: () => (
-    <div
-      className="skeleton"
-      style={{ minHeight: 320, borderRadius: 12, width: "100%" }}
-      aria-label="Loading performance chart…"
-    />
-  ),
-});
+const css = `
+.ins-cmp-main {
+  background: var(--ins-paper, #ffffff);
+  color: var(--ins-ink, #111111);
+  font-family: var(--ins-font);
+  min-height: 100dvh;
+}
+.ins-cmp-page {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 40px 40px;
+}
+@media (max-width: 640px) {
+  .ins-cmp-page {
+    gap: 22px;
+    padding: 0 20px 28px;
+  }
+}
+`;
 
 interface CompareContentProps {
+  /** Set by `/compare/[slug]` pages — pins the bout that page is about. */
   initialFunds?: string[];
 }
-
-const DEFAULT_FUNDS = ["VEQT.TO", "XEQT.TO"];
 
 function parseFundsParam(raw: string | null): string[] | null {
   if (!raw) return null;
@@ -43,161 +55,87 @@ function parseFundsParam(raw: string | null): string[] | null {
   return parts.length > 0 ? parts : null;
 }
 
-function parsePeriodParam(raw: string | null): ComparePeriod | null {
-  if (!raw) return null;
-  const valid: ComparePeriod[] = ["3M", "6M", "1Y", "5Y", "ALL"];
-  return (valid as string[]).includes(raw) ? (raw as ComparePeriod) : null;
-}
-
 /**
- * V2 Compare page assembly:
- *   CompareSetup (collapsed hero + presets + picker)
- *   FaceoffBanner (when 2 funds)
- *   2-up: PerformanceChart | CompareGap-when-2
- *   StatsTable
- *   2-up: AllocationBars | Verdict
- *   Scorecard (when 2 funds)
- *   2-up: WhoThisSuits | FAQSection
+ * /compare — The Instrument (artboard 6b).
  *
- * URL state: ?funds=VEQT.TO,XEQT.TO&period=1Y — both encoded on change.
+ *   CompareHero     kicker · "VEQT × the field." · dek · TONIGHT'S BOUT tabs
+ *   Scoreboard      two mastheads, MER first, common tape, spread, the rail
+ *   EditorVerdict   the curated verdict for the selected bout
+ *   OtherBouts      the five contenders not on the board, 02–06
+ *   CompareCloser   "Still here?" + RUN THE FEE MATH
+ *   FAQSection      COMPARE_FAQ in the article grammar
+ *
+ * URL state: `?funds=VEQT.TO,{contender}` — the same parameter the
+ * previous page wrote, so old links, the `[slug]` pages and anything
+ * pointing at /compare?funds=… still resolve to the right bout. Other
+ * query parameters (e.g. a legacy `period`) are carried through
+ * untouched.
  */
 function CompareContentInner({ initialFunds }: CompareContentProps) {
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
 
-  const urlFunds = parseFundsParam(params.get("funds"));
-  const urlPeriod = parsePeriodParam(params.get("period"));
-
-  const [selected, setSelected] = useState<string[]>(
-    initialFunds || urlFunds || DEFAULT_FUNDS
+  const [contender, setContender] = useState<string>(
+    () =>
+      boutFromFunds(initialFunds) ??
+      boutFromFunds(parseFundsParam(params.get("funds"))) ??
+      DEFAULT_BOUT
   );
-  const [period, setPeriod] = useState<ComparePeriod>(urlPeriod || "1Y");
 
-  // Sync state → URL (replaceState so we don't pollute history).
+  // Sync state → URL (replaceState so bout switching doesn't stack history).
   useEffect(() => {
     if (typeof window === "undefined") return;
     const next = new URLSearchParams(window.location.search);
-    next.set("funds", selected.join(","));
-    next.set("period", period);
+    next.set("funds", `${HOUSE_TICKER},${contender}`);
     const qs = next.toString();
-    const target = `${pathname}?${qs}`;
     if (window.location.search !== `?${qs}`) {
-      router.replace(target, { scroll: false });
+      router.replace(`${pathname}?${qs}`, { scroll: false });
     }
-  }, [selected, period, pathname, router]);
+  }, [contender, pathname, router]);
 
-  const handleToggle = useCallback((ticker: string) => {
-    setSelected((prev) =>
-      prev.includes(ticker) ? prev.filter((t) => t !== ticker) : [...prev, ticker]
-    );
+  const handleSelect = useCallback((ticker: string) => {
+    if (getBout(ticker)) setContender(ticker);
   }, []);
 
-  // Presets always replace selection; VEQT stays pinned at slot 0.
-  const handlePreset = useCallback((funds: string[]) => {
-    setSelected(funds);
-  }, []);
+  const { quotes, histories } = useBoutData(contender);
 
-  // Which optional widgets will actually render? Used to collapse the
-  // two-up rows to single-column when the right-side widget is absent,
-  // so the chart / allocation bars stretch to fill the row instead of
-  // leaving a wide empty band on the right.
-  const isPair = selected.length === 2;
-  const hasGap = isPair;
-  const hasVerdict = useMemo(
-    () => (isPair ? Boolean(getVerdict(selected[0], selected[1])) : false),
-    [isPair, selected]
-  );
-
-  const twoUp: React.CSSProperties = {
-    display: "grid",
-    gridTemplateColumns: "1fr",
-    gap: 22,
-  };
+  // One common-tape computation per bout — the scoreboard reads its own,
+  // the fight card below reads the other five.
+  const metricsByBout = useMemo<Record<string, PairMetrics>>(() => {
+    const house = histories[HOUSE_TICKER] ?? [];
+    const out: Record<string, PairMetrics> = {};
+    for (const bout of BOUTS) {
+      out[bout.ticker] = pairMetrics(house, histories[bout.ticker] ?? []);
+    }
+    return out;
+  }, [histories]);
 
   return (
-    <main
-      style={{
-        background: "var(--paper)",
-        color: "var(--ink)",
-        minHeight: "100dvh",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: 1400,
-          margin: "0 auto",
-          padding: "20px 14px 48px",
-          display: "flex",
-          flexDirection: "column",
-          gap: 24,
-        }}
-        className="compare-stack"
-      >
-        <CompareSetup
-          selected={selected}
-          onPreset={handlePreset}
-          onToggle={handleToggle}
+    <main className="ins-root ins-cmp-main">
+      <div className="ins-cmp-page">
+        <CompareHero contender={contender} onSelect={handleSelect} />
+
+        <Scoreboard
+          contender={contender}
+          quotes={quotes}
+          metrics={metricsByBout[contender]}
         />
 
-        {selected.length === 2 && (
-          <FaceoffBanner selected={selected} />
-        )}
+        <EditorVerdict contender={contender} />
 
-        <div
-          className={`compare-row${hasGap ? " compare-row--two" : ""}`}
-          style={twoUp}
-        >
-          <PerformanceChart
-            selected={selected}
-            period={period}
-            onPeriodChange={setPeriod}
-          />
-          {hasGap && <CompareGap selected={selected} period={period} />}
-        </div>
+        <OtherBouts
+          contender={contender}
+          metricsByBout={metricsByBout}
+          onSelect={handleSelect}
+        />
 
-        <StatsTable selected={selected} />
+        <CompareCloser />
 
-        <div
-          className={`compare-row${hasVerdict ? " compare-row--two" : ""}`}
-          style={twoUp}
-        >
-          <AllocationBars selected={selected} />
-          {hasVerdict && <Verdict selected={selected} />}
-        </div>
-
-        {selected.length === 2 && (
-          <Scorecard selected={selected} />
-        )}
-
-        <div className="compare-row compare-row--two" style={twoUp}>
-          <WhoThisSuits selected={selected} />
-          <FAQSection />
-        </div>
+        <FAQSection />
       </div>
 
-      <style jsx global>{`
-        @media (min-width: 1024px) {
-          .compare-stack {
-            padding: 32px 26px 56px !important;
-            gap: 28px !important;
-          }
-          /* Default desktop row: single column. The 7fr/5fr split only
-             kicks in when both children render — driven by the
-             .compare-row--two modifier set in JSX based on hasGap /
-             hasVerdict. This way the chart and allocation bars stretch
-             to full width whenever their right-hand sibling is absent
-             (e.g. user picks a non-curated 2-fund pair, or selects 1
-             or 3+ funds — no CompareGap, no curated Verdict). */
-          .compare-row {
-            grid-template-columns: 1fr !important;
-            gap: 22px !important;
-          }
-          .compare-row.compare-row--two {
-            grid-template-columns: 7fr 5fr !important;
-          }
-        }
-      `}</style>
+      <style dangerouslySetInnerHTML={{ __html: css }} />
     </main>
   );
 }
@@ -212,7 +150,7 @@ export default function CompareContent(props: CompareContentProps) {
       fallback={
         <main
           style={{
-            background: "var(--paper)",
+            background: "var(--ins-paper, #ffffff)",
             minHeight: "60dvh",
           }}
         />

@@ -1,12 +1,13 @@
 "use client";
 
 /**
- * AnimatedDollar / AnimatedPct — tween-animated headline numbers used on
- * the dark result slabs and the smaller "sub-stats" rows.
+ * AnimatedDollar / AnimatedPct — tween-animated figures for the Instrument
+ * calculators. Archivo 700, tabular-nums, tight tracking: the poster
+ * ("huge") size is the marquee number on a calculator, "large" carries a
+ * secondary headline, "medium" the ruled stat rows.
  *
- * Mirrors the prototype's three sizes (huge / large / medium). All are
- * Fraunces 500, tabular-nums, with a negative letter-spacing to feel
- * like editorial display type rather than spreadsheet figures.
+ * Red is signal only: AnimatedPct prints negatives in --ins-signal and
+ * everything else in ink.
  */
 import { useAnimatedNumber, useAnimatedNumberRaw } from "./useAnimatedNumber";
 import { fmtCAD, fmtPct } from "@/lib/calc-data";
@@ -28,7 +29,7 @@ export default function AnimatedDollar({
   const v = useAnimatedNumber(value);
   return (
     <span
-      className={`anum anum--${size} ed-display ed-numerals`}
+      className={`anum anum--${size}`}
       /* Screen readers should hear the settled value when inputs
          change, but not every intermediate tween frame. The settled
          number lands on the next render after `value` stops changing,
@@ -39,23 +40,27 @@ export default function AnimatedDollar({
       {fmtCAD(v, fractionDigits)}
       <style jsx>{`
         .anum {
-          font-family: var(--font-display);
-          font-weight: 500;
-          letter-spacing: -0.035em;
-          font-variant-numeric: tabular-nums lining-nums;
+          font-family: var(--ins-font);
+          font-weight: 700;
+          font-variant-numeric: tabular-nums;
+          color: var(--ins-ink);
           display: inline-block;
         }
         .anum--huge {
-          font-size: clamp(3.4rem, 8vw, 6.4rem);
+          font-size: clamp(44px, 7.4vw, 96px);
           line-height: 0.95;
+          letter-spacing: -0.04em;
         }
         .anum--large {
-          font-size: clamp(1.9rem, 3.4vw, 2.6rem);
+          font-size: clamp(24px, 3vw, 30px);
           line-height: 1;
+          letter-spacing: -0.02em;
+          font-weight: 600;
         }
         .anum--medium {
-          font-size: clamp(1.4rem, 2.4vw, 1.7rem);
+          font-size: clamp(16px, 2vw, 20px);
           line-height: 1.05;
+          letter-spacing: -0.015em;
         }
       `}</style>
     </span>
@@ -74,22 +79,29 @@ export function AnimatedPct({
   digits = 1,
 }: AnimatedPctProps) {
   const v = useAnimatedNumberRaw(value);
-  let color = "var(--ink)";
-  if (tone === "auto") color = v >= 0 ? "var(--green)" : "var(--stamp)";
-  else if (tone === "green") color = "var(--green)";
-  else if (tone === "stamp") color = "var(--stamp)";
+  // Instrument palette: ink by default, signal red for a loss (or when the
+  // caller explicitly asks for the alarm tone).
+  const negative = tone === "stamp" || (tone === "auto" && v < 0);
   return (
-    <span className="anum-pct ed-display ed-numerals" style={{ color }}>
+    <span
+      className="anum-pct"
+      style={{ color: negative ? "var(--ins-signal)" : "var(--ins-ink)" }}
+    >
       {fmtPct(v, digits)}
       <style jsx>{`
         .anum-pct {
-          font-family: var(--font-display);
-          font-weight: 500;
-          letter-spacing: -0.025em;
-          font-variant-numeric: tabular-nums lining-nums;
-          font-size: clamp(1.6rem, 2.6vw, 2rem);
-          line-height: 1;
+          font-family: var(--ins-font);
+          font-weight: 700;
+          font-size: 15px;
+          line-height: 1.1;
+          letter-spacing: -0.01em;
+          font-variant-numeric: tabular-nums;
           display: inline-block;
+        }
+        @media (max-width: 640px) {
+          .anum-pct {
+            font-size: 12px;
+          }
         }
       `}</style>
     </span>

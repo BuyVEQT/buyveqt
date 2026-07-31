@@ -3,139 +3,125 @@
 import { useMemo } from "react";
 import { useRegions } from "@/lib/useRegions";
 import { FUNDS } from "@/data/funds";
+import { UP, DOWN, fmtSignedPct } from "@/lib/instrument-format";
 
-// Identity-fill colors for the geography bars — see DATA-IDENTITY
-// CONVENTION in app/globals.css. VUN uses --band-ink (invariant) not
-// --ink so the cream overlay text stays legible when --ink flips to
-// parchment in dark mode.
-const GEO_TONE: Record<string, string> = {
-  VUN: "var(--band-ink)",
-  VCN: "var(--stamp)",
-  VIU: "var(--amber)",
-  VEE: "var(--rule)",
+/** Micro-label under each sleeve ticker. */
+const SLEEVE_DESC: Record<string, string> = {
+  VUN: "US Total Market",
+  VCN: "Canada",
+  VIU: "Developed ex-North America",
+  VEE: "Emerging Markets",
 };
 
-const GEO_LABEL: Record<string, string> = {
-  VUN: "United States",
+/** Shorter micro-label for the 390 artboard. */
+const SLEEVE_DESC_MOB: Record<string, string> = {
+  VUN: "US Total Market",
   VCN: "Canada",
   VIU: "Developed ex-NA",
   VEE: "Emerging Markets",
 };
 
-/** Map from the geographyAllocation region string → sleeve ticker. */
-const REGION_TO_TICKER: Record<string, string> = {
-  "United States": "VUN",
-  "Canada": "VCN",
-  "International Developed": "VIU",
-  "Emerging Markets": "VEE",
-};
+const TICKER_ORDER = ["VUN", "VCN", "VIU", "VEE"];
 
-interface RegionWeight {
+interface SleeveRow {
   ticker: string;
   weight: number;
+  changePercent: number | null;
 }
 
 /**
- * Full-width 4-segment stacked geography bar.
+ * "Where the dollars sit." — the geography ledger (artboard 6a).
  *
- * Data: useRegions() live feed, fallback to FUNDS["VEQT.TO"].geographyAllocation.
- * Segment widths are proportional to weight. Wide segments show ticker +
- * italic name + big %. Narrow segments (weight/total < 12%) hide the name
- * inside but show it in the below-bar label row.
- * Mobile (<720px): flips to vertical stack, re-enables names, hides label row.
+ * Four ruled sleeve rows: an oversized ordinal in signal red at 40%, the
+ * ticker + micro-label, an ink weight bar on a soft track, the weight, and
+ * today's move (red only when negative, always paired with ▲/▼).
+ *
+ * Owns the `#sleeves` anchor — the home page's sleeve rows deep-link here.
+ *
+ * Weights come from /api/regions when it has answered, otherwise from the
+ * Vanguard factsheet snapshot in data/funds.ts so the bars never render empty.
  */
 export default function GeographyPanel() {
   const { payload } = useRegions();
 
-  const regions = useMemo<RegionWeight[]>(() => {
-    const TICKER_ORDER = ["VUN", "VCN", "VIU", "VEE"];
-
-    if (payload?.regions && payload.regions.length > 0) {
-      // Live feed — sort by canonical order
-      const mapped = payload.regions
+  const rows = useMemo<SleeveRow[]>(() => {
+    const live = payload?.regions ?? [];
+    if (live.length > 0) {
+      const mapped = live
         .filter((r) => TICKER_ORDER.includes(r.ticker))
-        .map((r) => ({ ticker: r.ticker, weight: r.weight }));
-      mapped.sort(
-        (a, b) => TICKER_ORDER.indexOf(a.ticker) - TICKER_ORDER.indexOf(b.ticker)
-      );
-      if (mapped.length === 4) return mapped;
+        .map((r) => ({
+          ticker: r.ticker,
+          weight: r.weight,
+          changePercent: r.changePercent,
+        }));
+      if (mapped.length === TICKER_ORDER.length) {
+        return mapped.sort((a, b) => b.weight - a.weight);
+      }
     }
 
-    // Fallback to factsheet data in data/funds.ts
-    const geo = FUNDS["VEQT.TO"]?.geographyAllocation ?? [];
-    const fallback: RegionWeight[] = geo
-      .map((g) => {
-        const ticker = REGION_TO_TICKER[g.region];
-        if (!ticker) return null;
-        return { ticker, weight: g.weight };
-      })
-      .filter((x): x is RegionWeight => x !== null);
-    fallback.sort(
-      (a, b) => TICKER_ORDER.indexOf(a.ticker) - TICKER_ORDER.indexOf(b.ticker)
-    );
-    return fallback;
+    const fallback = (FUNDS["VEQT.TO"]?.underlyingETFs ?? []).map((e) => ({
+      ticker: e.ticker,
+      weight: e.weight,
+      changePercent: null,
+    }));
+    return fallback.sort((a, b) => b.weight - a.weight);
   }, [payload]);
 
-  const total = regions.reduce((s, r) => s + r.weight, 0) || 100;
+  const max = rows.reduce((m, r) => Math.max(m, r.weight), 0) || 100;
 
   return (
-    <section className="geo">
+    <section className="geo" aria-label="Where the dollars sit">
+      <div id="sleeves" className="geo__anchor" />
+
       <div className="geo__head">
         <div>
-          <div className="ed-stamp">The geography</div>
-          <h2 className="ed-display geo__h2">
-            Where the <em style={{ fontStyle: "italic", fontWeight: 500 }}>dollars sit.</em>
-          </h2>
+          <div className="geo__kicker">The geography</div>
+          <h2 className="geo__display">Where the dollars sit.</h2>
         </div>
-        <p className="ed-caption geo__deck">
-          Four regional Vanguard ETFs, market-cap weighted. Vanguard rebalances
-          quarterly to keep the geography close to the global equity market.
-        </p>
+        <span className="geo__caption">
+          Daily NAV attribution · rebalanced quarterly by Vanguard
+        </span>
       </div>
 
-      <div className="geo__bar" role="img" aria-label="Regional weight breakdown">
-        {regions.map((r, i) => {
-          const w = (r.weight / total) * 100;
-          const isNarrow = w < 12;
+      <div className="geo__rows">
+        {rows.map((r, i) => {
+          const pct = r.changePercent;
+          const negative = pct != null && pct < 0;
           return (
-            <div
-              key={r.ticker}
-              className={`geo__seg${isNarrow ? " geo__seg--narrow" : ""}`}
-              style={{
-                width: `${w}%`,
-                background: GEO_TONE[r.ticker] ?? "var(--rule)",
-                borderRight:
-                  i < regions.length - 1 ? "1px solid var(--paper)" : "none",
-              }}
-            >
-              <div className="geo__seg-inner">
-                <div className="ed-stamp geo__seg-ticker">{r.ticker}</div>
-                <div className="geo__seg-name">{GEO_LABEL[r.ticker] ?? r.ticker}</div>
-                <div className="ed-display ed-numerals geo__seg-pct">
-                  {r.weight.toFixed(1)}
-                  <span className="geo__seg-pct-sym">%</span>
+            <div className="geo__row" key={r.ticker}>
+              <span className="geo__ord" aria-hidden="true">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+
+              <div className="geo__name">
+                <div className="geo__ticker">{r.ticker}</div>
+                <div className="geo__desc geo-desk">
+                  {SLEEVE_DESC[r.ticker] ?? r.ticker}
+                </div>
+                <div className="geo__desc geo-mob">
+                  {SLEEVE_DESC_MOB[r.ticker] ?? r.ticker}
                 </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
 
-      {/* Below-bar label row — ensures narrow segments (VEE ~7%) still get a
-          readable name. Each label tracks its segment width. */}
-      <div className="geo__labels">
-        {regions.map((r) => {
-          const w = (r.weight / total) * 100;
-          return (
-            <div
-              key={r.ticker}
-              className="geo__label"
-              style={{ width: `${w}%` }}
-            >
-              <span className="geo__label-name">
-                {GEO_LABEL[r.ticker] ?? r.ticker}
+              <div className="geo__track">
+                <div
+                  className="geo__fill"
+                  style={{ width: `${Math.min(100, (r.weight / max) * 100)}%` }}
+                />
+              </div>
+
+              <span className="geo__weight">{r.weight.toFixed(1)}%</span>
+
+              <span className={`geo__move${negative ? " is-neg" : ""}`}>
+                {pct == null ? (
+                  "—"
+                ) : (
+                  <>
+                    {negative ? DOWN : UP} {fmtSignedPct(pct)}{" "}
+                    <span className="geo__move-word">today</span>
+                  </>
+                )}
               </span>
-              <span className="geo__label-ticker">{r.ticker}</span>
             </div>
           );
         })}
@@ -143,157 +129,208 @@ export default function GeographyPanel() {
 
       <style jsx>{`
         .geo {
-          padding: 22px 0 30px;
+          font-family: var(--ins-font);
+          color: var(--ins-ink);
+          font-variant-numeric: tabular-nums;
+          border-top: 3px solid var(--ins-rule-strong);
+          padding-top: 16px;
         }
+        .geo__anchor {
+          scroll-margin-top: 110px;
+        }
+        .geo-mob {
+          display: none;
+        }
+
+        /* ── Head ───────────────────────────────────────────────── */
         .geo__head {
           display: flex;
           justify-content: space-between;
-          align-items: flex-end;
+          align-items: baseline;
           gap: 24px;
-          margin-bottom: 18px;
-          flex-wrap: wrap;
         }
-        .geo__h2 {
-          font-size: clamp(1.8rem, 3vw, 2.4rem);
-          line-height: 1.05;
-          letter-spacing: -0.02em;
-          margin: 6px 0 0;
-        }
-        .geo__deck {
-          flex: 0 1 360px;
-          max-width: 360px;
-          font-size: 13px;
-        }
-        .geo__bar {
-          display: flex;
-          width: 100%;
-          height: 180px;
-          border: 1px solid var(--ink);
-          border-radius: 4px;
-          overflow: hidden;
-        }
-        .geo__seg {
-          position: relative;
-          height: 100%;
-          overflow: hidden;
-          min-width: 0;
-        }
-        .geo__seg-inner {
-          position: absolute;
-          inset: 16px 14px;
-          color: var(--band-paper);
-          display: flex;
-          flex-direction: column;
-          justify-content: space-between;
-        }
-        .geo__seg--narrow .geo__seg-name {
-          display: none;
-        }
-        .geo__seg-ticker {
-          color: var(--band-paper);
-          letter-spacing: 0.22em;
-          font-size: 10px;
-          font-weight: 700;
-          opacity: 0.7;
-        }
-        .geo__seg-name {
-          font-family: var(--font-display);
-          font-style: italic;
-          font-weight: 500;
-          font-size: clamp(0.85rem, 1.4vw, 1.05rem);
-          color: var(--band-paper);
-          opacity: 0.92;
-          letter-spacing: -0.005em;
-        }
-        .geo__seg-pct {
-          font-size: clamp(2rem, 4.4vw, 3.4rem);
-          line-height: 0.95;
-          color: var(--band-paper);
-          letter-spacing: -0.025em;
-          align-self: flex-start;
-        }
-        .geo__seg--narrow .geo__seg-pct {
-          font-size: clamp(1.1rem, 2.4vw, 1.8rem);
-        }
-        .geo__seg-pct-sym {
-          font-size: 0.5em;
-          opacity: 0.7;
-          margin-left: 2px;
-        }
-        .geo__labels {
-          display: flex;
-          width: 100%;
-          margin-top: 10px;
-        }
-        .geo__label {
-          min-width: 0;
-          padding: 0 6px;
-          display: flex;
-          flex-direction: column;
-          gap: 2px;
-          border-right: 1px solid var(--rule-hair);
-        }
-        .geo__label:last-child {
-          border-right: none;
-        }
-        .geo__label-name {
-          font-family: var(--font-display);
-          font-style: italic;
-          font-weight: 500;
-          font-size: clamp(11px, 1.1vw, 13.5px);
-          color: var(--ink);
-          letter-spacing: -0.005em;
-          line-height: 1.15;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-        .geo__label-ticker {
-          font-family: var(--font-sans);
+        .geo__kicker {
           font-size: 9.5px;
           font-weight: 700;
           letter-spacing: 0.2em;
-          color: var(--ink-mute);
+          text-transform: uppercase;
+          color: var(--ins-signal);
+        }
+        .geo__display {
+          margin: 8px 0 0;
+          font-size: 40px;
+          font-weight: 700;
+          letter-spacing: -0.03em;
+          line-height: 1.05;
+          color: var(--ins-ink);
+        }
+        .geo__caption {
+          font-size: 9.5px;
+          font-weight: 600;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          color: var(--ins-gray-600);
+          text-align: right;
+          white-space: nowrap;
         }
 
-        @media (max-width: 720px) {
-          .geo__bar {
-            flex-direction: column;
-            height: auto;
-            /* No min-height on the stacked variant — each segment already
-               sets its own min-height: 64px, so the bar wraps tightly
-               around its content instead of reserving 220px above the
-               fold on mobile. */
-            min-height: 0;
+        /* ── Rows ───────────────────────────────────────────────── */
+        .geo__rows {
+          margin-top: 20px;
+          border-top: 1px solid var(--ins-ink);
+        }
+        .geo__row {
+          display: grid;
+          grid-template-columns: 56px 230px 1fr 130px 150px;
+          gap: 24px;
+          align-items: center;
+          padding: 16px 0;
+          border-bottom: 1px solid var(--ins-hair);
+        }
+        .geo__row:last-child {
+          border-bottom-color: var(--ins-ink);
+        }
+        .geo__ord {
+          font-size: 44px;
+          font-weight: 700;
+          line-height: 0.85;
+          color: rgba(232, 68, 46, 0.4);
+        }
+        .geo__ticker {
+          font-size: 15px;
+          font-weight: 800;
+          letter-spacing: 0.04em;
+        }
+        .geo__desc {
+          margin-top: 3px;
+          font-size: 10px;
+          font-weight: 600;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: var(--ins-gray-600);
+        }
+        .geo__track {
+          height: 8px;
+          background: var(--ins-track-soft);
+        }
+        .geo__fill {
+          height: 100%;
+          background: var(--ins-ink);
+        }
+        .geo__weight {
+          font-size: 30px;
+          font-weight: 600;
+          text-align: right;
+        }
+        .geo__move {
+          font-size: 12px;
+          font-weight: 700;
+          text-align: right;
+          white-space: nowrap;
+          color: var(--ins-ink);
+        }
+        .geo__move.is-neg {
+          color: var(--ins-signal);
+        }
+        .geo__move-word {
+          text-transform: uppercase;
+        }
+
+        @media (max-width: 1100px) {
+          .geo__row {
+            grid-template-columns: 44px 180px 1fr 92px 132px;
+            gap: 16px;
           }
-          .geo__seg {
-            width: 100% !important;
-            min-height: 64px;
-            border-right: none !important;
-            border-bottom: 1px solid var(--paper);
+          .geo__ord {
+            font-size: 34px;
           }
-          .geo__seg:last-child {
-            border-bottom: none;
+          .geo__weight {
+            font-size: 24px;
           }
-          .geo__seg-inner {
-            position: absolute;
-            inset: 12px 14px;
-            flex-direction: row;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
+          .geo__display {
+            font-size: 32px;
           }
-          /* Re-enable name on mobile even for narrow segments */
-          .geo__seg--narrow .geo__seg-name {
-            display: inline;
+          .geo__caption {
+            white-space: normal;
+            max-width: 220px;
           }
-          .geo__seg-pct {
-            font-size: 1.5rem;
+        }
+
+        /* ── Mobile 390 ─────────────────────────────────────────── */
+        @media (max-width: 640px) {
+          .geo {
+            border-top-width: 2px;
+            padding-top: 12px;
           }
-          .geo__seg--narrow .geo__seg-pct {
-            font-size: 1.5rem;
+          .geo-mob {
+            display: block;
           }
-          .geo__labels {
+          .geo-desk {
+            display: none;
+          }
+          .geo__head {
+            display: block;
+          }
+          .geo__kicker {
+            font-size: 9px;
+            letter-spacing: 0.18em;
+          }
+          .geo__display {
+            margin-top: 6px;
+            font-size: 24px;
+            letter-spacing: -0.02em;
+          }
+          .geo__caption {
+            display: none;
+          }
+          .geo__rows {
+            margin-top: 12px;
+          }
+          .geo__row {
+            grid-template-columns: 1fr auto;
+            grid-template-areas:
+              "name weight"
+              "track move";
+            gap: 8px 12px;
+            padding: 12px 0;
+            align-items: baseline;
+          }
+          .geo__ord {
+            display: none;
+          }
+          .geo__name {
+            grid-area: name;
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            min-width: 0;
+          }
+          .geo__ticker {
+            font-size: 13px;
+          }
+          .geo__desc {
+            margin-top: 0;
+            font-size: 9px;
+            letter-spacing: 0.12em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+          .geo__track {
+            grid-area: track;
+            height: 6px;
+            align-self: center;
+          }
+          .geo__weight {
+            grid-area: weight;
+            font-size: 20px;
+          }
+          .geo__move {
+            grid-area: move;
+            font-size: 9px;
+            letter-spacing: 0.08em;
+          }
+          .geo__move-word {
             display: none;
           }
         }

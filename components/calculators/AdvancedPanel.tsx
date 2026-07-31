@@ -1,12 +1,13 @@
 "use client";
 
 /**
- * AdvancedPanel — `<details>`-style expander at the bottom of each calc's
- * controls column. Children render inside an animated `grid-template-rows:
- * 0fr → 1fr` reveal. Caret rotates 45deg to an X on open.
+ * AdvancedPanel — expander at the bottom of a calculator's control column.
+ * Children render inside an animated `grid-template-rows: 0fr → 1fr`
+ * reveal. The "+" rotates 45deg to an × on open.
  *
- * Also exports `AdvToggle` — the small editorial toggle used inside the
- * advanced section (e.g. "Adjust for inflation").
+ * Also exports `AdvToggle` — the Instrument square-checkbox toggle used
+ * both inside the advanced section ("Adjust for inflation") and inline in
+ * the control-bar strip ("REAL DOLLARS (CPI)").
  */
 import { useState, type ReactNode } from "react";
 
@@ -26,7 +27,7 @@ export default function AdvancedPanel({ children, label = "Advanced options" }: 
         aria-expanded={open}
         className="advp__head"
       >
-        <span className="ed-label advp__label">{label}</span>
+        <span className="advp__label">{label}</span>
         <span
           className="advp__toggle"
           aria-hidden
@@ -49,29 +50,40 @@ export default function AdvancedPanel({ children, label = "Advanced options" }: 
 
       <style jsx>{`
         .advp {
-          padding-top: 16px;
-          border-top: 1px solid var(--rule-soft);
+          font-family: var(--ins-font);
+          color: var(--ins-ink);
         }
         .advp__head {
           appearance: none;
           background: transparent;
           border: 0;
+          border-radius: 0;
           width: 100%;
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 6px 0;
+          gap: 10px;
+          padding: 4px 0;
+          min-height: 32px;
           cursor: pointer;
           color: inherit;
         }
+        .advp__head:focus-visible {
+          outline: 2px solid var(--ins-signal);
+          outline-offset: 2px;
+        }
         .advp__label {
-          color: var(--ink);
+          font-size: 8.5px;
+          font-weight: 700;
+          letter-spacing: 0.2em;
+          text-transform: uppercase;
+          color: var(--ins-ink);
         }
         .advp__toggle {
-          font-family: var(--font-display);
-          font-weight: 500;
-          font-size: 18px;
-          color: var(--ink-mute);
+          font-family: var(--ins-font);
+          font-weight: 600;
+          font-size: 15px;
+          color: var(--ins-gray-600);
           transition: transform 0.2s ease;
           line-height: 1;
         }
@@ -86,7 +98,12 @@ export default function AdvancedPanel({ children, label = "Advanced options" }: 
           padding-top: 14px;
           display: flex;
           flex-direction: column;
-          gap: 14px;
+          gap: 16px;
+        }
+        @media (max-width: 640px) {
+          .advp__head {
+            min-height: 44px;
+          }
         }
       `}</style>
     </div>
@@ -98,81 +115,101 @@ interface AdvToggleProps {
   sub?: string;
   value: boolean;
   onChange: (v: boolean) => void;
+  /** "row" — square + label + sub-line. "inline" — square + label only. */
+  variant?: "row" | "inline";
 }
 
-export function AdvToggle({ label, sub, value, onChange }: AdvToggleProps) {
+export function AdvToggle({
+  label,
+  sub,
+  value,
+  onChange,
+  variant = "row",
+}: AdvToggleProps) {
   return (
     <button
       type="button"
       onClick={() => onChange(!value)}
       aria-pressed={value}
-      className={`atog${value ? " is-on" : ""}`}
+      className={`atog atog--${variant}${value ? " is-on" : ""}`}
     >
+      <span className="atog__box" aria-hidden>
+        {value ? "✓" : ""}
+      </span>
       <span className="atog__text">
         <span className="atog__label">{label}</span>
-        {sub && <span className="ed-caption atog__sub">{sub}</span>}
-      </span>
-      <span className="atog__switch" aria-hidden>
-        <span className="atog__thumb" />
+        {sub && variant === "row" && <span className="atog__sub">{sub}</span>}
       </span>
       <style jsx>{`
         .atog {
           appearance: none;
           background: transparent;
           border: 0;
-          padding: 4px 0;
+          border-radius: 0;
+          padding: 0;
           display: flex;
-          justify-content: space-between;
           align-items: center;
-          gap: 14px;
+          gap: 8px;
           cursor: pointer;
-          color: inherit;
-          width: 100%;
+          color: var(--ins-ink);
+          font-family: var(--ins-font);
           text-align: left;
+          min-height: 32px;
+        }
+        .atog--row {
+          width: 100%;
+          align-items: flex-start;
+        }
+        .atog:focus-visible {
+          outline: 2px solid var(--ins-signal);
+          outline-offset: 3px;
+        }
+        .atog__box {
+          width: 12px;
+          height: 12px;
+          border: 1px solid var(--ins-ink);
+          flex: none;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 8px;
+          line-height: 1;
+          color: var(--ins-paper);
+          transition: background 0.15s;
+        }
+        .atog--row .atog__box {
+          margin-top: 2px;
+        }
+        .atog.is-on .atog__box {
+          background: var(--ins-ink);
         }
         .atog__text {
-          text-align: left;
-          min-width: 0;
           display: flex;
           flex-direction: column;
+          gap: 3px;
+          min-width: 0;
         }
         .atog__label {
-          font-family: var(--font-serif);
-          font-size: 14px;
-          color: var(--ink);
+          font-size: 9px;
+          font-weight: 700;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
         }
         .atog__sub {
-          margin-top: 2px;
-          font-size: 11.5px;
+          font-size: 10.5px;
+          font-weight: 500;
+          letter-spacing: 0;
+          text-transform: none;
+          color: var(--ins-gray-600);
+          line-height: 1.45;
         }
-        .atog__switch {
-          position: relative;
-          width: 36px;
-          height: 20px;
-          background: var(--paper-warm);
-          border: 1px solid var(--rule-soft);
-          border-radius: 999px;
-          flex-shrink: 0;
-          transition: background 0.18s, border-color 0.18s;
-          display: inline-block;
-        }
-        .atog.is-on .atog__switch {
-          background: var(--stamp);
-          border-color: var(--stamp);
-        }
-        .atog__thumb {
-          position: absolute;
-          top: 1px;
-          left: 1px;
-          width: 16px;
-          height: 16px;
-          background: var(--ink);
-          border-radius: 50%;
-          transition: transform 0.18s, background 0.18s;
-        }
-        .atog.is-on .atog__thumb {
-          background: var(--paper);
-          transform: translateX(16px);
+        @media (max-width: 640px) {
+          .atog {
+            min-height: 44px;
+          }
+          .atog__label {
+            font-size: 10px;
+          }
         }
       `}</style>
     </button>

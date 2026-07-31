@@ -2,129 +2,213 @@
 
 import { useState } from "react";
 import { COMPARE_FAQ } from "@/data/faq";
-import Card from "@/components/ui/Card";
+
+const css = `
+.ins-cmp-faq {
+  border-top: 3px solid var(--ins-rule-strong, #111111);
+  padding-top: 16px;
+  font-family: var(--ins-font);
+  color: var(--ins-ink, #111111);
+}
+.ins-cmp-faq__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 24px;
+}
+.ins-cmp-faq__eyebrow {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ins-gray-600);
+  font-variant-numeric: tabular-nums;
+}
+.ins-cmp-faq__display {
+  margin: 8px 0 0;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.ins-cmp-faq__note {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ins-gray-600);
+  white-space: nowrap;
+}
+.ins-cmp-faq__list {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  border-top: 1px solid var(--ins-ink);
+}
+.ins-cmp-faq__item {
+  border-bottom: 1px solid var(--ins-hair);
+}
+.ins-cmp-faq__q {
+  appearance: none;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  width: 100%;
+  cursor: pointer;
+  color: var(--ins-ink);
+  font-family: inherit;
+  display: grid;
+  grid-template-columns: 52px 1fr auto;
+  gap: 18px;
+  align-items: start;
+  text-align: left;
+  padding: 16px 0;
+  min-height: 44px;
+}
+.ins-cmp-faq__ordinal {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--ins-ordinal);
+  font-variant-numeric: tabular-nums;
+}
+.ins-cmp-faq__q-text {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  padding-right: 8px;
+}
+.ins-cmp-faq__toggle {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--ins-gray-600);
+  transition: transform 0.2s ease, color 0.18s ease;
+}
+.ins-cmp-faq__q:hover .ins-cmp-faq__toggle {
+  color: var(--ins-ink);
+}
+.ins-cmp-faq__q[aria-expanded="true"] .ins-cmp-faq__toggle {
+  transform: rotate(45deg);
+  color: var(--ins-ink);
+}
+.ins-cmp-faq__panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 0.25s ease, opacity 0.25s ease;
+}
+.ins-cmp-faq__panel--open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+.ins-cmp-faq__panel-inner {
+  overflow: hidden;
+}
+.ins-cmp-faq__a {
+  margin: 0;
+  padding: 0 52px 20px 70px;
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 1.6;
+  color: var(--ins-gray-700);
+  max-width: 78ch;
+  text-wrap: pretty;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ins-cmp-faq__panel,
+  .ins-cmp-faq__toggle { transition: none; }
+}
+
+@media (max-width: 900px) {
+  .ins-cmp-faq__note { display: none; }
+}
+
+@media (max-width: 640px) {
+  .ins-cmp-faq { padding-top: 12px; }
+  .ins-cmp-faq__eyebrow { font-size: 9px; letter-spacing: 0.18em; }
+  .ins-cmp-faq__display { margin-top: 6px; font-size: 20px; }
+  .ins-cmp-faq__list { margin-top: 8px; }
+  .ins-cmp-faq__q {
+    grid-template-columns: 30px 1fr auto;
+    gap: 12px;
+    padding: 14px 0;
+  }
+  .ins-cmp-faq__ordinal { font-size: 15px; }
+  .ins-cmp-faq__q-text { font-size: 15px; line-height: 1.35; }
+  .ins-cmp-faq__toggle { font-size: 17px; }
+  .ins-cmp-faq__a {
+    padding: 0 0 16px 42px;
+    font-size: 13.5px;
+  }
+}
+`;
 
 /**
- * Compare FAQ — Round 4 D2 version. Accordion list with the first item
- * open by default. Vermilion-tinted question on open, ink question
- * closed. Plus caret rotates 45° to an X on open.
+ * Compare FAQ in the Instrument article grammar — 3px rule, eyebrow +
+ * display, then ordinal-numbered ruled Q/A rows.
+ *
+ * Every question and answer is `data/faq.ts` COMPARE_FAQ verbatim; the
+ * same array feeds the FAQPage structured data on `app/compare/page.tsx`,
+ * so the two never drift. Still an accordion — thirteen answers open at
+ * once is a wall, not a page — with the first row open.
  */
 export default function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <Card>
-      <div className="ed-stamp">The questions</div>
-      <h2
-        className="ed-display-italic"
-        style={{
-          fontSize: "clamp(1.5rem, 2.4vw, 1.9rem)",
-          lineHeight: 1.05,
-          color: "var(--ink)",
-          margin: "4px 0 12px",
-        }}
-      >
-        Frequently asked.
-      </h2>
+    <section className="ins-cmp-faq" aria-labelledby="ins-cmp-faq-display">
+      <header className="ins-cmp-faq__head">
+        <div>
+          <div className="ins-cmp-faq__eyebrow">
+            The questions · {COMPARE_FAQ.length} on file
+          </div>
+          <h2 id="ins-cmp-faq-display" className="ins-cmp-faq__display">
+            Frequently asked.
+          </h2>
+        </div>
+        <span className="ins-cmp-faq__note">Not investment advice</span>
+      </header>
 
-      <ul
-        role="list"
-        style={{
-          listStyle: "none",
-          margin: 0,
-          padding: 0,
-        }}
-      >
+      <ul className="ins-cmp-faq__list">
         {COMPARE_FAQ.map((item, i) => {
           const isOpen = openIndex === i;
+          const panelId = `ins-cmp-faq-panel-${i}`;
           return (
-            <li
-              key={i}
-              style={{
-                borderTop: "1px solid var(--rule-soft)",
-                borderBottom:
-                  i === COMPARE_FAQ.length - 1
-                    ? "1px solid var(--rule-soft)"
-                    : "none",
-              }}
-            >
+            <li key={i} className="ins-cmp-faq__item">
               <button
                 type="button"
-                onClick={() => setOpenIndex(isOpen ? null : i)}
+                className="ins-cmp-faq__q"
                 aria-expanded={isOpen}
-                style={{
-                  appearance: "none",
-                  background: "transparent",
-                  border: "none",
-                  width: "100%",
-                  display: "flex",
-                  alignItems: "flex-start",
-                  justifyContent: "space-between",
-                  gap: 12,
-                  padding: "18px 0",
-                  textAlign: "left",
-                  cursor: "pointer",
-                  color: "inherit",
-                  fontFamily: "inherit",
-                }}
+                aria-controls={panelId}
+                onClick={() => setOpenIndex(isOpen ? null : i)}
               >
-                <span
-                  className="ed-display"
-                  style={{
-                    fontSize: "clamp(1rem, 1.6vw, 1.125rem)",
-                    lineHeight: 1.3,
-                    color: isOpen ? "var(--stamp)" : "var(--ink)",
-                    letterSpacing: "-0.01em",
-                    paddingRight: 8,
-                  }}
-                >
-                  {item.question}
+                <span className="ins-cmp-faq__ordinal" aria-hidden>
+                  {String(i + 1).padStart(2, "0")}
                 </span>
-                <span
-                  aria-hidden
-                  className="ed-display ed-numerals"
-                  style={{
-                    fontSize: 22,
-                    lineHeight: 1,
-                    color: "var(--ink-mute)",
-                    flexShrink: 0,
-                    transition: "transform 0.2s",
-                    transform: isOpen ? "rotate(45deg)" : "rotate(0deg)",
-                  }}
-                >
+                <span className="ins-cmp-faq__q-text">{item.question}</span>
+                <span className="ins-cmp-faq__toggle" aria-hidden>
                   +
                 </span>
               </button>
               <div
-                style={{
-                  display: "grid",
-                  gridTemplateRows: isOpen ? "1fr" : "0fr",
-                  opacity: isOpen ? 1 : 0,
-                  transition:
-                    "grid-template-rows 0.25s ease, opacity 0.25s ease",
-                }}
+                id={panelId}
+                className={`ins-cmp-faq__panel${
+                  isOpen ? " ins-cmp-faq__panel--open" : ""
+                }`}
               >
-                <div style={{ overflow: "hidden" }}>
-                  <p
-                    className="ed-body"
-                    style={{
-                      paddingBottom: 20,
-                      paddingRight: 32,
-                      fontSize: 14.5,
-                      lineHeight: 1.6,
-                      color: "var(--ink-soft)",
-                      maxWidth: "68ch",
-                      margin: 0,
-                    }}
-                  >
-                    {item.answer}
-                  </p>
+                <div className="ins-cmp-faq__panel-inner">
+                  <p className="ins-cmp-faq__a">{item.answer}</p>
                 </div>
               </div>
             </li>
           );
         })}
       </ul>
-    </Card>
+
+      <style dangerouslySetInnerHTML={{ __html: css }} />
+    </section>
   );
 }
