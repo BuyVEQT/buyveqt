@@ -3,66 +3,67 @@
 import { Suspense } from "react";
 import InsideHero from "./InsideHero";
 import GeographyPanel from "./GeographyPanel";
-import InsideRegionGrid from "./InsideRegionGrid";
-import InsideHeatBoard from "./InsideHeatBoard";
 import InsideHoldings from "./InsideHoldings";
+import InsideHeatBoard from "./InsideHeatBoard";
 import InsideMethodology from "./InsideMethodology";
+import InsideCloser from "./InsideCloser";
 
 /**
- * V2 /inside-veqt page composition.
+ * The Instrument — /inside-veqt composition (artboard 6a).
  *
- * InsideStats is gone — its data is now inlined as a SpecRow inside InsideHero.
- * GeographyPanel sits between the hero and the region grid as its own full-width module.
+ * Same grammar as the home page: white paper, Archivo, 3px ink section
+ * rules, red spent only on signal. Module order:
+ *
+ *   InsideHero        — dateline · "What you own when you own VEQT." ·
+ *                       spec strip (holdings / AUM / mgmt fee / on tape)
+ *   GeographyPanel    — THE GEOGRAPHY · "Where the dollars sit." ·
+ *                       four ruled sleeve rows  (owns #sleeves)
+ *   InsideHoldings    — TOP OF THE BOOK · "The ten biggest bets."
+ *   InsideHeatBoard   — SESSIONS ON FILE · "The year on tape."
+ *                       (owns #heatmap and the ?date= deep link)
+ *   InsideMethodology — HOW WE KNOW · the ink panel that names its sources
+ *   InsideCloser      — verdict rail + "You've seen the machine."
+ *
+ * This page does not print editions — the red/ink edition attribute is the
+ * home page's signal, and setting it here would make two pages shout.
  */
 export default function InsideClient() {
   return (
-    <main
-      style={{
-        background: "var(--paper)",
-        minHeight: "100dvh",
-        color: "var(--ink)",
-      }}
-    >
-      <div className="inside-stack">
+    <main className="ins-root ins-inside">
+      <div className="ins-page">
         <InsideHero />
         <GeographyPanel />
-        <InsideRegionGrid />
+        <InsideHoldings />
 
-        {/* The deep heatmap. Wrapped in Suspense because useSearchParams
-            bails static prerendering otherwise; the rest of the page
-            renders without waiting. */}
+        {/* useSearchParams (the ?date= deep link) bails static prerendering
+            without a Suspense boundary; the rest of the page paints first. */}
         <Suspense fallback={null}>
           <InsideHeatBoard />
         </Suspense>
 
-        <div className="inside-two-up">
-          <InsideHoldings />
-          <InsideMethodology />
-        </div>
+        <InsideMethodology />
+        <InsideCloser />
       </div>
 
       <style jsx>{`
-        .inside-stack {
+        .ins-inside {
+          background: var(--ins-paper);
+          min-height: 100dvh;
+          color: var(--ins-ink);
+          font-family: var(--ins-font);
+        }
+        .ins-page {
           display: flex;
           flex-direction: column;
-          gap: 22px;
+          gap: 30px;
           max-width: 1400px;
           margin: 0 auto;
-          padding: 20px 14px 40px;
+          padding: 0 40px 40px;
         }
-        .inside-two-up {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 28px;
-        }
-        @media (min-width: 1024px) {
-          .inside-stack {
-            gap: 28px;
-            padding: 32px 26px 56px;
-          }
-          .inside-two-up {
-            grid-template-columns: 7fr 5fr;
-            gap: 18px;
+        @media (max-width: 640px) {
+          .ins-page {
+            gap: 20px;
+            padding: 0 20px 28px;
           }
         }
       `}</style>

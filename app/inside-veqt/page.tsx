@@ -8,14 +8,14 @@ import {
 } from "@/lib/seo-config";
 
 export const metadata: Metadata = {
-  title: "Inside VEQT — Holdings, Sectors & Geographic Allocation",
+  title: "Inside VEQT — Holdings & Geographic Allocation",
   description:
-    "What's inside VEQT? Explore the 4 underlying ETFs, top 10 holdings, sector breakdown, and geographic allocation of Vanguard's all-equity ETF.",
+    "What's inside VEQT? Explore the 4 underlying ETFs, top 10 holdings with sector tags, and the geographic allocation of Vanguard's all-equity ETF.",
   alternates: { canonical: canonicalUrl("/inside-veqt") },
   openGraph: {
-    title: "Inside VEQT — Holdings, Sectors & Geographic Allocation",
+    title: "Inside VEQT — Holdings & Geographic Allocation",
     description:
-      "Full breakdown of what VEQT holds: underlying ETFs, top stocks, sectors, and country allocation.",
+      "Full breakdown of what VEQT holds: underlying ETFs, top stocks, and country allocation.",
     url: canonicalUrl("/inside-veqt"),
   },
 };

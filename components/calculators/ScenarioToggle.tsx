@@ -1,9 +1,10 @@
 "use client";
 
 /**
- * ScenarioToggle — three large pill cards under the projection chart, one
- * per scenario, that swap the active scenario when clicked. Each card
- * shows the scenario's label, headline final value, and a short caption.
+ * ScenarioToggle — three ruled cells under the projection chart, one per
+ * scenario, that swap the active scenario when clicked. Same grammar as
+ * the calculator tab strip: 1px ink cells sharing rules, the active one
+ * filled ink with a signal square in the corner.
  */
 import { SCENARIOS, SCENARIO_KEYS, type ScenarioKey } from "@/lib/calc-data";
 import AnimatedDollar from "./AnimatedDollar";
@@ -16,7 +17,7 @@ interface ScenarioToggleProps {
 
 export default function ScenarioToggle({ value, paths, onChange }: ScenarioToggleProps) {
   return (
-    <div className="scn-toggle">
+    <div className="scn-toggle" role="group" aria-label="Return scenario">
       {SCENARIO_KEYS.map((key) => {
         const s = SCENARIOS[key];
         const active = key === value;
@@ -28,56 +29,98 @@ export default function ScenarioToggle({ value, paths, onChange }: ScenarioToggl
             onClick={() => onChange(key)}
             aria-pressed={active}
             className={`scn-toggle__opt${active ? " is-active" : ""}`}
-            style={{ borderColor: active ? s.color : "var(--rule-soft)" }}
           >
-            <div className="ed-stamp scn-toggle__head" style={{ color: s.color }}>
-              {s.label}
-            </div>
-            <div className="scn-toggle__val">
+            <span className="scn-toggle__top">
+              <span className="scn-toggle__head">{s.label}</span>
+              {active && <span className="scn-toggle__sq" aria-hidden />}
+            </span>
+            <span className="scn-toggle__val">
               <AnimatedDollar value={final} size="medium" />
-            </div>
-            <div className="ed-caption scn-toggle__cap">{s.caption}</div>
+            </span>
+            <span className="scn-toggle__cap">{s.caption}</span>
           </button>
         );
       })}
       <style jsx>{`
         .scn-toggle {
           display: grid;
-          grid-template-columns: 1fr;
-          gap: 10px;
+          grid-template-columns: repeat(3, 1fr);
           margin-top: 20px;
-        }
-        @media (min-width: 720px) {
-          .scn-toggle {
-            grid-template-columns: repeat(3, 1fr);
-            gap: 14px;
-          }
+          font-family: var(--ins-font);
         }
         .scn-toggle__opt {
           appearance: none;
+          border-radius: 0;
           text-align: left;
-          padding: 14px 16px;
-          background: var(--paper);
-          border: 1.5px solid var(--rule-soft);
-          border-radius: 12px;
+          padding: 12px 14px 13px;
+          background: transparent;
+          border: 1px solid var(--ins-ink);
           cursor: pointer;
-          transition: background 0.18s, border-color 0.18s, transform 0.18s;
-          color: inherit;
+          transition: background 0.15s, color 0.15s;
+          color: var(--ins-ink);
           font: inherit;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          min-width: 0;
         }
-        .scn-toggle__opt:hover {
-          background: var(--paper-light);
-          transform: translateY(-1px);
+        .scn-toggle__opt + .scn-toggle__opt {
+          border-left: 0;
+        }
+        .scn-toggle__opt:focus-visible {
+          outline: 2px solid var(--ins-signal);
+          outline-offset: -3px;
         }
         .scn-toggle__opt.is-active {
-          background: var(--paper-light);
-          border-width: 2px;
+          background: var(--ins-ink);
+          color: var(--ins-paper);
         }
-        .scn-toggle__val {
-          margin: 6px 0 4px;
+        .scn-toggle__opt.is-active :global(.anum) {
+          color: var(--ins-paper);
+        }
+        .scn-toggle__top {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+        }
+        .scn-toggle__head {
+          font-size: 8.5px;
+          font-weight: 700;
+          letter-spacing: 0.2em;
+          text-transform: uppercase;
+          color: var(--ins-gray-600);
+        }
+        .scn-toggle__opt.is-active .scn-toggle__head {
+          color: var(--ins-inv-mute);
+        }
+        .scn-toggle__sq {
+          width: 7px;
+          height: 7px;
+          background: var(--ins-signal);
+          flex: none;
         }
         .scn-toggle__cap {
-          font-size: 12px;
+          font-size: 9px;
+          font-weight: 600;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: var(--ins-gray-600);
+        }
+        .scn-toggle__opt.is-active .scn-toggle__cap {
+          color: var(--ins-inv-mute);
+        }
+        @media (max-width: 640px) {
+          .scn-toggle {
+            grid-template-columns: 1fr;
+          }
+          .scn-toggle__opt {
+            min-height: 44px;
+          }
+          .scn-toggle__opt + .scn-toggle__opt {
+            border-left: 1px solid var(--ins-ink);
+            border-top: 0;
+          }
         }
       `}</style>
     </div>

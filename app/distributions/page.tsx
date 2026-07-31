@@ -1,13 +1,5 @@
 import type { Metadata } from "next";
-import InteriorShell from "@/components/broadsheet/InteriorShell";
-// DistributionChart loaded via a client-only wrapper to suppress the
-// recharts "width(-1) and height(-1)" SSG warning and shave the
-// recharts payload off the initial server render. See the wrapper for
-// details.
-import DistributionChart from "@/components/distributions/DistributionChartClient";
-import IncomeEstimator from "@/components/distributions/IncomeEstimator";
-import DistributionStats from "@/components/distributions/DistributionStats";
-import StakeDefault from "@/components/distributions/StakeDefault";
+import Link from "next/link";
 import {
   VEQT_DISTRIBUTIONS,
   getCumulativeSinceInception,
@@ -15,8 +7,15 @@ import {
   getTotalDistributionGrowthPct,
   getInceptionDistributionYear,
 } from "@/data/distributions";
+import { FUNDS, FUND_DATA_LAST_UPDATED } from "@/data/funds";
 import { getNextDistributionEstimate } from "@/lib/distributions-calendar";
-import { getQuote } from "@/lib/data";
+import { getQuote, getDailyHistory } from "@/lib/data";
+import {
+  fmtChipDate,
+  fmtPrice,
+  fmtSignedPct,
+  parseSessionDate,
+} from "@/lib/instrument-format";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { buildBreadcrumbSchema, canonicalUrl } from "@/lib/seo-config";
 
@@ -35,39 +34,711 @@ export const metadata: Metadata = {
   },
 };
 
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("en-CA", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+/**
+ * /distributions — "The Instrument" payout ledger.
+ *
+ * Per the handoff's per-route recipe: *facts-column grammar as a ruled
+ * table — one row per distribution (ex-date ordinal, amount 22px w700,
+ * yield micro-label), next-distribution row highlighted with the
+ * today-chip treatment.* Module order:
+ *
+ *   hero          kicker · "Paid, on file." · dek · 4-up facts strip
+ *   THE NEXT ONE  red chip row (est. month) + supporting facts + caption
+ *   THE LEDGER    ruled table, one row per confirmed payment
+ *   THE MECHANICS article grammar (21px/1.6, 68ch)
+ *   verdict rail  ink square + statement + right gray note
+ *   closer        44px display + dek + one red CTA
+ *
+ * Server component: no client state anywhere on the page, so the styles
+ * ship as a plain <style> tag (the components/home/Closer.tsx pattern)
+ * rather than styled-jsx, which is client-only in the App Router. Class
+ * names carry a unique `dist-` prefix since the block is global — which
+ * is also why the closer's <Link> styles without any :global() dance.
+ *
+ * Every number on this page is derived from data/distributions.ts,
+ * lib/distributions-calendar.ts, data/funds.ts, or the live quote/history
+ * fetches below. Nothing is hardcoded.
+ */
+
+const css = `
+.dist-root {
+  background: var(--ins-paper);
+  min-height: 100dvh;
+  color: var(--ins-ink);
+  font-family: var(--ins-font);
+  font-variant-numeric: tabular-nums;
+}
+.dist-page {
+  display: flex;
+  flex-direction: column;
+  gap: 34px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 40px 40px;
 }
 
+/* ── Shared micro-typography ───────────────────────────────────── */
+.dist-kicker {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ins-gray-600);
+}
+.dist-kicker--red {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--ins-signal);
+}
+.dist-note {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ins-gray-600);
+  text-align: right;
+}
+.dist-caption {
+  margin: 14px 0 0;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ins-gray-600);
+  max-width: 90ch;
+  line-height: 1.6;
+}
+
+/* ── Hero ──────────────────────────────────────────────────────── */
+.dist-hero {
+  padding-top: 34px;
+}
+.dist-display {
+  margin: 16px 0 0;
+  font-size: 64px;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 0.98;
+  color: var(--ins-ink);
+}
+.dist-dek {
+  margin: 18px 0 0;
+  max-width: 60ch;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.55;
+  color: var(--ins-gray-600);
+}
+.dist-facts {
+  margin-top: 30px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--ins-ink);
+  border-bottom: 1px solid var(--ins-ink);
+}
+.dist-fact {
+  padding: 14px 24px 16px;
+  border-left: 1px solid var(--ins-hair);
+  min-width: 0;
+}
+.dist-fact:first-child {
+  border-left: 0;
+  padding-left: 0;
+}
+.dist-fact-label {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ins-gray-600);
+}
+.dist-fact-value {
+  margin-top: 6px;
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--ins-ink);
+}
+.dist-fact-sub {
+  margin-top: 7px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ins-gray-600);
+}
+
+/* ── Section openers — 3px ink rule, never double-thin ─────────── */
+.dist-sec {
+  border-top: 3px solid var(--ins-rule-strong);
+  padding-top: 16px;
+}
+.dist-sec__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.dist-h2 {
+  margin: 10px 0 0;
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  color: var(--ins-ink);
+}
+
+/* ── The next one — today-chip treatment ───────────────────────── */
+.dist-next {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 28px;
+  align-items: center;
+  padding: 20px 0;
+  border-top: 1px solid var(--ins-ink);
+  border-bottom: 1px solid var(--ins-ink);
+}
+.dist-chip {
+  background: var(--ins-signal);
+  color: #ffffff;
+  padding: 7px 14px;
+  border-radius: 3px;
+  font-size: 12.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+.dist-next__when {
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ins-ink);
+}
+.dist-next__sub,
+.dist-next__amtsub {
+  margin-top: 5px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ins-gray-600);
+}
+.dist-next__amtwrap {
+  text-align: right;
+}
+.dist-next__amt {
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--ins-ink);
+}
+.dist-next-facts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-bottom: 1px solid var(--ins-hair);
+}
+.dist-nf {
+  padding: 12px 24px 14px;
+  border-left: 1px solid var(--ins-hair);
+  min-width: 0;
+}
+.dist-nf:first-child {
+  border-left: 0;
+  padding-left: 0;
+}
+.dist-nf-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ins-gray-600);
+}
+.dist-nf-value {
+  margin-top: 5px;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ins-ink);
+}
+.dist-nf-sub {
+  margin-top: 5px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ins-gray-600);
+}
+
+/* ── The ledger — ruled table ──────────────────────────────────── */
+.dist-thead,
+.dist-row {
+  display: grid;
+  grid-template-columns: 74px 1fr 1fr auto;
+  gap: 24px;
+}
+.dist-thead {
+  margin-top: 22px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--ins-ink);
+}
+.dist-th {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ins-gray-600);
+}
+.dist-th--right {
+  text-align: right;
+}
+.dist-tbody {
+  border-bottom: 1px solid var(--ins-ink);
+}
+.dist-row {
+  align-items: end;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--ins-hair);
+}
+.dist-tbody .dist-row:last-child {
+  border-bottom: 0;
+}
+.dist-year {
+  font-size: 44px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 0.82;
+  color: var(--ins-ordinal);
+}
+.dist-cell {
+  min-width: 0;
+}
+.dist-cell-value {
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ins-ink);
+}
+/* Column labels vanish on mobile, so the pay date relabels itself. */
+.dist-paid-prefix {
+  display: none;
+}
+.dist-amtwrap {
+  text-align: right;
+}
+.dist-amt {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ins-ink);
+}
+.dist-amtsub {
+  margin-top: 5px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ins-gray-600);
+}
+.dist-footnote {
+  margin: 12px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--ins-hair-soft);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ins-gray-600);
+  line-height: 1.6;
+}
+
+/* ── The mechanics — article grammar ───────────────────────────── */
+.dist-article {
+  margin-top: 22px;
+  max-width: 68ch;
+}
+.dist-article p {
+  margin: 0 0 22px;
+  font-size: 21px;
+  font-weight: 500;
+  line-height: 1.6;
+  color: var(--ins-ink);
+}
+.dist-article p:last-child {
+  margin-bottom: 0;
+}
+.dist-article b {
+  font-weight: 700;
+}
+
+/* ── Verdict rail ──────────────────────────────────────────────── */
+.dist-rail {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 13px 22px;
+  border: 1px solid var(--ins-ink);
+}
+.dist-rail__sq {
+  width: 9px;
+  height: 9px;
+  flex: none;
+  background: var(--ins-ink);
+}
+.dist-rail__copy {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ins-ink);
+}
+.dist-rail__note {
+  margin-left: auto;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ins-gray-600);
+  text-align: right;
+}
+
+/* ── Closer ────────────────────────────────────────────────────── */
+.dist-closer {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 40px;
+  align-items: end;
+  padding-top: 40px;
+  border-top: 1px solid var(--ins-ink);
+}
+.dist-closer__display {
+  margin: 0;
+  font-size: 44px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  color: var(--ins-ink);
+}
+.dist-closer__sub {
+  margin: 12px 0 0;
+  max-width: 62ch;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--ins-gray-600);
+}
+.dist-closer__link {
+  justify-self: end;
+  padding-bottom: 5px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ins-signal);
+  text-decoration: none;
+  border-bottom: 2px solid var(--ins-signal);
+  white-space: nowrap;
+}
+
+/* ── Mid breakpoint ────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .dist-display {
+    font-size: 48px;
+  }
+  .dist-h2 {
+    font-size: 28px;
+  }
+  .dist-facts {
+    grid-template-columns: 1fr 1fr;
+  }
+  .dist-fact {
+    padding: 13px 0 15px;
+    border-left: 0;
+  }
+  .dist-fact:nth-child(2n) {
+    padding-left: 20px;
+    border-left: 1px solid var(--ins-hair);
+  }
+  .dist-fact:nth-child(n + 3) {
+    border-top: 1px solid var(--ins-hair);
+  }
+  .dist-fact-value {
+    font-size: 27px;
+  }
+  /* Keeps the closer's display + CTA on one line before the mobile
+     stack takes over at 640px. */
+  .dist-closer__display {
+    font-size: 32px;
+  }
+}
+
+/* ── Mobile 390 ────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .dist-page {
+    gap: 26px;
+    padding: 0 20px 28px;
+  }
+  .dist-hero {
+    padding-top: 22px;
+  }
+  .dist-kicker {
+    font-size: 9px;
+    letter-spacing: 0.24em;
+  }
+  .dist-display {
+    margin-top: 14px;
+    font-size: 38px;
+    letter-spacing: -0.03em;
+    line-height: 1.02;
+  }
+  .dist-dek {
+    margin-top: 14px;
+    font-size: 14px;
+  }
+  .dist-facts {
+    margin-top: 22px;
+  }
+  .dist-note {
+    text-align: left;
+  }
+  .dist-h2 {
+    font-size: 24px;
+  }
+
+  /* Next-one stacks: chip + window, then the amount on its own line. */
+  .dist-next {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 16px 0;
+  }
+  .dist-chip {
+    justify-self: start;
+    padding: 6px 12px;
+    font-size: 11.5px;
+  }
+  .dist-next__when {
+    font-size: 19px;
+  }
+  .dist-next__amtwrap {
+    text-align: left;
+  }
+  .dist-next__amt {
+    font-size: 30px;
+  }
+  .dist-next-facts {
+    grid-template-columns: 1fr;
+  }
+  .dist-nf {
+    padding: 11px 0 12px;
+    border-left: 0;
+    border-top: 1px solid var(--ins-hair);
+  }
+  .dist-nf:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+  .dist-nf-value {
+    font-size: 19px;
+  }
+
+  /* Ledger rows stack: ex-date + amount on one line, sub-labels below.
+     The pale year ordinal drops — the ex-date already carries the year. */
+  .dist-thead {
+    display: none;
+  }
+  .dist-row {
+    grid-template-columns: 1fr auto;
+    gap: 6px 16px;
+    align-items: baseline;
+    padding: 12px 0;
+    min-height: 56px;
+  }
+  .dist-year {
+    display: none;
+  }
+  .dist-cell--ex {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .dist-cell--paid {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .dist-cell--paid .dist-cell-value {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    color: var(--ins-gray-600);
+  }
+  .dist-paid-prefix {
+    display: inline;
+  }
+  .dist-amtwrap {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+  .dist-amt {
+    font-size: 20px;
+  }
+
+  .dist-article {
+    margin-top: 18px;
+  }
+  .dist-article p {
+    margin-bottom: 18px;
+    font-size: 17px;
+    line-height: 1.55;
+  }
+
+  .dist-rail {
+    gap: 10px;
+    padding: 11px 16px;
+  }
+  .dist-rail__sq {
+    width: 7px;
+    height: 7px;
+  }
+  .dist-rail__copy {
+    font-size: 9px;
+    letter-spacing: 0.14em;
+  }
+  .dist-rail__note {
+    margin-left: 0;
+    width: 100%;
+    font-size: 8.5px;
+    letter-spacing: 0.1em;
+    text-align: left;
+  }
+
+  .dist-closer {
+    display: block;
+    padding-top: 18px;
+  }
+  .dist-closer__display {
+    font-size: 24px;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  .dist-closer__sub {
+    margin-top: 8px;
+    font-size: 12.5px;
+  }
+  /* Top padding does the work of the margin so the tap target clears
+     44px without floating the 2px underline away from the words. */
+  .dist-closer__link {
+    display: inline-block;
+    margin-top: 0;
+    padding: 24px 0 8px;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+  }
+}
+`;
+
 export default async function DistributionsPage() {
-  const allDistributions = VEQT_DISTRIBUTIONS.distributions;
-  const confirmed = allDistributions.filter((d) => !d.estimated);
-  const latestConfirmed = confirmed[0];
+  /* ── The ledger, newest first. Sorting explicitly rather than trusting
+     the source order keeps the year-over-year pairing below sound. ── */
+  const confirmed = VEQT_DISTRIBUTIONS.distributions
+    .filter((d) => !d.estimated)
+    .sort((a, b) => b.exDate.localeCompare(a.exDate));
+
   const cumulativePaid = getCumulativeSinceInception();
   const cagr = getDistributionCAGR();
   const totalGrowthPct = getTotalDistributionGrowthPct();
   const inceptionYear = getInceptionDistributionYear();
   const yearsPaid = confirmed.length;
+  const latestYear = parseSessionDate(confirmed[0].exDate).getUTCFullYear();
+  /* Provable, not asserted: every year between the first and the last is
+     accounted for, so "no missed years" is safe to print. */
+  const noGaps = yearsPaid === latestYear - inceptionYear + 1;
 
-  // Live price — needed for yield, default-stake card, estimator
-  let quote = null;
+  /* Live price — the trailing-yield fact. Renders "—" when unavailable. */
+  let currentPrice = 0;
   try {
-    quote = await getQuote("VEQT");
+    const quote = await getQuote("VEQT");
+    currentPrice = quote?.price ?? 0;
   } catch {
-    /* yield + stake card will fall back gracefully */
+    /* Trailing-yield fact degrades to "—"; nothing else depends on it. */
   }
-  const currentPrice = quote?.price ?? 0;
+
+  /* Daily closes — the only honest source for yield-at-the-time. When the
+     history is unavailable the per-row yield micro-label omits itself
+     rather than being estimated from anything else. */
+  const closeByDate = new Map<string, number>();
+  try {
+    const history = await getDailyHistory("VEQT", "full");
+    for (const bar of history.data) {
+      if (bar.close > 0) closeByDate.set(bar.date, bar.close);
+    }
+  } catch {
+    /* Yield micro-labels omit themselves — see above. */
+  }
+
+  /** Close on the ex-date, or the last session in the week before it. */
+  function closeOnOrBefore(iso: string): number | null {
+    const d = parseSessionDate(iso);
+    for (let i = 0; i < 8; i += 1) {
+      const close = closeByDate.get(d.toISOString().slice(0, 10));
+      if (close) return close;
+      d.setUTCDate(d.getUTCDate() - 1);
+    }
+    return null;
+  }
+
+  const rows = confirmed.map((d, i) => {
+    const prior = confirmed[i + 1];
+    const close = closeOnOrBefore(d.exDate);
+    return {
+      exDate: d.exDate,
+      payDate: d.payDate,
+      amount: d.amount,
+      year: parseSessionDate(d.exDate).getUTCFullYear(),
+      yieldPct: close ? (d.amount / close) * 100 : null,
+      yoyPct:
+        prior && prior.amount > 0
+          ? ((d.amount - prior.amount) / prior.amount) * 100
+          : null,
+    };
+  });
+  const anyYield = rows.some((r) => r.yieldPct !== null);
 
   const estimate = getNextDistributionEstimate(
     currentPrice > 0 ? currentPrice : undefined
   );
 
+  /* "December 2026" → chip "DEC 2026", matching the home hero's NEXT
+     DISTRIBUTION micro-fact that links here. */
+  const [estMonthWord, estYearRaw] = estimate.estimatedMonth.split(" ");
+  const estChip =
+    estMonthWord && estYearRaw
+      ? `${estMonthWord.slice(0, 3).toUpperCase()} ${estYearRaw}`
+      : estimate.estimatedMonth.toUpperCase();
+  /* The forward amount is only ever the estimated row Vanguard hasn't
+     declared yet — never an average dressed up as a forecast. */
+  const estYear = Number(estYearRaw);
+  const estRow =
+    VEQT_DISTRIBUTIONS.distributions.find(
+      (d) =>
+        d.estimated && parseSessionDate(d.exDate).getUTCFullYear() === estYear
+    ) ?? null;
+
+  const priorYear = confirmed[1]
+    ? parseSessionDate(confirmed[1].exDate).getUTCFullYear()
+    : null;
+
+  const veqt = FUNDS["VEQT.TO"];
+  const holdingsLabel = veqt.numberOfHoldings.toLocaleString("en-CA");
+  const sleeveCount = veqt.underlyingETFs.length;
+
   return (
-    <InteriorShell>
+    <main className="ins-root dist-root">
       <JsonLd
         data={buildBreadcrumbSchema([
           { name: "Home", path: "/" },
@@ -75,450 +746,276 @@ export default async function DistributionsPage() {
         ])}
       />
 
-      {/* SECTION: V2 Masthead — stamp row + 2-col italic lockup ── */}
-      <header className="v2-masthead">
-        <div className="v2-masthead__top">
-          <span className="ed-stamp">
-            The annual · {yearsPaid} payments on record · Updated quarterly
-          </span>
-          <span className="ed-stamp" style={{ color: "var(--ink-mute)" }}>
-            {new Intl.DateTimeFormat("en-CA", {
-              weekday: "long",
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            }).format(new Date())}
-          </span>
-        </div>
-        <div className="v2-masthead__lockup">
-          <h1 className="ed-display-italic v2-masthead__h1">
-            Every <em style={{ fontStyle: "italic", fontWeight: 500 }}>December.</em>
-          </h1>
-          <p className="ed-body v2-masthead__lede">
-            VEQT pays once a year, in late December. It&apos;s grown every
-            year since inception. Here&apos;s the rhythm — and what your
-            stake pays.
+      <div className="dist-page">
+        {/* ── Hero ──────────────────────────────────────────────── */}
+        <header className="dist-hero">
+          <p className="dist-kicker">
+            The payout ledger · Annual distributions · Since {inceptionYear}
           </p>
-        </div>
-        <style>{`
-          .v2-masthead {
-            padding: 26px 0 22px;
-          }
-          .v2-masthead__top {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            gap: 12px;
-            flex-wrap: wrap;
-            padding-bottom: 10px;
-          }
-          .v2-masthead__lockup {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 18px;
-            padding: 18px 0 8px;
-            border-top: 3px solid var(--ink);
-            border-bottom: 1px solid var(--ink);
-            align-items: end;
-          }
-          @media (min-width: 720px) {
-            .v2-masthead__lockup {
-              grid-template-columns: auto 1fr;
-              gap: 40px;
-              padding: 22px 0 12px;
-            }
-          }
-          .v2-masthead__h1 {
-            font-size: clamp(3rem, 8vw, 6rem);
-            line-height: 1;
-            letter-spacing: -0.035em;
-            margin: 0;
-            color: var(--ink);
-            white-space: nowrap;
-          }
-          .v2-masthead__lede {
-            font-size: clamp(15px, 1.6vw, 17.5px);
-            line-height: 1.55;
-            color: var(--ink-soft);
-            margin: 0;
-            max-width: 52ch;
-            padding-bottom: 8px;
-          }
-        `}</style>
-      </header>
+          <h1 className="dist-display">Paid, on file.</h1>
+          <p className="dist-dek">
+            VEQT pays once a year, in late December, and the money lands in
+            early January. Every payment on record, the one that&rsquo;s
+            still coming, and what each one worked out to per unit.
+          </p>
 
-      {/* SECTION: Hero ledger stats ─────────────────────────────── */}
-      <DistributionStats
-        cumulativePaid={cumulativePaid}
-        cagr={cagr}
-        totalGrowthPct={totalGrowthPct}
-        inceptionYear={inceptionYear}
-        yearsPaid={yearsPaid}
-      />
+          <div className="dist-facts">
+            <div className="dist-fact">
+              <div className="dist-fact-label">
+                Paid since {inceptionYear} · per unit
+              </div>
+              <div className="dist-fact-value">
+                ${cumulativePaid.toFixed(2)}
+              </div>
+              <div className="dist-fact-sub">
+                {yearsPaid} payments{noGaps ? " · no missed years" : ""}
+              </div>
+            </div>
 
-      {/* SECTION: Window — next + latest ────────────────────────── */}
-      <section
-        className="mt-10 sm:mt-14 pt-6 border-t-2 border-[var(--ink)]"
-        aria-labelledby="window-heading"
-      >
-        <p id="window-heading" className="ed-stamp" style={{ marginBottom: 10 }}>
-          The window
-        </p>
-        <h2
-          className="ed-display-italic"
-          style={{
-            fontSize: "clamp(1.6rem, 2.6vw, 2.1rem)",
-            lineHeight: 1.1,
-            color: "var(--ink)",
-            margin: "0 0 18px",
-            letterSpacing: "-0.02em",
-          }}
-        >
-          What&apos;s next and what{" "}
-          <em style={{ fontStyle: "italic", fontWeight: 500 }}>
-            just landed.
-          </em>
-        </h2>
+            <div className="dist-fact">
+              <div className="dist-fact-label">Growth per year</div>
+              <div className="dist-fact-value">
+                {cagr !== null ? `${(cagr * 100).toFixed(1)}%` : "—"}
+              </div>
+              <div className="dist-fact-sub">
+                Compound, {inceptionYear} to {latestYear}
+              </div>
+            </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
-          {/* Next expected */}
-          <div className="border-l-2 border-[var(--stamp)] pl-5">
-            <p className="bs-label mb-2" style={{ color: "var(--stamp)" }}>
-              Next expected
-            </p>
-            <p
-              className="bs-display text-[1.625rem] sm:text-[1.875rem] leading-[1.1]"
-              style={{ color: "var(--ink)" }}
-            >
-              {estimate.estimatedWindow}
-            </p>
-            <p
-              className="bs-caption italic mt-3"
-              style={{ color: "var(--ink-soft)" }}
-            >
-              Avg. of last three: ${estimate.averageAmount.toFixed(4)} per
-              unit
-              {estimate.growthTrend !== null && (
-                <>
-                  {" · "}
-                  YoY {estimate.growthTrend >= 0 ? "+" : ""}
-                  {estimate.growthTrend.toFixed(1)}%
-                </>
-              )}
-            </p>
-            <p
-              className="bs-caption italic mt-2 text-[11px]"
-              style={{ color: "var(--ink-soft)" }}
-            >
-              Estimated from the historical pattern. Vanguard announces
-              actual dates in early November.
+            <div className="dist-fact">
+              <div className="dist-fact-label">Total growth</div>
+              <div className="dist-fact-value">
+                {totalGrowthPct !== null
+                  ? fmtSignedPct(totalGrowthPct, 0)
+                  : "—"}
+              </div>
+              <div className="dist-fact-sub">
+                Per unit vs. {inceptionYear}
+              </div>
+            </div>
+
+            <div className="dist-fact">
+              <div className="dist-fact-label">Trailing yield</div>
+              <div className="dist-fact-value">
+                {estimate.trailingAnnualYield !== null
+                  ? `${estimate.trailingAnnualYield.toFixed(2)}%`
+                  : "—"}
+              </div>
+              <div className="dist-fact-sub">
+                {estimate.trailingAnnualYield !== null
+                  ? `Last payment on today's $${fmtPrice(currentPrice)}`
+                  : "Price unavailable"}
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* ── The next one ──────────────────────────────────────── */}
+        <section className="dist-sec" aria-labelledby="dist-next-heading">
+          <div className="dist-sec__head">
+            <p className="dist-kicker dist-kicker--red">The next one</p>
+            <p className="dist-note">
+              Vanguard declares the date and amount in November
             </p>
           </div>
-
-          {/* Latest confirmed */}
-          <div className="border-l-2 border-[var(--ink)] pl-5">
-            <p
-              className="bs-label mb-2"
-              style={{ color: "var(--ink-soft)" }}
-            >
-              Latest confirmed
-            </p>
-            <p
-              className="bs-numerals tabular-nums text-[1.875rem] sm:text-[2.25rem] leading-none"
-              style={{ color: "var(--ink)" }}
-            >
-              ${latestConfirmed.amount.toFixed(4)}
-              <span
-                className="bs-caption italic ml-2 text-[14px]"
-                style={{ color: "var(--ink-soft)" }}
-              >
-                per unit
-              </span>
-            </p>
-            <p
-              className="bs-caption mt-3"
-              style={{ color: "var(--ink-soft)" }}
-            >
-              Ex-dividend {formatDate(latestConfirmed.exDate)} · Paid{" "}
-              {formatDate(latestConfirmed.payDate)}
-            </p>
-            {estimate.trailingAnnualYield !== null && (
-              <p
-                className="bs-caption italic mt-2"
-                style={{ color: "var(--ink)" }}
-              >
-                Trailing yield ~{estimate.trailingAnnualYield.toFixed(2)}%
-                at today&apos;s price
-              </p>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION: Chronicle — the chart ──────────────────────────── */}
-      <section
-        className="mt-10 sm:mt-14 pt-6 border-t-2 border-[var(--ink)]"
-        aria-labelledby="chronicle-heading"
-      >
-        <p id="chronicle-heading" className="ed-stamp" style={{ marginBottom: 10 }}>
-          The chronicle
-        </p>
-        <h2
-          className="ed-display-italic"
-          style={{
-            fontSize: "clamp(1.6rem, 2.6vw, 2.1rem)",
-            lineHeight: 1.1,
-            color: "var(--ink)",
-            margin: "0 0 6px",
-            letterSpacing: "-0.02em",
-          }}
-        >
-          The check,{" "}
-          <em style={{ fontStyle: "italic", fontWeight: 500 }}>
-            year by year.
-          </em>
-        </h2>
-        <p
-          className="bs-caption italic mb-5"
-          style={{ color: "var(--ink-soft)" }}
-        >
-          Each bar is one annual payment. Light blue is next December&apos;s
-          estimate.
-        </p>
-        <div
-          className="border border-[var(--color-border)] rounded-md p-4 sm:p-5"
-          style={{ backgroundColor: "var(--paper)" }}
-        >
-          <DistributionChart />
-        </div>
-      </section>
-
-      {/* SECTION: Books — the history table ─────────────────────── */}
-      <section
-        className="mt-10 sm:mt-14 pt-6 border-t-2 border-[var(--ink)]"
-        aria-labelledby="books-heading"
-      >
-        <p id="books-heading" className="ed-stamp" style={{ marginBottom: 10 }}>
-          The books
-        </p>
-        <h2
-          className="ed-display-italic"
-          style={{
-            fontSize: "clamp(1.6rem, 2.6vw, 2.1rem)",
-            lineHeight: 1.1,
-            color: "var(--ink)",
-            margin: "0 0 18px",
-            letterSpacing: "-0.02em",
-          }}
-        >
-          Every payment{" "}
-          <em style={{ fontStyle: "italic", fontWeight: 500 }}>
-            on record.
-          </em>
-        </h2>
-        <div className="overflow-x-auto -mx-2 sm:mx-0">
-          <table className="w-full text-sm border-collapse min-w-[460px]">
-            <thead>
-              <tr>
-                <th
-                  className="bs-label text-left py-3 px-3 sm:px-4 text-[10.5px]"
-                  style={{
-                    color: "var(--ink-soft)",
-                    borderBottom: "2px solid var(--ink)",
-                    letterSpacing: "0.14em",
-                  }}
-                >
-                  Year
-                </th>
-                <th
-                  className="bs-label text-left py-3 px-3 sm:px-4 text-[10.5px]"
-                  style={{
-                    color: "var(--ink-soft)",
-                    borderBottom: "2px solid var(--ink)",
-                    letterSpacing: "0.14em",
-                  }}
-                >
-                  Ex-dividend
-                </th>
-                <th
-                  className="bs-label text-left py-3 px-3 sm:px-4 text-[10.5px]"
-                  style={{
-                    color: "var(--ink-soft)",
-                    borderBottom: "2px solid var(--ink)",
-                    letterSpacing: "0.14em",
-                  }}
-                >
-                  Payment
-                </th>
-                <th
-                  className="bs-label text-right py-3 px-3 sm:px-4 text-[10.5px]"
-                  style={{
-                    color: "var(--ink-soft)",
-                    borderBottom: "2px solid var(--ink)",
-                    letterSpacing: "0.14em",
-                  }}
-                >
-                  Per unit
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {allDistributions.map((d) => {
-                const year = new Date(d.exDate).getFullYear();
-                return (
-                  <tr
-                    key={d.exDate}
-                    style={{
-                      borderBottom: "1px solid var(--color-border)",
-                    }}
-                  >
-                    <td
-                      className="bs-numerals py-3 px-3 sm:px-4 tabular-nums text-[14px]"
-                      style={{ color: "var(--ink)" }}
-                    >
-                      {year}
-                      {d.estimated && (
-                        <span
-                          className="bs-stamp ml-2 align-middle"
-                          style={{
-                            fontSize: "9.5px",
-                            color: "var(--stamp)",
-                          }}
-                        >
-                          Est.
-                        </span>
-                      )}
-                    </td>
-                    <td
-                      className="bs-caption italic py-3 px-3 sm:px-4 text-[12.5px]"
-                      style={{ color: "var(--ink-soft)" }}
-                    >
-                      {formatDate(d.exDate)}
-                    </td>
-                    <td
-                      className="bs-caption italic py-3 px-3 sm:px-4 text-[12.5px]"
-                      style={{ color: "var(--ink-soft)" }}
-                    >
-                      {formatDate(d.payDate)}
-                    </td>
-                    <td
-                      className="bs-numerals py-3 px-3 sm:px-4 text-right tabular-nums text-[14px]"
-                      style={{
-                        color: d.estimated
-                          ? "var(--ink-soft)"
-                          : "var(--ink)",
-                      }}
-                    >
-                      ${d.amount.toFixed(4)}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      {/* SECTION: Stake — default scenario + estimator ──────────── */}
-      {currentPrice > 0 && (
-        <section
-          className="mt-10 sm:mt-14 pt-6 border-t-2 border-[var(--ink)]"
-          aria-labelledby="stake-heading"
-        >
-          <p id="stake-heading" className="ed-stamp" style={{ marginBottom: 10 }}>
-            The stake
-          </p>
-          <h2
-            className="ed-display-italic"
-            style={{
-              fontSize: "clamp(1.6rem, 2.6vw, 2.1rem)",
-              lineHeight: 1.1,
-              color: "var(--ink)",
-              margin: "0 0 6px",
-              letterSpacing: "-0.02em",
-            }}
-          >
-            What your stake{" "}
-            <em style={{ fontStyle: "italic", fontWeight: 500 }}>pays.</em>
+          <h2 className="dist-h2" id="dist-next-heading">
+            The one still coming.
           </h2>
-          <p
-            className="bs-caption italic mb-5"
-            style={{ color: "var(--ink-soft)" }}
-          >
-            Based on trailing twelve months. Future distributions are not
-            guaranteed.
-          </p>
 
-          <StakeDefault
-            currentPrice={currentPrice}
-            annualDistPerUnit={estimate.trailingAnnualAmount}
-          />
-
-          <div className="mt-6">
-            <IncomeEstimator
-              annualDistPerUnit={estimate.trailingAnnualAmount}
-              currentPrice={currentPrice}
-            />
+          <div className="dist-next">
+            <span className="dist-chip">&#9656; EST. {estChip}</span>
+            <div>
+              <div className="dist-next__when">{estimate.estimatedWindow}</div>
+              <div className="dist-next__sub">
+                Ex-dividend window · {estimate.confidence} confidence
+              </div>
+            </div>
+            <div className="dist-next__amtwrap">
+              <div className="dist-next__amt">
+                {estRow ? `$${estRow.amount.toFixed(4)}` : "—"}
+              </div>
+              <div className="dist-next__amtsub">
+                {estRow ? "Per unit · estimated" : "Not yet estimated"}
+              </div>
+            </div>
           </div>
+
+          <div className="dist-next-facts">
+            <div className="dist-nf">
+              <div className="dist-nf-label">Last confirmed</div>
+              <div className="dist-nf-value">
+                ${estimate.lastConfirmed.amount.toFixed(4)}
+              </div>
+              <div className="dist-nf-sub">
+                {fmtChipDate(parseSessionDate(estimate.lastConfirmed.date))}
+              </div>
+            </div>
+            <div className="dist-nf">
+              <div className="dist-nf-label">Average of last three</div>
+              <div className="dist-nf-value">
+                ${estimate.averageAmount.toFixed(4)}
+              </div>
+              <div className="dist-nf-sub">Per unit</div>
+            </div>
+            <div className="dist-nf">
+              <div className="dist-nf-label">Year over year</div>
+              <div className="dist-nf-value">
+                {estimate.growthTrend !== null
+                  ? fmtSignedPct(estimate.growthTrend, 1)
+                  : "—"}
+              </div>
+              <div className="dist-nf-sub">
+                {priorYear !== null ? `${priorYear} to ${latestYear}` : "—"}
+              </div>
+            </div>
+          </div>
+
+          <p className="dist-caption">
+            Estimated from the annual pattern. Vanguard announces the actual
+            date and amount in early November — until then this row is a
+            projection, not a promise.
+          </p>
         </section>
-      )}
 
-      {/* SECTION: Fine print — understanding distributions ──────── */}
-      <section
-        className="mt-10 sm:mt-14 pt-6 border-t-2 border-[var(--ink)]"
-        aria-labelledby="fineprint-heading"
-      >
-        <p id="fineprint-heading" className="ed-stamp" style={{ marginBottom: 10 }}>
-          The fine print
-        </p>
-        <h2
-          className="ed-display-italic"
-          style={{
-            fontSize: "clamp(1.6rem, 2.6vw, 2.1rem)",
-            lineHeight: 1.1,
-            color: "var(--ink)",
-            margin: "0 0 18px",
-            letterSpacing: "-0.02em",
-          }}
-        >
-          What a distribution{" "}
-          <em style={{ fontStyle: "italic", fontWeight: 500 }}>
-            actually is.
-          </em>
-        </h2>
+        {/* ── The ledger ────────────────────────────────────────── */}
+        <section className="dist-sec" aria-labelledby="dist-ledger-heading">
+          <div className="dist-sec__head">
+            <p className="dist-kicker dist-kicker--red">The ledger</p>
+            <p className="dist-note">
+              Source: Vanguard Canada · Confirmed payments only
+            </p>
+          </div>
+          <h2 className="dist-h2" id="dist-ledger-heading">
+            Every payment on record.
+          </h2>
 
-        <div
-          className="bs-body text-[15px] leading-[1.65] space-y-4 max-w-[62ch]"
-          style={{ color: "var(--ink)" }}
-        >
-          <p>
-            A distribution is a payment from the fund to its holders.
-            VEQT&apos;s payment is mostly dividends — earned by the
-            ~13,700 stocks the fund holds through its underlying ETFs.
-            When Apple, Royal Bank, and Nestl&eacute; pay their
-            shareholders, that income flows through to you.
+          {/* Not a <table>: `display: grid` on <tr> strips the row/cell
+              roles anyway, so the ledger is a plain ruled list. The header
+              row stays in the accessibility tree — read once, it labels
+              the four values that follow in every row. */}
+          <div className="dist-thead">
+            <div className="dist-th">Year</div>
+            <div className="dist-th">Ex-dividend</div>
+            <div className="dist-th">Paid</div>
+            <div className="dist-th dist-th--right">Per unit</div>
+          </div>
+
+          <div className="dist-tbody">
+            {rows.map((r) => {
+              const micro = [
+                r.yieldPct !== null ? `${r.yieldPct.toFixed(2)}% yield` : null,
+                r.yoyPct !== null ? `${fmtSignedPct(r.yoyPct, 1)} YoY` : null,
+              ]
+                .filter(Boolean)
+                .join(" · ");
+
+              return (
+                <div className="dist-row" key={r.exDate}>
+                  <div className="dist-year">{r.year}</div>
+                  <div className="dist-cell dist-cell--ex">
+                    <div className="dist-cell-value">
+                      {fmtChipDate(parseSessionDate(r.exDate))}
+                    </div>
+                  </div>
+                  <div className="dist-cell dist-cell--paid">
+                    <div className="dist-cell-value">
+                      <span className="dist-paid-prefix">Paid </span>
+                      {fmtChipDate(parseSessionDate(r.payDate))}
+                    </div>
+                  </div>
+                  <div className="dist-amtwrap">
+                    <div className="dist-amt">${r.amount.toFixed(4)}</div>
+                    {micro && <div className="dist-amtsub">{micro}</div>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {(anyYield || estRow) && (
+            <p className="dist-footnote">
+              {anyYield
+                ? "Yield is the payment divided by that day's closing price — the fund's full-year yield at the moment it paid. "
+                : ""}
+              {estRow
+                ? `The ${estYearRaw} row sits above, still an estimate.`
+                : ""}
+            </p>
+          )}
+        </section>
+
+        {/* ── The mechanics ─────────────────────────────────────── */}
+        <section className="dist-sec" aria-labelledby="dist-mechanics-heading">
+          <div className="dist-sec__head">
+            <p className="dist-kicker dist-kicker--red">The mechanics</p>
+            <p className="dist-note">
+              Frequency: {VEQT_DISTRIBUTIONS.frequency} · Ticker{" "}
+              {VEQT_DISTRIBUTIONS.ticker}
+            </p>
+          </div>
+          <h2 className="dist-h2" id="dist-mechanics-heading">
+            What the payment actually is.
+          </h2>
+
+          <div className="dist-article">
+            <p>
+              A distribution is a payment from the fund to its holders.
+              VEQT&rsquo;s is mostly dividends — earned by the {holdingsLabel}{" "}
+              stocks the fund holds through its {sleeveCount} underlying ETFs.
+              When Apple, Royal Bank, and Nestl&eacute; pay their
+              shareholders, that income flows through to you.
+            </p>
+            <p>
+              <b>Yield is not return.</b> A fund with a 2% distribution yield
+              and 8% price appreciation beats a fund with a 4% yield and 4%
+              appreciation. Distribution size, on its own, says nothing about
+              whether the fund is winning.
+            </p>
+            <p>
+              Most long-term holders DRIP — dividend reinvestment plan —
+              through their brokerage. The December payment buys more units
+              automatically. No fees, no decisions, and the compounding does
+              its quiet work.
+            </p>
+          </div>
+
+          <p className="dist-footnote">
+            Source: Vanguard Canada · Holdings as of the{" "}
+            {fmtChipDate(parseSessionDate(FUND_DATA_LAST_UPDATED))} factsheet ·
+            Distribution data updated after each declaration
           </p>
-          <p>
-            <em>Yield is not return.</em> A fund with a 2% distribution
-            yield and 8% price appreciation beats a fund with a 4% yield
-            and 4% appreciation. Distribution size, on its own, says
-            nothing about whether the fund is winning.
-          </p>
-          <p>
-            Most long-term holders DRIP — Dividend Reinvestment Plan —
-            through their brokerage. The December payment buys more units
-            automatically, no fees, no decisions, the compounding does
-            its quiet work.
-          </p>
+        </section>
+
+        {/* ── Verdict rail ──────────────────────────────────────── */}
+        <div className="dist-rail">
+          <span className="dist-rail__sq" aria-hidden="true" />
+          <span className="dist-rail__copy">
+            One payout a year — reinvest it and forget it
+          </span>
+          <span className="dist-rail__note">
+            Estimates firm up when Vanguard declares
+          </span>
         </div>
 
-        <p
-          className="bs-caption italic mt-6 pt-4 border-t border-[var(--color-border)] text-[11px]"
-          style={{ color: "var(--ink-soft)" }}
-        >
-          Source: Vanguard Canada · Distribution data updated periodically
-        </p>
-      </section>
-    </InteriorShell>
+        {/* ── Closer ────────────────────────────────────────────── */}
+        <section className="dist-closer" aria-label="Closing note">
+          <div>
+            <p className="dist-closer__display">
+              You&rsquo;ve seen the ledger.
+            </p>
+            <p className="dist-closer__sub">
+              {yearsPaid} payments{noGaps ? ", no missed years" : ""}, and the
+              next one is a December away. The only decision left is whether
+              it buys more units.
+            </p>
+          </div>
+          <Link href="/calculators?tab=dca" className="dist-closer__link">
+            Model the reinvestment <span aria-hidden>&rarr;</span>
+          </Link>
+        </section>
+      </div>
+
+      <style dangerouslySetInnerHTML={{ __html: css }} />
+    </main>
   );
 }

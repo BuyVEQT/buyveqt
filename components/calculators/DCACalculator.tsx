@@ -48,7 +48,7 @@ export default function DCACalculator() {
   const [active, setActive] = useState<ScenarioKey>(DEFAULTS.active);
   const [contribGrowth, setContribGrowth] = useState(DEFAULTS.contribGrowth);
   const [adjustInflation, setAdjustInflation] = useState(DEFAULTS.adjustInflation);
-  const { pinned, pin, remove, restore } = usePinnedScenarios<DCAInputs>(3);
+  const { pinned, pin, remove, restore } = usePinnedScenarios<DCAInputs>(4);
 
   // Read URL params on mount — supports share-link landings + OG previews.
   useEffect(() => {
@@ -127,21 +127,19 @@ export default function DCACalculator() {
     setAdjustInflation(inp.adjustInflation);
   }
 
-  const taglineCola = contribGrowth > 0 ? `, growing ${contribGrowth}%/yr` : "";
-  const taglineInflation = adjustInflation ? " In today’s dollars." : "";
-  const tagline = `${fmtCAD(monthly)} a month, ${horizon} years out${taglineCola}.${taglineInflation}`;
+  // Pre-uppercased — the tagline prints as a micro line, and a CSS
+  // text-transform would mangle any symbol we add here later.
+  const taglineCola =
+    contribGrowth > 0 ? ` · GROWING ${contribGrowth}%/YR` : "";
+  const taglineInflation = adjustInflation ? " · IN TODAY’S DOLLARS" : "";
+  const tagline = `${fmtCAD(monthly)}/MO · ${horizon} YEARS OUT${taglineCola}${taglineInflation}`;
 
   return (
     <CalculatorCard<DCAInputs>
       number="02"
       name="DCA"
       anchorId="dca"
-      title={
-        <>
-          Dollar-cost{" "}
-          <em style={{ fontStyle: "italic", fontWeight: 500 }}>average.</em>
-        </>
-      }
+      title="Dollar-cost average."
       tagline={tagline}
       paths={paths}
       activeKey={active}
@@ -192,7 +190,7 @@ export default function DCACalculator() {
             max={50}
           />
           <div className="calc-quick">
-            <span className="ed-label">Try</span>
+            <span className="calc-quick__lab">TRY</span>
             <button
               type="button"
               onClick={() => {
@@ -223,33 +221,51 @@ export default function DCACalculator() {
           </div>
           <style jsx>{`
             .calc-quick {
-              padding-top: 18px;
-              border-top: 1px solid var(--rule-soft);
+              padding-top: 16px;
+              border-top: 1px solid var(--ins-hair);
               display: flex;
-              flex-direction: column;
-              gap: 8px;
+              flex-wrap: wrap;
+              align-items: center;
+              gap: 6px;
+              font-family: var(--ins-font);
             }
-            .calc-quick :global(.ed-label) {
-              margin-bottom: 4px;
+            .calc-quick__lab {
+              font-size: 8px;
+              font-weight: 700;
+              letter-spacing: 0.2em;
+              color: var(--ins-gray-600);
+              flex-basis: 100%;
             }
             .calc-quick button {
               appearance: none;
-              background: var(--paper-light);
-              border: 1px solid var(--rule-soft);
-              border-radius: 8px;
-              padding: 10px 14px;
-              font-family: var(--font-serif);
-              font-style: italic;
-              font-size: 13.5px;
-              color: var(--ink);
-              text-align: left;
+              background: transparent;
+              border: 1px solid var(--ins-hair);
+              border-radius: 0;
+              padding: 7px 10px;
+              min-height: 32px;
+              font-family: var(--ins-font);
+              font-size: 9px;
+              font-weight: 700;
+              letter-spacing: 0.08em;
+              text-transform: uppercase;
+              font-variant-numeric: tabular-nums;
+              color: var(--ins-ink);
               cursor: pointer;
-              transition: background 0.18s, border-color 0.18s, transform 0.18s;
+              transition: background 0.15s, color 0.15s, border-color 0.15s;
             }
             .calc-quick button:hover {
-              background: var(--paper);
-              border-color: var(--ink);
-              transform: translateX(2px);
+              background: var(--ins-ink);
+              border-color: var(--ins-ink);
+              color: var(--ins-paper);
+            }
+            .calc-quick button:focus-visible {
+              outline: 2px solid var(--ins-signal);
+              outline-offset: 2px;
+            }
+            @media (max-width: 640px) {
+              .calc-quick button {
+                min-height: 44px;
+              }
             }
           `}</style>
         </>

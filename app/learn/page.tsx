@@ -22,24 +22,24 @@ export function generateMetadata(): Metadata {
 }
 
 /**
- * /learn index — V2 composition.
+ * /learn index — the Instrument (artboard 6c).
  *
  * LearnContent owns the whole page body:
- *   LearnHero → FlagshipPromo → PathsGrid → EditorsPicks → Archive → NewsletterCard
+ *   LearnHero → MarqueeBout → CourseOne → CourseTwo → FullIndex →
+ *   SyllabusRail → LearnCloser
  *
- * Wrapped in Suspense because Archive reads URL params via useSearchParams.
+ * The page shell mirrors the home page's `.ins-page` grammar (1400 max,
+ * 40px gutters, 30px module gap) so the two Instrument routes sit on the
+ * same measure. `.ins-root` opts the subtree into the reduced-motion
+ * blanket in globals.css §14.
+ *
+ * Wrapped in Suspense because FullIndex reads `?cat` via useSearchParams.
  */
 export default function LearnPage() {
   const articles = getAllArticles();
 
   return (
-    <main
-      style={{
-        background: "var(--paper)",
-        color: "var(--ink)",
-        minHeight: "100dvh",
-      }}
-    >
+    <main className="ins-root lrn-main">
       <JsonLd
         data={buildBreadcrumbSchema([
           { name: "Home", path: "/" },
@@ -47,23 +47,31 @@ export default function LearnPage() {
         ])}
       />
 
-      <div className="learn-stack">
+      <div className="lrn-page">
         <Suspense fallback={null}>
           <LearnContent articles={articles} />
         </Suspense>
       </div>
 
       <style>{`
-        .learn-stack {
+        .lrn-main {
+          background: var(--ins-paper);
+          color: var(--ins-ink);
+          font-family: var(--ins-font);
+          min-height: 100dvh;
+        }
+        .lrn-page {
           display: flex;
           flex-direction: column;
-          max-width: 1280px;
+          gap: 30px;
+          max-width: 1400px;
           margin: 0 auto;
-          padding: 8px 16px 40px;
+          padding: 0 40px 40px;
         }
-        @media (min-width: 1024px) {
-          .learn-stack {
-            padding: 8px 40px 60px;
+        @media (max-width: 640px) {
+          .lrn-page {
+            gap: 22px;
+            padding: 0 20px 28px;
           }
         }
       `}</style>

@@ -1,19 +1,21 @@
 "use client";
 
 /**
- * Lookback — the marquee calculator at the top of /calculators.
+ * Lookback — calculator 01, the marquee panel on /calculators.
  *
- * "What if you'd bought $X of VEQT in {year}?" Pick a year, see the
- * dollar result animate; toggle lump-sum vs monthly DCA; optionally
- * adjust the headline to starting-year dollars.
+ * "What was, exactly." Reskinned to the Instrument (artboard 6d) without
+ * touching the engine: the same amount / lump-sum-vs-DCA / real-dollar
+ * inputs, the same cohort math, the same URL round-trip.
  *
- * Layout:
- *   - Pinned scenarios bar above
- *   - Dark result slab: vermilion top rule, animated dollar, sentence,
- *     sub-stats (total return / CAGR / years held)
- *   - Cohort fan chart below the slab (combined border-radius)
- *   - 3-up scenario strip: worst / median / best cohort outcomes
- *   - Right rail: Strategy, Amount, Year picker, Advanced, Pin/Reset
+ * Module order:
+ *   section header      — 01 — LOOKBACK · "What was, exactly." · cohort count
+ *   control bar         — one 1px ink strip: amount · mode · CPI · pin/reset
+ *   poster result       — sentence, poster figure with the signal underline,
+ *                         total return / CAGR / years held
+ *   entry ruler         — draggable marker over the year ticks
+ *   cohort rail         — best / median / unlucky, marked to today's close
+ *   pinned row          — 1px ink chips, up to four
+ *   cohort fan          — every monthly cohort since launch (unchanged chart)
  */
 import { useState, useMemo, useEffect } from "react";
 import {
@@ -32,12 +34,14 @@ import AnimatedDollar, { AnimatedPct } from "./AnimatedDollar";
 import NumberInput from "./NumberInput";
 import SegmentedControl from "./SegmentedControl";
 import YearPicker from "./YearPicker";
-import AdvancedPanel, { AdvToggle } from "./AdvancedPanel";
+import { AdvToggle } from "./AdvancedPanel";
 import ControlsActions from "./ControlsActions";
 import PinnedScenariosBar, { usePinnedScenarios } from "./PinnedScenariosBar";
 import CohortFanChart from "@/components/charts/CohortFanChart";
 
 type Mode = "lump" | "dca";
+
+const MAX_PINS = 4;
 
 interface LookbackInputs {
   amount: number;
@@ -71,7 +75,7 @@ function calcLookback(opts: {
 
   // Find the first monthly bar in startYear. Fall back to the earliest bar
   // if the user picked a year before inception (shouldn't happen with the
-  // YearPicker clamp, but guard anyway).
+  // ruler's clamp, but guard anyway).
   const startBar =
     monthly.find((m) => m.date.startsWith(`${startYear}-`)) ?? monthly[0];
   const endBar = daily[daily.length - 1];
@@ -124,45 +128,6 @@ function calcLookback(opts: {
   return { contributed, finalValue, totalReturn, years, cagr: cagrVal, path };
 }
 
-interface ScenarioCellProps {
-  label: string;
-  value: number;
-  caption: string;
-  tone: "stamp" | "ink" | "green";
-}
-
-function ScenarioCell({ label, value, caption, tone }: ScenarioCellProps) {
-  const color =
-    tone === "stamp" ? "var(--stamp)" : tone === "green" ? "var(--green)" : "var(--ink)";
-  return (
-    <div className="scn">
-      <div className="ed-label scn__lab">{label}</div>
-      <div className="scn__val" style={{ color }}>
-        <AnimatedDollar value={value} size="medium" />
-      </div>
-      <div className="ed-caption scn__cap">{caption}</div>
-      <style jsx>{`
-        .scn {
-          padding: 12px 14px;
-          background: var(--paper);
-          border: 1px solid var(--rule-soft);
-          border-radius: 10px;
-        }
-        .scn__lab {
-          color: var(--ink-mute);
-        }
-        .scn__val {
-          margin-top: 6px;
-        }
-        .scn__cap {
-          margin-top: 4px;
-          font-size: 12px;
-        }
-      `}</style>
-    </div>
-  );
-}
-
 const DEFAULTS: LookbackInputs = {
   amount: 10000,
   startYear: 2019,
@@ -188,7 +153,7 @@ export default function Lookback({ history }: LookbackProps) {
   const [startYear, setStartYear] = useState(initialYear);
   const [mode, setMode] = useState<Mode>(DEFAULTS.mode);
   const [adjustInflation, setAdjustInflation] = useState(DEFAULTS.adjustInflation);
-  const { pinned, pin, remove, restore } = usePinnedScenarios<LookbackInputs>(3);
+  const { pinned, pin, remove, restore } = usePinnedScenarios<LookbackInputs>(MAX_PINS);
 
   // Hydrate from URL params on mount.
   useEffect(() => {
@@ -223,6 +188,16 @@ export default function Lookback({ history }: LookbackProps) {
     [amount, startYear, mode, daily, monthly]
   );
 
+  // The entry month the engine actually lands on for `startYear` — printed
+  // on the date chip and the ruler marker so the two always agree.
+  const entryLabel = useMemo(() => {
+    const startBar =
+      monthly.find((m) => m.date.startsWith(`${startYear}-`)) ?? monthly[0];
+    return startBar
+      ? fmtMonth(startBar.date.slice(0, 7)).toUpperCase()
+      : String(startYear);
+  }, [monthly, startYear]);
+
   // Inflation deflator: 2.5%/yr applied to displayed final + contributed.
   const years = result?.years ?? 0;
   const deflator = adjustInflation ? Math.pow(1 + 0.025, years) : 1;
@@ -243,7 +218,7 @@ export default function Lookback({ history }: LookbackProps) {
     const worst = sorted[Math.floor(sorted.length * 0.1)] ?? sorted[0];
     const median = sorted[Math.floor(sorted.length * 0.5)] ?? sorted[Math.floor(sorted.length / 2)];
     const best = sorted[Math.floor(sorted.length * 0.9)] ?? sorted[sorted.length - 1];
-    return { worst, median, best };
+    return { worst, median, best, count: cohorts.length };
   }, [amount, monthly, mode]);
 
   // Push state to URL so OG-image preview keeps working.
@@ -270,7 +245,7 @@ export default function Lookback({ history }: LookbackProps) {
 
   function pinCurrent() {
     pin({
-      label: `${mode === "lump" ? fmtCAD(amount) : `${fmtCAD(amount)}/mo`} · ${startYear}`,
+      label: mode === "lump" ? entryLabel : `${entryLabel} · ${fmtCAD(amount)}/MO`,
       value: displayedFinal,
       inputs: { amount, startYear, mode, adjustInflation },
     });
@@ -288,134 +263,71 @@ export default function Lookback({ history }: LookbackProps) {
   // No history? Render a quiet placeholder rather than a broken hero.
   if (!history || monthly.length === 0) {
     return (
-      <section className="lookback lookback--unavail">
-        <div className="ed-stamp">Calculator 01 · Lookback</div>
-        <h2 className="ed-display-italic lookback__h2">The lookback is offline.</h2>
-        <p className="ed-body">
+      <section className="lb lb--unavail">
+        <div className="lb__kicker">01 — LOOKBACK</div>
+        <h2 className="lb__display">The lookback is offline.</h2>
+        <p className="lb__offline">
           We couldn&rsquo;t load VEQT&rsquo;s history just now. Try again in a moment.
         </p>
         <style jsx>{`
-          .lookback--unavail {
-            padding: 30px 0 24px;
+          .lb--unavail {
+            font-family: var(--ins-font);
+            color: var(--ins-ink);
+            border-top: 3px solid var(--ins-rule-strong, var(--ins-ink));
+            padding-top: 16px;
           }
-          .lookback__h2 {
-            font-size: clamp(2rem, 4vw, 3rem);
-            margin: 12px 0 8px;
-            color: var(--ink);
+          .lb__kicker {
+            font-size: 9.5px;
+            font-weight: 700;
+            letter-spacing: 0.2em;
+            color: var(--ins-gray-600);
+          }
+          .lb__display {
+            font-size: 40px;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            margin: 8px 0 0;
+          }
+          .lb__offline {
+            margin: 12px 0 0;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--ins-gray-600);
           }
         `}</style>
       </section>
     );
   }
 
-  const verbalSentence =
+  const cohortCount = scenarios?.count ?? 0;
+  const placedCopy =
     mode === "lump"
-      ? `Your ${fmtCAD(amount)} in ${startYear} is worth this much today, after ${(result?.years ?? 0).toFixed(1)} years.`
-      : `${fmtCAD(amount)} a month since ${startYear} (${fmtCAD(result?.contributed ?? 0)} contributed) compounds to this.`;
+      ? `${fmtCAD(amount)} PLACED`
+      : `${fmtCAD(amount)}/MO SINCE`;
+  const railFootnote =
+    mode === "lump"
+      ? `EVERY COHORT PLACES ${fmtCAD(amount)} · VALUES MARKED TO TODAY’S CLOSE`
+      : `EVERY COHORT CONTRIBUTES ${fmtCAD(amount)}/MO · VALUES MARKED TO TODAY’S CLOSE`;
 
   return (
-    <section className="lookback">
-      <div className="lookback__head">
-        <span className="ed-stamp lookback__stamp">
-          Calculator 01 &middot; Lookback
+    <section className="lb" aria-label="Lookback calculator">
+      <div className="lb__head">
+        <div>
+          <div className="lb__kicker">01 &mdash; LOOKBACK</div>
+          <h2 className="lb__display">What was, exactly.</h2>
+        </div>
+        <span className="lb__micro">
+          REAL TAPE &middot; NO ASSUMPTIONS
+          {cohortCount > 0 ? ` · ${cohortCount} COHORTS` : ""}
         </span>
-        <h2 className="ed-display-italic lookback__h2">
-          What if{" "}
-          <em style={{ fontStyle: "italic", fontWeight: 500 }}>you&rsquo;d bought</em> in {startYear}?
-        </h2>
       </div>
 
-      <div className="lookback__layout">
-        <div className="lookback__chart-col">
-          <PinnedScenariosBar
-            pinned={pinned}
-            onRestore={restoreScenario}
-            onRemove={remove}
-            formatter={(n) => fmtCAD(n)}
-          />
-
-          <div className="lookback__result lookback__result--dark">
-            <div className="ed-stamp lookback__result-stamp">
-              Worth today
-              {adjustInflation && (
-                <em className="lookback__result-stamp-em">
-                  &middot; in {startYear} dollars
-                </em>
-              )}
-            </div>
-            <AnimatedDollar value={displayedFinal} size="huge" />
-            <p className="lookback__verbal">{verbalSentence}</p>
-            <div className="lookback__sub-stats">
-              <div>
-                <div className="ed-label lookback__sub-label">Total return</div>
-                <AnimatedPct value={result?.totalReturn ?? 0} tone="auto" digits={1} />
-              </div>
-              <div className="lookback__sub-rule" aria-hidden />
-              <div>
-                <div className="ed-label lookback__sub-label">CAGR</div>
-                <AnimatedPct value={result?.cagr ?? 0} tone="green" digits={1} />
-              </div>
-              <div className="lookback__sub-rule" aria-hidden />
-              <div>
-                <div className="ed-label lookback__sub-label">Years held</div>
-                <span className="ed-display ed-numerals lookback__years">
-                  {(result?.years ?? 0).toFixed(1)}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="lookback__chart-wrap">
-            <CohortFanChart
-              userPath={result?.path ?? []}
-              monthlyHistory={monthly}
-              mode={mode}
-              userAmount={amount}
-            />
-          </div>
-
-          {scenarios && (
-            <div className="lookback__scenarios">
-              <ScenarioCell
-                label="If you&rsquo;d been unlucky"
-                tone="stamp"
-                value={scenarios.worst.finalValue}
-                caption={`Worst-case cohort · started ${fmtMonth(scenarios.worst.start)}`}
-              />
-              <ScenarioCell
-                label="Median outcome"
-                tone="ink"
-                value={scenarios.median.finalValue}
-                caption={`Median cohort · started ${fmtMonth(scenarios.median.start)}`}
-              />
-              <ScenarioCell
-                label="If you&rsquo;d timed it right"
-                tone="green"
-                value={scenarios.best.finalValue}
-                caption={`Best-case cohort · started ${fmtMonth(scenarios.best.start)}`}
-              />
-            </div>
-          )}
-        </div>
-
-        <aside className="lookback__inputs">
-          <div className="lookback__inputs-head">
-            <span className="ed-stamp">Controls</span>
-            <span className="ed-caption">Adjust to recompute</span>
-          </div>
-
-          <SegmentedControl<Mode>
-            label="Strategy"
-            value={mode}
-            options={[
-              { value: "lump", label: "Lump sum" },
-              { value: "dca", label: "Monthly DCA" },
-            ]}
-            onChange={setMode}
-          />
-
+      {/* ── Instrument control bar ─────────────────────────────── */}
+      <div className="lb__bar">
+        <div className="lb__cell">
           <NumberInput
-            label={mode === "lump" ? "Amount invested" : "Monthly contribution"}
+            variant="bar"
+            label={mode === "lump" ? "Amount" : "Amount / month"}
             value={amount}
             onChange={setAmount}
             prefix="$"
@@ -423,181 +335,490 @@ export default function Lookback({ history }: LookbackProps) {
             min={0}
             max={10_000_000}
           />
-
-          <YearPicker
-            min={minYear}
-            max={maxYear}
-            value={startYear}
-            onChange={setStartYear}
+        </div>
+        <div className="lb__cell">
+          <SegmentedControl<Mode>
+            label="Mode"
+            value={mode}
+            options={[
+              { value: "lump", label: "Lump sum" },
+              { value: "dca", label: "Monthly DCA" },
+            ]}
+            onChange={setMode}
           />
-
-          <AdvancedPanel>
-            <AdvToggle
-              label="Adjust for inflation"
-              sub="Show result in starting-year dollars (assumes 2.5% CPI)"
-              value={adjustInflation}
-              onChange={setAdjustInflation}
-            />
-          </AdvancedPanel>
-
+        </div>
+        <div className="lb__cell lb__cell--check">
+          <AdvToggle
+            variant="inline"
+            label="Real dollars (CPI)"
+            value={adjustInflation}
+            onChange={setAdjustInflation}
+          />
+        </div>
+        <div className="lb__actions">
           <ControlsActions
+            variant="bar"
             onPin={pinCurrent}
             onReset={resetAll}
-            pinDisabled={pinned.length >= 3}
+            pinDisabled={pinned.length >= MAX_PINS}
           />
-        </aside>
+        </div>
+      </div>
+
+      {/* ── Poster result + cohort rail ────────────────────────── */}
+      <div className="lb__grid">
+        <div className="lb__poster">
+          <div className="lb__sentence">
+            <span>{placedCopy}</span>
+            <span className="lb__chip">{entryLabel}</span>
+            <span>IS TODAY</span>
+            {adjustInflation && (
+              <span className="lb__chip lb__chip--soft">
+                IN {startYear} DOLLARS
+              </span>
+            )}
+          </div>
+
+          <div className="lb__fig">
+            <AnimatedDollar value={displayedFinal} size="huge" />
+          </div>
+
+          <div className="lb__stats">
+            <span className="lb__stat">
+              <span className="lb__stat-lab">TOTAL RETURN</span>
+              <AnimatedPct value={result?.totalReturn ?? 0} tone="auto" digits={1} />
+            </span>
+            <span className="lb__stat">
+              <span className="lb__stat-lab">CAGR</span>
+              <AnimatedPct value={result?.cagr ?? 0} tone="auto" digits={1} />
+            </span>
+            <span className="lb__stat">
+              <span className="lb__stat-lab">YEARS HELD</span>
+              <span className="lb__stat-val">{(result?.years ?? 0).toFixed(1)}</span>
+            </span>
+          </div>
+
+          <div className="lb__ruler">
+            <YearPicker
+              min={minYear}
+              max={maxYear}
+              value={startYear}
+              onChange={setStartYear}
+              markerLabel={entryLabel}
+            />
+          </div>
+        </div>
+
+        {scenarios && (
+          <div className="lb__rail">
+            <div className="lb__rail-row lb__rail-row--first">
+              <div className="lb__rail-lab">IF YOU&rsquo;D TIMED IT RIGHT</div>
+              <div className="lb__rail-val">
+                <AnimatedDollar value={scenarios.best.finalValue} size="large" />
+              </div>
+              <div className="lb__rail-sub">
+                BEST COHORT &middot; STARTED{" "}
+                {fmtMonth(scenarios.best.start).toUpperCase()}
+              </div>
+            </div>
+            <div className="lb__rail-row">
+              <div className="lb__rail-lab">THE MEDIAN COHORT</div>
+              <div className="lb__rail-val">
+                <AnimatedDollar value={scenarios.median.finalValue} size="large" />
+              </div>
+              <div className="lb__rail-sub">
+                MEDIAN OF {scenarios.count} &middot; STARTED{" "}
+                {fmtMonth(scenarios.median.start).toUpperCase()}
+              </div>
+            </div>
+            <div className="lb__rail-row lb__rail-row--last">
+              <div className="lb__rail-lab">IF YOU&rsquo;D BEEN UNLUCKY</div>
+              <div className="lb__rail-val">
+                <AnimatedDollar value={scenarios.worst.finalValue} size="large" />
+              </div>
+              <div className="lb__rail-sub">
+                WORST COHORT &middot; STARTED{" "}
+                {fmtMonth(scenarios.worst.start).toUpperCase()}
+              </div>
+            </div>
+            <div className="lb__rail-foot">{railFootnote}</div>
+          </div>
+        )}
+      </div>
+
+      {/* ── Pinned cohorts ─────────────────────────────────────── */}
+      <div className="lb__pinned">
+        <PinnedScenariosBar
+          pinned={pinned}
+          onRestore={restoreScenario}
+          onRemove={remove}
+          formatter={(n) => fmtCAD(n)}
+          hint="PIN UP TO FOUR COHORTS TO COMPARE ENTRIES"
+        />
+      </div>
+
+      {/* ── Cohort fan ─────────────────────────────────────────── */}
+      <div className="lb__fan">
+        <div className="lb__fan-head">
+          <span className="lb__fan-lab">EVERY MONTHLY COHORT SINCE LAUNCH</span>
+          <span className="lb__fan-micro">
+            VALUE OVER TIME &middot; $10K-EQUIVALENT PATHS
+          </span>
+        </div>
+        <div className="lb__fan-plot">
+          <CohortFanChart
+            userPath={result?.path ?? []}
+            monthlyHistory={monthly}
+            mode={mode}
+            userAmount={amount}
+          />
+        </div>
       </div>
 
       <style jsx>{`
-        .lookback {
-          padding: 0 0 36px;
-        }
-        .lookback__head {
-          margin-bottom: 22px;
-        }
-        .lookback__stamp {
-          color: var(--band-paper);
-          background: var(--stamp);
-          padding: 5px 12px 4px;
-          letter-spacing: 0.22em;
-          display: inline-block;
-        }
-        .lookback__h2 {
-          font-size: clamp(2rem, 4vw, 3rem);
-          line-height: 1.05;
-          letter-spacing: -0.025em;
-          margin: 12px 0 0;
-          color: var(--ink);
-        }
-        .lookback__layout {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 18px;
-        }
-        @media (min-width: 1000px) {
-          .lookback__layout {
-            grid-template-columns: minmax(0, 1.8fr) minmax(280px, 1fr);
-            gap: 36px;
-          }
-        }
-        .lookback__chart-col {
-          min-width: 0;
-          display: flex;
-          flex-direction: column;
-          gap: 0;
-        }
-        .lookback__result--dark {
-          background: var(--band-ink);
-          color: var(--band-paper);
-          border-radius: 14px 14px 0 0;
-          padding: 28px 30px 26px;
-          position: relative;
-          overflow: hidden;
-        }
-        .lookback__result--dark::before {
-          content: "";
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          height: 3px;
-          background: var(--stamp);
-        }
-        .lookback__result--dark :global(.anum) {
-          color: var(--band-paper);
-        }
-        .lookback__result-stamp {
-          color: rgba(246, 239, 220, 0.55);
-          margin-bottom: 10px;
-          display: inline-block;
-        }
-        .lookback__result-stamp-em {
-          margin-left: 8px;
-          font-style: italic;
-          text-transform: none;
-          letter-spacing: 0;
-        }
-        .lookback__verbal {
-          font-family: var(--font-serif);
-          font-style: italic;
-          font-size: clamp(15px, 1.6vw, 17px);
-          line-height: 1.55;
-          color: rgba(246, 239, 220, 0.78);
-          margin: 14px 0 0;
-          max-width: 56ch;
-        }
-        .lookback__sub-stats {
-          display: flex;
-          gap: 18px;
-          align-items: center;
-          margin-top: 18px;
+        .lb {
+          font-family: var(--ins-font);
+          color: var(--ins-ink);
+          border-top: 3px solid var(--ins-rule-strong, var(--ins-ink));
           padding-top: 16px;
-          border-top: 1px solid rgba(246, 239, 220, 0.18);
-          flex-wrap: wrap;
         }
-        /* :not(.lookback__sub-rule) — same bug as CalculatorCard /
-           FIRECalculator. The min-width was inflating the 1px divider
-           into a 90px grey block in the middle of the result slab. */
-        .lookback__sub-stats > div:not(.lookback__sub-rule) {
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-          min-width: 90px;
-        }
-        .lookback__sub-label {
-          color: rgba(246, 239, 220, 0.55);
-        }
-        .lookback__sub-rule {
-          flex: 0 0 1px;
-          width: 1px;
-          align-self: stretch;
-          background: rgba(246, 239, 220, 0.18);
-        }
-        .lookback__years {
-          font-family: var(--font-display);
-          font-weight: 500;
-          font-size: clamp(1.6rem, 2.6vw, 2rem);
-          line-height: 1;
-          color: var(--band-paper);
-          letter-spacing: -0.02em;
-          font-variant-numeric: tabular-nums lining-nums;
-        }
-        .lookback__chart-wrap {
-          padding: 22px 28px 18px;
-          background: var(--paper-light);
-          border: 1px solid var(--rule-soft);
-          border-top: 0;
-          border-radius: 0 0 14px 14px;
-        }
-        .lookback__scenarios {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 10px;
-          margin-top: 16px;
-        }
-        @media (min-width: 720px) {
-          .lookback__scenarios {
-            grid-template-columns: repeat(3, 1fr);
-            gap: 14px;
-          }
-        }
-        .lookback__inputs {
-          padding: 24px;
-          background: var(--paper-warm);
-          border: 1px solid var(--rule-soft);
-          border-radius: 14px;
-          display: flex;
-          flex-direction: column;
-          gap: 24px;
-          align-self: start;
-        }
-        .lookback__inputs-head {
+
+        /* ── Section header ── */
+        .lb__head {
           display: flex;
           justify-content: space-between;
           align-items: baseline;
-          gap: 12px;
-          padding-bottom: 14px;
-          border-bottom: 1px solid var(--rule-soft);
+          gap: 24px;
+        }
+        .lb__kicker {
+          font-size: 9.5px;
+          font-weight: 700;
+          letter-spacing: 0.2em;
+          color: var(--ins-gray-600);
+        }
+        .lb__display {
+          font-size: 40px;
+          font-weight: 700;
+          letter-spacing: -0.03em;
+          line-height: 1.05;
+          margin: 8px 0 0;
+        }
+        .lb__micro {
+          font-size: 9.5px;
+          font-weight: 600;
+          letter-spacing: 0.16em;
+          color: var(--ins-gray-600);
+          text-align: right;
+          flex: none;
+        }
+
+        /* ── Control bar ── */
+        .lb__bar {
+          margin-top: 18px;
+          border: 1px solid var(--ins-ink);
+          display: flex;
+          align-items: stretch;
+          flex-wrap: nowrap;
+        }
+        .lb__cell {
+          padding: 10px 20px;
+          border-right: 1px solid var(--ins-hair);
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          min-width: 0;
+        }
+        .lb__cell--check {
+          flex-direction: row;
+          align-items: center;
+        }
+        .lb__actions {
+          margin-left: auto;
+          display: flex;
+          align-items: stretch;
+        }
+
+        /* ── Poster + rail ── */
+        .lb__grid {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) 380px;
+          gap: 48px;
+          margin-top: 22px;
+          align-items: start;
+        }
+        .lb__poster {
+          min-width: 0;
+        }
+        .lb__sentence {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          flex-wrap: wrap;
+          font-size: 11px;
+          font-weight: 600;
+          letter-spacing: 0.14em;
+          color: var(--ins-gray-600);
+        }
+        .lb__chip {
+          border: 1px solid var(--ins-ink);
+          padding: 2px 8px;
+          color: var(--ins-ink);
+          font-weight: 700;
+          font-variant-numeric: tabular-nums;
+        }
+        .lb__chip--soft {
+          border-color: var(--ins-hair);
+          color: var(--ins-gray-600);
+          font-weight: 600;
+        }
+        .lb__fig {
+          margin-top: 14px;
+        }
+        .lb__fig :global(.anum) {
+          border-bottom: 4px solid var(--ins-signal);
+          padding-bottom: 6px;
+        }
+        .lb__stats {
+          display: flex;
+          gap: 36px;
+          flex-wrap: wrap;
+          margin-top: 26px;
+        }
+        .lb__stat {
+          display: inline-flex;
+          align-items: baseline;
+          gap: 8px;
+        }
+        .lb__stat-lab {
+          font-size: 11px;
+          font-weight: 600;
+          letter-spacing: 0.14em;
+          color: var(--ins-gray-600);
+        }
+        .lb__stat-val {
+          font-size: 15px;
+          font-weight: 700;
+          font-variant-numeric: tabular-nums;
+          color: var(--ins-ink);
+        }
+        .lb__ruler {
+          margin-top: 26px;
+        }
+
+        /* ── Cohort rail ── */
+        .lb__rail {
+          min-width: 0;
+        }
+        .lb__rail-row {
+          padding: 14px 0;
+          border-top: 1px solid var(--ins-hair);
+        }
+        .lb__rail-row--first {
+          border-top: 3px solid var(--ins-rule-strong, var(--ins-ink));
+        }
+        .lb__rail-row--last {
+          border-bottom: 1px solid var(--ins-ink);
+        }
+        .lb__rail-lab {
+          font-size: 9.5px;
+          font-weight: 600;
+          letter-spacing: 0.22em;
+          color: var(--ins-gray-600);
+        }
+        .lb__rail-val {
+          margin-top: 6px;
+        }
+        .lb__rail-sub {
+          font-size: 9px;
+          font-weight: 600;
+          letter-spacing: 0.14em;
+          color: var(--ins-gray-600);
+          margin-top: 4px;
+        }
+        .lb__rail-foot {
+          font-size: 9px;
+          font-weight: 600;
+          letter-spacing: 0.14em;
+          color: var(--ins-gray-600);
+          margin-top: 10px;
+          line-height: 1.7;
+        }
+
+        /* ── Pinned ── */
+        .lb__pinned {
+          margin-top: 20px;
+          border-top: 1px solid var(--ins-hair);
+          padding-top: 12px;
+        }
+
+        /* ── Cohort fan ── */
+        .lb__fan {
+          margin-top: 26px;
+          border-top: 1px solid var(--ins-ink);
+          padding-top: 14px;
+        }
+        .lb__fan-head {
+          display: flex;
+          justify-content: space-between;
+          align-items: baseline;
+          gap: 16px;
+          flex-wrap: wrap;
+        }
+        .lb__fan-lab {
+          font-size: 9px;
+          font-weight: 700;
+          letter-spacing: 0.2em;
+          color: var(--ins-ink);
+        }
+        .lb__fan-micro {
+          font-size: 8.5px;
+          font-weight: 600;
+          letter-spacing: 0.14em;
+          color: var(--ins-gray-600);
+        }
+        /* Map the editorial chart tokens onto the Instrument palette so
+           the (out-of-scope) SVG modules print in this page's ink/red. */
+        .lb__fan-plot {
+          margin-top: 10px;
+          --ink: var(--ins-ink);
+          --ink-soft: var(--ins-gray-700);
+          --ink-mute: var(--ins-gray-600);
+          --paper: var(--ins-paper);
+          --paper-light: var(--ins-paper);
+          --paper-warm: #f4f4f4;
+          --rule: var(--ins-hair);
+          --rule-soft: var(--ins-hair-soft);
+          --rule-hair: var(--ins-track-soft);
+          --stamp: var(--ins-signal);
+          --green: var(--ins-gray-600);
+          --font-sans: var(--ins-font);
+          --font-serif: var(--ins-font);
+        }
+
+        /* ── Tablet ── */
+        @media (max-width: 1080px) {
+          .lb__grid {
+            grid-template-columns: 1fr;
+            gap: 26px;
+          }
+          .lb__bar {
+            flex-wrap: wrap;
+          }
+          .lb__actions {
+            margin-left: auto;
+          }
+        }
+
+        /* ── Mobile 390 ── */
+        @media (max-width: 640px) {
+          .lb {
+            padding-top: 12px;
+          }
+          .lb__head {
+            display: block;
+          }
+          .lb__kicker {
+            font-size: 9px;
+            letter-spacing: 0.18em;
+          }
+          .lb__display {
+            font-size: 26px;
+            margin-top: 6px;
+          }
+          .lb__micro {
+            display: block;
+            text-align: left;
+            margin-top: 6px;
+            font-size: 8.5px;
+            letter-spacing: 0.12em;
+          }
+          .lb__bar {
+            margin-top: 14px;
+            display: block;
+          }
+          .lb__cell {
+            border-right: 0;
+            border-bottom: 1px solid var(--ins-hair);
+            padding: 10px 14px;
+          }
+          .lb__actions {
+            margin-left: 0;
+            width: 100%;
+          }
+          .lb__grid {
+            margin-top: 16px;
+            gap: 18px;
+          }
+          .lb__sentence {
+            gap: 8px;
+            font-size: 9.5px;
+            letter-spacing: 0.12em;
+          }
+          .lb__chip {
+            padding: 2px 7px;
+          }
+          .lb__fig {
+            margin-top: 12px;
+          }
+          .lb__fig :global(.anum) {
+            border-bottom-width: 3px;
+            padding-bottom: 4px;
+          }
+          .lb__stats {
+            gap: 22px;
+            margin-top: 16px;
+          }
+          .lb__stat-lab {
+            font-size: 9px;
+            letter-spacing: 0.12em;
+          }
+          .lb__stat-val {
+            font-size: 12px;
+          }
+          .lb__ruler {
+            margin-top: 18px;
+          }
+
+          /* Rail collapses to ruled label/value rows. */
+          .lb__rail-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            column-gap: 12px;
+            align-items: baseline;
+            padding: 10px 0;
+          }
+          .lb__rail-row--first {
+            border-top: 1px solid var(--ins-ink);
+          }
+          .lb__rail-lab {
+            grid-column: 1;
+            font-size: 8.5px;
+            letter-spacing: 0.14em;
+          }
+          .lb__rail-sub {
+            grid-column: 1;
+            margin-top: 2px;
+          }
+          .lb__rail-val {
+            grid-column: 2;
+            grid-row: 1 / span 2;
+            margin-top: 0;
+            align-self: center;
+          }
+          .lb__rail-val :global(.anum) {
+            font-size: 16px;
+            font-weight: 700;
+          }
+          .lb__rail-foot {
+            font-size: 8px;
+            letter-spacing: 0.1em;
+          }
+          .lb__pinned {
+            margin-top: 14px;
+          }
+          .lb__fan {
+            margin-top: 20px;
+          }
         }
       `}</style>
     </section>

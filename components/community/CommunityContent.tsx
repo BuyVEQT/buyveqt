@@ -1,93 +1,73 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import type { RedditPost, SubredditStats } from "@/lib/data/reddit";
-import FeaturedPost from "./FeaturedPost";
+import { useEffect, useMemo, useState } from "react";
+import type { RedditPost } from "@/lib/data/reddit";
+import PulseCell from "./PulseCell";
+import { moodSplit } from "./pulse-format";
 
 type TabId = "trending" | "top";
 
-const TABS: { id: TabId; label: string; sublabel: string }[] = [
-  { id: "trending", label: "This Week", sublabel: "What's hot" },
-  { id: "top", label: "All Time", sublabel: "The greatest hits" },
+const TABS: { id: TabId; label: string }[] = [
+  { id: "trending", label: "This week" },
+  { id: "top", label: "All time" },
 ];
-
-function formatAgo(iso: string): string {
-  const diffMs = Date.now() - new Date(iso).getTime();
-  const days = Math.floor(diffMs / 86_400_000);
-  if (days >= 365) return `${Math.floor(days / 365)}y ago`;
-  if (days >= 30) return `${Math.floor(days / 30)}mo ago`;
-  if (days >= 7) return `${Math.floor(days / 7)}w ago`;
-  if (days >= 1) return `${days}d ago`;
-  const hours = Math.floor(diffMs / 3_600_000);
-  if (hours >= 1) return `${hours}h ago`;
-  const mins = Math.floor(diffMs / 60_000);
-  if (mins >= 1) return `${mins}m ago`;
-  return "just now";
-}
-
-function formatScore(n: number): string {
-  if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
-  return n.toLocaleString("en-CA");
-}
 
 interface CommunityContentProps {
   hotPosts: RedditPost[];
   topPosts: RedditPost[];
-  /** Stats are surfaced upstairs in the hero now — passed only so the
-   *  client-fallback effect can refresh them when the server data is stale. */
-  stats: SubredditStats | null;
 }
 
 /**
- * V2 community feed.
+ * CommunityContent — the two Instrument modules that carry the feed.
  *
- *  - Tighter tabs row (Trending / All Time) — no more duplicate live-activity
- *    strip, those numbers live in `<CommunityHero>` upstairs
- *  - "New dispatch every 30 minutes" caption right-aligned with the tabs
- *  - First post → `<FeaturedPost>` (large editorial card with vermilion stripe)
- *  - Remaining posts → existing numbered row pattern, kept nearly as-is
+ *   THE MOOD   3px rule · kicker · display · an ink/red ratio bar with
+ *              micro-label ends. Always reads THIS WEEK's threads, so it
+ *              stays a fixed reading rather than a number that jumps when
+ *              you change tabs below it.
+ *   THE PULSE  3px rule · kicker · display · Instrument tabs (active =
+ *              ink fill) · a grid of bordered quote cards.
  *
- * The "Take part" footer CTA was extracted into `<CommunityCTA>`.
+ * Data wiring is unchanged: server props first, with a one-shot client
+ * fetch of the Edge route `/api/reddit` only when the server render came
+ * back with nothing at all. Scores are never chased — the live tier is RSS
+ * and has none, which suits a recipe that bans engagement counts anyway.
  */
 export default function CommunityContent({
   hotPosts: serverHot,
   topPosts: serverTop,
-  stats: serverStats,
 }: CommunityContentProps) {
+  const serverEmpty = serverHot.length === 0 && serverTop.length === 0;
+
   const [activeTab, setActiveTab] = useState<TabId>("trending");
   const [clientFeeds, setClientFeeds] = useState<Record<TabId, RedditPost[]>>({
     trending: serverHot,
     top: serverTop,
   });
-  const [, setClientStats] = useState<SubredditStats | null>(serverStats);
-  const [loading, setLoading] = useState(false);
-
-  // Client-side refresh only when the server got nothing at all. We no longer
-  // chase scores on the client: on the RSS fallback the API can't return them
-  // either, so that was a guaranteed-useless extra round-trip on every load.
-  const serverEmpty = serverHot.length === 0 && serverTop.length === 0;
-  const needsClientFetch = serverEmpty;
+  // Seeded, not set inside the effect: when the server render came back
+  // empty the skeleton is the correct first paint, and the effect below only
+  // ever clears it. Avoids a cascading render and a flash of the empty state.
+  const [loading, setLoading] = useState(serverEmpty);
 
   useEffect(() => {
-    if (!needsClientFetch) return;
+    if (!serverEmpty) return;
 
     let cancelled = false;
-    if (serverEmpty) setLoading(true);
 
     fetch("/api/reddit")
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (cancelled || !data) return;
+        if (cancelled) return;
         const hasPosts =
-          (data.posts?.trending?.length ?? 0) > 0 ||
-          (data.posts?.top?.length ?? 0) > 0;
+          (data?.posts?.trending?.length ?? 0) > 0 ||
+          (data?.posts?.top?.length ?? 0) > 0;
         if (hasPosts) {
           setClientFeeds({
             trending: data.posts.trending || [],
             top: data.posts.top || [],
           });
         }
-        if (data.stats) setClientStats(data.stats);
+        // Always clear: a non-ok response yields `data === null`, and
+        // returning early there used to strand the skeleton forever.
         setLoading(false);
       })
       .catch(() => {
@@ -97,314 +77,370 @@ export default function CommunityContent({
     return () => {
       cancelled = true;
     };
-  }, [needsClientFetch, serverEmpty]);
+  }, [serverEmpty]);
 
   const posts = clientFeeds[activeTab];
-  const hasScores = posts.some((p) => p.score > 0);
-  const featured = posts[0];
-  const rest = posts.slice(1);
+
+  // The mood reads the week, not the active tab — an all-time listing
+  // spanning four years would answer a question nobody asked.
+  const mood = useMemo(
+    () => moodSplit(clientFeeds.trending),
+    [clientFeeds.trending]
+  );
 
   return (
-    <section className="cm-feed bs-enter">
-      {/* Tabs row */}
-      <div className="cm-feed__head">
-        <div className="cm-feed__tabs">
-          {TABS.map((tab) => {
-            const active = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id)}
-                aria-pressed={active}
-                className={`cm-feed__tab ${active ? "is-active" : ""}`}
-              >
-                <span className="ed-stamp cm-feed__tab-label">{tab.label}</span>
-                <span className="ed-caption cm-feed__tab-sub">
-                  {tab.sublabel}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-        <span className="ed-caption cm-feed__refresh">
-          New dispatch every 30 minutes
-        </span>
-      </div>
-      <div className="rule-thick" />
+    <>
+      {/* ══ THE MOOD ══════════════════════════════════════════ */}
+      {mood && (
+        <section className="cmm" aria-labelledby="cmm-display">
+          <header className="cmm__head">
+            <div>
+              <div className="cmm__kicker">The mood</div>
+              <h2 id="cmm-display" className="cmm__display">
+                How worried is the room?
+              </h2>
+            </div>
+            <div className="cmm__note">
+              This week&rsquo;s threads · Titles only
+            </div>
+          </header>
 
-      {loading ? (
-        <ol className="cm-feed__list cm-feed__list--skeleton">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <li key={i} className="cm-feed__row">
-              <div className="skeleton cm-feed__skel-num" />
-              <div className="cm-feed__skel-body">
-                <div className="skeleton cm-feed__skel-title" />
-                <div className="skeleton cm-feed__skel-meta" />
-              </div>
-            </li>
-          ))}
-        </ol>
-      ) : posts.length > 0 ? (
-        <>
-          {/* Featured post */}
-          {featured && <FeaturedPost post={featured} showScore={hasScores} />}
+          {/* The bar is decoration; the two end labels below carry the
+              numbers as real text, so nothing is colour-only. */}
+          <div className="cmm__bar" aria-hidden="true">
+            <span className="cmm__bar-ink" style={{ width: `${mood.restPct}%` }} />
+            <span
+              className="cmm__bar-red"
+              style={{ width: `${mood.doubtPct}%` }}
+            />
+          </div>
 
-          {/* Numbered list — starts at 02 since featured is 01 */}
-          <ol className="cm-feed__list">
-            {rest.map((post, i) => (
-              <li key={post.id} className="cm-feed__row">
-                <span className="ed-display ed-numerals cm-feed__num">
-                  {String(i + 2).padStart(2, "0")}
-                </span>
+          <div className="cmm__ends">
+            <span className="cmm__end">
+              Everything else · <b>{mood.rest}</b> · {mood.restPct}%
+            </span>
+            <span className="cmm__end cmm__end--red">
+              Dips, drops &amp; doubts · <b>{mood.doubt}</b> · {mood.doubtPct}%
+            </span>
+          </div>
 
-                <a
-                  href={post.permalink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="cm-feed__link"
-                >
-                  <h3 className="ed-display cm-feed__title">
-                    &ldquo;{post.title}&rdquo;
-                  </h3>
-                  <p className="cm-feed__meta">
-                    <span>— u/{post.author}</span>
-                    <span className="cm-feed__sep">·</span>
-                    <span>{formatAgo(post.createdAt)}</span>
-                    {post.commentCount > 0 && (
-                      <>
-                        <span className="cm-feed__sep">·</span>
-                        <span className="ed-numerals">
-                          {post.commentCount}{" "}
-                          {post.commentCount === 1 ? "reply" : "replies"}
-                        </span>
-                      </>
-                    )}
-                    {post.flair && (
-                      <>
-                        <span className="cm-feed__sep">·</span>
-                        <span className="cm-feed__flair">{post.flair}</span>
-                      </>
-                    )}
-                  </p>
-                </a>
-
-                {hasScores && (
-                  <div className="cm-feed__score">
-                    <span
-                      className="ed-display ed-numerals cm-feed__score-num"
-                      style={{
-                        color:
-                          post.score >= 100 ? "var(--stamp)" : "var(--ink)",
-                      }}
-                    >
-                      {formatScore(post.score)}
-                    </span>
-                    <span className="ed-caption cm-feed__score-cap">
-                      upvotes
-                    </span>
-                  </div>
-                )}
-              </li>
-            ))}
-          </ol>
-        </>
-      ) : (
-        /* Empty state — quietly redirect to the source */
-        <div className="cm-feed__empty">
-          <p
-            className="ed-body italic"
-            style={{ color: "var(--ink-soft)" }}
-          >
-            Couldn&apos;t pull the wire from Reddit just now.
+          <p className="cmm__caption">
+            Keyword split of {mood.total} thread titles — not a sentiment
+            model. A title counts as a doubt only when it says so.
           </p>
-          <p className="ed-caption cm-feed__empty-link">
+        </section>
+      )}
+
+      {/* ══ THE PULSE ═════════════════════════════════════════ */}
+      <section className="cmc" aria-labelledby="cmc-display">
+        <header className="cmc__head">
+          <div>
+            <div className="cmc__kicker">The pulse</div>
+            <h2 id="cmc-display" className="cmc__display">
+              In their own words.
+            </h2>
+          </div>
+          <div className="cmc__tabs">
+            {TABS.map((tab) => {
+              const active = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  aria-pressed={active}
+                  className={`cmc__tab${active ? " is-active" : ""}`}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+        </header>
+
+        {loading ? (
+          <div className="cmc__grid" aria-busy="true">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="cmc__skel" aria-hidden="true">
+                <span className="cmc__skl" style={{ width: "92%" }} />
+                <span className="cmc__skl" style={{ width: "78%" }} />
+                <span className="cmc__skl" style={{ width: "54%" }} />
+                <span className="cmc__skl cmc__skl--foot" />
+              </div>
+            ))}
+          </div>
+        ) : posts.length > 0 ? (
+          <div className="cmc__grid">
+            {posts.map((post) => (
+              <PulseCell key={post.id} post={post} />
+            ))}
+          </div>
+        ) : (
+          <div className="cmc__empty">
+            <div className="cmc__empty-label">The wire is down</div>
+            <p className="cmc__empty-body">
+              Reddit isn&rsquo;t answering right now. The threads are still
+              there — the shortcut just isn&rsquo;t.
+            </p>
             <a
               href="https://www.reddit.com/r/JustBuyVEQT/"
               target="_blank"
               rel="noopener noreferrer"
+              className="cmc__empty-link"
             >
-              Visit r/JustBuyVEQT directly &rarr;
+              Go to r/JustBuyVEQT <span aria-hidden>→</span>
             </a>
-          </p>
-        </div>
-      )}
+          </div>
+        )}
+      </section>
 
       <style jsx>{`
-        .cm-feed {
-          padding: 30px 0 12px;
+        /* ── shared section grammar ── */
+        .cmm,
+        .cmc {
+          border-top: 3px solid var(--ins-rule-strong);
+          padding-top: 12px;
+          font-family: var(--ins-font);
+          color: var(--ins-ink);
+          font-variant-numeric: tabular-nums;
         }
-        .cm-feed__head {
+        .cmm__head,
+        .cmc__head {
           display: flex;
           justify-content: space-between;
           align-items: flex-end;
           gap: 24px;
-          margin-bottom: 16px;
           flex-wrap: wrap;
         }
-        .cm-feed__tabs {
-          display: flex;
-          gap: 28px;
+        .cmm__kicker,
+        .cmc__kicker {
+          font-size: 9.5px;
+          font-weight: 600;
+          letter-spacing: 0.22em;
+          text-transform: uppercase;
+          color: var(--ins-gray-600);
         }
-        .cm-feed__tab {
-          appearance: none;
-          background: transparent;
-          border: 0;
-          padding: 0 0 4px;
-          text-align: left;
-          cursor: pointer;
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-          border-bottom: 2px solid transparent;
-          transition: border-color 0.18s;
+        .cmm__display,
+        .cmc__display {
+          margin: 6px 0 0;
+          font-size: 28px;
+          font-weight: 700;
+          letter-spacing: -0.02em;
+          line-height: 1.1;
         }
-        .cm-feed__tab.is-active {
-          border-bottom-color: var(--stamp);
-        }
-        .cm-feed__tab-label {
-          color: var(--ink-soft);
-          transition: color 0.18s;
-        }
-        .cm-feed__tab.is-active .cm-feed__tab-label {
-          color: var(--stamp);
-        }
-        .cm-feed__tab-sub {
-          font-family: var(--font-serif);
-          font-style: italic;
-          color: var(--ink-mute);
-          font-size: 11.5px;
-        }
-        .cm-feed__refresh {
-          font-family: var(--font-serif);
-          font-style: italic;
-          font-size: 11.5px;
-          color: var(--ink-mute);
-        }
-        .cm-feed__list {
-          list-style: none;
-          margin: 0;
-          padding: 0;
-        }
-        .cm-feed__row {
-          display: grid;
-          grid-template-columns: auto 1fr auto;
-          gap: 20px;
-          padding: 20px 0;
-          border-top: 1px solid var(--rule-soft);
-          align-items: start;
-        }
-        .cm-feed__row:last-child {
-          border-bottom: 1px solid var(--rule-soft);
-        }
-        .cm-feed__num {
-          font-size: clamp(1.4rem, 2vw, 1.8rem);
-          line-height: 1;
-          color: var(--ink-mute);
-          padding-top: 2px;
-        }
-        .cm-feed__link {
-          min-width: 0;
-          text-decoration: none;
-          color: inherit;
-          display: block;
-        }
-        .cm-feed__title {
-          font-size: clamp(1.1rem, 1.8vw, 1.4rem);
-          line-height: 1.2;
-          letter-spacing: -0.012em;
-          color: var(--ink);
-          margin: 0;
-          font-weight: 500;
-        }
-        .cm-feed__link:hover .cm-feed__title {
-          text-decoration: underline;
-          text-decoration-thickness: 1.5px;
-          text-underline-offset: 4px;
-        }
-        .cm-feed__meta {
-          margin-top: 8px;
-          display: flex;
-          gap: 8px;
-          flex-wrap: wrap;
-          align-items: baseline;
-          font-family: var(--font-serif);
-          font-style: italic;
-          font-size: 13px;
-          color: var(--ink-mute);
-        }
-        .cm-feed__sep {
-          opacity: 0.4;
-        }
-        .cm-feed__flair {
-          color: var(--stamp);
-          font-style: italic;
-        }
-        .cm-feed__score {
+        .cmm__note {
+          font-size: 9.5px;
+          font-weight: 600;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          color: var(--ins-gray-600);
           text-align: right;
-          min-width: 60px;
         }
-        .cm-feed__score-num {
-          font-size: clamp(1.3rem, 1.8vw, 1.6rem);
-          line-height: 1;
-          letter-spacing: -0.015em;
-        }
-        .cm-feed__score-cap {
-          margin-top: 4px;
-          font-family: var(--font-serif);
-          font-style: italic;
-          display: block;
-          font-size: 10.5px;
-          color: var(--ink-mute);
-          letter-spacing: 0.04em;
-        }
-        @media (max-width: 560px) {
-          .cm-feed__row {
-            grid-template-columns: auto 1fr;
-          }
-          .cm-feed__score {
-            grid-column: 2;
-            text-align: left;
-            display: flex;
-            align-items: baseline;
-            gap: 8px;
-            min-width: 0;
-            margin-top: 4px;
-          }
-          .cm-feed__score-cap {
-            margin-top: 0;
-          }
-        }
-        .cm-feed__skel-num {
-          height: 28px;
-          width: 32px;
-        }
-        .cm-feed__skel-body {
+
+        /* ── the ratio bar ── */
+        .cmm__bar {
           display: flex;
-          flex-direction: column;
+          height: 14px;
+          margin-top: 22px;
+          background: var(--ins-track);
+        }
+        .cmm__bar-ink {
+          background: var(--ins-ink);
+        }
+        .cmm__bar-red {
+          background: var(--ins-signal);
+        }
+        .cmm__ends {
+          display: flex;
+          justify-content: space-between;
+          gap: 16px;
+          margin-top: 9px;
+        }
+        .cmm__end {
+          font-size: 9.5px;
+          font-weight: 600;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: var(--ins-gray-600);
+        }
+        .cmm__end b {
+          color: var(--ins-ink);
+          font-weight: 800;
+        }
+        .cmm__end--red {
+          text-align: right;
+        }
+        .cmm__end--red b {
+          color: var(--ins-signal);
+        }
+        .cmm__caption {
+          margin: 14px 0 0;
+          max-width: 62ch;
+          font-size: 12.5px;
+          font-weight: 500;
+          line-height: 1.5;
+          color: var(--ins-gray-600);
+        }
+
+        /* ── tabs ── */
+        .cmc__tabs {
+          display: flex;
+          flex-wrap: wrap;
           gap: 8px;
         }
-        .cm-feed__skel-title {
-          height: 20px;
-          width: 75%;
+        .cmc__tab {
+          appearance: none;
+          border: 1px solid var(--ins-hair);
+          border-radius: 0;
+          background: none;
+          padding: 9px 16px;
+          font-family: var(--ins-font);
+          font-size: 10px;
+          font-weight: 800;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          color: var(--ins-gray-600);
+          cursor: pointer;
+          transition: color 0.18s ease, border-color 0.18s ease;
         }
-        .cm-feed__skel-meta {
-          height: 12px;
-          width: 50%;
+        .cmc__tab:hover {
+          color: var(--ins-ink);
+          border-color: var(--ins-ink);
         }
-        .cm-feed__empty {
-          padding: 48px 0;
-          text-align: center;
+        .cmc__tab.is-active {
+          background: var(--ins-ink);
+          border-color: var(--ins-ink);
+          color: var(--ins-paper);
         }
-        .cm-feed__empty-link {
+
+        /* ── the cell grid ── */
+        .cmc__grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+          gap: 14px;
+          margin-top: 20px;
+        }
+        .cmc__skel {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          min-height: 150px;
+          padding: 16px 18px 14px;
+          border: 1px solid var(--ins-hair);
+        }
+        .cmc__skl {
+          display: block;
+          height: 10px;
+          background: var(--ins-track-soft);
+          animation: ins-pulse 2.2s ease-in-out infinite;
+        }
+        .cmc__skl--foot {
+          width: 40%;
+          height: 8px;
+          margin-top: auto;
+        }
+
+        /* ── empty state ── */
+        .cmc__empty {
+          margin-top: 20px;
+          border: 1px solid var(--ins-hair);
+          padding: 28px 22px;
+        }
+        .cmc__empty-label {
+          font-size: 9.5px;
+          font-weight: 700;
+          letter-spacing: 0.2em;
+          text-transform: uppercase;
+          color: var(--ins-gray-600);
+        }
+        .cmc__empty-body {
+          margin: 10px 0 0;
+          max-width: 46ch;
+          font-size: 14.5px;
+          font-weight: 500;
+          line-height: 1.5;
+        }
+        .cmc__empty-link {
+          display: inline-block;
           margin-top: 16px;
+          font-size: 10px;
+          font-weight: 800;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          color: var(--ins-ink);
+          text-decoration: none;
+          border-bottom: 2px solid var(--ins-ink);
+          padding-bottom: 4px;
         }
-        .cm-feed__empty-link :global(a) {
-          color: var(--stamp);
-          text-decoration: underline;
-          text-underline-offset: 3px;
+
+        @media (prefers-reduced-motion: reduce) {
+          .cmc__tab {
+            transition: none;
+          }
+        }
+
+        /* ── mobile 390 ── */
+        @media (max-width: 640px) {
+          .cmm__head,
+          .cmc__head {
+            gap: 14px;
+          }
+          .cmm__kicker,
+          .cmc__kicker {
+            font-size: 8.5px;
+            letter-spacing: 0.2em;
+          }
+          .cmm__display,
+          .cmc__display {
+            margin-top: 4px;
+            font-size: 20px;
+          }
+          .cmm__note {
+            font-size: 8.5px;
+            letter-spacing: 0.14em;
+            text-align: left;
+          }
+          .cmm__bar {
+            height: 12px;
+            margin-top: 16px;
+          }
+          .cmm__ends {
+            gap: 12px;
+          }
+          .cmm__end {
+            font-size: 8.5px;
+            letter-spacing: 0.1em;
+          }
+          .cmm__caption {
+            margin-top: 12px;
+            font-size: 11.5px;
+          }
+          .cmc__head {
+            align-items: flex-start;
+            flex-direction: column;
+          }
+          .cmc__tab {
+            /* ≥44px touch target on phones */
+            min-height: 44px;
+            padding: 0 16px;
+            font-size: 9.5px;
+          }
+          .cmc__grid {
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-top: 16px;
+          }
+          .cmc__skel {
+            min-height: 110px;
+          }
+          .cmc__empty {
+            padding: 22px 16px;
+          }
+          .cmc__empty-body {
+            font-size: 13.5px;
+          }
         }
       `}</style>
-    </section>
+    </>
   );
 }

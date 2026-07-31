@@ -1,15 +1,13 @@
 "use client";
 
 /**
- * CalculatorCard — shared shell used by DCACalculator and TFSARRSPCalculator.
+ * CalculatorCard — shared Instrument shell used by DCACalculator and
+ * TFSARRSPCalculator.
  *
- * Composition:
- *   - vermilion calculator-number stamp + italic title
- *   - 2-col layout: dark slab + cream chart on the left, controls on the right
- *   - pinned scenarios chip bar above the dark slab
- *   - sub-stats row (contribute / growth / multiple) below the headline
- *   - scenario toggle below the projection chart
- *   - controls column with advanced panel + pin/reset actions at the bottom
+ * Same grammar as the Lookback, adapted to a projection: ordinal kicker +
+ * display + right micro, a poster figure with the signal underline, ruled
+ * stat rows, the projection chart, and a bordered control column whose
+ * rows are divided by 1px rules and closed by PIN SCENARIO / RESET.
  *
  * FIRECalculator does NOT use this wrapper — its result slab needs a
  * "FIRE in {n} years" layout instead of a dollar headline.
@@ -28,13 +26,13 @@ import ControlsActions from "./ControlsActions";
 export interface CalculatorCardProps<I> {
   /** "02" / "03" — left-padded calculator order number. */
   number: string;
-  /** "DCA" / "Account growth" — short name in the vermilion stamp. */
+  /** "DCA" / "Shelter" — short name in the section kicker. */
   name: string;
-  /** Big italic display title. */
+  /** Display headline for the section. */
   title: ReactNode;
-  /** Italic body sentence under the headline. */
+  /** Micro line under the poster figure — pre-uppercased. */
   tagline: ReactNode;
-  /** Anchor id for the section (matches CalcDock jump links). */
+  /** Anchor id for the section (matches deep links). */
   anchorId: string;
 
   paths: ProjectionPathSet;
@@ -47,6 +45,8 @@ export interface CalculatorCardProps<I> {
   onRemove: (i: number) => void;
   onRestore: (i: number) => void;
   onReset: () => void;
+  /** Pin cap — the strip disables PIN once the list is full. */
+  maxPins?: number;
 
   /** Children of <AdvancedPanel> — pass undefined to skip the panel entirely. */
   advancedContent?: ReactNode;
@@ -75,6 +75,7 @@ export default function CalculatorCard<I>({
   onRemove,
   onRestore,
   onReset,
+  maxPins = 4,
   advancedContent,
   controls,
   aboveChart,
@@ -86,52 +87,60 @@ export default function CalculatorCard<I>({
   const contributed = activePath.contributed;
   const growth = final - contributed;
   const multiple = contributed > 0 ? final / contributed : 0;
+  const scenario = SCENARIOS[activeKey];
 
   return (
     <section className="calc" id={anchorId}>
-      <header className="calc__head">
-        <span className="ed-stamp calc__stamp">
-          Calculator {number} &middot; {name}
+      <div className="calc__head">
+        <div>
+          <div className="calc__kicker">
+            {number} &mdash; {name.toUpperCase()}
+          </div>
+          <h2 className="calc__display">{title}</h2>
+        </div>
+        <span className="calc__micro">
+          PROJECTION &middot; {(scenario.rate * 100).toFixed(0)}% ASSUMED
+          &middot; {activeYears} YEARS
         </span>
-        <h3 className="ed-display-italic calc__title">{title}</h3>
-      </header>
+      </div>
 
       <div className="calc__layout">
         <div className="calc__main">
-          <PinnedScenariosBar
-            pinned={pinned}
-            onRestore={onRestore}
-            onRemove={onRemove}
-            formatter={(n) => fmtCAD(n)}
-          />
+          <div className="calc__pinned">
+            <PinnedScenariosBar
+              pinned={pinned}
+              onRestore={onRestore}
+              onRemove={onRemove}
+              formatter={(n) => fmtCAD(n)}
+              hint="PIN UP TO FOUR SCENARIOS TO COMPARE"
+            />
+          </div>
 
-          <div className="calc__result calc__result--dark">
-            <div className="ed-stamp calc__result-stamp">
-              In {SCENARIOS[activeKey].label.toLowerCase()} terms, after {activeYears} years
+          <div className="calc__result">
+            <div className="calc__sentence">
+              IN {scenario.label.toUpperCase()} TERMS, AFTER {activeYears} YEARS
             </div>
-            <AnimatedDollar value={final} size="huge" />
+            <div className="calc__fig">
+              <AnimatedDollar value={final} size="huge" />
+            </div>
             <p className="calc__tagline">{tagline}</p>
-            <div className="calc__sub-stats">
-              <div>
-                <div className="ed-label calc__sub-label">You contribute</div>
+            <div className="calc__stats">
+              <span className="calc__stat">
+                <span className="calc__stat-lab">YOU CONTRIBUTE</span>
                 <AnimatedDollar value={contributed} size="medium" />
-              </div>
-              <div className="calc__sub-rule" aria-hidden />
-              <div>
-                <div className="ed-label calc__sub-label">Growth</div>
+              </span>
+              <span className="calc__stat">
+                <span className="calc__stat-lab">GROWTH</span>
                 <AnimatedDollar value={growth} size="medium" />
-              </div>
-              <div className="calc__sub-rule" aria-hidden />
-              <div>
-                <div className="ed-label calc__sub-label">Multiple</div>
-                <span className="ed-display ed-numerals calc__mult">
-                  {multiple.toFixed(2)}&times;
-                </span>
-              </div>
+              </span>
+              <span className="calc__stat">
+                <span className="calc__stat-lab">MULTIPLE</span>
+                <span className="calc__stat-val">{multiple.toFixed(2)}&times;</span>
+              </span>
             </div>
           </div>
 
-          <div className="calc__chart-wrap">
+          <div className="calc__plot">
             {aboveChart}
             <ProjectionChart paths={paths} activeKey={activeKey} baseline={baseline} />
             <ScenarioToggle value={activeKey} paths={paths} onChange={setActiveKey} />
@@ -141,158 +150,238 @@ export default function CalculatorCard<I>({
 
         <aside className="calc__inputs">
           <div className="calc__inputs-head">
-            <span className="ed-stamp">Controls</span>
-            <span className="ed-caption">Adjust to recompute</span>
+            <span className="calc__inputs-lab">CONTROLS</span>
+            <span className="calc__inputs-hint">ADJUST TO RECOMPUTE</span>
           </div>
-          {controls}
-          {advancedContent && <AdvancedPanel>{advancedContent}</AdvancedPanel>}
+          <div className="calc__inputs-body">{controls}</div>
+          {advancedContent && (
+            <div className="calc__inputs-adv">
+              <AdvancedPanel>{advancedContent}</AdvancedPanel>
+            </div>
+          )}
           <ControlsActions
+            variant="column"
             onPin={onPin}
             onReset={onReset}
-            pinDisabled={pinned.length >= 3}
+            pinDisabled={pinned.length >= maxPins}
           />
         </aside>
       </div>
 
       <style jsx>{`
         .calc {
-          padding: 30px 0 18px;
+          font-family: var(--ins-font);
+          color: var(--ins-ink);
+          border-top: 3px solid var(--ins-rule-strong, var(--ins-ink));
+          padding-top: 16px;
           scroll-margin-top: 80px;
         }
         .calc__head {
-          margin-bottom: 22px;
+          display: flex;
+          justify-content: space-between;
+          align-items: baseline;
+          gap: 24px;
         }
-        .calc__stamp {
-          color: var(--band-paper);
-          background: var(--stamp);
-          padding: 5px 12px 4px;
-          letter-spacing: 0.22em;
-          display: inline-block;
+        .calc__kicker {
+          font-size: 9.5px;
+          font-weight: 700;
+          letter-spacing: 0.2em;
+          color: var(--ins-gray-600);
         }
-        .calc__title {
-          font-size: clamp(1.8rem, 3.4vw, 2.4rem);
+        .calc__display {
+          font-size: 40px;
+          font-weight: 700;
+          letter-spacing: -0.03em;
           line-height: 1.05;
-          letter-spacing: -0.025em;
-          margin: 12px 0 0;
-          color: var(--ink);
+          margin: 8px 0 0;
         }
+        .calc__micro {
+          font-size: 9.5px;
+          font-weight: 600;
+          letter-spacing: 0.16em;
+          color: var(--ins-gray-600);
+          text-align: right;
+          flex: none;
+        }
+
         .calc__layout {
           display: grid;
-          grid-template-columns: 1fr;
-          gap: 18px;
-        }
-        @media (min-width: 1000px) {
-          .calc__layout {
-            grid-template-columns: minmax(0, 1.8fr) minmax(260px, 1fr);
-            gap: 32px;
-          }
+          grid-template-columns: minmax(0, 1fr) 320px;
+          gap: 40px;
+          margin-top: 20px;
+          align-items: start;
         }
         .calc__main {
           min-width: 0;
-          display: flex;
-          flex-direction: column;
         }
+        .calc__pinned {
+          border-bottom: 1px solid var(--ins-hair);
+          padding-bottom: 12px;
+        }
+
         .calc__result {
-          padding: 26px 28px 24px;
+          padding-top: 18px;
         }
-        .calc__result--dark {
-          background: var(--band-ink);
-          color: var(--band-paper);
-          border-radius: 14px 14px 0 0;
-          position: relative;
-          overflow: hidden;
-          padding: 28px 30px 26px;
+        .calc__sentence {
+          font-size: 11px;
+          font-weight: 600;
+          letter-spacing: 0.14em;
+          color: var(--ins-gray-600);
         }
-        .calc__result--dark::before {
-          content: "";
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          height: 3px;
-          background: var(--stamp);
+        .calc__fig {
+          margin-top: 12px;
         }
-        .calc__result-stamp {
-          color: rgba(246, 239, 220, 0.55);
-          margin-bottom: 10px;
-        }
-        .calc__result-stamp + :global(.anum) {
-          color: var(--band-paper);
-        }
-        .calc__result--dark :global(.anum) {
-          color: var(--band-paper);
-        }
-        .calc__chart-wrap {
-          padding: 22px 28px 18px;
-          background: var(--paper-light);
-          border: 1px solid var(--rule-soft);
-          border-top: 0;
-          border-radius: 0 0 14px 14px;
+        .calc__fig :global(.anum) {
+          border-bottom: 4px solid var(--ins-signal);
+          padding-bottom: 6px;
         }
         .calc__tagline {
-          font-family: var(--font-serif);
-          font-style: italic;
-          font-size: clamp(14.5px, 1.5vw, 16px);
-          color: rgba(246, 239, 220, 0.78);
-          margin: 12px 0 0;
-          line-height: 1.55;
-          max-width: 56ch;
+          margin: 20px 0 0;
+          font-size: 11px;
+          font-weight: 600;
+          letter-spacing: 0.12em;
+          color: var(--ins-gray-600);
+          line-height: 1.6;
+          max-width: 60ch;
         }
-        .calc__sub-stats {
+        .calc__stats {
           display: flex;
-          gap: 18px;
-          align-items: center;
-          margin-top: 18px;
-          padding-top: 16px;
-          border-top: 1px solid rgba(246, 239, 220, 0.18);
+          gap: 36px;
           flex-wrap: wrap;
+          margin-top: 18px;
+          padding-top: 14px;
+          border-top: 1px solid var(--ins-hair);
         }
-        /* The original selector .calc__sub-stats > div accidentally
-           caught the 1px .calc__sub-rule divider too, inflating it to
-           110px min-width — a wide grey block in the middle of the dark
-           result slab. :not() excludes it so only the actual stat cells
-           pick up the min-width. */
-        .calc__sub-stats > div:not(.calc__sub-rule) {
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-          min-width: 110px;
+        .calc__stat {
+          display: inline-flex;
+          align-items: baseline;
+          gap: 8px;
         }
-        .calc__sub-label {
-          color: rgba(246, 239, 220, 0.55);
+        .calc__stat-lab {
+          font-size: 9.5px;
+          font-weight: 600;
+          letter-spacing: 0.16em;
+          color: var(--ins-gray-600);
         }
-        .calc__sub-rule {
-          flex: 0 0 1px;
-          width: 1px;
-          align-self: stretch;
-          background: rgba(246, 239, 220, 0.18);
-        }
-        .calc__mult {
-          font-family: var(--font-display);
-          font-weight: 500;
-          font-size: clamp(1.4rem, 2.4vw, 1.7rem);
-          line-height: 1.05;
+        .calc__stat-val {
+          font-size: 20px;
+          font-weight: 700;
           letter-spacing: -0.015em;
-          color: var(--band-paper);
-          font-variant-numeric: tabular-nums lining-nums;
+          font-variant-numeric: tabular-nums;
         }
+
+        /* Map the editorial chart tokens onto the Instrument palette so
+           the (out-of-scope) SVG modules print in this page's ink/red. */
+        .calc__plot {
+          margin-top: 26px;
+          --ink: var(--ins-ink);
+          --ink-soft: var(--ins-gray-700);
+          --ink-mute: var(--ins-gray-600);
+          --paper: var(--ins-paper);
+          --paper-light: var(--ins-paper);
+          --paper-warm: #f4f4f4;
+          --rule: var(--ins-hair);
+          --rule-soft: var(--ins-hair-soft);
+          --rule-hair: var(--ins-track-soft);
+          --stamp: var(--ins-signal);
+          --green: var(--ins-gray-600);
+          --font-sans: var(--ins-font);
+          --font-serif: var(--ins-font);
+        }
+
+        /* ── Control column ── */
         .calc__inputs {
-          padding: 24px;
-          background: var(--paper-warm);
-          border: 1px solid var(--rule-soft);
-          border-radius: 14px;
-          display: flex;
-          flex-direction: column;
-          gap: 22px;
+          border: 1px solid var(--ins-ink);
           align-self: start;
         }
         .calc__inputs-head {
           display: flex;
           justify-content: space-between;
           align-items: baseline;
-          gap: 12px;
-          padding-bottom: 14px;
-          border-bottom: 1px solid var(--rule-soft);
+          gap: 10px;
+          padding: 10px 16px;
+          border-bottom: 1px solid var(--ins-ink);
+        }
+        .calc__inputs-lab {
+          font-size: 8.5px;
+          font-weight: 800;
+          letter-spacing: 0.2em;
+        }
+        .calc__inputs-hint {
+          font-size: 8px;
+          font-weight: 600;
+          letter-spacing: 0.14em;
+          color: var(--ins-gray-600);
+        }
+        .calc__inputs-body {
+          padding: 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 18px;
+        }
+        .calc__inputs-adv {
+          padding: 12px 16px;
+          border-top: 1px solid var(--ins-hair);
+        }
+
+        @media (max-width: 1080px) {
+          .calc__layout {
+            grid-template-columns: 1fr;
+            gap: 24px;
+          }
+        }
+        @media (max-width: 640px) {
+          .calc {
+            padding-top: 12px;
+          }
+          .calc__head {
+            display: block;
+          }
+          .calc__kicker {
+            font-size: 9px;
+            letter-spacing: 0.18em;
+          }
+          .calc__display {
+            font-size: 26px;
+            margin-top: 6px;
+          }
+          .calc__micro {
+            display: block;
+            text-align: left;
+            margin-top: 6px;
+            font-size: 8.5px;
+            letter-spacing: 0.12em;
+          }
+          .calc__layout {
+            margin-top: 14px;
+            gap: 18px;
+          }
+          .calc__sentence {
+            font-size: 9.5px;
+            letter-spacing: 0.12em;
+          }
+          .calc__fig :global(.anum) {
+            border-bottom-width: 3px;
+            padding-bottom: 4px;
+          }
+          .calc__tagline {
+            margin-top: 14px;
+            font-size: 10px;
+          }
+          .calc__stats {
+            gap: 20px;
+            margin-top: 14px;
+          }
+          .calc__stat-lab {
+            font-size: 9px;
+            letter-spacing: 0.12em;
+          }
+          .calc__stat-val {
+            font-size: 16px;
+          }
+          .calc__plot {
+            margin-top: 20px;
+          }
         }
       `}</style>
     </section>

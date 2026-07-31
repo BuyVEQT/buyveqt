@@ -8,6 +8,9 @@
  * also drives OG-image previews via `expandParams` (same key the
  * individual calcs already write back to the URL on input change).
  *
+ * It also owns the page outro — fine print, verdict rail, closer — because
+ * the closer's CTA switches tabs rather than navigating away.
+ *
  * Each calculator is lazy-loaded via next/dynamic so we only ship the
  * bundle for the active one.
  */
@@ -16,6 +19,7 @@ import dynamic from "next/dynamic";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import type { HistoricalData } from "@/lib/data/types";
 import CalcTabs, { type CalcTabId, CALC_TABS } from "./CalcTabs";
+import FinePrint, { VerdictRail, CalcCloser } from "./FinePrint";
 
 const Lookback = dynamic(() => import("./Lookback"), {
   loading: () => <CalcSkeleton />,
@@ -33,11 +37,10 @@ const FIRECalculator = dynamic(() => import("./FIRECalculator"), {
 function CalcSkeleton() {
   return (
     <div
-      className="skeleton"
       style={{
         height: 520,
-        borderRadius: 14,
-        margin: "30px 0 18px",
+        background: "var(--ins-track-soft)",
+        animation: "ins-pulse 2.2s ease-in-out infinite",
       }}
       aria-label="Loading calculator…"
     />
@@ -94,6 +97,9 @@ function CalculatorsClientInner({ history }: CalculatorsClientProps) {
     [active]
   );
 
+  // The closer points at whichever calculator you aren't already running.
+  const closerIsDca = active !== "dca";
+
   return (
     <>
       <CalcTabs value={active} onChange={setTab} />
@@ -112,6 +118,13 @@ function CalculatorsClientInner({ history }: CalculatorsClientProps) {
         {active === "tfsa-rrsp" && <TFSARRSPCalculator />}
         {active === "fire" && <FIRECalculator />}
       </div>
+
+      <FinePrint />
+      <VerdictRail />
+      <CalcCloser
+        ctaLabel={closerIsDca ? "Run the DCA" : "Run the lookback"}
+        onJump={() => setTab(closerIsDca ? "dca" : "historical")}
+      />
     </>
   );
 }

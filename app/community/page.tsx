@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import InteriorShell from "@/components/broadsheet/InteriorShell";
 import CommunityHero from "@/components/community/CommunityHero";
 import CommunityContent from "@/components/community/CommunityContent";
-import CommunityCTA from "@/components/community/CommunityCTA";
+import PulseVerdict from "@/components/community/PulseVerdict";
+import CommunityCloser from "@/components/community/CommunityCloser";
 import {
   getRedditPosts,
   getSubredditStats,
@@ -27,24 +27,44 @@ export const metadata: Metadata = {
   },
 };
 
+const css = `
+.ins-cm {
+  background: var(--ins-paper);
+  min-height: 100dvh;
+  color: var(--ins-ink);
+  font-family: var(--ins-font);
+}
+.ins-cm__page {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 40px 40px;
+}
+
+@media (max-width: 640px) {
+  .ins-cm__page {
+    gap: 26px;
+    padding: 0 20px 28px;
+  }
+}
+`;
+
 /**
- * Derive pulse-strip numbers from listings. Reddit's /about endpoint
- * only gives `subscribers` and `accounts_active`; everything else is
- * computed from posts.
+ * Derive pulse-strip numbers from listings. Reddit's /about endpoint only
+ * gives `subscribers` and `accounts_active`; everything else is computed
+ * from posts.
  *
- * `topPostScore` reads the highest score on file from the top-all-time
- * listing. Previously this slot was "Posts today", which read as a
- * broken zero whenever the sub had a quiet day. Top score is a more
- * honest gauge for a small-but-engaged community.
+ * Both derived values stay `undefined` when the underlying listing didn't
+ * include real data (e.g. the proxy fell back to RSS, which exposes neither
+ * scores nor comment counts).
  *
- * `avgComments` is the mean of `commentCount` across posts that have
- * received at least one reply — a proxy for engagement quality.
- *
- * Both derived values stay `undefined` when the underlying listing
- * didn't include real data (e.g. the proxy fell back to RSS, which
- * doesn't expose scores or comment counts). The hero renders `—`
- * for undefined/0 values instead of a literal "0" — a broken zero
- * reads as a bug, a dash reads as "data unavailable right now".
+ * NOTE: the Instrument redesign no longer *prints* `topPostScore` or
+ * `avgComments` anywhere — the recipe bans engagement counts outright. The
+ * derivation stays because it is part of the `SubredditStats` contract this
+ * page shares with the Edge route at `/api/reddit`, which the hero refetches
+ * on mount; dropping it here would silently fork the two shapes.
  */
 function deriveLiveStats(
   base: SubredditStats,
@@ -75,6 +95,20 @@ function deriveLiveStats(
   };
 }
 
+/**
+ * /community — "The Pulse", the Instrument treatment of the subreddit feed.
+ *
+ * Module order:
+ *   CommunityHero     kicker · display · dek · micro-facts rail
+ *   CommunityContent  THE MOOD (ink/red ratio bar) + THE PULSE (tabs +
+ *                     bordered quote cards)
+ *   PulseVerdict      the one verdict rail
+ *   CommunityCloser   display · dek · the one red CTA
+ *
+ * The broadsheet `InteriorShell` is gone: nav, footer and tab bar all come
+ * from app/layout.tsx, and the Instrument owns its own white page frame the
+ * same way the home route does.
+ */
 export default async function CommunityPage() {
   const [hotResult, topResult, statsResult] = await Promise.allSettled([
     getRedditPosts("hot", 12),
@@ -84,12 +118,11 @@ export default async function CommunityPage() {
 
   const hot = hotResult.status === "fulfilled" ? hotResult.value : [];
   const topAll = topResult.status === "fulfilled" ? topResult.value : [];
-  // `getSubredditStats` always resolves (it swallows errors and
-  // returns `{ subscribers: 0, activeUsers: null }` on failure), so
-  // this is just a defensive guard for the unreachable rejected
-  // branch. CommunityHero will refetch live stats client-side from
-  // `/api/reddit` regardless, so even a zero here gets corrected
-  // within a second of hydration.
+  // `getSubredditStats` always resolves (it swallows errors and returns
+  // `{ subscribers: 0, activeUsers: null }` on failure), so this is just a
+  // defensive guard for the unreachable rejected branch. CommunityHero
+  // refetches live stats client-side from `/api/reddit` regardless, so even
+  // a zero here gets corrected within a second of hydration.
   const stats =
     statsResult.status === "fulfilled"
       ? statsResult.value
@@ -109,8 +142,18 @@ export default async function CommunityPage() {
   const topPosts = topAll.slice(0, 10);
   const enrichedStats = deriveLiveStats(stats, hotPosts, topAll);
 
+  // Hero facts: distinct threads the page is actually holding, and the age
+  // of the newest one. Both are corpus facts, not engagement counts.
+  const distinctIds = new Set([...hot, ...topAll].map((p) => p.id));
+  const latestIso =
+    [...hot, ...topAll].reduce<string | null>(
+      (latest, p) =>
+        latest === null || p.createdAt > latest ? p.createdAt : latest,
+      null
+    ) ?? null;
+
   return (
-    <InteriorShell>
+    <>
       <JsonLd
         data={buildBreadcrumbSchema([
           { name: "Home", path: "/" },
@@ -118,17 +161,23 @@ export default async function CommunityPage() {
         ])}
       />
 
-      <CommunityHero stats={enrichedStats} />
+      <main className="ins-root ins-cm">
+        <div className="ins-cm__page">
+          <CommunityHero
+            stats={enrichedStats}
+            threadCount={distinctIds.size}
+            latestIso={latestIso}
+          />
 
-      <CommunityContent
-        hotPosts={hotPosts}
-        topPosts={topPosts}
-        stats={enrichedStats}
-      />
+          <CommunityContent hotPosts={hotPosts} topPosts={topPosts} />
 
-      <div style={{ marginTop: 32 }}>
-        <CommunityCTA />
-      </div>
-    </InteriorShell>
+          <PulseVerdict />
+
+          <CommunityCloser />
+        </div>
+      </main>
+
+      <style dangerouslySetInnerHTML={{ __html: css }} />
+    </>
   );
 }

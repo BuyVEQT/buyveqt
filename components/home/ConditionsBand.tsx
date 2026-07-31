@@ -184,7 +184,7 @@ function railFor(
     case "rally":
       return {
         main: "NOTHING TO DO — COMPOUNDING DID IT FOR YOU",
-        extra: { text: "ARCHIVED →", red: true },
+        extra: { text: "ARCHIVED →", href: "/almanac", red: true },
         redSquare: true,
       };
     case "gale":

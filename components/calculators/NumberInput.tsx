@@ -1,12 +1,17 @@
 "use client";
 
 /**
- * NumberInput — editorial-styled big numeric input with optional prefix
- * ($) and suffix (% / years) slots. Commits on blur + Enter; ArrowUp/Down
- * tweak by `step`. Min/max clamps applied at commit time so typing past
- * the limits is allowed mid-edit but never persisted.
+ * NumberInput — Instrument numeric field: micro-label above, tabular
+ * figure below. Commits on blur + Enter; ArrowUp/Down tweak by `step`.
+ * Min/max clamps applied at commit time so typing past the limits is
+ * allowed mid-edit but never persisted.
+ *
+ * Two skins, same mechanics:
+ *   panel — 1px hairline box, used inside a calculator's control column.
+ *   bar   — bare cell, used inside the instrument control-bar strip where
+ *           the strip's own 1px rules already divide the fields.
  */
-import { useState, useEffect, useId } from "react";
+import { useState, useEffect } from "react";
 
 interface NumberInputProps {
   value: number;
@@ -17,6 +22,7 @@ interface NumberInputProps {
   step?: number;
   min?: number;
   max?: number;
+  variant?: "panel" | "bar";
 }
 
 export default function NumberInput({
@@ -28,9 +34,9 @@ export default function NumberInput({
   step = 100,
   min = 0,
   max,
+  variant = "panel",
 }: NumberInputProps) {
   const [local, setLocal] = useState(String(value));
-  const id = useId();
 
   // Keep the local string in sync when the controlled value changes from
   // the outside (e.g. preset buttons, Reset, pinned-scenario restore).
@@ -51,13 +57,18 @@ export default function NumberInput({
   }
 
   return (
-    <label className="ninp" htmlFor={id}>
-      <span className="ed-label ninp__label">{label}</span>
+    // The input is nested inside its label — implicit association, no id
+    // needed. (An explicit useId pair here hydration-mismatched: the
+    // dynamic-import boundary shifts React's id sequence between server
+    // and client renders.)
+    <label className={`ninp ninp--${variant}`}>
+      <span className="ninp__label">{label}</span>
       <div className="ninp__row">
-        {prefix && <span className="ninp__prefix">{prefix}</span>}
+        {prefix && <span className="ninp__affix">{prefix}</span>}
         <input
-          id={id}
           type="text"
+          /* "decimal" (not "numeric") — rate fields step in halves, so the
+             keypad has to offer a separator. Both render the numeric pad. */
           inputMode="decimal"
           value={local}
           onChange={(e) => setLocal(e.target.value)}
@@ -79,53 +90,80 @@ export default function NumberInput({
             }
           }}
         />
-        {suffix && <span className="ninp__suffix">{suffix}</span>}
+        {suffix && <span className="ninp__affix">{suffix}</span>}
       </div>
       <style jsx>{`
         .ninp {
           display: block;
+          font-family: var(--ins-font);
+          color: var(--ins-ink);
+          min-width: 0;
         }
         .ninp__label {
-          margin-bottom: 8px;
           display: block;
+          font-size: 8px;
+          font-weight: 700;
+          letter-spacing: 0.2em;
+          text-transform: uppercase;
+          color: var(--ins-gray-600);
         }
         .ninp__row {
-          display: inline-flex;
+          display: flex;
           align-items: baseline;
-          gap: 6px;
-          padding: 8px 14px;
-          background: var(--paper-light);
-          border: 1px solid var(--rule-soft);
-          border-radius: 12px;
-          transition: border-color 0.18s, background 0.18s;
-          width: 100%;
+          gap: 4px;
+          margin-top: 4px;
+          min-width: 0;
         }
-        .ninp__row:focus-within {
-          border-color: var(--ink);
-          background: var(--paper);
-        }
-        .ninp__prefix,
-        .ninp__suffix {
-          font-family: var(--font-serif);
-          font-style: italic;
-          color: var(--ink-mute);
-          font-size: 16px;
-          flex-shrink: 0;
+        .ninp__affix {
+          font-size: 11px;
+          font-weight: 700;
+          color: var(--ins-gray-600);
+          flex: none;
         }
         .ninp__row input {
           appearance: none;
           background: transparent;
           border: 0;
           padding: 0;
-          font-family: var(--font-display);
-          font-weight: 500;
-          font-size: clamp(1.6rem, 2.4vw, 2rem);
-          letter-spacing: -0.02em;
-          color: var(--ink);
+          font-family: var(--ins-font);
+          font-weight: 700;
+          font-size: 17px;
+          letter-spacing: -0.01em;
+          color: var(--ins-ink);
           width: 100%;
           min-width: 0;
           outline: none;
           font-variant-numeric: tabular-nums;
+        }
+        .ninp__row input:focus-visible {
+          outline: 2px solid var(--ins-signal);
+          outline-offset: 3px;
+        }
+
+        /* ── panel skin — 1px box inside a control column ── */
+        .ninp--panel .ninp__row {
+          border: 1px solid var(--ins-hair);
+          padding: 9px 12px;
+          margin-top: 6px;
+          min-height: 44px;
+          align-items: center;
+        }
+        .ninp--panel .ninp__row:focus-within {
+          border-color: var(--ins-ink);
+        }
+        .ninp--panel .ninp__row input {
+          font-size: 19px;
+        }
+
+        /* ── bar skin — bare cell in the control-bar strip ── */
+        .ninp--bar {
+          min-width: 118px;
+        }
+
+        @media (max-width: 640px) {
+          .ninp--bar .ninp__row input {
+            font-size: 16px; /* ≥16px keeps iOS from zooming on focus */
+          }
         }
       `}</style>
     </label>

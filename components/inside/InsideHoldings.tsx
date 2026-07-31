@@ -1,214 +1,320 @@
-import Card from "@/components/ui/Card";
-import { VEQT_TOP_HOLDINGS, type Holding } from "@/data/holdings";
+"use client";
 
-/** Sector label per ticker — used in the sector column. */
+import { VEQT_TOP_HOLDINGS, type Holding } from "@/data/holdings";
+import { FUNDS } from "@/data/funds";
+
+/** GICS bucket per ticker — rendered uppercase by CSS. */
 const SECTOR_BY_TICKER: Record<string, string> = {
-  AAPL:    "Tech",
-  MSFT:    "Tech",
-  NVDA:    "Tech",
-  AMZN:    "Cons. Disc.",
-  GOOGL:   "Comm.",
-  META:    "Comm.",
-  AVGO:    "Tech",
-  TSLA:    "Cons. Disc.",
-  SHOP:    "Tech",
+  AAPL: "Tech",
+  MSFT: "Tech",
+  NVDA: "Tech",
+  AMZN: "Cons. Disc.",
+  GOOGL: "Comm.",
+  META: "Comm.",
+  AVGO: "Tech",
+  TSLA: "Cons. Disc.",
+  SHOP: "Tech",
   "BRK.B": "Financials",
-  JPM:     "Financials",
-  RY:      "Banks",
-  TD:      "Banks",
-  ENB:     "Energy",
-  BNS:     "Banks",
+  JPM: "Financials",
+  RY: "Banks",
+  TD: "Banks",
+  ENB: "Energy",
+  BNS: "Banks",
 };
 
-/**
- * Country tone per display value.
- * US → var(--band-ink) (always dark — see DATA-IDENTITY CONVENTION
- * in app/globals.css), Canada → var(--stamp) (vermilion).
- */
-function countryTone(country: string): string {
-  if (country === "US") return "var(--band-ink)";
-  if (country === "Canada") return "var(--stamp)";
-  return "var(--rule)";
+const TOP_N = 10;
+const ROWS = VEQT_TOP_HOLDINGS.slice(0, TOP_N);
+const LEFT = ROWS.slice(0, 5);
+const RIGHT = ROWS.slice(5, 10);
+const TOP_N_WEIGHT = ROWS.reduce((sum, h) => sum + h.weight, 0);
+
+function chipLabel(country: string): string {
+  return country === "Canada" ? "CA" : country;
 }
 
-function HoldingRow({
-  holding,
-  index,
-}: {
-  holding: Holding;
-  index: number;
-}) {
+function BookRow({ holding, rank }: { holding: Holding; rank: number }) {
+  const isCa = holding.country === "Canada";
   const sector = SECTOR_BY_TICKER[holding.ticker] ?? "—";
-  const stripedBg = index % 2 === 0 ? "var(--paper-warm)" : "transparent";
-  const tone = countryTone(holding.country);
-  const countryLabel = holding.country === "Canada" ? "CA" : holding.country;
+  const chip = chipLabel(holding.country);
 
   return (
-    <li
-      className="hold-row"
-      style={{ background: stripedBg }}
-    >
-      {/* Bordered country chip — US in ink, CA in stamp */}
-      <span
-        className="hold-row__country"
-        style={{ borderColor: tone, color: tone }}
-      >
-        {countryLabel}
+    <div className="book__row">
+      <span className="book__ord" aria-hidden="true">
+        {String(rank).padStart(2, "0")}
       </span>
-      <span className="hold-row__name">{holding.name}</span>
-      <span className="hold-row__sector ed-numerals">{sector}</span>
-      <span className="hold-row__weight ed-numerals">
-        {holding.weight.toFixed(2)}%
-      </span>
+      <span className={`book__chip${isCa ? " is-ca" : ""}`}>{chip}</span>
+      <div className="book__id">
+        <div className="book__name">{holding.name}</div>
+        <div className={`book__sector${isCa ? " is-ca" : ""}`}>
+          <span className="book__sector-country">{chip} · </span>
+          {sector}
+        </div>
+      </div>
+      <span className="book__weight">{holding.weight.toFixed(2)}%</span>
 
       <style jsx>{`
-        .hold-row {
+        .book__row {
           display: grid;
-          grid-template-columns: 36px 1fr 64px;
-          gap: 10px;
-          padding: 10px 14px;
+          grid-template-columns: 34px 40px 1fr auto;
+          gap: 14px;
           align-items: center;
-          border-radius: 8px;
-          font-family: var(--font-serif);
-          font-size: 14px;
-          color: var(--ink);
+          padding: 12px 0;
+          border-bottom: 1px solid var(--ins-hair);
+          font-variant-numeric: tabular-nums;
         }
-        @media (min-width: 720px) {
-          .hold-row {
-            grid-template-columns: 36px 1fr 120px 70px;
-          }
-        }
-        .hold-row__country {
-          font-family: var(--font-sans);
-          font-size: 10px;
+        .book__ord {
+          font-size: 15px;
           font-weight: 700;
-          letter-spacing: 0.12em;
-          padding: 2px 6px;
-          border: 1px solid;
-          border-radius: 4px;
-          text-align: center;
-          min-width: 28px;
-          display: inline-block;
+          color: rgba(17, 17, 17, 0.3);
         }
-        .hold-row__name {
+        .book__chip {
+          justify-self: start;
+          border: 1px solid var(--ins-hair);
+          padding: 2px 6px;
+          font-size: 8.5px;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+          color: var(--ins-ink);
+        }
+        .book__chip.is-ca {
+          border-color: var(--ins-signal);
+          color: var(--ins-signal);
+        }
+        .book__id {
+          min-width: 0;
+        }
+        .book__name {
+          font-size: 15px;
+          font-weight: 600;
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
         }
-        .hold-row__sector {
-          display: none;
-          color: var(--ink-mute);
-          font-size: 12px;
-          font-family: var(--font-sans);
+        .book__sector {
+          margin-top: 2px;
+          font-size: 9px;
+          font-weight: 600;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: var(--ins-gray-600);
         }
-        @media (min-width: 720px) {
-          .hold-row__sector {
+        /* The chip carries the country on desktop; the micro-label repeats
+           it only once the chip column is dropped on phones. */
+        .book__sector-country {
+          display: none;
+        }
+        .book__weight {
+          font-size: 16px;
+          font-weight: 700;
+          text-align: right;
+        }
+
+        @media (max-width: 640px) {
+          .book__row {
+            grid-template-columns: 26px 1fr auto;
+            gap: 12px;
+            padding: 11px 0;
+          }
+          .book__ord {
+            font-size: 13px;
+          }
+          .book__chip {
+            display: none;
+          }
+          .book__name {
+            font-size: 13px;
+          }
+          .book__sector {
+            font-size: 8.5px;
+            letter-spacing: 0.12em;
+          }
+          .book__sector.is-ca {
+            color: var(--ins-signal);
+          }
+          .book__sector-country {
             display: inline;
           }
-        }
-        .hold-row__weight {
-          text-align: right;
-          font-family: var(--font-sans);
-          font-size: 13px;
-          font-weight: 700;
-          color: var(--ink);
+          .book__weight {
+            font-size: 14px;
+          }
         }
       `}</style>
-    </li>
+    </div>
   );
 }
 
 /**
- * V2 InsideHoldings — top-10 VEQT holdings with bordered country chips
- * (US=ink, CA=stamp) and sector column always visible at ≥720px.
+ * "The ten biggest bets." — top of the book (artboard 6a).
+ *
+ * Two ruled columns of five on desktop (rank ordinal · country chip · name +
+ * GICS micro-label · weight), collapsing to a single ten-row column on
+ * phones with the country folded into the micro-label. Canadian names carry
+ * the one red mark in the module.
+ *
+ * The footnote row totals the ten and names the sector taxonomy.
  */
 export default function InsideHoldings() {
-  const rows = VEQT_TOP_HOLDINGS.slice(0, 10);
+  const holdingCount = FUNDS["VEQT.TO"]?.numberOfHoldings;
+  const universe =
+    holdingCount != null ? holdingCount.toLocaleString("en-CA") : "the book";
 
   return (
-    <Card padding={0}>
-      {/* V2 header: ed-stamp kicker + ed-display-italic title */}
-      <div className="holdings">
-        <div className="holdings__head">
-          <div>
-            <div className="ed-stamp">Top of the book</div>
-            <h2 className="ed-display-italic holdings__h2">
-              The ten biggest bets.
-            </h2>
-          </div>
-          <p className="ed-caption holdings__deck">
-            Of 13,726. The rest round to under one percent each.
-          </p>
+    <section className="book" aria-label="The ten biggest bets">
+      <div className="book__head">
+        <div>
+          <div className="book__kicker">Top of the book</div>
+          <h2 className="book__display">The ten biggest bets.</h2>
         </div>
+        <span className="book__caption">
+          Of {universe} — the rest round to under 1% each
+        </span>
+      </div>
 
-        {/* Column labels — match hold-row grid at each breakpoint */}
-        <div className="holdings__cols">
-          <span className="ed-label">Co.</span>
-          <span className="ed-label">Company</span>
-          <span className="ed-label holdings__col-sector" style={{ textAlign: "left" }}>
-            Sector
-          </span>
-          <span className="ed-label" style={{ textAlign: "right" }}>
-            Weight
-          </span>
-        </div>
-
-        <ul className="holdings__list">
-          {rows.map((h, i) => (
-            <HoldingRow key={h.ticker} holding={h} index={i} />
+      <div className="book__cols">
+        <div className="book__col">
+          {LEFT.map((h, i) => (
+            <BookRow key={h.ticker} holding={h} rank={i + 1} />
           ))}
-        </ul>
+        </div>
+        <div className="book__col">
+          {RIGHT.map((h, i) => (
+            <BookRow key={h.ticker} holding={h} rank={i + 6} />
+          ))}
+        </div>
+      </div>
+
+      <div className="book__foot">
+        <span>
+          Top 10 together — {TOP_N_WEIGHT.toFixed(1)}% of the fund
+        </span>
+        <span>Sector tags follow GICS</span>
       </div>
 
       <style jsx>{`
-        .holdings {
-          padding: 22px 22px 16px;
+        .book {
+          font-family: var(--ins-font);
+          color: var(--ins-ink);
+          border-top: 3px solid var(--ins-rule-strong);
+          padding-top: 16px;
         }
-        .holdings__head {
+
+        .book__head {
           display: flex;
           justify-content: space-between;
-          align-items: flex-end;
-          gap: 16px;
-          flex-wrap: wrap;
+          align-items: baseline;
+          gap: 24px;
         }
-        .holdings__h2 {
-          font-size: clamp(1.4rem, 2.2vw, 1.7rem);
-          line-height: 1.05;
-          margin-top: 4px;
-          color: var(--ink);
+        .book__kicker {
+          font-size: 9.5px;
+          font-weight: 700;
+          letter-spacing: 0.2em;
+          text-transform: uppercase;
+          color: var(--ins-signal);
         }
-        .holdings__deck {
-          flex: 0 1 260px;
-          max-width: 260px;
-          font-size: 12px;
+        .book__display {
+          margin: 8px 0 0;
+          font-size: 28px;
+          font-weight: 700;
+          letter-spacing: -0.02em;
+          line-height: 1.1;
+          color: var(--ins-ink);
         }
-        .holdings__cols {
+        .book__caption {
+          font-size: 9.5px;
+          font-weight: 600;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          color: var(--ins-gray-600);
+          text-align: right;
+          font-variant-numeric: tabular-nums;
+        }
+
+        .book__cols {
           display: grid;
-          grid-template-columns: 36px 1fr 64px;
-          gap: 10px;
-          padding: 12px 14px 6px;
+          grid-template-columns: 1fr 1fr;
+          column-gap: 56px;
           margin-top: 16px;
-          border-top: 1px solid var(--ink);
+          border-top: 1px solid var(--ins-ink);
         }
-        @media (min-width: 720px) {
-          .holdings__cols {
-            grid-template-columns: 36px 1fr 120px 70px;
+        .book__col {
+          min-width: 0;
+        }
+        /* Each desktop column closes on its own — the footnote rule below
+           does the closing for the block. */
+        .book__col :global(.book__row:last-child) {
+          border-bottom: none;
+        }
+
+        .book__foot {
+          display: flex;
+          justify-content: space-between;
+          gap: 20px;
+          border-top: 1px solid var(--ins-ink);
+          padding-top: 10px;
+          font-size: 9px;
+          font-weight: 600;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: var(--ins-gray-600);
+          font-variant-numeric: tabular-nums;
+        }
+
+        @media (max-width: 900px) {
+          .book__cols {
+            column-gap: 32px;
           }
         }
-        .holdings__col-sector {
-          display: none;
-        }
-        @media (min-width: 720px) {
-          .holdings__col-sector {
-            display: inline;
+
+        @media (max-width: 640px) {
+          .book {
+            border-top-width: 2px;
+            padding-top: 12px;
           }
-        }
-        .holdings__list {
-          list-style: none;
-          margin: 0;
-          padding: 0;
+          .book__head {
+            display: block;
+          }
+          .book__kicker {
+            font-size: 9px;
+            letter-spacing: 0.18em;
+          }
+          .book__display {
+            margin-top: 6px;
+            font-size: 24px;
+          }
+          .book__caption {
+            display: block;
+            margin-top: 6px;
+            text-align: left;
+            font-size: 8.5px;
+            letter-spacing: 0.12em;
+          }
+          .book__cols {
+            grid-template-columns: 1fr;
+            margin-top: 10px;
+          }
+          /* Stacked, the first column is mid-list again — only the very
+             last row closes the ledger. */
+          .book__col:first-child :global(.book__row:last-child) {
+            border-bottom: 1px solid var(--ins-hair);
+          }
+          .book__col:last-child :global(.book__row:last-child) {
+            border-bottom: 1px solid var(--ins-ink);
+          }
+          .book__foot {
+            display: block;
+            border-top: none;
+            padding-top: 10px;
+            font-size: 8.5px;
+            letter-spacing: 0.12em;
+          }
+          .book__foot span {
+            display: block;
+          }
+          .book__foot span + span {
+            margin-top: 3px;
+          }
         }
       `}</style>
-    </Card>
+    </section>
   );
 }

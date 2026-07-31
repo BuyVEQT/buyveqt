@@ -1,9 +1,15 @@
 "use client";
 
 /**
- * YearPicker — a slim timeline strip for picking a start year between
- * `min` and `max` inclusive. Click a year tick, drag the thumb, or use
- * arrow keys when the track is focused.
+ * YearPicker — the Lookback's entry ruler.
+ *
+ * A 1px ink baseline with a tick per selectable entry year between `min`
+ * and `max` inclusive, and a draggable ink marker carrying the entry-month
+ * label. Same mechanics as before the reskin: drag or click the rule,
+ * arrow keys step a year, Home/End jump to the ends.
+ *
+ * `markerLabel` is the caller's rendered entry month ("JAN 2019") so the
+ * marker reads the same as the date chip above the poster figure.
  */
 import { useRef } from "react";
 
@@ -12,34 +18,44 @@ interface YearPickerProps {
   max: number;
   value: number;
   onChange: (y: number) => void;
+  /** Label printed above the marker. Defaults to the year itself. */
+  markerLabel?: string;
+  /** Micro caption under the rule — pre-uppercased. */
+  caption?: string;
 }
 
-export default function YearPicker({ min, max, value, onChange }: YearPickerProps) {
+export default function YearPicker({
+  min,
+  max,
+  value,
+  onChange,
+  markerLabel,
+  caption = "ANY ENTRY YEAR SINCE LAUNCH — THE COHORT REPRICES AS YOU GO",
+}: YearPickerProps) {
   const years: number[] = [];
   for (let y = min; y <= max; y++) years.push(y);
   const trackRef = useRef<HTMLDivElement | null>(null);
 
   const idx = years.indexOf(value);
-  const pct = years.length > 1 ? (Math.max(0, idx) / (years.length - 1)) * 100 : 0;
+  const last = years.length - 1;
+  const pct = last > 0 ? (Math.max(0, idx) / last) * 100 : 0;
 
   function pickFromX(clientX: number) {
     if (!trackRef.current || years.length === 0) return;
     const r = trackRef.current.getBoundingClientRect();
     const ratio = Math.max(0, Math.min(1, (clientX - r.left) / r.width));
-    const i = Math.round(ratio * (years.length - 1));
+    const i = Math.round(ratio * last);
     const next = years[i];
-    if (next !== value) onChange(next);
+    if (next !== undefined && next !== value) onChange(next);
   }
 
+  const markerEdge = pct < 8 ? " is-edge-l" : pct > 92 ? " is-edge-r" : "";
+
   return (
-    <div className="yp">
-      <div className="yp__top">
-        <span className="ed-label">From</span>
-        <span className="yp__value ed-display ed-numerals">{value}</span>
-      </div>
+    <div className="ruler">
       <div
         ref={trackRef}
-        className="yp__track"
+        className="ruler__track"
         onPointerDown={(e) => {
           (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
           pickFromX(e.clientX);
@@ -52,10 +68,11 @@ export default function YearPicker({ min, max, value, onChange }: YearPickerProp
           window.addEventListener("pointerup", up);
         }}
         role="slider"
-        aria-label="Start year"
+        aria-label="Entry year"
         aria-valuemin={min}
         aria-valuemax={max}
         aria-valuenow={value}
+        aria-valuetext={markerLabel ?? String(value)}
         tabIndex={0}
         onKeyDown={(e) => {
           if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
@@ -76,98 +93,167 @@ export default function YearPicker({ min, max, value, onChange }: YearPickerProp
           }
         }}
       >
-        <div className="yp__fill" style={{ width: `${pct}%` }} />
-        <div className="yp__thumb" style={{ left: `${pct}%` }} />
+        <span className="ruler__base" aria-hidden />
+        {years.map((y, i) => {
+          const left = last > 0 ? (i / last) * 100 : 0;
+          const major = i === 0 || i === last;
+          const labelled = major || i % 2 === 0;
+          return (
+            <span key={y} aria-hidden>
+              <span
+                className={`ruler__tick${major ? " is-major" : ""}`}
+                style={{ left: `${left}%` }}
+              />
+              {labelled && (
+                <span
+                  className={`ruler__year${i === 0 ? " is-first" : ""}${
+                    i === last ? " is-last" : ""
+                  }`}
+                  style={{ left: `${left}%` }}
+                >
+                  {major ? y : `’${String(y).slice(-2)}`}
+                </span>
+              )}
+            </span>
+          );
+        })}
+        <span
+          className={`ruler__marker${markerEdge}`}
+          style={{ left: `${pct}%` }}
+          aria-hidden
+        >
+          <span className="ruler__marker-label">{markerLabel ?? value}</span>
+          <span className="ruler__marker-stem" />
+        </span>
       </div>
-      <div className="yp__years">
-        {years.map((y) => (
-          <button
-            key={y}
-            type="button"
-            className={`yp__year${y === value ? " is-active" : ""}`}
-            onClick={() => onChange(y)}
-            aria-label={`Start in ${y}`}
-          >
-            &rsquo;{String(y).slice(-2)}
-          </button>
-        ))}
+      <div className="ruler__caption">
+        <span className="ruler__drag">&#9666; DRAG &#9656;</span> {caption}
       </div>
 
       <style jsx>{`
-        .yp {
-          width: 100%;
+        .ruler {
+          font-family: var(--ins-font);
+          color: var(--ins-ink);
         }
-        .yp__top {
-          display: flex;
-          align-items: baseline;
-          gap: 12px;
-          margin-bottom: 12px;
-        }
-        .yp__value {
-          font-size: clamp(2rem, 3.4vw, 2.6rem);
-          line-height: 1;
-          color: var(--ink);
-        }
-        .yp__track {
+        .ruler__track {
           position: relative;
-          height: 6px;
-          background: var(--paper-warm);
-          border: 1px solid var(--rule-soft);
-          border-radius: 3px;
-          cursor: pointer;
+          height: 72px;
           touch-action: none;
+          cursor: ew-resize;
           outline: none;
         }
-        .yp__track:focus-visible {
-          box-shadow: 0 0 0 3px rgba(138, 28, 28, 0.25);
+        .ruler__track:focus-visible {
+          outline: 2px solid var(--ins-signal);
+          outline-offset: 4px;
         }
-        .yp__fill {
+        .ruler__base {
           position: absolute;
           left: 0;
-          top: 0;
-          bottom: 0;
-          background: var(--stamp);
-          border-radius: 3px 0 0 3px;
-          transition: width 0.18s ease;
+          right: 0;
+          bottom: 22px;
+          height: 1px;
+          background: var(--ins-ink);
         }
-        .yp__thumb {
+        .ruler__tick {
           position: absolute;
-          top: 50%;
-          transform: translate(-50%, -50%);
-          width: 18px;
-          height: 18px;
-          background: var(--ink);
-          border-radius: 50%;
-          border: 3px solid var(--paper);
-          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
-          transition: left 0.18s ease;
+          bottom: 22px;
+          width: 1px;
+          height: 7px;
+          background: var(--ins-hair);
+        }
+        .ruler__tick.is-major {
+          height: 11px;
+          background: var(--ins-ink);
+        }
+        .ruler__year {
+          position: absolute;
+          bottom: 4px;
+          transform: translateX(-50%);
+          font-size: 8px;
+          font-weight: 600;
+          color: var(--ins-gray-600);
+          font-variant-numeric: tabular-nums;
+          white-space: nowrap;
+        }
+        .ruler__year.is-first {
+          transform: none;
+        }
+        .ruler__year.is-last {
+          transform: translateX(-100%);
+        }
+        .ruler__marker {
+          position: absolute;
+          bottom: 22px;
+          transform: translateX(-50%);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 5px;
           pointer-events: none;
         }
-        .yp__years {
-          display: flex;
-          justify-content: space-between;
-          margin-top: 10px;
-          gap: 2px;
+        .ruler__marker.is-edge-l {
+          transform: none;
+          align-items: flex-start;
         }
-        .yp__year {
-          appearance: none;
-          background: transparent;
-          border: 0;
-          font-family: var(--font-sans);
-          font-size: 11px;
-          font-weight: 600;
-          color: var(--ink-mute);
-          cursor: pointer;
-          padding: 4px 6px;
-          letter-spacing: 0.04em;
+        .ruler__marker.is-edge-r {
+          transform: translateX(-100%);
+          align-items: flex-end;
+        }
+        .ruler__marker-label {
+          font-size: 10px;
+          font-weight: 800;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          white-space: nowrap;
           font-variant-numeric: tabular-nums;
         }
-        .yp__year:hover {
-          color: var(--ink);
+        .ruler__marker-stem {
+          width: 3px;
+          height: 20px;
+          background: var(--ins-ink);
         }
-        .yp__year.is-active {
-          color: var(--ink);
-          font-weight: 700;
+        .ruler__caption {
+          margin-top: 8px;
+          font-size: 9.5px;
+          font-weight: 600;
+          letter-spacing: 0.16em;
+          color: var(--ins-gray-600);
+          /* Pre-uppercased copy — no text-transform. */
+        }
+        .ruler__drag {
+          animation: ins-hintShimmer 2.6s ease-in-out infinite;
+        }
+        @media (max-width: 640px) {
+          .ruler__track {
+            height: 60px;
+          }
+          .ruler__base,
+          .ruler__tick,
+          .ruler__marker {
+            bottom: 18px;
+          }
+          .ruler__tick {
+            height: 6px;
+          }
+          .ruler__tick.is-major {
+            height: 9px;
+          }
+          .ruler__year {
+            bottom: 2px;
+            font-size: 7.5px;
+          }
+          .ruler__marker-label {
+            font-size: 9px;
+            letter-spacing: 0.08em;
+          }
+          .ruler__marker-stem {
+            height: 16px;
+          }
+          .ruler__caption {
+            margin-top: 6px;
+            font-size: 8.5px;
+            letter-spacing: 0.12em;
+          }
         }
       `}</style>
     </div>
