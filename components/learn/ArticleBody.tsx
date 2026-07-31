@@ -98,22 +98,24 @@ interface ArticleBodyProps {
 }
 
 /**
- * Article reader body. Owns the MDX render and the editorial typography
- * for the prose column. Auto-applies the .ed-lede drop cap to the
- * first paragraph via CSS (no MDX changes needed).
+ * Article reader body — owns the MDX render.
  *
- * Line-length capped at ~68ch via max-width: 32rem on the inner
- * `.learn-article` block; the parent grid handles the marginalia sidecar.
+ * Turn 7 moved the prose typography out of globals' `.learn-article` block
+ * and into the reader page's own `.artc__prose` grammar (21px/1.6 Archivo,
+ * 68ch measure on paragraphs only, 3px ink rules on h2, no drop cap), so
+ * block-level MDX components can run the full column width.
+ *
+ * `data-article-body` is the hook the section chips and scroll-spy use to
+ * find the real headings — keep it.
  */
 export default function ArticleBody({ content }: ArticleBodyProps) {
   return (
-    <article data-article-body className="learn-article">
+    <article data-article-body className="artc__prose">
       <MDXRemote
         source={content}
         components={mdxComponents}
         options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }}
       />
-
     </article>
   );
 }

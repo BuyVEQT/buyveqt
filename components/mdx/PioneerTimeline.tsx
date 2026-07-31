@@ -1,10 +1,157 @@
-"use client";
-
-import { useContainerWidth } from "@/lib/useContainerWidth";
-
-interface PioneerTimelineProps {
-  compact?: boolean;
+const css = `
+.mpio {
+  margin: 34px 0 30px;
+  border-top: 3px solid var(--ins-rule-strong);
+  padding-top: 14px;
+  font-family: var(--ins-font);
+  color: var(--ins-ink);
 }
+.mpio__kicker {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ins-signal);
+}
+.mpio__headline {
+  margin: 8px 0 0;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.mpio__band {
+  margin-top: 18px;
+  border: 1px solid var(--ins-ink);
+}
+.mpio__actor {
+  padding: 8px 14px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ins-inv-text);
+}
+.mpio__actor--lead {
+  background: var(--ins-signal);
+}
+.mpio__actor--follow {
+  background: var(--ins-ink);
+}
+.mpio__ticks {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  border-top: 1px solid var(--ins-ink);
+  border-bottom: 1px solid var(--ins-ink);
+}
+.mpio__tick {
+  padding: 11px 0;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+.mpio__tick + .mpio__tick {
+  border-left: 1px solid var(--ins-hair);
+}
+
+.mpio__rows {
+  list-style: none;
+  margin: 22px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 32px;
+}
+.mpio__row {
+  padding: 13px 0;
+  border-top: 1px solid var(--ins-hair);
+}
+.mpio__rowTop {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.mpio__year {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  font-variant-numeric: tabular-nums;
+}
+.mpio__row--lead .mpio__year,
+.mpio__row--lead .mpio__who {
+  color: var(--ins-signal);
+}
+.mpio__who {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ins-gray-600);
+}
+.mpio__text {
+  margin: 6px 0 0;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.55;
+  color: var(--ins-gray-700);
+  max-width: 46ch;
+}
+
+.mpio__closer {
+  margin: 22px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--ins-ink);
+  max-width: 68ch;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.65;
+  color: var(--ins-gray-700);
+}
+.mpio__stamp {
+  color: var(--ins-signal);
+  font-weight: 700;
+}
+
+@media (max-width: 760px) {
+  .mpio__rows {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 640px) {
+  .mpio {
+    margin: 22px 0 20px;
+    padding-top: 12px;
+  }
+  .mpio__kicker {
+    font-size: 9px;
+    letter-spacing: 0.18em;
+  }
+  .mpio__headline {
+    font-size: 19px;
+    letter-spacing: -0.015em;
+  }
+  .mpio__actor {
+    padding: 7px 12px;
+    font-size: 9.5px;
+    letter-spacing: 0.18em;
+  }
+  .mpio__tick {
+    padding: 9px 0;
+    font-size: 12px;
+  }
+  .mpio__year {
+    font-size: 17px;
+  }
+  .mpio__text,
+  .mpio__closer {
+    font-size: 14px;
+  }
+}
+`;
 
 type Milestone = {
   year: number;
@@ -12,8 +159,6 @@ type Milestone = {
   text: string;
   stamp?: boolean;
 };
-
-const COMPACT_THRESHOLD = 600;
 
 const MILESTONES: Milestone[] = [
   {
@@ -51,214 +196,65 @@ const MILESTONES: Milestone[] = [
   },
 ];
 
-const YEAR_TICKS = ["1975", "1985", "1995", "2009", "2018", "today"];
+const YEAR_TICKS = ["1975", "1985", "1995", "2009", "2018", "Today"];
 
-export function PioneerTimeline({ compact }: PioneerTimelineProps = {}) {
-  const { ref, width } = useContainerWidth<HTMLDivElement>();
-  const auto = width > 0 && width < COMPACT_THRESHOLD;
-  const mobile = compact ?? auto;
-
+/**
+ * Pioneer vs fast-follower — restyled into Instrument chrome for Turn 7.
+ * No Turn 7 exhibit was drawn for this one, so the content is untouched:
+ * same six milestones, same tick scale, same closing line. What changed is
+ * the dress — ink rules instead of cards, Archivo throughout, red spent
+ * only on Vanguard's entries.
+ *
+ * Server component now that nothing measures its own width; the two-across
+ * milestone grid collapses on a plain media query.
+ */
+export function PioneerTimeline() {
   return (
-    <div ref={ref} className="flagship-bleed" style={{ fontFamily: "var(--font-sans)" }}>
-      <div style={{ marginBottom: mobile ? 14 : 22 }}>
-        <p className="ed-label" style={{ margin: 0 }}>
-          Pioneer vs Fast-Follower · fifty years of index investing
-        </p>
-        <h3
-          style={{
-            fontFamily: "var(--font-display)",
-            fontWeight: 500,
-            fontStyle: "italic",
-            fontSize: mobile ? "clamp(20px, 5vw, 22px)" : "clamp(28px, 3.4vw, 34px)",
-            lineHeight: 1.1,
-            letterSpacing: "-0.018em",
-            margin: "8px 0 0",
-            color: "var(--ink)",
-          }}
-        >
-          One company invented this. The other showed up.
-        </h3>
+    <section className="mpio" aria-labelledby="mpio-headline">
+      <div className="mpio__kicker">
+        Pioneer vs fast-follower · Fifty years of index investing
       </div>
+      <h3 className="mpio__headline" id="mpio-headline">
+        One company invented this. The other showed up.
+      </h3>
 
-      <div
-        style={{
-          background: "var(--paper-light)",
-          border: "1px solid var(--ink)",
-          padding: mobile ? "18px 16px" : "34px 36px",
-        }}
-      >
-        <div
-          style={{
-            position: "relative",
-            paddingTop: mobile ? 34 : 44,
-            paddingBottom: mobile ? 34 : 44,
-            marginBottom: mobile ? 16 : 26,
-          }}
-        >
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              height: mobile ? 28 : 38,
-              background: "var(--stamp)",
-              display: "flex",
-              alignItems: "center",
-              paddingLeft: 12,
-              color: "#f6efdc",
-              fontFamily: "var(--font-sans)",
-              fontSize: mobile ? 9.5 : 10.5,
-              fontWeight: 700,
-              letterSpacing: "0.22em",
-              textTransform: "uppercase",
-            }}
-          >
-            Vanguard
-          </div>
-
-          <div
-            style={{
-              height: mobile ? 36 : 42,
-              display: "grid",
-              gridTemplateColumns: `repeat(${YEAR_TICKS.length}, 1fr)`,
-              borderTop: "1px solid var(--ink)",
-              borderBottom: "1px solid var(--ink)",
-              background: "var(--paper)",
-              alignItems: "center",
-              fontFamily: "var(--font-display)",
-              fontWeight: 500,
-              fontSize: mobile ? 12 : 15,
-              fontVariantNumeric: "tabular-nums",
-              color: "var(--ink)",
-              textAlign: "center",
-            }}
-          >
-            {YEAR_TICKS.map((y, i) => (
-              <div
-                key={y}
-                style={{
-                  borderRight:
-                    i === YEAR_TICKS.length - 1
-                      ? undefined
-                      : "1px solid var(--rule-soft)",
-                }}
-              >
-                {mobile && y === "today" ? "’25" : y}
-              </div>
-            ))}
-          </div>
-
-          <div
-            style={{
-              position: "absolute",
-              bottom: 0,
-              left: 0,
-              right: 0,
-              height: mobile ? 28 : 38,
-              background: "#0f0d0a",
-              display: "flex",
-              alignItems: "center",
-              paddingLeft: 12,
-              color: "#f6efdc",
-              fontFamily: "var(--font-sans)",
-              fontSize: mobile ? 9.5 : 10.5,
-              fontWeight: 700,
-              letterSpacing: "0.22em",
-              textTransform: "uppercase",
-            }}
-          >
-            BlackRock
-          </div>
-        </div>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: mobile ? "1fr" : "repeat(2, 1fr)",
-            gap: mobile ? 10 : 20,
-            marginTop: 4,
-          }}
-        >
-          {MILESTONES.map((m) => (
-            <div
-              key={`${m.year}-${m.text.slice(0, 24)}`}
-              style={{
-                padding: mobile ? "10px 12px" : "14px 16px",
-                borderLeft: `3px solid ${m.stamp ? "var(--stamp)" : "var(--ink)"}`,
-                background: m.stamp
-                  ? "color-mix(in oklab, var(--stamp) 7%, transparent)"
-                  : "transparent",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-                <span
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    fontWeight: 500,
-                    fontSize: mobile ? 18 : 20,
-                    fontVariantNumeric: "tabular-nums",
-                    color: m.stamp ? "var(--stamp)" : "var(--ink)",
-                  }}
-                >
-                  {m.year}
-                </span>
-                <span
-                  style={{
-                    fontFamily: "var(--font-sans)",
-                    fontSize: 9.5,
-                    fontWeight: 700,
-                    letterSpacing: "0.18em",
-                    textTransform: "uppercase",
-                    color: m.stamp ? "var(--stamp)" : "var(--ink-mute)",
-                  }}
-                >
-                  {m.who}
-                </span>
-              </div>
-              <p
-                style={{
-                  fontFamily: "var(--font-serif)",
-                  fontSize: mobile ? 14 : 15,
-                  lineHeight: 1.5,
-                  color: "var(--ink-soft)",
-                  marginTop: mobile ? 4 : 8,
-                  marginBottom: 0,
-                }}
-              >
-                {m.text}
-              </p>
+      <div className="mpio__band">
+        <div className="mpio__actor mpio__actor--lead">Vanguard</div>
+        <div className="mpio__ticks">
+          {YEAR_TICKS.map((y) => (
+            <div className="mpio__tick" key={y}>
+              {y}
             </div>
           ))}
         </div>
-
-        <p
-          style={{
-            fontFamily: "var(--font-serif)",
-            fontStyle: "italic",
-            fontSize: mobile ? 14 : 15.5,
-            lineHeight: 1.55,
-            color: "var(--ink-mute)",
-            marginTop: mobile ? 16 : 24,
-            marginBottom: 0,
-            maxWidth: "64ch",
-          }}
-        >
-          Nobel laureate Paul Samuelson once ranked Bogle&rsquo;s index fund
-          alongside the wheel, the alphabet, and the printing press. Warren
-          Buffett has called Vanguard funds the best option for most
-          investors.{" "}
-          <span
-            style={{
-              color: "var(--stamp)",
-              fontStyle: "normal",
-              fontWeight: 600,
-            }}
-          >
-            When you buy VEQT, you are buying the original.
-          </span>
-        </p>
+        <div className="mpio__actor mpio__actor--follow">BlackRock</div>
       </div>
-    </div>
+
+      <ul className="mpio__rows">
+        {MILESTONES.map((m) => (
+          <li
+            className={`mpio__row${m.stamp ? " mpio__row--lead" : ""}`}
+            key={`${m.year}-${m.who}`}
+          >
+            <div className="mpio__rowTop">
+              <span className="mpio__year">{m.year}</span>
+              <span className="mpio__who">{m.who}</span>
+            </div>
+            <p className="mpio__text">{m.text}</p>
+          </li>
+        ))}
+      </ul>
+
+      <p className="mpio__closer">
+        Nobel laureate Paul Samuelson once ranked Bogle&rsquo;s index fund
+        alongside the wheel, the alphabet, and the printing press. Warren
+        Buffett has called Vanguard funds the best option for most investors.{" "}
+        <span className="mpio__stamp">
+          When you buy VEQT, you are buying the original.
+        </span>
+      </p>
+
+      <style dangerouslySetInnerHTML={{ __html: css }} />
+    </section>
   );
 }

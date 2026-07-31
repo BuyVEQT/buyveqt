@@ -1,92 +1,128 @@
-"use client";
+import type { ReactNode } from "react";
 
-import type { CSSProperties, ReactNode } from "react";
-import Card from "@/components/ui/Card";
+const css = `
+.mvc {
+  /* Literal ink, not the token: the verdict panel is the one surface that
+     stays dark even under the Ink Edition, where --ins-ink inverts. */
+  background: #111111;
+  color: #ffffff;
+  margin: 32px 0;
+  padding: 26px 28px 28px;
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 40px;
+  align-items: start;
+  font-family: var(--ins-font);
+}
+.mvc__kicker {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ins-signal);
+}
+.mvc__headline {
+  margin: 8px 0 0;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  color: #ffffff;
+  text-wrap: pretty;
+}
+.mvc__body {
+  max-width: 74ch;
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.78);
+  text-wrap: pretty;
+}
+.mvc__body p {
+  margin: 0 0 14px;
+  /* The article body's own paragraph rules are scoped to the prose column,
+     so restate colour here rather than inheriting paper-on-paper. */
+  color: rgba(255, 255, 255, 0.78);
+  max-width: none;
+}
+.mvc__body > :last-child {
+  margin-bottom: 0;
+}
+.mvc__body em {
+  color: rgba(255, 255, 255, 0.62);
+  font-style: italic;
+}
+.mvc__body strong {
+  color: #ffffff;
+  font-weight: 700;
+}
+.mvc__body a {
+  color: #ffffff;
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 4px;
+}
+.mvc__body a:hover {
+  color: var(--ins-signal);
+}
+
+@media (max-width: 860px) {
+  .mvc {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+}
+@media (max-width: 640px) {
+  .mvc {
+    margin: 22px 0;
+    padding: 16px 18px 18px;
+  }
+  .mvc__kicker {
+    font-size: 8.5px;
+    letter-spacing: 0.18em;
+  }
+  .mvc__headline {
+    font-size: 17px;
+  }
+  .mvc__body {
+    font-size: 12.5px;
+    line-height: 1.65;
+  }
+}
+`;
 
 interface VerdictCardProps {
+  /** Red kicker over the headline. */
   pill?: string;
   headline?: string;
   children?: ReactNode;
 }
 
 /**
- * Dark verdict block for the flagship article. Children render as the
- * closing prose (one or more MDX paragraphs). The inline custom-prop
- * overrides recolor the inherited `.learn-article p` color to paper-cream
- * so the MDX paragraphs read against the dark ink background.
+ * The verdict panel — the flagship's closing argument, and the same block
+ * six other dispatches end on.
+ *
+ * Turn 7 makes it the artboard's ink slab: literal #111 ground, red "OUR
+ * VERDICT" kicker, white display headline from `headline`, muted Archivo
+ * body from `children`. Rendered exactly once — the reader page suppresses
+ * its own frontmatter verdict on any article whose MDX already ends here.
+ *
+ * Server component; `pill` and `headline` keep their old names so existing
+ * MDX call sites are untouched.
  */
 export function VerdictCard({
-  pill = "The bottom line",
+  pill = "Our verdict",
   headline = "That’s why we buy VEQT.",
   children,
 }: VerdictCardProps) {
-  const proseOverrides: CSSProperties = {
-     
-    ...({
-      "--ink": "#f6efdc",
-      "--ink-soft": "rgba(246, 239, 220, 0.86)",
-      "--ink-mute": "rgba(246, 239, 220, 0.6)",
-      "--color-text-secondary": "rgba(246, 239, 220, 0.86)",
-      "--color-text-primary": "#f6efdc",
-      "--color-text-muted": "rgba(246, 239, 220, 0.6)",
-      "--color-brand": "var(--stamp)",
-      "--color-brand-dark": "var(--stamp)",
-      color: "rgba(246, 239, 220, 0.86)",
-    } as CSSProperties),
-  };
-
   return (
-    <div className="flagship-bleed">
-      <Card dark padding={0}>
-        <div style={{ padding: "clamp(20px, 4vw, 44px) clamp(18px, 4vw, 44px)" }}>
-          <span
-            style={{
-              display: "inline-block",
-              marginBottom: 14,
-              padding: "5px 12px",
-              background: "var(--stamp)",
-              fontFamily: "var(--font-sans)",
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: "0.22em",
-              textTransform: "uppercase",
-              color: "#f6efdc",
-              borderRadius: 3,
-            }}
-          >
-            {pill}
-          </span>
-          <p
-            style={{
-              fontFamily: "var(--font-display)",
-              fontWeight: 500,
-              fontStyle: "italic",
-              fontSize: "clamp(1.625rem, 5vw, 3rem)",
-              lineHeight: 1.05,
-              color: "#f6efdc",
-              letterSpacing: "-0.022em",
-              maxWidth: "18ch",
-              margin: 0,
-            }}
-          >
-            {headline}
-          </p>
-
-          <div
-            className="verdict-prose"
-            style={{
-              ...proseOverrides,
-              marginTop: 16,
-              fontFamily: "var(--font-serif)",
-              fontSize: "clamp(0.9375rem, 1.6vw, 1.1875rem)",
-              lineHeight: 1.6,
-              maxWidth: "62ch",
-            }}
-          >
-            {children}
-          </div>
-        </div>
-      </Card>
-    </div>
+    <aside className="mvc">
+      <div>
+        <div className="mvc__kicker">{pill}</div>
+        <p className="mvc__headline">{headline}</p>
+      </div>
+      <div className="mvc__body">{children}</div>
+      <style dangerouslySetInnerHTML={{ __html: css }} />
+    </aside>
   );
 }

@@ -1,11 +1,65 @@
-import Link from "next/link";
 import type { ArticleFrontmatter } from "@/lib/articles";
-import { getArticleOrdinal } from "@/lib/articles";
+
+const css = `
+.ahdr {
+  border-top: 3px solid var(--ins-rule-strong);
+  padding-top: 14px;
+  font-family: var(--ins-font);
+  color: var(--ins-ink);
+}
+.ahdr__title {
+  margin: 0;
+  max-width: 22ch;
+  font-size: clamp(30px, 5.4vw, 56px);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.02;
+  text-wrap: pretty;
+}
+.ahdr__byline {
+  margin: 16px 0 0;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ins-gray-600);
+}
+.ahdr__take {
+  color: var(--ins-signal);
+  font-weight: 700;
+}
+.ahdr__standfirst {
+  margin: 18px 0 0;
+  max-width: 62ch;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.55;
+  color: var(--ins-gray-700);
+  text-wrap: pretty;
+}
+
+@media (max-width: 640px) {
+  .ahdr {
+    padding-top: 12px;
+  }
+  .ahdr__title {
+    max-width: none;
+    letter-spacing: -0.03em;
+  }
+  .ahdr__byline {
+    margin-top: 12px;
+    font-size: 8.5px;
+    letter-spacing: 0.14em;
+  }
+  .ahdr__standfirst {
+    margin-top: 14px;
+    font-size: 15px;
+  }
+}
+`;
 
 interface ArticleHeaderProps {
   frontmatter: ArticleFrontmatter;
-  /** Display-friendly category label (e.g. "Head-to-Head"). */
-  categoryLabel: string;
 }
 
 function formatDate(iso: string): string {
@@ -19,152 +73,38 @@ function formatDate(iso: string): string {
 }
 
 /**
- * Round 4 v2 article header. Top breadcrumb → thick ink top-rule →
- * Dispatch No. + read-time row → italic display h1 → byline (with
- * optional Our Take pill when isEditorial).
+ * The standard dispatch head — every article except the flagship, which
+ * swaps in <TaleOfTheTape>.
+ *
+ * Deliberately spare: the 3px ink rule that opens every Instrument section,
+ * the display title, a byline micro-row, and the standfirst. Category,
+ * dispatch number and reading progress all live in the <ArticleMeta> strip
+ * directly under the masthead, so nothing is stated twice.
  */
-export default function ArticleHeader({
-  frontmatter,
-  categoryLabel,
-}: ArticleHeaderProps) {
+export default function ArticleHeader({ frontmatter }: ArticleHeaderProps) {
   const updated = formatDate(
     frontmatter.updatedDate ?? frontmatter.lastUpdated
   );
-  const editorial = frontmatter.isEditorial === true;
-  const ordinal = getArticleOrdinal(frontmatter.slug);
-  const dispatchLabel = ordinal
-    ? `Dispatch No. ${String(ordinal).padStart(2, "0")}`
-    : "Dispatch";
-  // categoryLabel arrives as "Learn · Head-to-Head" — split for the breadcrumb.
-  const trailing = categoryLabel.startsWith("Learn · ")
-    ? categoryLabel.slice("Learn · ".length)
-    : categoryLabel;
+  const standfirst = frontmatter.excerpt || frontmatter.description;
 
   return (
-    <header>
-      {/* Breadcrumb */}
-      <nav
-        aria-label="Breadcrumb"
-        style={{
-          display: "flex",
-          gap: 10,
-          alignItems: "center",
-          marginBottom: 18,
-          flexWrap: "wrap",
-        }}
-      >
-        <Link
-          href="/learn"
-          className="ed-label"
-          style={{
-            color: "var(--ink)",
-            textDecoration: "none",
-          }}
-        >
-          Learn
-        </Link>
-        <span style={{ color: "var(--ink-mute)", opacity: 0.4 }}>·</span>
-        <span
-          style={{
-            fontFamily: "var(--font-serif)",
-            fontStyle: "italic",
-            fontSize: 14,
-            color: "var(--ink-mute)",
-          }}
-        >
-          {trailing}
-        </span>
-      </nav>
-
-      {/* Dispatch No. row above the thick ink rule */}
-      <div
-        style={{
-          display: "flex",
-          gap: 10,
-          alignItems: "center",
-          marginBottom: 18,
-          borderTop: "2px solid var(--ink)",
-          paddingTop: 18,
-        }}
-      >
-        <span
-          className="ed-label"
-          style={{ color: "var(--stamp)" }}
-        >
-          {dispatchLabel}
-        </span>
-        <span
-          className="ed-label"
-          style={{
-            marginLeft: "auto",
-            color: "var(--ink-mute)",
-            fontVariantNumeric: "tabular-nums",
-          }}
-        >
-          {frontmatter.readingTime} read
-        </span>
-      </div>
-
-      <h1
-        className="ed-display-italic"
-        style={{
-          fontSize: "clamp(2.25rem, 5vw, 4.25rem)",
-          lineHeight: 1,
-          letterSpacing: "-0.028em",
-          margin: "0 0 18px",
-          color: "var(--ink)",
-          maxWidth: "20ch",
-        }}
-      >
-        {frontmatter.title}
-      </h1>
-
-      <div
-        style={{
-          fontFamily: "var(--font-serif)",
-          fontStyle: "italic",
-          fontSize: 15,
-          color: "var(--ink-mute)",
-          lineHeight: 1.5,
-          display: "flex",
-          gap: 10,
-          alignItems: "center",
-          flexWrap: "wrap",
-        }}
-      >
-        <span>By BuyVEQT</span>
-        <span style={{ opacity: 0.4 }}>·</span>
-        <span>Updated {updated}</span>
+    <header className="ahdr">
+      <h1 className="ahdr__title">{frontmatter.title}</h1>
+      <p className="ahdr__byline">
+        By BuyVEQT · Updated {updated}
+        {frontmatter.isEditorial && (
+          <>
+            {" · "}
+            <span className="ahdr__take">Our take</span>
+          </>
+        )}
         {frontmatter.difficulty && frontmatter.difficulty !== "beginner" && (
-          <>
-            <span style={{ opacity: 0.4 }}>·</span>
-            <span style={{ textTransform: "capitalize" }}>
-              {frontmatter.difficulty}
-            </span>
-          </>
-        )}
-        {editorial && (
-          <>
-            <span style={{ opacity: 0.4 }}>·</span>
-            <span
-              style={{
-                fontFamily: "var(--font-sans)",
-                fontStyle: "normal",
-                fontSize: 10,
-                fontWeight: 700,
-                letterSpacing: "0.22em",
-                textTransform: "uppercase",
-                color: "var(--band-paper)",
-                background: "var(--band-ink)",
-                padding: "3px 8px",
-                borderRadius: 3,
-              }}
-            >
-              Our Take
-            </span>
-          </>
-        )}
-      </div>
+          <> · {frontmatter.difficulty}</>
+        )}{" "}
+        · {frontmatter.readingTime}
+      </p>
+      {standfirst && <p className="ahdr__standfirst">{standfirst}</p>}
+      <style dangerouslySetInnerHTML={{ __html: css }} />
     </header>
   );
 }

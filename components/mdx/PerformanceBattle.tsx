@@ -20,11 +20,118 @@ interface NormalizedSeries {
 }
 
 const COMPACT_THRESHOLD = 600;
-const STAMP = "var(--stamp)";
-const INK = "var(--ink)";
-const INK_MUTE = "var(--ink-mute)";
-const RULE_SOFT = "var(--rule-soft)";
-const PAPER_LIGHT = "var(--paper-light)";
+
+/* Instrument palette. The chart draws VEQT in signal red and XEQT in ink —
+   the same two-voice convention the rest of the article uses. */
+const SIGNAL = "var(--ins-signal)";
+const INK = "var(--ins-ink)";
+const MUTE = "var(--ins-gray-600)";
+const HAIR = "var(--ins-hair)";
+const PAPER = "var(--ins-paper)";
+const FONT = "var(--ins-font)";
+
+const css = `
+.mpb {
+  margin: 34px 0 30px;
+  border-top: 3px solid var(--ins-rule-strong);
+  padding-top: 14px;
+  font-family: var(--ins-font);
+  color: var(--ins-ink);
+}
+.mpb__kicker {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ins-signal);
+}
+.mpb__headline {
+  margin: 8px 0 0;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.mpb__box {
+  margin-top: 16px;
+  border: 1px solid var(--ins-ink);
+  background: var(--ins-paper);
+  padding: 24px 26px 22px;
+}
+.mpb__stats {
+  margin-top: 14px;
+  padding-top: 16px;
+  border-top: 1px solid var(--ins-hair);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+.mpb__statLabel {
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ins-gray-600);
+}
+.mpb__statValue {
+  margin-top: 4px;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+.mpb__statValue--lead {
+  color: var(--ins-signal);
+}
+.mpb__statSub {
+  margin-top: 3px;
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ins-gray-600);
+}
+.mpb__caption {
+  margin: 10px 0 0;
+  max-width: 68ch;
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1.7;
+  color: var(--ins-gray-600);
+}
+
+@media (max-width: 640px) {
+  .mpb {
+    margin: 22px 0 20px;
+    padding-top: 12px;
+  }
+  .mpb__kicker {
+    font-size: 9px;
+    letter-spacing: 0.18em;
+  }
+  .mpb__headline {
+    font-size: 19px;
+    letter-spacing: -0.015em;
+  }
+  .mpb__box {
+    padding: 14px 12px 16px;
+  }
+  .mpb__stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .mpb__statValue {
+    font-size: 19px;
+  }
+  .mpb__caption {
+    font-size: 8px;
+    letter-spacing: 0.1em;
+  }
+}
+`;
 
 const FALLBACK_VEQT: number[] = [
   1.0, 1.08, 0.9, 1.05, 1.18, 1.32, 1.41, 1.5, 1.42, 1.36, 1.3, 1.45, 1.58,
@@ -53,6 +160,14 @@ function buildFallback(arr: number[]): NormalizedSeries {
   return { pts, final: arr[arr.length - 1] };
 }
 
+/**
+ * Five-year battle — restyled into Instrument chrome for Turn 7. No Turn 7
+ * exhibit was drawn for this one, so the reading is untouched: same live
+ * 5Y series, same cached-shape fallback, same four summary stats. What
+ * changed is the dress — ink rule and red kicker instead of the italic
+ * display header, a square 1px ink box instead of the tinted card, Archivo
+ * everywhere, and the chart drawn in signal red vs ink.
+ */
 export function PerformanceBattle({ compact }: PerformanceBattleProps = {}) {
   const { ref, width } = useContainerWidth<HTMLDivElement>();
   const auto = width > 0 && width < COMPACT_THRESHOLD;
@@ -128,7 +243,10 @@ export function PerformanceBattle({ compact }: PerformanceBattleProps = {}) {
   const pathFor = (series: NormalizedSeries | null) => {
     if (!series) return "";
     return series.pts
-      .map((p, i) => `${i === 0 ? "M" : "L"}${xScale(p.t).toFixed(1)},${yScale(p.v).toFixed(1)}`)
+      .map(
+        (p, i) =>
+          `${i === 0 ? "M" : "L"}${xScale(p.t).toFixed(1)},${yScale(p.v).toFixed(1)}`
+      )
       .join(" ");
   };
 
@@ -151,44 +269,28 @@ export function PerformanceBattle({ compact }: PerformanceBattleProps = {}) {
   const fmtUSD = (v: number) =>
     `$${Math.round(10000 * v).toLocaleString("en-CA")}`;
 
-  return (
-    <div ref={ref} className="flagship-bleed" style={{ fontFamily: "var(--font-sans)" }}>
-      <div style={{ marginBottom: mobile ? 14 : 22 }}>
-        <p className="ed-label" style={{ margin: 0 }}>
-          Five-year battle · $10,000 invested
-        </p>
-        <h3
-          style={{
-            fontFamily: "var(--font-display)",
-            fontWeight: 500,
-            fontStyle: "italic",
-            fontSize: mobile ? "clamp(20px, 5vw, 22px)" : "clamp(28px, 3.4vw, 34px)",
-            lineHeight: 1.1,
-            letterSpacing: "-0.018em",
-            margin: "8px 0 0",
-            color: "var(--ink)",
-          }}
-        >
-          The argument that quietly wins itself.
-        </h3>
-      </div>
+  const stats = [
+    { l: "2025, both funds", v: "≈20.45%", lead: true, sub: "A dead heat" },
+    { l: "5-year leader", v: "VEQT", lead: false, sub: "By a sliver" },
+    { l: "The gap", v: "<0.5%/yr", lead: true, sub: "Noise, not signal" },
+    { l: "Correlation", v: "~0.97", lead: false, sub: "Near-twins" },
+  ];
 
-      <div
-        style={{
-          background: PAPER_LIGHT,
-          border: "1px solid var(--ink)",
-          padding: mobile ? "16px 14px 18px" : "30px 32px",
-        }}
-      >
+  return (
+    <section className="mpb" ref={ref} aria-labelledby="mpb-headline">
+      <div className="mpb__kicker">
+        Five-year battle · $10,000 invested
+      </div>
+      <h3 className="mpb__headline" id="mpb-headline">
+        The argument that quietly wins itself.
+      </h3>
+
+      <div className="mpb__box">
         {loading ? (
           <div
             className="skeleton"
             aria-busy="true"
-            style={{
-              width: "100%",
-              height: chartH + 40,
-              borderRadius: 8,
-            }}
+            style={{ width: "100%", height: chartH + 40 }}
           />
         ) : (
           <svg
@@ -206,18 +308,18 @@ export function PerformanceBattle({ compact }: PerformanceBattleProps = {}) {
                   y1={yScale(v)}
                   x2={chartW - padR + 10}
                   y2={yScale(v)}
-                  stroke={RULE_SOFT}
+                  stroke={HAIR}
                   strokeDasharray="2 4"
                 />
                 <text
                   x={padL - 10}
                   y={yScale(v) + 4}
                   textAnchor="end"
-                  fontFamily="var(--font-sans)"
-                  fontSize="11"
+                  fontFamily={FONT}
+                  fontSize="10"
                   fontWeight={600}
-                  letterSpacing="0.04em"
-                  fill={INK_MUTE}
+                  letterSpacing="0.08em"
+                  fill={MUTE}
                 >
                   {fmtUSD(v)}
                 </text>
@@ -230,11 +332,11 @@ export function PerformanceBattle({ compact }: PerformanceBattleProps = {}) {
                 x={xScale(t)}
                 y={chartH + padT + 22}
                 textAnchor="middle"
-                fontFamily="var(--font-sans)"
-                fontSize="11"
+                fontFamily={FONT}
+                fontSize="10"
                 fontWeight={600}
-                letterSpacing="0.04em"
-                fill={INK_MUTE}
+                letterSpacing="0.08em"
+                fill={MUTE}
               >
                 {label}
               </text>
@@ -261,7 +363,7 @@ export function PerformanceBattle({ compact }: PerformanceBattleProps = {}) {
             <path
               d={pathFor(veqt)}
               fill="none"
-              stroke={STAMP}
+              stroke={SIGNAL}
               strokeWidth="3"
               strokeLinejoin="round"
               strokeLinecap="round"
@@ -273,15 +375,31 @@ export function PerformanceBattle({ compact }: PerformanceBattleProps = {}) {
                   cx={xScale(1)}
                   cy={yScale(veqt.final)}
                   r="5"
-                  fill={STAMP}
-                  stroke={PAPER_LIGHT}
+                  fill={SIGNAL}
+                  stroke={PAPER}
                   strokeWidth="2.5"
                 />
-                <g transform={`translate(${xScale(1) + 10}, ${yScale(veqt.final) - 6})`}>
-                  <text fontFamily="var(--font-sans)" fontSize="11" fontWeight={700} letterSpacing="0.04em" fill={STAMP}>
+                <g
+                  transform={`translate(${xScale(1) + 10}, ${yScale(veqt.final) - 6})`}
+                >
+                  <text
+                    fontFamily={FONT}
+                    fontSize="9.5"
+                    fontWeight={700}
+                    letterSpacing="0.18em"
+                    fill={SIGNAL}
+                  >
                     VEQT
                   </text>
-                  <text x="0" y="16" fontFamily="var(--font-display)" fontSize="16" fontWeight={500} fill={STAMP}>
+                  <text
+                    x="0"
+                    y="17"
+                    fontFamily={FONT}
+                    fontSize="16"
+                    fontWeight={700}
+                    letterSpacing="-0.02em"
+                    fill={SIGNAL}
+                  >
                     {fmtUSD(veqt.final)}
                   </text>
                 </g>
@@ -294,14 +412,30 @@ export function PerformanceBattle({ compact }: PerformanceBattleProps = {}) {
                   cy={yScale(xeqt.final)}
                   r="5"
                   fill={INK}
-                  stroke={PAPER_LIGHT}
+                  stroke={PAPER}
                   strokeWidth="2.5"
                 />
-                <g transform={`translate(${xScale(1) + 10}, ${yScale(xeqt.final) + 18})`}>
-                  <text fontFamily="var(--font-sans)" fontSize="11" fontWeight={700} letterSpacing="0.04em" fill={INK}>
+                <g
+                  transform={`translate(${xScale(1) + 10}, ${yScale(xeqt.final) + 18})`}
+                >
+                  <text
+                    fontFamily={FONT}
+                    fontSize="9.5"
+                    fontWeight={700}
+                    letterSpacing="0.18em"
+                    fill={INK}
+                  >
                     XEQT
                   </text>
-                  <text x="0" y="16" fontFamily="var(--font-display)" fontSize="16" fontWeight={500} fill={INK}>
+                  <text
+                    x="0"
+                    y="17"
+                    fontFamily={FONT}
+                    fontSize="16"
+                    fontWeight={700}
+                    letterSpacing="-0.02em"
+                    fill={INK}
+                  >
                     {fmtUSD(xeqt.final)}
                   </text>
                 </g>
@@ -310,78 +444,29 @@ export function PerformanceBattle({ compact }: PerformanceBattleProps = {}) {
           </svg>
         )}
 
-        <div
-          style={{
-            marginTop: mobile ? 6 : 12,
-            paddingTop: mobile ? 14 : 22,
-            borderTop: `1px solid ${RULE_SOFT}`,
-            display: "grid",
-            gridTemplateColumns: mobile ? "1fr 1fr" : "repeat(4, 1fr)",
-            gap: mobile ? 12 : 18,
-          }}
-        >
-          {[
-            { l: "2025, both funds", v: "≈20.45%", tone: STAMP, sub: "a dead heat" },
-            { l: "5-year leader", v: "VEQT", tone: INK, sub: "by a sliver" },
-            { l: "The gap", v: "<0.5%/yr", tone: STAMP, sub: "noise, not signal" },
-            { l: "Correlation", v: "~0.97", tone: INK, sub: "near-twins" },
-          ].map((s) => (
+        <div className="mpb__stats">
+          {stats.map((s) => (
             <div key={s.l}>
-              <div className="ed-label" style={{ fontSize: 9.5, margin: 0 }}>
-                {s.l}
-              </div>
+              <div className="mpb__statLabel">{s.l}</div>
               <div
-                style={{
-                  fontFamily: "var(--font-display)",
-                  fontWeight: 500,
-                  fontSize: mobile ? 20 : 28,
-                  marginTop: 4,
-                  color: s.tone,
-                  fontVariantNumeric: "tabular-nums",
-                  letterSpacing: "-0.012em",
-                  lineHeight: 1.05,
-                }}
+                className={`mpb__statValue${s.lead ? " mpb__statValue--lead" : ""}`}
               >
                 {s.v}
               </div>
-              {s.sub && (
-                <div
-                  style={{
-                    fontFamily: "var(--font-serif)",
-                    fontStyle: "italic",
-                    fontSize: 12,
-                    color: INK_MUTE,
-                    marginTop: 2,
-                  }}
-                >
-                  {s.sub}
-                </div>
-              )}
+              <div className="mpb__statSub">{s.sub}</div>
             </div>
           ))}
         </div>
       </div>
 
-      <p
-        style={{
-          fontFamily: "var(--font-serif)",
-          fontStyle: "italic",
-          fontSize: mobile ? 14 : 15,
-          lineHeight: 1.55,
-          color: INK_MUTE,
-          marginTop: mobile ? 10 : 16,
-          marginBottom: 0,
-          maxWidth: "64ch",
-        }}
-      >
-        The conventional wisdom is that XEQT&rsquo;s heavier US tilt should
-        have pulled it ahead. It hasn&rsquo;t: across recent windows the two
-        are effectively tied, with VEQT a hair in front. The supposed US
-        edge simply hasn&rsquo;t shown up.
-        {usingFallback && (
-          <span style={{ opacity: 0.5 }}> Chart shown with cached shape; live data unavailable.</span>
-        )}
+      <p className="mpb__caption">
+        The conventional wisdom said XEQT&rsquo;s heavier US tilt should have
+        pulled it ahead — across recent windows the two are effectively tied,
+        with VEQT a hair in front
+        {usingFallback && " · Chart shown with cached shape; live data unavailable"}
       </p>
-    </div>
+
+      <style dangerouslySetInnerHTML={{ __html: css }} />
+    </section>
   );
 }

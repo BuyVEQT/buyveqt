@@ -1,200 +1,147 @@
 "use client";
 
-import { useContainerWidth } from "@/lib/useContainerWidth";
+import { FUNDS } from "@/data/funds";
+import ExhibitFrame from "./ExhibitFrame";
+import { useExhibit } from "./useExhibit";
 
-interface VanguardEffectV2Props {
-  compact?: boolean;
+const css = `
+.exd__plot {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: end;
+  gap: 6px;
+  height: 120px;
+  border-bottom: 1px solid var(--ins-ink);
+}
+.exd__col {
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
+}
+.exd__bar {
+  width: 100%;
+  transform-origin: bottom center;
+  background: color-mix(in srgb, var(--ins-ink) 35%, transparent);
+}
+.exd__bar--lead {
+  background: var(--ins-signal);
+}
+.exd__labels {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: center;
+  line-height: 1.5;
+  color: var(--ins-gray-600);
+  font-variant-numeric: tabular-nums;
+}
+.exd__fee {
+  display: block;
+  color: var(--ins-ink);
+}
+.exd__fee--lead {
+  color: var(--ins-signal);
 }
 
-type EffectEvent = {
-  year: number;
-  label: string;
-  actor: "Vanguard" | "BlackRock" | "BMO";
-  fee: number;
-  marquee?: boolean;
-  follow?: boolean;
-};
+/* ── The one idea: the red bars move first, the grey ones follow. ──
+   A one-shot entrance, armed by the observer; before it fires (and
+   under prefers-reduced-motion) the bars are already at full height. */
+.exd[data-live="true"] .exd__bar {
+  animation: ins-art-riseIn 0.62s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
 
-const COMPACT_THRESHOLD = 600;
+@media (max-width: 640px) {
+  .exd__plot {
+    height: 96px;
+    gap: 4px;
+  }
+  .exd__labels {
+    gap: 4px;
+    font-size: 7px;
+    letter-spacing: 0.04em;
+  }
+}
+`;
 
-const EVENTS: EffectEvent[] = [
-  { year: 2018, label: "Vanguard launches the asset-allocation suite (VGRO, VBAL, VCNS)", actor: "Vanguard", fee: 0.22, marquee: true },
-  { year: 2019, label: "VEQT — the all-equity version — joins the suite", actor: "Vanguard", fee: 0.22 },
-  { year: 2019, label: "XEQT launches five months later, undercutting at 0.18%", actor: "BlackRock", fee: 0.18 },
-  { year: 2025, label: "Vanguard's biggest-ever cut takes VEQT to 0.17%", actor: "Vanguard", fee: 0.17, marquee: true },
-  { year: 2025, label: "BlackRock matches: XEQT to 0.17%", actor: "BlackRock", fee: 0.17, follow: true },
-];
+/**
+ * The exhibit's y-axis top. Fees are read against a fixed 0.25% ceiling
+ * rather than the series max so the four bars keep their true proportions.
+ */
+const CEILING = 0.25;
 
-export function VanguardEffectV2({ compact }: VanguardEffectV2Props = {}) {
-  const { ref, width } = useContainerWidth<HTMLDivElement>();
-  const auto = width > 0 && width < COMPACT_THRESHOLD;
-  const mobile = compact ?? auto;
+/**
+ * Exhibit D — the Vanguard effect.
+ *
+ * One idea: who moves first. Vanguard's two bars are red and animate in
+ * ahead of BlackRock's grey ones, which is the whole pattern — Vanguard
+ * cuts, the field matches. The 2025 figures come from data/funds.ts, so
+ * the next cut moves the chart; the 2019 launch fees are historical and
+ * stay literal.
+ */
+export function VanguardEffectV2() {
+  const { ref, props } = useExhibit<HTMLDivElement>();
 
-  const gridCols = mobile ? "52px 1fr 64px" : "78px 1fr 100px";
+  const bars = [
+    { when: "2019 · VEQT", fee: 0.22, lead: true, delay: "0s" },
+    { when: "2019 · XEQT", fee: 0.18, lead: false, delay: "0.34s" },
+    {
+      when: "2025 · Vanguard cuts",
+      fee: FUNDS["VEQT.TO"].managementFee,
+      lead: true,
+      delay: "0.12s",
+    },
+    {
+      when: "+30 days · BLK matches",
+      fee: FUNDS["XEQT.TO"].managementFee,
+      lead: false,
+      delay: "0.46s",
+    },
+  ];
 
   return (
-    <div ref={ref} className="flagship-bleed" style={{ fontFamily: "var(--font-sans)" }}>
-      <div style={{ marginBottom: mobile ? 14 : 22 }}>
-        <p className="ed-label" style={{ margin: 0 }}>
-          The Vanguard Effect · who moves first
-        </p>
-        <h3
-          style={{
-            fontFamily: "var(--font-display)",
-            fontWeight: 500,
-            fontStyle: "italic",
-            fontSize: mobile ? "clamp(20px, 5vw, 22px)" : "clamp(28px, 3.4vw, 34px)",
-            lineHeight: 1.1,
-            letterSpacing: "-0.018em",
-            margin: "8px 0 0",
-            color: "var(--ink)",
-          }}
-        >
-          Vanguard leads. The industry follows.
-        </h3>
-      </div>
-
-      <div
-        style={{
-          background: "var(--paper-light)",
-          border: "1px solid var(--ink)",
-          padding: mobile ? "16px 0" : "28px 0",
-        }}
-      >
+    <ExhibitFrame
+      letter="D"
+      name="The Vanguard effect"
+      headline="Vanguard leads. The field follows."
+      caption="Red bars move first — 2,100+ fee cuts since 1975, and about thirty days between Vanguard's November 2025 cut and BlackRock's match"
+      tight
+    >
+      <div className="exd" ref={ref} {...props}>
         <div
-          style={{
-            padding: mobile ? "0 16px" : "0 32px",
-            display: "grid",
-            gridTemplateColumns: gridCols,
-            gap: 12,
-            marginBottom: 8,
-          }}
+          className="exd__plot"
+          role="img"
+          aria-label="Management fees: VEQT 0.22% and XEQT 0.18% at launch in 2019; Vanguard cuts VEQT to 0.17% in 2025 and BlackRock matches on XEQT about thirty days later."
         >
-          <span className="ed-label" style={{ margin: 0, fontSize: 9.5 }}>Year</span>
-          <span className="ed-label" style={{ margin: 0, fontSize: 9.5 }}>What happened</span>
-          <span className="ed-label" style={{ margin: 0, fontSize: 9.5, textAlign: "right" }}>Mgmt fee</span>
-        </div>
-
-        {EVENTS.map((e, i) => {
-          const isVanguard = e.actor === "Vanguard";
-          return (
-            <div
-              key={`${e.year}-${i}`}
-              style={{
-                padding: mobile ? "12px 16px" : "20px 32px",
-                borderTop: "1px solid var(--rule-soft)",
-                display: "grid",
-                gridTemplateColumns: gridCols,
-                gap: 12,
-                alignItems: "center",
-                background: e.marquee
-                  ? "color-mix(in oklab, var(--stamp) 6%, transparent)"
-                  : "transparent",
-                position: "relative",
-              }}
-            >
-              {e.marquee && (
-                <div
-                  aria-hidden
-                  style={{
-                    position: "absolute",
-                    left: 0,
-                    top: 0,
-                    bottom: 0,
-                    width: 3,
-                    background: "var(--stamp)",
-                  }}
-                />
-              )}
+          {bars.map((b) => (
+            <div className="exd__col" key={b.when}>
               <div
+                className={`exd__bar${b.lead ? " exd__bar--lead" : ""}`}
                 style={{
-                  fontFamily: "var(--font-display)",
-                  fontWeight: 500,
-                  fontSize: mobile ? 17 : 24,
-                  fontVariantNumeric: "tabular-nums",
-                  color: isVanguard ? "var(--stamp)" : "var(--ink)",
-                  letterSpacing: "-0.012em",
-                  lineHeight: 1,
+                  height: `${((b.fee / CEILING) * 100).toFixed(1)}%`,
+                  animationDelay: b.delay,
                 }}
-              >
-                {e.year}
-              </div>
-              <div>
-                <div
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    fontWeight: 500,
-                    fontSize: mobile ? 14.5 : 17,
-                    lineHeight: 1.25,
-                    color: "var(--ink)",
-                  }}
-                >
-                  {e.label}
-                </div>
-                <div
-                  style={{
-                    marginTop: 4,
-                    fontFamily: "var(--font-sans)",
-                    fontSize: 9.5,
-                    fontWeight: 700,
-                    letterSpacing: "0.18em",
-                    textTransform: "uppercase",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                    color: isVanguard ? "var(--stamp)" : "var(--ink-mute)",
-                  }}
-                >
-                  {e.follow && <span aria-hidden>↳</span>}
-                  <span>
-                    {e.actor}
-                    {isVanguard && " · leads"}
-                    {e.follow && " · follows"}
-                  </span>
-                </div>
-              </div>
-              <div
-                style={{
-                  fontFamily: "var(--font-display)",
-                  fontWeight: 500,
-                  fontSize: mobile ? 15 : 20,
-                  fontVariantNumeric: "tabular-nums",
-                  textAlign: "right",
-                  color: "var(--ink)",
-                }}
-              >
-                {e.fee.toFixed(2)}%
-              </div>
+              />
             </div>
-          );
-        })}
-
-        <div
-          style={{
-            padding: mobile ? "16px 16px 6px" : "26px 32px 10px",
-            borderTop: "2px solid var(--ink)",
-            marginTop: 0,
-          }}
-        >
-          <p
-            style={{
-              fontFamily: "var(--font-serif)",
-              fontSize: mobile ? 14.5 : 15.5,
-              lineHeight: 1.55,
-              color: "var(--ink-soft)",
-              margin: 0,
-            }}
-          >
-            Across{" "}
-            <span style={{ color: "var(--stamp)", fontWeight: 600, fontStyle: "italic" }}>
-              2,100+ fee cuts
-            </span>{" "}
-            since 1975, the pattern is identical: Vanguard moves, then the
-            industry reluctantly matches. If you bank XEQT&rsquo;s
-            competitive fee today, you have Vanguard to thank for it.
-          </p>
+          ))}
+        </div>
+        <div className="exd__labels">
+          {bars.map((b) => (
+            <span key={b.when}>
+              {b.when}
+              <b className={`exd__fee${b.lead ? " exd__fee--lead" : ""}`}>
+                {b.fee.toFixed(2)}
+              </b>
+            </span>
+          ))}
         </div>
       </div>
-    </div>
+
+      <style dangerouslySetInnerHTML={{ __html: css }} />
+    </ExhibitFrame>
   );
 }
