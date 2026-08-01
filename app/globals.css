@@ -409,6 +409,8 @@ label {
      by the shell. */
   --ins-paper-warm: #faf8f4;
   --ins-signal: #e8442e; /* THE red — live dot, today chip, negatives, editions */
+  --ins-gain: #1d5431; /* green — hero chip on up days (matches the legacy
+                          --green so gains read the same site-wide) */
   --ins-gray-700: #555555; /* nav links — AUDITED Turn 8: kept. Darker than
                               the utility gray below, and it is a link tone
                               (DesktopNav rest state, prose blockquote,

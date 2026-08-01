@@ -118,7 +118,7 @@ export default function HeroToday({
         </div>
 
         <div className="ihero__chiprow">
-          <span className="ihero__chip">
+          <span className={`ihero__chip${up ? " ihero__chip--up" : ""}`}>
             {up ? UP : DOWN} {fmtSignedPct(quote.changePercent)} TODAY
           </span>
           {/* Sentence case since Turn 8: this is an explanatory fragment
@@ -423,6 +423,10 @@ function HeroStyles() {
     font-variant-numeric: tabular-nums;
     animation: ins-tickPop 0.5s ease 0.5s both;
     white-space: nowrap;
+  }
+  /* An up day prints green — red stays reserved for down/signal. */
+  .ihero__chip--up {
+    background: var(--ins-gain);
   }
   /* CAPTION, not a label — a sentence fragment explaining the chip. Turn 8
      took it out of caps (was 10.5px / 0.18em uppercase) and into sentence

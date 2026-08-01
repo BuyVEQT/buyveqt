@@ -305,7 +305,10 @@ export default function ConditionsBand({
       {severity ? (
         <>
           <div className="cols">
-            {/* ── Col 1 · desktop — CONDITIONS ── */}
+            {/* ── Col 1 · desktop — CONDITIONS ──
+                The weather cell click-throughs to the almanac via a
+                stretched overlay link (a Link can't carry the styled-jsx
+                scope class, so the cell stays a div). */}
             <div className="cell col1 col1--desktop">
               <div className="microlabel">CONDITIONS · TODAY&rsquo;S WEATHER</div>
               <div className="verdictRow">
@@ -319,6 +322,11 @@ export default function ConditionsBand({
                 </span>
               </div>
               <div className="caption caption--c1">{CAPTIONS[state]}</div>
+              <Link
+                href="/almanac"
+                className="colLink"
+                aria-label="See the full almanac"
+              />
             </div>
 
             {/* ── Col 1 · mobile compact ── */}
@@ -335,6 +343,11 @@ export default function ConditionsBand({
                   σ {sigma} · {CAPTIONS[state]}
                 </div>
               </div>
+              <Link
+                href="/almanac"
+                className="colLink"
+                aria-label="See the full almanac"
+              />
             </div>
 
             {/* ── Col 2 — SEVERITY ruler gauge ── */}
@@ -563,6 +576,19 @@ export default function ConditionsBand({
         }
         .col1--mobile {
           display: none;
+        }
+        .col1 {
+          position: relative;
+        }
+        .band :global(.colLink) {
+          position: absolute;
+          inset: 0;
+        }
+        /* Hover affordance for the weather-cell-as-link. */
+        .col1:hover .word {
+          text-decoration: underline;
+          text-decoration-thickness: 3px;
+          text-underline-offset: 6px;
         }
 
         /* Micro-labels are TRUE LABELS — column heads. Caps + tracking,
