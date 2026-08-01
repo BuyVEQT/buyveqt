@@ -1,4 +1,4 @@
-import { renderBroadsheetOG, OG_SIZE, OG_CONTENT_TYPE } from "@/lib/og/broadsheet";
+import { renderInstrumentOG, OG_SIZE, OG_CONTENT_TYPE } from "@/lib/og/instrument";
 import { LEARN_PATHS } from "@/lib/learn-paths-data";
 
 export const alt = "Learn Path — BuyVEQT";
@@ -14,21 +14,23 @@ export default async function Image({
   const path = LEARN_PATHS.find((p) => p.id === id);
 
   if (!path) {
-    return renderBroadsheetOG({
-      eyebrow: "Learn Path",
-      title: "Curated reading paths.",
-      italic: true,
+    return renderInstrumentOG({
+      eyebrow: "LEARN PATH",
+      titleLines: ["Curated", "reading paths."],
       dek: "Five-step itineraries through the BuyVEQT archive — pick the one that matches where you are.",
+      chipLabel: `${LEARN_PATHS.length} PATHS`,
+      chipMark: false,
       alt,
     });
   }
 
-  return renderBroadsheetOG({
-    eyebrow: "Learn Path",
-    title: path.title.replace(/^I'm /, "I'm "),
-    italic: true,
+  return renderInstrumentOG({
+    eyebrow: "LEARN PATH",
+    title: path.title,
     dek: path.description,
-    footerNote: `${path.slugs.length} dispatches`,
+    chipLabel: `${path.slugs.length} DISPATCHES`,
+    chipMark: false,
+    statLabel: path.question?.toUpperCase(),
     alt: `${path.title} — Learn Path · BuyVEQT`,
   });
 }

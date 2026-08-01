@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { Newsreader, Inter, Fraunces, Archivo } from "next/font/google";
+import { Archivo } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
@@ -15,61 +15,22 @@ import {
   SITE_DESCRIPTION,
 } from "@/lib/seo-config";
 
-// Font weights below are tuned to what the codebase actually renders.
-// Total payload was 27 font files (2×4 + 5 + 2×6); now 13. Each `weight × style`
-// combination is a separate file fetch on first paint.
+// ONE FAMILY, SITE-WIDE. Archivo is the Instrument's face and now the only
+// font the site loads: it renders the shell (nav, top bar, tab bar, footer),
+// every route, every article exhibit and every calculator chart. The legacy
+// broadsheet trio — Newsreader (body serif), Inter (sans/labels/UI) and
+// Fraunces (display) — was retired once the last routes and MDX widgets
+// moved to the Instrument; nothing references their family aliases any
+// more, so all three next/font configs are gone along with the ~247 KB of
+// font bytes they cost.
 //
-// PRELOAD POLICY — Archivo is the only font that preloads.
-//   Archivo is the Instrument's face: it renders the shell (nav, top bar,
-//   tab bar, footer) plus every migrated route, so it is on the critical
-//   path of literally every page and earns its <link rel="preload">.
-//   Newsreader / Inter / Fraunces are the legacy broadsheet trio. They now
-//   serve only the ~9 routes still on the old typography — /learn/path*,
-//   /weekly/[slug], and /not-found — so preloading them cost every visitor
-//   ~247 KB of font bytes for faces most pages never paint a glyph with.
-//   `preload: false` keeps the @font-face declarations (the CSS variables
-//   still resolve, display:swap still applies) but drops the preload hints;
-//   the browser fetches these lazily, and only when a page actually uses
-//   them.
+// Payload: 27 font files originally → 13 after the weight trim → 4 now.
+// Archivo preloads (no `preload: false`) because it is on the critical path
+// of literally every page.
 //
-// Newsreader (body serif): paragraph text + italic emphasis only.
-//   Used: 400, 400 italic, 500, 500 italic. Bolder body text uses Inter.
-// Inter (sans / labels / UI): never below 500 — labels are uppercase
-//   bold, buttons are 600, numerals are 600/700.
-// Fraunces (display): headlines + display numerals + the broadsheet
-//   italic. Bold weight is 700; 800/900 is OG-image only (no next/font
-//   needed). 600 was specified but never rendered (no font-weight:600
-//   on --font-display selectors).
-const newsreader = Newsreader({
-  subsets: ["latin"],
-  display: "swap",
-  preload: false,
-  variable: "--font-newsreader",
-  weight: ["400", "500"],
-  style: ["normal", "italic"],
-});
-
-const inter = Inter({
-  subsets: ["latin"],
-  display: "swap",
-  preload: false,
-  // Keep --font-outfit for back-compat (some legacy components reference it)
-  // and add --font-inter as the new workhorse for the editorial system.
-  variable: "--font-inter",
-  weight: ["500", "600", "700"],
-});
-
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  display: "swap",
-  preload: false,
-  variable: "--font-fraunces",
-  weight: ["400", "500", "700"],
-  style: ["normal", "italic"],
-});
-
-// Archivo — the Instrument (home redesign + site shell) grotesk. No italic
-// by design: the Instrument's emphasis grammar is weight + red, never slant.
+// No italic by design: the Instrument's emphasis grammar is weight + red,
+// never slant. Do not add a `style: ["italic"]` axis — components that want
+// emphasis step up a weight instead.
 const archivo = Archivo({
   subsets: ["latin"],
   display: "swap",
@@ -161,7 +122,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${newsreader.variable} ${inter.variable} ${fraunces.variable} ${archivo.variable}`}>
+    <html lang="en" className={archivo.variable}>
       <head>
         {/*
           GoatCounter's count.js loads `afterInteractive`, so its DNS lookup +

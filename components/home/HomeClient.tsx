@@ -4,6 +4,7 @@ import { useEffect, useMemo } from "react";
 import { useVeqtData } from "@/lib/useVeqtData";
 import { useRegions, type Region } from "@/lib/useRegions";
 import { computeSeverity } from "@/lib/severity";
+import { useMarketClock } from "@/lib/market-clock";
 
 import HeroToday, { HeroFactsMobile } from "./HeroToday";
 import ConditionsBand from "./ConditionsBand";
@@ -47,10 +48,11 @@ function leaderIndex(regions: readonly Region[]): number {
  *   ArticleStrip    — reading order, in three parts
  *   Closer          — "You've seen the number." + THE DAILY NOTE
  *
- * On P98+ days the page prints an edition: data-ins-edition="red" (rally)
- * tints the masthead/rules/chart line; "ink" (gale) inverts the page via
- * the --ins-* token overrides in globals.css. Applied while mounted only,
- * so other routes are untouched until the skin extends to them.
+ * On P98+ days the page prints an edition *once that session has closed*:
+ * data-ins-edition="red" (rally) tints the masthead/rules/chart line;
+ * "ink" (gale) inverts the page via the --ins-* token overrides in
+ * globals.css. Applied while mounted only, so other routes are untouched
+ * until the skin extends to them.
  */
 export default function HomeClient() {
   const full = useVeqtData("ALL");
@@ -74,9 +76,20 @@ export default function HomeClient() {
     return computeSeverity(full.data.historical, full.data.quote.changePercent);
   }, [full.data]);
 
-  // Print the edition. Set on <html> so the shell's masthead bar and any
-  // token-driven surface pick it up; removed on unmount / state change.
-  const edition = severity?.edition ?? null;
+  // Editions trigger at the close only — intraday stays live (handoff).
+  // A P98 move shows up immediately in the glyph, the verdict rail and the
+  // gauge, because that is a live reading of a live tape. The page-level
+  // edition ink is a different claim: it says the session is *on the
+  // record*, and an intraday −3% that closes at −1.4% never was. So the
+  // ink waits for the bell.
+  //
+  // "Closed" is the whole gate: every closed window holds a completed
+  // session's quote — after 16:00 it is today's close, before 09:30 (and
+  // all weekend, and on a holiday) it is the previous close. There is no
+  // closed moment whose latest quote is provisional.
+  const clock = useMarketClock();
+  const edition =
+    clock?.phase === "closed" ? severity?.edition ?? null : null;
   useEffect(() => {
     const root = document.documentElement;
     if (edition) {

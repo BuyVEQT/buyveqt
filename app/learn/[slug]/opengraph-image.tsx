@@ -1,4 +1,4 @@
-import { renderBroadsheetOG, OG_SIZE, OG_CONTENT_TYPE } from "@/lib/og/broadsheet";
+import { renderInstrumentOG, OG_SIZE, OG_CONTENT_TYPE } from "@/lib/og/instrument";
 import { getArticleBySlug, getArticleOrdinal } from "@/lib/articles";
 
 // Node runtime: getArticleBySlug reads MDX from disk.
@@ -7,11 +7,11 @@ export const size = OG_SIZE;
 export const contentType = OG_CONTENT_TYPE;
 
 const CATEGORY_EYEBROW: Record<string, string> = {
-  beginner: "The Basics",
-  comparison: "Head to Head",
-  "tax-strategy": "Tax & Accounts",
-  "veqt-deep-dive": "The Deep Dive",
-  opinion: "Opinion",
+  beginner: "THE BASICS",
+  comparison: "HEAD TO HEAD",
+  "tax-strategy": "TAX & ACCOUNTS",
+  "veqt-deep-dive": "THE DEEP DIVE",
+  opinion: "OPINION",
 };
 
 export default async function Image({
@@ -23,27 +23,30 @@ export default async function Image({
   const article = getArticleBySlug(slug);
 
   if (!article) {
-    return renderBroadsheetOG({
-      eyebrow: "The Archive",
-      title: "Article not found.",
+    return renderInstrumentOG({
+      eyebrow: "THE ARCHIVE",
+      titleLines: ["Article", "not found."],
+      chipLabel: "THE ARCHIVE",
+      chipMark: false,
       alt,
     });
   }
 
   const ordinal = getArticleOrdinal(slug);
   const dispatchTag = ordinal
-    ? `Dispatch No. ${String(ordinal).padStart(2, "0")}`
-    : "Dispatch";
+    ? `DISPATCH NO. ${String(ordinal).padStart(2, "0")}`
+    : "DISPATCH";
   const eyebrow =
     CATEGORY_EYEBROW[article.frontmatter.category ?? "beginner"] ??
-    "The Archive";
+    "THE ARCHIVE";
 
-  return renderBroadsheetOG({
+  return renderInstrumentOG({
     eyebrow,
     title: article.frontmatter.title,
-    italic: article.frontmatter.isEditorial === true,
     dek: article.frontmatter.excerpt ?? article.frontmatter.description,
-    footerNote: dispatchTag,
+    chipLabel: dispatchTag,
+    chipMark: false,
+    statLabel: article.frontmatter.readingTime?.toUpperCase(),
     alt: `${article.frontmatter.title} — BuyVEQT`,
   });
 }

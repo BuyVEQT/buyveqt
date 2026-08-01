@@ -27,8 +27,17 @@ interface Props {
   furtherReading?: FurtherReading;
 }
 
+/** Uppercase micro-label — replaces the retired global label primitive. */
+const MICRO_LABEL = {
+  fontSize: 10,
+  fontWeight: 700,
+  letterSpacing: "0.2em",
+  textTransform: "uppercase",
+  color: "var(--ins-gray-600)",
+} as const;
+
 /**
- * "How unusual is today?" — a print-engraved severity strip.
+ * "How unusual is today?" — a severity strip in the Instrument grammar.
  *
  * Three things distinguish this from xeqtbrief's equivalent:
  *
@@ -50,11 +59,12 @@ export default function SeverityMeter({
       <div
         className={
           compact
-            ? "py-3 border-t border-b border-[var(--ink)]"
-            : "mt-7 sm:mt-9 pt-5 border-t border-[var(--ink)]"
+            ? "py-3 border-t border-b border-[var(--ins-ink)]"
+            : "mt-7 sm:mt-9 pt-5 border-t border-[var(--ins-ink)]"
         }
+        style={{ fontFamily: "var(--ins-font)" }}
       >
-        <p className="bs-label">How unusual is today?</p>
+        <p style={MICRO_LABEL}>How unusual is today?</p>
         <div className={`mt-3 ${compact ? "h-[10px]" : "h-[22px]"} skeleton`} />
         {!compact && <div className="mt-2 h-3 w-3/4 skeleton" />}
       </div>
@@ -94,21 +104,24 @@ export default function SeverityMeter({
     <div
       className={
         compact
-          ? "py-3 border-t border-b border-[var(--ink)]"
-          : "mt-7 sm:mt-9 pt-5 border-t border-[var(--ink)]"
+          ? "py-3 border-t border-b border-[var(--ins-ink)]"
+          : "mt-7 sm:mt-9 pt-5 border-t border-[var(--ins-ink)]"
       }
+      style={{ fontFamily: "var(--ins-font)" }}
     >
       {/* Header row: label on the left, typical-day benchmark on the right.
           On mobile the two stack so neither line wraps mid-phrase. */}
       <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-3">
-        <p className="bs-label">How unusual is today?</p>
+        <p style={MICRO_LABEL}>How unusual is today?</p>
         <p
-          className="bs-caption italic text-[12px]"
-          style={{ color: "var(--ink-soft)" }}
+          className="text-[12px]"
+          style={{ fontWeight: 500, color: "var(--ins-gray-600)" }}
         >
           {compact ? (
             <>
-              <span style={{ color: "var(--ink)" }}>{reading.zone} day</span>
+              <span style={{ color: "var(--ins-ink)", fontWeight: 700 }}>
+                {reading.zone} day
+              </span>
               {" · "}
               typical ±{typicalMovePercent.toFixed(2)}%
             </>
@@ -126,10 +139,11 @@ export default function SeverityMeter({
       {!compact && (
         <div className="relative mt-4 h-5">
           <span
-            className="absolute -translate-x-1/2 bs-label whitespace-nowrap"
+            className="absolute -translate-x-1/2 whitespace-nowrap"
             style={{
+              ...MICRO_LABEL,
               left: `${Math.max(8, Math.min(92, markerPosition))}%`,
-              color: "var(--stamp)",
+              color: "var(--ins-signal)",
             }}
           >
             {reading.zone} day
@@ -141,12 +155,12 @@ export default function SeverityMeter({
       <div
         className={`relative ${compact ? "h-[10px] mt-2" : "h-[20px]"} overflow-hidden`}
         style={{
-          backgroundColor: "color-mix(in oklab, var(--ink) 4%, transparent)",
+          backgroundColor: "color-mix(in oklab, var(--ins-ink) 4%, transparent)",
         }}
         role="img"
         aria-label={`Severity meter. Today is a ${reading.zone.toLowerCase()} day.`}
       >
-        {/* Zone backgrounds — progressively darker cream to hint at rarity */}
+        {/* Zone backgrounds — progressively darker ink to hint at rarity */}
         {zones.map((z, i) => {
           const left = zones.slice(0, i).reduce((s, zz) => s + zz.width, 0);
           return (
@@ -156,7 +170,7 @@ export default function SeverityMeter({
               style={{
                 left: `${left}%`,
                 width: `${z.width}%`,
-                backgroundColor: `color-mix(in oklab, var(--ink) ${z.shade}%, transparent)`,
+                backgroundColor: `color-mix(in oklab, var(--ins-ink) ${z.shade}%, transparent)`,
               }}
               aria-hidden
             />
@@ -169,7 +183,7 @@ export default function SeverityMeter({
           className="absolute inset-0 pointer-events-none"
           style={{
             backgroundImage:
-              "repeating-linear-gradient(90deg, color-mix(in oklab, var(--paper) 28%, transparent) 0 1px, transparent 1px 7px)",
+              "repeating-linear-gradient(90deg, color-mix(in oklab, var(--ins-paper) 28%, transparent) 0 1px, transparent 1px 7px)",
           }}
         />
 
@@ -179,11 +193,11 @@ export default function SeverityMeter({
             key={i}
             aria-hidden
             className="absolute top-0 bottom-0 w-px"
-            style={{ left: `${pos}%`, backgroundColor: "var(--ink)" }}
+            style={{ left: `${pos}%`, backgroundColor: "var(--ins-ink)" }}
           />
         ))}
 
-        {/* Marker — vermilion disc with a small directional caret */}
+        {/* Marker — signal-red disc with a small directional caret */}
         <span
           aria-hidden
           className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex items-center justify-center"
@@ -192,16 +206,16 @@ export default function SeverityMeter({
             width: 14,
             height: 14,
             borderRadius: "50%",
-            backgroundColor: "var(--stamp)",
-            boxShadow: "0 0 0 2px var(--paper)",
+            backgroundColor: "var(--ins-signal)",
+            boxShadow: "0 0 0 2px var(--ins-paper)",
           }}
         >
           <span
             style={{
-              color: "var(--paper)",
+              color: "var(--ins-paper)",
               fontSize: 8,
               lineHeight: 1,
-              fontFamily: "var(--font-display)",
+              fontFamily: "var(--ins-font)",
               transform:
                 direction === "up" ? "translateY(-0.5px)" : "translateY(0.5px)",
             }}
@@ -215,14 +229,17 @@ export default function SeverityMeter({
           is rendered in full ink, others fade. This is how the reader learns
           which zone is which, without per-zone labels overlapping. */}
       {!compact && (
-        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 bs-label">
+        <div
+          className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1"
+          style={MICRO_LABEL}
+        >
           {zones.map((z) => {
             const active = z.label === reading.zone;
             return (
               <span
                 key={z.label}
                 style={{
-                  color: active ? "var(--ink)" : "var(--ink-soft)",
+                  color: active ? "var(--ins-ink)" : "var(--ins-gray-600)",
                   opacity: active ? 1 : 0.75,
                 }}
               >
@@ -230,8 +247,7 @@ export default function SeverityMeter({
                   aria-hidden
                   className="inline-block w-[8px] h-[8px] mr-[0.45em] align-middle"
                   style={{
-                    backgroundColor: `color-mix(in oklab, var(--ink) ${z.shade + 8}%, transparent)`,
-                    borderRadius: 1,
+                    backgroundColor: `color-mix(in oklab, var(--ins-ink) ${z.shade + 8}%, transparent)`,
                   }}
                 />
                 {z.label}{" "}
@@ -250,8 +266,8 @@ export default function SeverityMeter({
       {/* Editorial sentence — the behavioural anchor */}
       {!compact && (
         <p
-          className="bs-body mt-5 text-[15px] sm:text-[16px] leading-[1.55] max-w-[58ch]"
-          style={{ color: "var(--ink)" }}
+          className="mt-5 text-[15px] sm:text-[16px] leading-[1.55] max-w-[58ch]"
+          style={{ fontWeight: 500, color: "var(--ins-ink)" }}
         >
           {severitySentence(reading)}
           {furtherReading && (
@@ -259,8 +275,13 @@ export default function SeverityMeter({
               {" "}
               <Link
                 href={furtherReading.href}
-                className="bs-link italic"
-                style={{ color: "var(--ink-soft)" }}
+                style={{
+                  color: "var(--ins-gray-700)",
+                  fontWeight: 600,
+                  textDecoration: "underline",
+                  textUnderlineOffset: 3,
+                  textDecorationThickness: 1,
+                }}
               >
                 Further reading: {furtherReading.label} &rarr;
               </Link>

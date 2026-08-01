@@ -13,7 +13,7 @@
  * reused across edge worker invocations regardless of the page title — Vercel
  * keeps the module-level promise alive between requests on the same worker.
  *
- * @param family — Google Fonts family, e.g. "Fraunces" or "Inter".
+ * @param family — Google Fonts family. The OG cards use "Archivo" only.
  * @param opts   — weight + italic. Defaults to weight 400, upright.
  */
 const fontCache = new Map<string, Promise<ArrayBuffer>>();
@@ -76,28 +76,5 @@ async function fetchGoogleFontBuffer(
   return fontRes.arrayBuffer();
 }
 
-/**
- * Load the full broadsheet font set used by every OG image on the site.
- * Returns the array shape `ImageResponse({ fonts })` expects.
- *
- * Fonts:
- *   - Fraunces 700        → display headlines
- *   - Fraunces 400 italic → display italic accents (e.g. "vs.")
- *   - Inter    500        → eyebrow + small caps + footer
- *   - Inter    600        → wordmark
- */
-export async function loadBroadsheetFonts() {
-  const [frauncesBold, frauncesItalic, interMedium, interSemibold] = await Promise.all([
-    loadGoogleFont("Fraunces", { weight: 700 }),
-    loadGoogleFont("Fraunces", { weight: 400, italic: true }),
-    loadGoogleFont("Inter", { weight: 500 }),
-    loadGoogleFont("Inter", { weight: 600 }),
-  ]);
-
-  return [
-    { name: "Fraunces", data: frauncesBold, style: "normal" as const, weight: 700 as const },
-    { name: "Fraunces", data: frauncesItalic, style: "italic" as const, weight: 400 as const },
-    { name: "Inter", data: interMedium, style: "normal" as const, weight: 500 as const },
-    { name: "Inter", data: interSemibold, style: "normal" as const, weight: 600 as const },
-  ];
-}
+// The Archivo set every card loads lives in lib/og/instrument.tsx
+// (`loadInstrumentFonts`) — this module stays a single-font fetcher.

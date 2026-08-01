@@ -9,6 +9,7 @@ import {
   fmtSignedPct,
   parseSessionDate,
 } from "@/lib/instrument-format";
+import { useOnScreen } from "../useOnScreen";
 
 /**
  * The Instrument — ink-line chart + drag-to-scrub + $10,000 what-if row.
@@ -90,6 +91,9 @@ export default function DuoChart({
     null
   );
   const plotRef = useRef<HTMLDivElement | null>(null);
+  // Parks the drag-hint shimmer and the end-dot pulse once the chart is
+  // scrolled past — the draw-in is a one-shot and keeps running.
+  const { ref: chartRef, onScreen } = useOnScreen<HTMLElement>();
   // Pointer-gesture bookkeeping: where the press started and whether it
   // travelled far enough to count as a drag rather than a click.
   const downRef = useRef<{ x: number; idx: number; moved: boolean } | null>(
@@ -318,7 +322,11 @@ export default function DuoChart({
   }
 
   return (
-    <section className="chart">
+    <section
+      className="chart"
+      ref={chartRef}
+      data-run={onScreen ? "true" : "false"}
+    >
       {/* Header: period stamp · drag hint · period tabs */}
       <div className="hd">
         <span className="hd-label">
@@ -669,6 +677,16 @@ export default function DuoChart({
           background: var(--ins-signal);
           transform: translate(-50%, -50%);
           animation: ins-pulse 2.2s ease-in-out infinite;
+        }
+
+        /* Off-screen parking (see components/home/useOnScreen): the two
+           infinite loops on this module stop repainting once the chart
+           scrolls away. Deliberately not listed: .line's ins-drawIn is a
+           one-shot entrance, and .sdot/.vline are transient — they only
+           exist while a pointer is on the plot. */
+        .chart[data-run="false"] .hint,
+        .chart[data-run="false"] .edot {
+          animation-play-state: paused;
         }
 
         /* Scrub: vline + red dot on the line + tooltip */

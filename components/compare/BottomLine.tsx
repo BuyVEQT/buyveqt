@@ -1,4 +1,5 @@
 import { getVerdict } from "@/data/verdicts";
+import { getVerdict as getPairVerdict } from "@/lib/compare-verdicts";
 
 interface BottomLineProps {
   slug: string;
@@ -7,13 +8,205 @@ interface BottomLineProps {
   className?: string;
 }
 
-/**
- * Per-pair "scorecard" — only renders when there's a curated verdict in
- * data/verdicts.ts for the slug. Re-skinned in the broadsheet voice:
- * stamped eyebrow, display headline, ledger-style point grid with vermilion
- * winner badge, and a final italic recommendation block.
- */
-function WinnerBadge({
+/** The shape both verdict stores agree on — all this module reads. */
+interface ScoredPoint {
+  label: string;
+  winner: string;
+  explanation: string;
+}
+
+const css = `
+.ins-cmp-bl {
+  border-top: 3px solid var(--ins-rule-strong, #111111);
+  padding-top: 16px;
+  font-family: var(--ins-font);
+  color: var(--ins-ink, #111111);
+}
+.ins-cmp-bl__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 24px;
+}
+.ins-cmp-bl__kicker {
+  margin: 0;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ins-signal);
+}
+.ins-cmp-bl__display {
+  margin: 8px 0 0;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.ins-cmp-bl__note {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ins-gray-600);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.ins-cmp-bl__lede {
+  margin: 14px 0 0;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.55;
+  max-width: 76ch;
+  color: var(--ins-gray-700);
+  font-variant-numeric: tabular-nums;
+  text-wrap: pretty;
+}
+
+/* ── The rounds — ruled rows, two columns on wide viewports ────── */
+.ins-cmp-bl__grid {
+  margin-top: 16px;
+  border-top: 1px solid var(--ins-ink);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 56px;
+}
+.ins-cmp-bl__col {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.ins-cmp-bl__col > li:not(:last-child) {
+  border-bottom: 1px solid var(--ins-hair);
+}
+.ins-cmp-bl__point {
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  gap: 16px;
+  align-items: start;
+  padding: 14px 0;
+}
+.ins-cmp-bl__ordinal {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 0.85;
+  color: var(--ins-ordinal);
+  font-variant-numeric: tabular-nums;
+}
+.ins-cmp-bl__body {
+  min-width: 0;
+}
+.ins-cmp-bl__label {
+  display: block;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+.ins-cmp-bl__text {
+  display: block;
+  margin-top: 5px;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--ins-gray-700);
+  max-width: 48ch;
+  font-variant-numeric: tabular-nums;
+  text-wrap: pretty;
+}
+
+/* Winner marks — ink, not red. Filled = the house side took the round,
+   outlined = the contender did, hairline = a draw. */
+.ins-cmp-bl__chip {
+  margin-top: 2px;
+  padding: 3px 8px 2px;
+  border: 1px solid var(--ins-ink);
+  border-radius: 0;
+  background: var(--ins-ink);
+  color: var(--ins-paper);
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ins-cmp-bl__chip--other {
+  background: transparent;
+  color: var(--ins-ink);
+}
+.ins-cmp-bl__chip--tie {
+  background: transparent;
+  color: var(--ins-gray-600);
+  border-color: var(--ins-hair);
+}
+
+/* ── The recommendation ────────────────────────────────────────── */
+.ins-cmp-bl__rec {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--ins-ink);
+}
+.ins-cmp-bl__rec-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ins-gray-600);
+}
+.ins-cmp-bl__rec-text {
+  margin: 8px 0 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.55;
+  max-width: 72ch;
+  font-variant-numeric: tabular-nums;
+  text-wrap: pretty;
+}
+.ins-cmp-bl__colophon {
+  margin: 18px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--ins-hair-soft);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ins-gray-600);
+}
+
+@media (max-width: 900px) {
+  .ins-cmp-bl__grid {
+    grid-template-columns: 1fr;
+    column-gap: 0;
+  }
+  .ins-cmp-bl__col:first-child > li:last-child {
+    border-bottom: 1px solid var(--ins-hair);
+  }
+  .ins-cmp-bl__note { display: none; }
+}
+
+@media (max-width: 640px) {
+  .ins-cmp-bl { padding-top: 12px; }
+  .ins-cmp-bl__kicker { font-size: 9px; letter-spacing: 0.18em; }
+  .ins-cmp-bl__display { margin-top: 6px; font-size: 20px; }
+  .ins-cmp-bl__lede { margin-top: 10px; font-size: 13px; line-height: 1.5; }
+  .ins-cmp-bl__grid { margin-top: 10px; }
+  .ins-cmp-bl__point {
+    grid-template-columns: 28px 1fr auto;
+    gap: 10px;
+    padding: 12px 0;
+  }
+  .ins-cmp-bl__ordinal { font-size: 19px; }
+  .ins-cmp-bl__label { font-size: 13.5px; }
+  .ins-cmp-bl__text { margin-top: 4px; font-size: 12.5px; line-height: 1.5; }
+  .ins-cmp-bl__chip { font-size: 8px; letter-spacing: 0.08em; padding: 2px 6px 1px; }
+  .ins-cmp-bl__rec { margin-top: 14px; padding-top: 12px; }
+  .ins-cmp-bl__rec-text { font-size: 13px; }
+  .ins-cmp-bl__colophon { margin-top: 14px; font-size: 8.5px; letter-spacing: 0.12em; }
+}
+`;
+
+function WinnerChip({
   winner,
   fundA,
   fundB,
@@ -22,122 +215,101 @@ function WinnerBadge({
   fundA: string;
   fundB: string;
 }) {
-  if (winner === "Tie") {
-    return (
-      <span
-        className="bs-label text-[10px] tabular-nums"
-        style={{
-          color: "var(--ink-soft)",
-          letterSpacing: "0.14em",
-        }}
-      >
-        TIE
-      </span>
-    );
-  }
+  const strip = (t: string) => t.replace(/\.TO$/i, "").toUpperCase();
+  const w = winner.trim().toUpperCase();
 
-  const isA = winner.toUpperCase() === fundA.replace(".TO", "").toUpperCase();
-  return (
-    <span
-      className="bs-label text-[10px] tabular-nums"
-      style={{
-        color: "var(--paper)",
-        backgroundColor: isA ? "var(--stamp)" : "var(--ink)",
-        padding: "3px 7px 2px",
-        letterSpacing: "0.14em",
-      }}
-    >
-      {winner}
-    </span>
-  );
+  let modifier = " ins-cmp-bl__chip--tie";
+  if (w === strip(fundA)) modifier = "";
+  else if (w === strip(fundB)) modifier = " ins-cmp-bl__chip--other";
+
+  return <span className={`ins-cmp-bl__chip${modifier}`}>{winner}</span>;
 }
 
+/**
+ * The scorecard — the lower half of `/compare/[slug]`, in the Instrument
+ * grammar (3px ink rule, red kicker, ruled rows, Archivo throughout).
+ *
+ * Copy is curated, never generated: `data/verdicts.ts` first, then the
+ * pair-keyed store in `lib/compare-verdicts.ts` (whose `points` field was
+ * always documented as "rendered by the BottomLine component"). A pair
+ * curated in neither store renders nothing rather than an opinion we
+ * haven't earned.
+ *
+ * Red budget: one moment — the kicker. The winner marks are ink, so the
+ * only vermilion on the page below the fold is the section's own label.
+ */
 export default function BottomLine({
   slug,
   fundA,
   fundB,
   className,
 }: BottomLineProps) {
-  const verdict = getVerdict(slug);
+  const verdict = getVerdict(slug) ?? getPairVerdict(fundA, fundB);
   if (!verdict) return null;
+
+  const points: ScoredPoint[] = verdict.points;
+  const split = Math.ceil(points.length / 2);
+  const columns = [points.slice(0, split), points.slice(split)];
+
+  const renderPoint = (point: ScoredPoint, index: number) => (
+    <li key={point.label}>
+      <div className="ins-cmp-bl__point">
+        <span className="ins-cmp-bl__ordinal" aria-hidden>
+          {String(index + 1).padStart(2, "0")}
+        </span>
+        <span className="ins-cmp-bl__body">
+          <span className="ins-cmp-bl__label">{point.label}</span>
+          <span className="ins-cmp-bl__text">{point.explanation}</span>
+        </span>
+        <WinnerChip winner={point.winner} fundA={fundA} fundB={fundB} />
+      </div>
+    </li>
+  );
 
   return (
     <section
-      className={`border-t-2 border-[var(--ink)] pt-6 ${className ?? ""}`}
+      className={`ins-cmp-bl${className ? ` ${className}` : ""}`}
       aria-labelledby="bottomline-heading"
     >
-      <header className="mb-4">
-        <p id="bottomline-heading" className="bs-stamp mb-1">
-          The Scorecard
-        </p>
-        <h2
-          className="bs-display text-[1.5rem] sm:text-[1.875rem] leading-tight"
-          style={{ color: "var(--ink)" }}
-        >
-          <em>Round-by-round,</em> who took it
-        </h2>
+      <header className="ins-cmp-bl__head">
+        <div>
+          <p className="ins-cmp-bl__kicker">The scorecard</p>
+          <h2 id="bottomline-heading" className="ins-cmp-bl__display">
+            Round by round, who took it.
+          </h2>
+        </div>
+        <span className="ins-cmp-bl__note">
+          {points.length} rounds &middot; Reviewed quarterly
+        </span>
       </header>
 
-      <p
-        className="bs-body text-[15px] leading-[1.55] max-w-[68ch] mb-6"
-        style={{ color: "var(--ink)" }}
-      >
-        {verdict.summary}
-      </p>
+      <p className="ins-cmp-bl__lede">{verdict.summary}</p>
 
-      <ol className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-0">
-        {verdict.points.map((point, idx) => (
-          <li
-            key={point.label}
-            className={`py-4 ${
-              idx < 2
-                ? "border-t border-[var(--color-border)]"
-                : "border-t border-[var(--color-border)]"
-            }`}
+      <div className="ins-cmp-bl__grid">
+        {columns.map((column, col) => (
+          <ol
+            key={col}
+            className="ins-cmp-bl__col"
+            start={col === 0 ? 1 : split + 1}
           >
-            <div className="flex items-center justify-between gap-3 mb-2">
-              <h3
-                className="bs-display text-[1rem] sm:text-[1.125rem]"
-                style={{ color: "var(--ink)" }}
-              >
-                {point.label}
-              </h3>
-              <WinnerBadge
-                winner={point.winner}
-                fundA={fundA}
-                fundB={fundB}
-              />
-            </div>
-            <p
-              className="bs-caption text-[12.5px] leading-[1.55] max-w-[44ch]"
-              style={{ color: "var(--ink-soft)" }}
-            >
-              {point.explanation}
-            </p>
-          </li>
+            {column.map((point, i) =>
+              renderPoint(point, col === 0 ? i : split + i)
+            )}
+          </ol>
         ))}
-      </ol>
-
-      <div
-        className="mt-6 pt-5 border-t border-[var(--color-border)]"
-        style={{ borderColor: "var(--ink)", borderTopWidth: "1px" }}
-      >
-        <p className="bs-stamp mb-2">Our recommendation</p>
-        <p
-          className="bs-display text-[1.125rem] sm:text-[1.25rem] leading-[1.4] max-w-[68ch]"
-          style={{ color: "var(--ink)" }}
-        >
-          {verdict.recommendation}
-        </p>
       </div>
 
-      <p
-        className="bs-caption italic text-[11px] mt-4"
-        style={{ color: "var(--ink-soft)" }}
-      >
-        Editorial analysis based on publicly available fund data. Not
-        financial advice. Your situation may differ.
+      <div className="ins-cmp-bl__rec">
+        <div className="ins-cmp-bl__rec-label">&mdash; The recommendation</div>
+        <p className="ins-cmp-bl__rec-text">{verdict.recommendation}</p>
+      </div>
+
+      <p className="ins-cmp-bl__colophon">
+        Editorial analysis &middot; Public fund data &middot; Not financial
+        advice &middot; Your situation may differ
       </p>
+
+      <style dangerouslySetInnerHTML={{ __html: css }} />
     </section>
   );
 }

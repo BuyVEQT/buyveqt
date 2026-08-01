@@ -11,6 +11,46 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
+const css = `
+.ins-cmp-slug {
+  background: var(--ins-paper, #ffffff);
+  font-family: var(--ins-font);
+  color: var(--ins-ink, #111111);
+}
+.ins-cmp-slug__inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 40px 48px;
+}
+.ins-cmp-slug__foot {
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid var(--ins-hair);
+}
+.ins-cmp-slug__back {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ins-ink);
+  text-decoration: none;
+  border-bottom: 2px solid var(--ins-ink);
+  padding-bottom: 3px;
+}
+.ins-cmp-slug__back:hover,
+.ins-cmp-slug__back:focus-visible {
+  color: var(--ins-signal);
+  border-bottom-color: var(--ins-signal);
+}
+
+@media (max-width: 640px) {
+  .ins-cmp-slug__inner { padding: 0 20px 32px; }
+  .ins-cmp-slug__foot { margin-top: 22px; padding-top: 14px; }
+  .ins-cmp-slug__back { font-size: 9.5px; letter-spacing: 0.14em; }
+}
+`;
+
 export async function generateStaticParams() {
   return Object.keys(COMPARISON_PAGES).map((slug) => ({ slug }));
 }
@@ -51,39 +91,21 @@ export default async function CompareSlugPage({ params }: PageProps) {
         ])}
       />
       <CompareContent initialFunds={[...page.funds]} />
-      <div
-        style={{
-          maxWidth: 1400,
-          margin: "0 auto",
-          padding: "0 14px 48px",
-        }}
-      >
-        <BottomLine
-          slug={slug}
-          fundA={page.funds[0]}
-          fundB={page.funds[1]}
-          className="mt-2"
-        />
-        <div
-          style={{
-            marginTop: 32,
-            paddingTop: 18,
-            borderTop: "1px solid var(--rule-soft)",
-          }}
-        >
-          <Link
-            href="/compare"
-            className="ed-label"
-            style={{
-              color: "var(--ink-soft)",
-              textDecoration: "none",
-              letterSpacing: "0.14em",
-            }}
-          >
-            &larr; Back to all bouts
-          </Link>
+      <div className="ins-root ins-cmp-slug">
+        <div className="ins-cmp-slug__inner">
+          <BottomLine
+            slug={slug}
+            fundA={page.funds[0]}
+            fundB={page.funds[1]}
+          />
+          <div className="ins-cmp-slug__foot">
+            <Link href="/compare" className="ins-cmp-slug__back">
+              <span aria-hidden>&larr;</span> Back to all bouts
+            </Link>
+          </div>
         </div>
       </div>
+      <style dangerouslySetInnerHTML={{ __html: css }} />
     </>
   );
 }

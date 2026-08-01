@@ -9,9 +9,32 @@ import { useContainerWidth } from "@/lib/useContainerWidth";
  * framing, Rational Reminder Ep. 401). Diverging bars around a "market weight"
  * axis, the three academic pillars, and the two numbers that define the bet:
  * the target premium and the tracking error that comes with it.
+ *
+ * Chrome is the Instrument: Archivo throughout, ink/gray/red tokens, square
+ * corners, no shadows, emphasis by weight (Archivo ships no italic).
  */
 
 const COMPACT_THRESHOLD = 600;
+
+/** Kicker above the headline. */
+const KICKER = {
+  fontSize: 9.5,
+  fontWeight: 700,
+  letterSpacing: "0.2em",
+  textTransform: "uppercase",
+  color: "var(--ins-gray-600)",
+  margin: 0,
+} as const;
+
+/** Micro-label over each footer statistic. */
+const STAT_LABEL = {
+  fontSize: 8.5,
+  fontWeight: 600,
+  letterSpacing: "0.14em",
+  textTransform: "uppercase",
+  color: "var(--ins-gray-600)",
+  margin: 0,
+} as const;
 
 const PILLARS = [
   { name: "Size", source: "Fama–French, 1992" },
@@ -26,21 +49,25 @@ export function FactorTilt() {
   const barH = mobile ? 22 : 26;
 
   return (
-    <div ref={ref} className="flagship-bleed" style={{ fontFamily: "var(--font-sans)" }}>
+    <div
+      ref={ref}
+      style={{
+        fontFamily: "var(--ins-font)",
+        color: "var(--ins-ink)",
+        margin: mobile ? "22px 0 20px" : "34px 0 30px",
+      }}
+    >
       <div style={{ marginBottom: mobile ? 14 : 22 }}>
-        <p className="ed-label" style={{ margin: 0 }}>
-          How CAGE re-weights the world
-        </p>
+        <p style={KICKER}>How CAGE re-weights the world</p>
         <h3
           style={{
-            fontFamily: "var(--font-display)",
-            fontWeight: 500,
-            fontStyle: "italic",
+            fontFamily: "var(--ins-font)",
+            fontWeight: 700,
             fontSize: mobile ? "clamp(20px, 5vw, 22px)" : "clamp(28px, 3.4vw, 34px)",
             lineHeight: 1.1,
-            letterSpacing: "-0.018em",
+            letterSpacing: "-0.02em",
             margin: "8px 0 0",
-            color: "var(--ink)",
+            color: "var(--ins-ink)",
           }}
         >
           The market&rsquo;s weights, argued with.
@@ -49,8 +76,8 @@ export function FactorTilt() {
 
       <div
         style={{
-          background: "var(--paper-light)",
-          border: "1px solid var(--ink)",
+          background: "var(--ins-paper)",
+          border: "1px solid var(--ins-ink)",
           padding: mobile ? "20px 16px" : "30px 32px 26px",
         }}
       >
@@ -59,12 +86,11 @@ export function FactorTilt() {
           <div
             style={{
               textAlign: "center",
-              fontFamily: "var(--font-sans)",
               fontSize: 10,
               fontWeight: 700,
               letterSpacing: "0.18em",
               textTransform: "uppercase",
-              color: "var(--ink-mute)",
+              color: "var(--ins-gray-600)",
               marginBottom: 10,
             }}
           >
@@ -87,7 +113,7 @@ export function FactorTilt() {
                 bottom: -6,
                 left: "50%",
                 width: 1,
-                background: "var(--ink)",
+                background: "var(--ins-ink)",
                 opacity: 0.55,
               }}
               aria-hidden
@@ -105,7 +131,7 @@ export function FactorTilt() {
                   style={{
                     width: "78%",
                     height: barH,
-                    background: "color-mix(in oklab, var(--ink) 8%, transparent)",
+                    background: "var(--ins-track)",
                     position: "relative",
                   }}
                 >
@@ -116,7 +142,7 @@ export function FactorTilt() {
                       top: 0,
                       bottom: 0,
                       width: "100%",
-                      background: "var(--ink-mute)",
+                      background: "var(--ins-gray-600)",
                     }}
                     role="img"
                     aria-label="About 15% underweight the most expensive, least-profitable companies"
@@ -127,11 +153,10 @@ export function FactorTilt() {
                       right: 8,
                       top: "50%",
                       transform: "translateY(-50%)",
-                      fontFamily: "var(--font-display)",
-                      fontWeight: 500,
+                      fontWeight: 700,
                       fontSize: mobile ? 14 : 16,
                       fontVariantNumeric: "tabular-nums",
-                      color: "var(--paper-light)",
+                      color: "var(--ins-paper)",
                       zIndex: 1,
                     }}
                   >
@@ -141,10 +166,9 @@ export function FactorTilt() {
               </div>
               <p
                 style={{
-                  fontFamily: "var(--font-serif)",
-                  fontStyle: "italic",
                   fontSize: mobile ? 12.5 : 13.5,
-                  color: "var(--ink-mute)",
+                  fontWeight: 500,
+                  color: "var(--ins-gray-600)",
                   textAlign: "right",
                   margin: "6px 0 0",
                   paddingRight: 2,
@@ -164,7 +188,7 @@ export function FactorTilt() {
                 style={{
                   width: "78%",
                   height: barH,
-                  background: "color-mix(in oklab, var(--ink) 8%, transparent)",
+                  background: "var(--ins-track)",
                   position: "relative",
                 }}
               >
@@ -175,7 +199,7 @@ export function FactorTilt() {
                     top: 0,
                     bottom: 0,
                     width: "100%",
-                    background: "var(--stamp)",
+                    background: "var(--ins-signal)",
                   }}
                   role="img"
                   aria-label="About 15% overweight cheaper, more-profitable companies"
@@ -186,11 +210,10 @@ export function FactorTilt() {
                     left: 8,
                     top: "50%",
                     transform: "translateY(-50%)",
-                    fontFamily: "var(--font-display)",
-                    fontWeight: 500,
+                    fontWeight: 700,
                     fontSize: mobile ? 14 : 16,
                     fontVariantNumeric: "tabular-nums",
-                    color: "var(--paper-light)",
+                    color: "var(--ins-paper)",
                     zIndex: 1,
                   }}
                 >
@@ -199,10 +222,9 @@ export function FactorTilt() {
               </div>
               <p
                 style={{
-                  fontFamily: "var(--font-serif)",
-                  fontStyle: "italic",
                   fontSize: mobile ? 12.5 : 13.5,
-                  color: "var(--ink-mute)",
+                  fontWeight: 500,
+                  color: "var(--ins-gray-600)",
                   margin: "6px 0 0",
                   paddingLeft: 2,
                 }}
@@ -223,7 +245,7 @@ export function FactorTilt() {
             gap: mobile ? 10 : 14,
             marginTop: mobile ? 20 : 26,
             paddingTop: mobile ? 16 : 18,
-            borderTop: "1px solid var(--rule-soft)",
+            borderTop: "1px solid var(--ins-hair)",
           }}
         >
           {PILLARS.map((p) => (
@@ -237,22 +259,20 @@ export function FactorTilt() {
             >
               <div
                 style={{
-                  fontFamily: "var(--font-sans)",
                   fontSize: 11.5,
                   fontWeight: 700,
                   letterSpacing: "0.08em",
                   textTransform: "uppercase",
-                  color: "var(--ink)",
+                  color: "var(--ins-ink)",
                 }}
               >
                 {p.name}
               </div>
               <div
                 style={{
-                  fontFamily: "var(--font-serif)",
-                  fontStyle: "italic",
                   fontSize: 12.5,
-                  color: "var(--ink-mute)",
+                  fontWeight: 500,
+                  color: "var(--ins-gray-600)",
                   marginTop: mobile ? 0 : 2,
                 }}
               >
@@ -270,20 +290,17 @@ export function FactorTilt() {
             gap: mobile ? 12 : 18,
             marginTop: mobile ? 16 : 18,
             paddingTop: mobile ? 16 : 18,
-            borderTop: "1px solid var(--rule-soft)",
+            borderTop: "1px solid var(--ins-hair)",
           }}
         >
           <div>
-            <div className="ed-label" style={{ fontSize: 9.5, margin: 0 }}>
-              Target premium
-            </div>
+            <div style={STAT_LABEL}>Target premium</div>
             <div
               style={{
-                fontFamily: "var(--font-display)",
-                fontWeight: 500,
+                fontWeight: 700,
                 fontSize: mobile ? 22 : 28,
                 marginTop: 4,
-                color: "var(--stamp)",
+                color: "var(--ins-signal)",
                 fontVariantNumeric: "tabular-nums",
                 letterSpacing: "-0.012em",
                 lineHeight: 1.05,
@@ -293,10 +310,9 @@ export function FactorTilt() {
             </div>
             <div
               style={{
-                fontFamily: "var(--font-serif)",
-                fontStyle: "italic",
                 fontSize: 12,
-                color: "var(--ink-mute)",
+                fontWeight: 500,
+                color: "var(--ins-gray-600)",
                 marginTop: 2,
               }}
             >
@@ -304,16 +320,13 @@ export function FactorTilt() {
             </div>
           </div>
           <div>
-            <div className="ed-label" style={{ fontSize: 9.5, margin: 0 }}>
-              Tracking error
-            </div>
+            <div style={STAT_LABEL}>Tracking error</div>
             <div
               style={{
-                fontFamily: "var(--font-display)",
-                fontWeight: 500,
+                fontWeight: 700,
                 fontSize: mobile ? 22 : 28,
                 marginTop: 4,
-                color: "var(--ink)",
+                color: "var(--ins-ink)",
                 fontVariantNumeric: "tabular-nums",
                 letterSpacing: "-0.012em",
                 lineHeight: 1.05,
@@ -323,10 +336,9 @@ export function FactorTilt() {
             </div>
             <div
               style={{
-                fontFamily: "var(--font-serif)",
-                fontStyle: "italic",
                 fontSize: 12,
-                color: "var(--ink-mute)",
+                fontWeight: 500,
+                color: "var(--ins-gray-600)",
                 marginTop: 2,
               }}
             >
@@ -338,11 +350,10 @@ export function FactorTilt() {
 
       <p
         style={{
-          fontFamily: "var(--font-serif)",
-          fontStyle: "italic",
           fontSize: mobile ? 14 : 15,
+          fontWeight: 500,
           lineHeight: 1.55,
-          color: "var(--ink-mute)",
+          color: "var(--ins-gray-600)",
           marginTop: mobile ? 10 : 16,
           marginBottom: 0,
           maxWidth: "64ch",

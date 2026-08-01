@@ -1,16 +1,16 @@
-import { renderBroadsheetOG, OG_SIZE, OG_CONTENT_TYPE } from "@/lib/og/broadsheet";
+import { renderInstrumentOG, OG_SIZE, OG_CONTENT_TYPE } from "@/lib/og/instrument";
 
 export const alt = "The Colophon — Sources, Methods, Fine Print";
 export const size = OG_SIZE;
 export const contentType = OG_CONTENT_TYPE;
 
 export default async function Image() {
-  return renderBroadsheetOG({
-    eyebrow: "The Colophon",
-    title: "Sources, methods, fine print.",
-    italic: true,
+  return renderInstrumentOG({
+    eyebrow: "THE COLOPHON",
+    titleLines: ["Sources, methods,", "fine print."],
     dek: "Where our data comes from, how we calculate every figure, and what to remember about a community resource.",
-    footerNote: "Not investment advice",
+    chipLabel: "NOT INVESTMENT ADVICE",
+    chipMark: false,
     alt,
   });
 }

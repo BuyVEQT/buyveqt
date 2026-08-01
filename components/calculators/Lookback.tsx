@@ -691,8 +691,6 @@ export default function Lookback({ history }: LookbackProps) {
           --rule-hair: var(--ins-track-soft);
           --stamp: var(--ins-signal);
           --green: var(--ins-gray-600);
-          --font-sans: var(--ins-font);
-          --font-serif: var(--ins-font);
         }
 
         /* ── Tablet ── */

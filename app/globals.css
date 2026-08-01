@@ -3,10 +3,10 @@
 /* ═══════════════════════════════════════════════════════════════════════════
  *  BuyVEQT — global stylesheet
  *
- *  Single-file by design today. ~900 lines, ~30KB gzipped at run time, and
- *  the contributor cost of file-splitting (broken Tailwind v4 token
- *  resolution, lost grep paths, regression risk across every page)
- *  outweighs the maintenance win at current scale.
+ *  Single-file by design today. ~460 lines, and the contributor cost of
+ *  file-splitting (broken Tailwind v4 token resolution, lost grep paths,
+ *  regression risk across every page) outweighs the maintenance win at
+ *  current scale.
  *
  *  The site is LIGHT-ONLY. The `data-theme` switcher was removed; nothing
  *  sets the attribute, so there are no dark-mode blocks here. The "dark
@@ -14,19 +14,23 @@
  *  device built from the invariant --band-* / --on-band-* tokens, not a
  *  theme.
  *
+ *  TYPOGRAPHY IS ONE FAMILY. Archivo, via --ins-font. The legacy broadsheet
+ *  and editorial class systems this file used to carry (the paper-and-ink
+ *  wrapper, its two typographic primitive sets, and the two article/MDX
+ *  prose blocks) were deleted once every route reached the Instrument, as
+ *  were the three font-family aliases that fed them and the
+ *  Newsreader/Inter/Fraunces webfonts behind those. Reach for --ins-*
+ *  tokens; do not reintroduce a second face.
+ *
  *  Find any section with the labels below:
  *
- *    01  @theme tokens + light-mode overrides + print     line ~30
+ *    01  @theme tokens + light-mode overrides + print     line ~35
  *    02  Base + grain overlay + reduced motion + skeleton line ~170
- *    03  MDX typography (.prose-custom)                   line ~225
- *    04  Calculator sliders (.calc-slider)                line ~330
- *    05  Broadsheet system (.bs-*)                        line ~375
- *    06  Editorial primitives (.ed-*, .rule-hair)         line ~510
- *    07  Shell visibility (.shell-*)                      line ~575
- *    08  Article reader (.learn-article, .flagship-bleed) line ~605
- *    09  Mobile platform polish + color-mix fallback      line ~740
- *    10  The Instrument (home redesign) — tokens, keyframes,
- *        editions, article exhibits                       line ~780
+ *    03  Calculator sliders (.calc-slider)                line ~225
+ *    04  Safe-area + shell visibility (.shell-*)          line ~270
+ *    05  Mobile platform polish + color-mix fallback      line ~310
+ *    06  The Instrument — tokens, keyframes, editions,
+ *        article exhibits                                 line ~350
  *
  *  Tip: every "/* ══════" rule below is a section break visible in the
  *  outline view of most editors.
@@ -63,11 +67,10 @@
   --color-chart-fill: rgba(26, 54, 93, 0.06);
   --color-accent: #a67c2e;
 
-  --font-sans: var(--font-inter, var(--font-outfit, "Inter")), ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-serif: var(--font-newsreader, "Newsreader"), "Georgia", "Times New Roman", serif;
-  --font-display: var(--font-fraunces, "Fraunces"), "Playfair Display", "Georgia", serif;
-
-  /* Broadsheet ink + paper palette */
+  /* Ink + paper palette — still consumed by the calculator charts and the
+     dark-band motif below. The three font-family aliases that used to sit
+     here are gone: the site loads Archivo alone (see --ins-font in section
+     06 and the note in app/layout.tsx). */
   --ink: #0f0d0a;
   --ink-soft: #2a2520;
   --ink-mute: #5b5147;
@@ -175,7 +178,7 @@
 body {
   background-color: var(--color-base);
   color: var(--color-text-primary);
-  font-family: var(--font-sans);
+  font-family: var(--ins-font);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -195,8 +198,8 @@ body::after {
 
 /* ── Reduced motion ───────────────────────────────────────────
    Respect the OS "reduce motion" setting site-wide. Neutralizes every CSS
-   keyframe animation (shimmer, broadsheet fades, ink-pulse) and transition
-   for motion-sensitive users. JS rAF count-ups are guarded separately via
+   keyframe animation (shimmer, the ins-* set) and transition for
+   motion-sensitive users. JS rAF count-ups are guarded separately via
    the useReducedMotion hook. */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -223,112 +226,6 @@ body::after {
   border-radius: 4px;
 }
 
-/* ── MDX Typography ───────────────────────────────────────── */
-
-.prose-custom {
-  max-width: 65ch;
-  font-size: 1rem;
-  line-height: 1.8;
-  color: var(--color-text-secondary);
-}
-
-.prose-custom img {
-  max-width: 100%;
-  height: auto;
-}
-
-.prose-custom pre,
-.prose-custom code {
-  overflow-x: auto;
-}
-
-.prose-custom h2 {
-  font-family: var(--font-serif);
-  font-size: 1.375rem;
-  font-weight: 500;
-  color: var(--color-text-primary);
-  margin-top: 2.5rem;
-  margin-bottom: 0.75rem;
-}
-
-.prose-custom h3 {
-  font-size: 1.0625rem;
-  font-weight: 600;
-  color: var(--color-text-primary);
-  margin-top: 1.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.prose-custom p {
-  margin-bottom: 1.125rem;
-}
-
-.prose-custom ul,
-.prose-custom ol {
-  margin-bottom: 1rem;
-  padding-left: 1.5rem;
-}
-
-.prose-custom ul {
-  list-style-type: disc;
-}
-
-.prose-custom ol {
-  list-style-type: decimal;
-}
-
-.prose-custom li {
-  margin-bottom: 0.375rem;
-}
-
-.prose-custom strong {
-  font-weight: 600;
-  color: var(--color-text-primary);
-}
-
-.prose-custom a {
-  color: var(--color-brand);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  text-decoration-thickness: 1px;
-}
-
-.prose-custom a:hover {
-  color: var(--color-brand-dark);
-}
-
-.prose-custom blockquote {
-  border-left: 2px solid var(--color-accent);
-  padding-left: 1.25rem;
-  margin: 1.5rem 0;
-  color: var(--color-text-muted);
-  font-style: italic;
-  font-family: var(--font-serif);
-}
-
-.prose-custom table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 1rem;
-  font-size: 0.875rem;
-  display: block;
-  overflow-x: auto;
-}
-
-.prose-custom th,
-.prose-custom td {
-  padding: 0.5rem 0.75rem;
-  border-bottom: 1px solid var(--color-border);
-  text-align: left;
-}
-
-.prose-custom th {
-  font-weight: 600;
-  color: var(--color-text-primary);
-  font-size: 0.6875rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
 
 /* ── Calculator sliders ───────────────────────────────────── */
 
@@ -375,200 +272,8 @@ body::after {
   border-radius: 3px;
 }
 
-/* ══════════════════════════════════════════════════════════════
-   THE VEQT DAILY — Broadsheet typography & layout
-   Scoped to [data-broadsheet] on the home wrapper so nothing
-   leaks into /learn, /compare, /calculators, etc.
-══════════════════════════════════════════════════════════════ */
-
-[data-broadsheet] {
-  /* Override palette toward paper + ink for the home page only */
-  --color-base: var(--paper);
-  --color-card: var(--paper);
-  --color-text-primary: var(--ink);
-  --color-text-secondary: var(--ink-soft);
-  --color-border: color-mix(in oklab, var(--rule) 55%, transparent);
-
-  background-color: var(--paper);
-  color: var(--ink);
-  font-family: var(--font-serif);
-}
-
-[data-broadsheet] .bs-display {
-  font-family: var(--font-display);
-  font-weight: 500;
-  letter-spacing: -0.028em;
-  line-height: 0.92;
-  font-feature-settings: "ss01", "dlig";
-}
-
-[data-broadsheet] .bs-display-italic {
-  font-family: var(--font-display);
-  font-style: italic;
-  font-weight: 500;
-  letter-spacing: -0.022em;
-  line-height: 1.05;
-  font-feature-settings: "ss01";
-}
-
-[data-broadsheet] .bs-body {
-  font-family: var(--font-serif);
-  font-size: 1.0625rem;
-  line-height: 1.55;
-  color: var(--ink);
-}
-
-[data-broadsheet] .bs-label {
-  font-family: var(--font-sans);
-  font-size: 0.625rem;
-  font-weight: 600;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
-}
-
-[data-broadsheet] .bs-stamp {
-  font-family: var(--font-sans);
-  font-size: 0.625rem;
-  font-weight: 700;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  color: var(--rule);
-}
-
-[data-broadsheet] .bs-caption {
-  font-family: var(--font-serif);
-  font-style: italic;
-  font-size: 0.8125rem;
-  color: var(--ink-soft);
-  line-height: 1.45;
-}
-
-[data-broadsheet] .bs-numerals {
-  font-family: var(--font-serif);
-  font-variant-numeric: tabular-nums lining-nums;
-  font-feature-settings: "tnum", "lnum";
-}
-
-/* Link treatment — underline like a newspaper */
-[data-broadsheet] .bs-link {
-  color: var(--ink);
-  text-decoration: underline;
-  text-underline-offset: 4px;
-  text-decoration-thickness: 1px;
-  transition: color 0.2s;
-}
-
-[data-broadsheet] .bs-link:hover {
-  text-decoration-thickness: 2px;
-}
-
-/* Enter animations — staggered, gentle */
-@keyframes broadsheet-fade {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-[data-broadsheet] .bs-enter {
-  animation: broadsheet-fade 0.7s ease-out both;
-}
-
-/* The live pulse stamp next to the date */
-@keyframes ink-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.45; }
-}
-
-[data-broadsheet] .bs-live-dot {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--stamp);
-  animation: ink-pulse 2.4s ease-in-out infinite;
-  vertical-align: middle;
-  margin-right: 0.45em;
-}
-
-/* Subtle paper texture — darker than the base film grain, only on broadsheet */
-[data-broadsheet]::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.06;
-  z-index: 0;
-  background-image:
-    repeating-linear-gradient(
-      90deg,
-      transparent 0,
-      transparent 2px,
-      rgba(0,0,0,0.12) 2px,
-      rgba(0,0,0,0.12) 3px
-    );
-  mix-blend-mode: multiply;
-}
-
-/* ══════════════════════════════════════════════════════════════
-   ROUND 4 — Editorial dashboard utilities (ed-*).
-   Global scope (not [data-broadsheet]-nested) because the new D2
-   pages live outside the broadsheet wrapper.
-══════════════════════════════════════════════════════════════ */
-
-.ed-display {
-  font-family: var(--font-display);
-  font-weight: 500;
-  letter-spacing: -0.022em;
-  line-height: 1.02;
-}
-
-.ed-display-italic {
-  font-family: var(--font-display);
-  font-style: italic;
-  font-weight: 500;
-  letter-spacing: -0.018em;
-  line-height: 1.05;
-}
-
-.ed-body {
-  font-family: var(--font-serif);
-  font-size: 1rem;
-  line-height: 1.6;
-  color: var(--ink-soft);
-}
-
-.ed-label {
-  font-family: var(--font-sans);
-  font-size: 0.625rem;
-  font-weight: 600;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--ink-mute);
-}
-
-.ed-stamp {
-  font-family: var(--font-sans);
-  font-size: 0.625rem;
-  font-weight: 700;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--stamp);
-}
-
-.ed-numerals {
-  font-variant-numeric: tabular-nums lining-nums;
-  font-feature-settings: "tnum", "lnum";
-}
-
-/* Broadsheet-style hairline rule promoted to global scope so pages can
-   use it outside the [data-broadsheet] wrapper. */
-.rule-hair {
-  border-top: 1px solid var(--rule-soft);
-  height: 0;
-}
-
-/* Safe-area helper for the mobile TabBar. */
-.ed-safe-bottom {
+/* Safe-area helper for the mobile TabBar (components/shell/TabBar.tsx). */
+.ins-safe-bottom {
   padding-bottom: max(24px, env(safe-area-inset-bottom));
 }
 
@@ -606,136 +311,6 @@ body::after {
   }
 }
 
-/* Article reader — prose typography. Scoped to .learn-article so it
-   doesn't leak into broadsheet pages still using .prose-custom. */
-.learn-article {
-  max-width: 32rem;
-  font-family: var(--font-sans);
-  font-size: 17px;
-  line-height: 1.65;
-  color: var(--ink-soft);
-}
-@media (min-width: 768px) {
-  .learn-article {
-    font-size: 18px;
-  }
-}
-.learn-article > p:first-of-type {
-  overflow: hidden;
-}
-.learn-article > p:first-of-type::first-letter {
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 4em;
-  line-height: 0.85;
-  float: left;
-  padding: 0.06em 0.16em 0 0;
-  margin-top: 0.04em;
-  color: var(--ink);
-  shape-outside: margin-box;
-}
-@media (max-width: 640px) {
-  .learn-article > p:first-of-type::first-letter {
-    font-size: 3.4em;
-  }
-}
-.learn-article p {
-  margin: 0 0 1.125rem;
-  color: var(--ink-soft);
-}
-.learn-article h2 {
-  font-family: var(--font-display);
-  font-weight: 500;
-  font-size: 22px;
-  line-height: 1.15;
-  letter-spacing: -0.015em;
-  margin: 36px 0 14px;
-  color: var(--ink);
-}
-@media (min-width: 768px) {
-  .learn-article h2 {
-    font-size: 30px;
-    margin: 44px 0 16px;
-    letter-spacing: -0.018em;
-  }
-}
-.learn-article h3 {
-  font-family: var(--font-display);
-  font-weight: 500;
-  font-size: 18px;
-  line-height: 1.2;
-  margin: 24px 0 8px;
-  color: var(--ink);
-}
-.learn-article strong {
-  font-weight: 600;
-  color: var(--ink);
-}
-.learn-article a {
-  color: var(--ink);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  text-decoration-thickness: 1px;
-}
-.learn-article a:hover {
-  color: var(--stamp);
-}
-.learn-article ul,
-.learn-article ol {
-  margin: 0 0 1.25rem 1.5rem;
-}
-.learn-article li {
-  margin-bottom: 0.5rem;
-}
-.learn-article blockquote {
-  border-left: 2px solid var(--rule);
-  padding: 0 0 0 1rem;
-  margin: 1.5rem 0;
-  color: var(--ink-mute);
-  font-family: var(--font-serif);
-  font-style: italic;
-}
-.learn-article table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 1.25rem 0;
-  font-size: 14px;
-  display: block;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Flagship widgets bleed out of the 32rem prose cap on desktop, taking
-   the full grid-column width. Mobile keeps the cap so widgets stay
-   aligned with the article body — and uses tighter top/bottom margins
-   so the article scans cleanly without long widget walls. */
-.flagship-bleed {
-  width: 100%;
-  margin-top: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-@media (min-width: 1024px) {
-  .flagship-bleed {
-    width: calc(100% + var(--bleed-x, 96px));
-    margin-left: calc(var(--bleed-x, 96px) * -0.5);
-    margin-right: calc(var(--bleed-x, 96px) * -0.5);
-    margin-top: 2.5rem;
-    margin-bottom: 2.5rem;
-  }
-}
-.learn-article th,
-.learn-article td {
-  padding: 0.5rem 0.75rem;
-  border-bottom: 1px solid var(--rule-soft);
-  text-align: left;
-}
-.learn-article th {
-  font-weight: 600;
-  color: var(--ink);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
 
 /* ──────────────────────────────────────────────────────────
    Mobile platform polish
@@ -778,7 +353,7 @@ label {
 
 
 /* ════════════════════════════════════════════════════════════════════════
- * 14 — The Instrument (home redesign) — tokens + keyframes
+ * 06 — The Instrument (home redesign) — tokens + keyframes
  *
  * Swiss-poster instrument panel: white page, Archivo grotesk, ink rules,
  * red spent only on signal. Tokens are THEME-INVARIANT (like --band-*):

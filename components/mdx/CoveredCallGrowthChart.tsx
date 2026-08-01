@@ -1,22 +1,8 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-} from "recharts";
-import {
-  formatDollars,
-  ChartTooltipWrapper,
-  GRID_PROPS,
-  AXIS_PROPS,
-} from "@/lib/chart-utils";
-import ClientOnlyChart from "@/components/charts/ClientOnlyChart";
+import { formatDollars } from "@/lib/chart-utils";
+import InkYearChart from "./InkYearChart";
 
 const STRATEGIES = [
   { key: "veqt", label: "VEQT (Global Index)", rate: 0.085, color: "var(--color-positive)" },
@@ -32,33 +18,6 @@ interface ChartPoint {
   veqt: number;
   dividend: number;
   covered: number;
-}
-
-interface TooltipProps {
-  active?: boolean;
-  payload?: { value: number; dataKey: string }[];
-  label?: number;
-}
-
-function GrowthTooltip({ active, payload, label }: TooltipProps) {
-  if (!active || !payload?.length) return null;
-  return (
-    <ChartTooltipWrapper>
-      <p className="text-[11px] text-[var(--color-text-muted)] mb-1">Year {label}</p>
-      {STRATEGIES.map((s) => {
-        const val = payload.find((p) => p.dataKey === s.key)?.value ?? 0;
-        return (
-          <p
-            key={s.key}
-            className="text-[11px] font-semibold"
-            style={{ color: s.color }}
-          >
-            {s.label}: {formatDollars(val)}
-          </p>
-        );
-      })}
-    </ChartTooltipWrapper>
-  );
 }
 
 export function CoveredCallGrowthChart() {
@@ -155,52 +114,33 @@ export function CoveredCallGrowthChart() {
         })}
       </div>
 
-      {/* Chart — gated past hydration to suppress recharts SSG warning */}
-      <ClientOnlyChart height={220}>
-      <ResponsiveContainer width="100%" height={220}>
-        <AreaChart data={chartData}>
-          <CartesianGrid {...GRID_PROPS} />
-          <XAxis
-            dataKey="year"
-            {...AXIS_PROPS}
-            tickFormatter={(v: number) => `${v}y`}
-          />
-          <YAxis
-            {...AXIS_PROPS}
-            tickFormatter={(v: number) => formatDollars(v)}
-            width={72}
-          />
-          <Tooltip content={<GrowthTooltip />} />
-          <Area
-            type="monotone"
-            dataKey="covered"
-            stroke="var(--color-negative)"
-            fill="var(--color-negative)"
-            fillOpacity={0.08}
-            strokeWidth={1.5}
-            dot={false}
-          />
-          <Area
-            type="monotone"
-            dataKey="dividend"
-            stroke="var(--color-chart-orange)"
-            fill="var(--color-chart-orange)"
-            fillOpacity={0.08}
-            strokeWidth={1.5}
-            dot={false}
-          />
-          <Area
-            type="monotone"
-            dataKey="veqt"
-            stroke="var(--color-positive)"
-            fill="var(--color-positive)"
-            fillOpacity={0.15}
-            strokeWidth={2}
-            dot={false}
-          />
-        </AreaChart>
-      </ResponsiveContainer>
-      </ClientOnlyChart>
+      {/* Chart — hand-rolled ink lines. Red is spent on the covered-call
+          line, the strategy this article is warning about. */}
+      <InkYearChart
+        years={chartData.map((p) => p.year)}
+        series={[
+          {
+            id: "veqt",
+            label: "VEQT",
+            values: chartData.map((p) => p.veqt),
+            tone: "ink",
+          },
+          {
+            id: "dividend",
+            label: "Dividend",
+            values: chartData.map((p) => p.dividend),
+            tone: "muted",
+          },
+          {
+            id: "covered",
+            label: "Covered call",
+            values: chartData.map((p) => p.covered),
+            tone: "signal",
+          },
+        ]}
+        height={220}
+        ariaLabel={`Growth of ${formatDollars(initial)} over ${years} years under three strategies: global index, dividend ETF and covered call ETF.`}
+      />
 
       <p className="mt-4 text-[11px] text-[var(--color-text-muted)]">
         Illustrative hypothetical returns only. Assumes 8.5% (global index), 6.8% (dividend ETF), and 5.2% (covered call ETF) annualized returns compounded annually. Actual returns vary and past performance does not predict future results.

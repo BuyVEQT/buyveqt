@@ -129,7 +129,7 @@ export default function ProjectionChart({
             fontSize="10"
             fill="var(--ink-mute)"
             textAnchor="end"
-            fontFamily="var(--font-sans)"
+            fontFamily="var(--ins-font)"
             fontWeight="600"
           >
             {l.label}
@@ -145,7 +145,7 @@ export default function ProjectionChart({
           fontSize="10.5"
           fill="var(--ink-mute)"
           textAnchor="middle"
-          fontFamily="var(--font-sans)"
+          fontFamily="var(--ins-font)"
           fontWeight="600"
         >
           Y{t.year}
@@ -169,8 +169,8 @@ export default function ProjectionChart({
             fontSize="10.5"
             fill="var(--ink-mute)"
             textAnchor="end"
-            fontFamily="var(--font-sans)"
-            fontStyle="italic"
+            fontFamily="var(--ins-font)"
+            fontWeight="500"
           >
             contributions only
           </text>

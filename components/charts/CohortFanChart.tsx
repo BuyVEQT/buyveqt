@@ -138,8 +138,8 @@ export default function CohortFanChart({
             text-align: center;
           }
           .cfan__empty {
-            font-family: var(--font-serif);
-            font-style: italic;
+            font-family: var(--ins-font);
+            font-weight: 500;
             color: var(--ink-mute);
             margin: 0;
             font-size: 14px;
@@ -268,7 +268,7 @@ export default function CohortFanChart({
               fontSize="10"
               fill="var(--ink-mute)"
               textAnchor="end"
-              fontFamily="var(--font-sans)"
+              fontFamily="var(--ins-font)"
               fontWeight="600"
             >
               {l.label}
@@ -284,7 +284,7 @@ export default function CohortFanChart({
             fontSize="10.5"
             fill="var(--ink-mute)"
             textAnchor="middle"
-            fontFamily="var(--font-sans)"
+            fontFamily="var(--ins-font)"
             fontWeight="600"
             letterSpacing="0.08em"
           >
@@ -345,7 +345,7 @@ export default function CohortFanChart({
                 y={sy(COHORT_BASELINE) - 5}
                 fontSize="9.5"
                 fill="var(--ink-mute)"
-                fontFamily="var(--font-sans)"
+                fontFamily="var(--ins-font)"
                 fontWeight="700"
                 letterSpacing="0.06em"
               >
@@ -384,7 +384,7 @@ export default function CohortFanChart({
                     y={tipY - 7}
                     fontSize="9.5"
                     fill="var(--ink-mute)"
-                    fontFamily="var(--font-sans)"
+                    fontFamily="var(--ins-font)"
                     fontWeight="700"
                     letterSpacing="0.06em"
                     textAnchor="end"
@@ -458,7 +458,7 @@ export default function CohortFanChart({
           display: flex;
           gap: 22px;
           margin-top: 8px;
-          font-family: var(--font-sans);
+          font-family: var(--ins-font);
           font-size: 11.5px;
           color: var(--ink-soft);
           font-weight: 600;

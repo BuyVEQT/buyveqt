@@ -129,9 +129,6 @@ const css = `
 .artc__body {
   grid-area: body;
   min-width: 0;
-  /* Neutralises the legacy .flagship-bleed widgets a few other articles
-     still use — the body column is already the full measure now. */
-  --bleed-x: 0px;
 }
 .artc__verdict {
   grid-area: verdict;

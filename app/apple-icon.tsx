@@ -1,8 +1,10 @@
 import { ImageResponse } from "next/og";
 
 // Apple touch icon — 180×180 PNG used when an iOS user bookmarks the site
-// to their home screen. Matches the existing /icon.svg brand: a vermilion
-// "V" on a cream paper field, with rounded corners.
+// to their home screen. The "V" is the Instrument signal red (#e8442e), the
+// same value /icon.svg and the theme-color meta now carry. The field differs
+// on purpose: cream here so the OS-applied corner radius reveals a warm
+// bezel at 180px, versus the near-white field /icon.svg uses at 32px.
 
 export const size = { width: 180, height: 180 };
 export const contentType = "image/png";
@@ -21,7 +23,7 @@ export default function AppleIcon() {
           // We fill the square so the OS-applied corner radius reveals a
           // cream paper bezel, matching the brand.
           background: "#f6efdc",
-          color: "#c8102e",
+          color: "#e8442e",
           fontFamily: "Georgia, serif",
           fontWeight: 700,
           fontSize: 130,
