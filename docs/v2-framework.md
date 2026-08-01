@@ -1,5 +1,14 @@
 # V2 Framework — post-audit baseline and roadmap
 
+> **STATUS 2026-07-31 (PR #289): every structural item below is EXECUTED.**
+> The registry is split, the broadsheet surfaces are migrated, recharts is
+> retired, the site ships Archivo alone, and the home-behavior items
+> (market clock, close-only editions, off-screen pausing, almanac
+> permalinks) landed with it. What remains is the content/product list:
+> the first Weekly issue, editorial review of the drafted VUN comparison,
+> the duplicate verdict-store consolidation, and the annual market-clock
+> holiday refresh (before Jan 2028).
+
 _Compiled 2026-07-31, from the full-site audit (dead code + wiring + performance,
 three static sweeps plus a runtime walk of every route). The audit's fix pass
 (PR #287) is the baseline this document assumes._
