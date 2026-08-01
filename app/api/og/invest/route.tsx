@@ -1,6 +1,14 @@
 import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
 import { LONG_TO_SHORT, inferTab } from "@/lib/share-params";
+import {
+  loadInstrumentFonts,
+  PAPER,
+  INK,
+  SIGNAL,
+  GRAY,
+  GRAY_700,
+} from "@/lib/og/instrument";
 
 export const runtime = "edge";
 
@@ -17,14 +25,17 @@ function spToRecord(sp: URLSearchParams): Record<string, string> {
   return out;
 }
 
-// ─── Brand colors ─────────────────────────────────────────────
+// ─── Instrument chrome ────────────────────────────────────────
+// White page, ink, Archivo, one signal-red accent — the same tokens as
+// lib/og/instrument.tsx, imported so the calculator card can never drift
+// from the route cards. Only the chrome lives here; every string below is
+// still computed from the query params exactly as before.
 
-const RED = "#c8102e";
-const RED_DARK = "#a50d26";
-const WHITE = "#ffffff";
-const WHITE_80 = "rgba(255,255,255,0.80)";
-const WHITE_50 = "rgba(255,255,255,0.50)";
-const GREEN = "#16a34a";
+const GUTTER = 72;
+const PAD_Y = 56;
+const COLUMN = 1200 - GUTTER * 2; // 1056
+
+const FOOTER_CTA = "RUN YOUR OWN NUMBERS — BUYVEQT.CA/INVEST";
 
 // ─── Helpers ──────────────────────────────────────────────────
 
@@ -55,6 +66,85 @@ function pct(raw: string | null): string {
 
 // ─── Shared layout ────────────────────────────────────────────
 
+/** Masthead: wordmark + live dot micro-label over the 12px ink bar. */
+function Masthead() {
+  return (
+    <div style={{ display: "flex", flexDirection: "column" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            fontSize: 28,
+            fontWeight: 800,
+            letterSpacing: 1.7,
+            color: INK,
+          }}
+        >
+          BUYVEQT
+        </div>
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <div
+            style={{
+              display: "flex",
+              width: 10,
+              height: 10,
+              borderRadius: 999,
+              backgroundColor: SIGNAL,
+              marginRight: 11,
+            }}
+          />
+          <div
+            style={{
+              display: "flex",
+              fontSize: 12.5,
+              fontWeight: 700,
+              letterSpacing: 2.75,
+              color: GRAY,
+            }}
+          >
+            THE MATH · VEQT.TO
+          </div>
+        </div>
+      </div>
+      <div
+        style={{
+          display: "flex",
+          height: 12,
+          backgroundColor: INK,
+          marginTop: 20,
+        }}
+      />
+    </div>
+  );
+}
+
+/** Footer: 1px ink rule + the CTA micro-label. */
+function Footer() {
+  return (
+    <div style={{ display: "flex", flexDirection: "column" }}>
+      <div style={{ display: "flex", height: 1, backgroundColor: INK }} />
+      <div
+        style={{
+          display: "flex",
+          fontSize: 12.5,
+          fontWeight: 600,
+          letterSpacing: 2.25,
+          color: GRAY,
+          marginTop: 15,
+        }}
+      >
+        {FOOTER_CTA}
+      </div>
+    </div>
+  );
+}
+
 function CardShell({ children, badge }: { children: React.ReactNode; badge?: string }) {
   return (
     <div
@@ -63,92 +153,40 @@ function CardShell({ children, badge }: { children: React.ReactNode; badge?: str
         height: 630,
         display: "flex",
         flexDirection: "column",
-        backgroundColor: RED,
-        padding: "0",
-        position: "relative",
+        justifyContent: "space-between",
+        backgroundColor: PAPER,
+        fontFamily: "Archivo",
+        color: INK,
+        padding: `${PAD_Y}px ${GUTTER}px`,
       }}
     >
-      {/* Subtle darker gradient strip at bottom */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: 120,
-          background: `linear-gradient(to bottom, transparent, ${RED_DARK})`,
-        }}
-      />
+      <Masthead />
 
-      {/* Main content area */}
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          padding: "60px 72px",
-          gap: 8,
-        }}
-      >
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        {/* The badge is THE red moment on this card — a solid signal chip,
+            radius 0, sitting above the question it qualifies. */}
+        {badge ? (
+          <div style={{ display: "flex", marginBottom: 22 }}>
+            <div
+              style={{
+                display: "flex",
+                backgroundColor: SIGNAL,
+                padding: "10px 18px 11px",
+                borderRadius: 0,
+                fontSize: 19,
+                fontWeight: 800,
+                letterSpacing: 1.2,
+                color: PAPER,
+              }}
+            >
+              {badge.toUpperCase()}
+            </div>
+          </div>
+        ) : null}
         {children}
       </div>
 
-      {/* Bottom bar: CTA left, BuyVEQT logo right */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "0 72px 40px 72px",
-        }}
-      >
-        <div style={{ fontSize: 22, color: WHITE_50, display: "flex" }}>
-          Run your own numbers → buyveqt.ca/invest
-        </div>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 4,
-          }}
-        >
-          <div
-            style={{
-              fontSize: 36,
-              fontWeight: 800,
-              color: WHITE,
-              letterSpacing: "-1px",
-              display: "flex",
-            }}
-          >
-            <span>Buy</span>
-            <span>VEQT</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Optional badge */}
-      {badge && (
-        <div
-          style={{
-            position: "absolute",
-            top: 40,
-            right: 72,
-            display: "flex",
-            padding: "8px 20px",
-            borderRadius: 24,
-            backgroundColor: "rgba(255,255,255,0.15)",
-            border: "2px solid rgba(255,255,255,0.3)",
-            color: WHITE,
-            fontSize: 20,
-            fontWeight: 700,
-            letterSpacing: "0.5px",
-          }}
-        >
-          {badge}
-        </div>
-      )}
+      <Footer />
     </div>
   );
 }
@@ -157,11 +195,13 @@ function Headline({ text }: { text: string }) {
   return (
     <div
       style={{
-        fontSize: 38,
-        fontWeight: 600,
-        color: WHITE_80,
         display: "flex",
-        lineHeight: 1.2,
+        fontSize: 34,
+        fontWeight: 600,
+        letterSpacing: -0.3,
+        lineHeight: 1.25,
+        color: GRAY_700,
+        maxWidth: COLUMN,
       }}
     >
       {text}
@@ -169,18 +209,24 @@ function Headline({ text }: { text: string }) {
   );
 }
 
+/**
+ * The result, set as the card's display line: ink, Archivo 700, tracked in.
+ * Steps down for long figures so a nine-figure portfolio can't overflow the
+ * 1056px column (0.56em ≈ Archivo Bold's average advance over digits).
+ */
 function HeroNumber({ text }: { text: string }) {
+  const size = Math.max(72, Math.min(120, Math.floor(COLUMN / (text.length * 0.56))));
   return (
     <div
       style={{
-        fontSize: 96,
-        fontWeight: 800,
-        color: WHITE,
-        letterSpacing: "-3px",
         display: "flex",
-        marginTop: 8,
-        marginBottom: 8,
+        fontSize: size,
+        fontWeight: 700,
+        letterSpacing: Math.round(size * -0.035 * 10) / 10,
         lineHeight: 1,
+        color: INK,
+        marginTop: 14,
+        marginBottom: 18,
       }}
     >
       {text}
@@ -192,13 +238,16 @@ function SupportingRow({ text }: { text: string }) {
   return (
     <div
       style={{
-        fontSize: 26,
-        color: WHITE_80,
         display: "flex",
-        letterSpacing: "0.3px",
+        fontSize: 20,
+        fontWeight: 700,
+        letterSpacing: 1.4,
+        lineHeight: 1.4,
+        color: GRAY,
+        maxWidth: COLUMN,
       }}
     >
-      {text}
+      {text.toUpperCase()}
     </div>
   );
 }
@@ -318,64 +367,10 @@ function FIRECard(sp: URLSearchParams) {
 
 function FallbackCard() {
   return (
-    <div
-      style={{
-        width: 1200,
-        height: 630,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: RED,
-        padding: 60,
-        position: "relative",
-      }}
-    >
-      {/* Darker bottom gradient */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: 120,
-          background: `linear-gradient(to bottom, transparent, ${RED_DARK})`,
-        }}
-      />
-      <div
-        style={{
-          fontSize: 96,
-          fontWeight: 800,
-          color: WHITE,
-          letterSpacing: "-3px",
-          display: "flex",
-        }}
-      >
-        <span>Buy</span>
-        <span style={{ color: GREEN }}>VEQT</span>
-      </div>
-      <div
-        style={{
-          fontSize: 32,
-          fontWeight: 500,
-          color: WHITE_80,
-          marginTop: 20,
-          display: "flex",
-        }}
-      >
-        VEQT Investment Calculators
-      </div>
-      <div
-        style={{
-          fontSize: 22,
-          color: WHITE_50,
-          marginTop: 12,
-          display: "flex",
-        }}
-      >
-        Run your numbers at buyveqt.ca/invest
-      </div>
-    </div>
+    <CardShell>
+      <Headline text="VEQT Investment Calculators" />
+      <HeroNumber text="Run your numbers." />
+    </CardShell>
   );
 }
 
@@ -407,5 +402,7 @@ export async function GET(request: NextRequest) {
       card = FallbackCard();
   }
 
-  return new ImageResponse(card, { width: 1200, height: 630 });
+  const fonts = await loadInstrumentFonts();
+
+  return new ImageResponse(card, { width: 1200, height: 630, fonts });
 }

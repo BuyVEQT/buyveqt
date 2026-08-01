@@ -285,8 +285,6 @@ export default function CalculatorCard<I>({
           --rule-hair: var(--ins-track-soft);
           --stamp: var(--ins-signal);
           --green: var(--ins-gray-600);
-          --font-sans: var(--ins-font);
-          --font-serif: var(--ins-font);
         }
 
         /* ── Control column ── */

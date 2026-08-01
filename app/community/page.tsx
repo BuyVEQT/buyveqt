@@ -105,9 +105,8 @@ function deriveLiveStats(
  *   PulseVerdict      the one verdict rail
  *   CommunityCloser   display · dek · the one red CTA
  *
- * The broadsheet `InteriorShell` is gone: nav, footer and tab bar all come
- * from app/layout.tsx, and the Instrument owns its own white page frame the
- * same way the home route does.
+ * Nav, footer and tab bar all come from app/layout.tsx, and the Instrument
+ * owns its own white page frame the same way the home route does.
  */
 export default async function CommunityPage() {
   const [hotResult, topResult, statsResult] = await Promise.allSettled([

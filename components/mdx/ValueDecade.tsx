@@ -8,10 +8,33 @@ import { useContainerWidth } from "@/lib/useContainerWidth";
  * Growth vs Value, cumulative return early 2010 → March 2020) plus the
  * per-year gaps and Asness's four-sigma value spread. Static, sourced numbers
  * — this is a historical exhibit, not a live chart.
+ *
+ * Chrome is the Instrument: Archivo throughout, ink/gray/red tokens, square
+ * corners, no shadows, emphasis by weight (Archivo ships no italic).
  */
 
 const COMPACT_THRESHOLD = 600;
 const MAX_SCALE = 290; // % axis headroom above growth's +264%
+
+/** Kicker above the headline. */
+const KICKER = {
+  fontSize: 9.5,
+  fontWeight: 700,
+  letterSpacing: "0.2em",
+  textTransform: "uppercase",
+  color: "var(--ins-gray-600)",
+  margin: 0,
+} as const;
+
+/** Micro-label over each footer statistic. */
+const STAT_LABEL = {
+  fontSize: 8.5,
+  fontWeight: 600,
+  letterSpacing: "0.14em",
+  textTransform: "uppercase",
+  color: "var(--ins-gray-600)",
+  margin: 0,
+} as const;
 
 type Row = {
   label: string;
@@ -26,13 +49,13 @@ const ROWS: Row[] = [
     label: "Russell 1000 Growth",
     sub: "the decade's winner",
     pct: 264,
-    color: "var(--ink)",
+    color: "var(--ins-ink)",
   },
   {
     label: "Russell 1000 Value",
     sub: "the side CAGE tilts toward",
     pct: 91,
-    color: "var(--stamp)",
+    color: "var(--ins-signal)",
     highlight: true,
   },
 ];
@@ -48,21 +71,27 @@ export function ValueDecade() {
   const mobile = width > 0 && width < COMPACT_THRESHOLD;
 
   return (
-    <div ref={ref} className="flagship-bleed" style={{ fontFamily: "var(--font-sans)" }}>
+    <div
+      ref={ref}
+      style={{
+        fontFamily: "var(--ins-font)",
+        color: "var(--ins-ink)",
+        margin: mobile ? "22px 0 20px" : "34px 0 30px",
+      }}
+    >
       <div style={{ marginBottom: mobile ? 14 : 22 }}>
-        <p className="ed-label" style={{ margin: 0 }}>
+        <p style={KICKER}>
           US equities &middot; early 2010 &ndash; March 2020
         </p>
         <h3
           style={{
-            fontFamily: "var(--font-display)",
-            fontWeight: 500,
-            fontStyle: "italic",
+            fontFamily: "var(--ins-font)",
+            fontWeight: 700,
             fontSize: mobile ? "clamp(20px, 5vw, 22px)" : "clamp(28px, 3.4vw, 34px)",
             lineHeight: 1.1,
-            letterSpacing: "-0.018em",
+            letterSpacing: "-0.02em",
             margin: "8px 0 0",
-            color: "var(--ink)",
+            color: "var(--ins-ink)",
           }}
         >
           Ten years of being right eventually.
@@ -71,8 +100,8 @@ export function ValueDecade() {
 
       <div
         style={{
-          background: "var(--paper-light)",
-          border: "1px solid var(--ink)",
+          background: "var(--ins-paper)",
+          border: "1px solid var(--ins-ink)",
           padding: mobile ? "20px 16px" : "30px 32px 26px",
         }}
       >
@@ -90,22 +119,19 @@ export function ValueDecade() {
               >
                 <span
                   style={{
-                    fontFamily: "var(--font-sans)",
                     fontSize: 12,
                     fontWeight: 700,
                     letterSpacing: "0.04em",
-                    color: r.highlight ? "var(--stamp)" : "var(--ink)",
+                    color: r.highlight ? "var(--ins-signal)" : "var(--ins-ink)",
                   }}
                 >
                   {r.label}
                   <span
                     style={{
-                      fontFamily: "var(--font-serif)",
-                      fontStyle: "italic",
-                      fontWeight: 400,
+                      fontWeight: 500,
                       letterSpacing: 0,
                       fontSize: 12.5,
-                      color: "var(--ink-mute)",
+                      color: "var(--ins-gray-600)",
                       marginLeft: 8,
                     }}
                   >
@@ -114,12 +140,11 @@ export function ValueDecade() {
                 </span>
                 <span
                   style={{
-                    fontFamily: "var(--font-display)",
-                    fontWeight: 500,
+                    fontWeight: 700,
                     fontSize: r.highlight ? 22 : 18,
                     lineHeight: 1,
                     fontVariantNumeric: "tabular-nums",
-                    color: r.highlight ? "var(--stamp)" : "var(--ink)",
+                    color: r.highlight ? "var(--ins-signal)" : "var(--ins-ink)",
                     flexShrink: 0,
                   }}
                 >
@@ -129,7 +154,7 @@ export function ValueDecade() {
               <div
                 style={{
                   height: r.highlight ? 18 : 12,
-                  background: "color-mix(in oklab, var(--ink) 8%, transparent)",
+                  background: "var(--ins-track)",
                   position: "relative",
                 }}
               >
@@ -152,7 +177,7 @@ export function ValueDecade() {
           style={{
             marginTop: mobile ? 18 : 22,
             paddingTop: mobile ? 16 : 18,
-            borderTop: "1px solid var(--rule-soft)",
+            borderTop: "1px solid var(--ins-hair)",
             display: "grid",
             gridTemplateColumns: mobile ? "1fr" : "repeat(3, 1fr)",
             gap: mobile ? 14 : 18,
@@ -160,16 +185,13 @@ export function ValueDecade() {
         >
           {STATS.map((s) => (
             <div key={s.l}>
-              <div className="ed-label" style={{ fontSize: 9.5, margin: 0 }}>
-                {s.l}
-              </div>
+              <div style={STAT_LABEL}>{s.l}</div>
               <div
                 style={{
-                  fontFamily: "var(--font-display)",
-                  fontWeight: 500,
+                  fontWeight: 700,
                   fontSize: mobile ? 20 : 26,
                   marginTop: 4,
-                  color: "var(--ink)",
+                  color: "var(--ins-ink)",
                   fontVariantNumeric: "tabular-nums",
                   letterSpacing: "-0.012em",
                   lineHeight: 1.05,
@@ -179,10 +201,9 @@ export function ValueDecade() {
               </div>
               <div
                 style={{
-                  fontFamily: "var(--font-serif)",
-                  fontStyle: "italic",
                   fontSize: 12,
-                  color: "var(--ink-mute)",
+                  fontWeight: 500,
+                  color: "var(--ins-gray-600)",
                   marginTop: 2,
                 }}
               >
@@ -195,11 +216,10 @@ export function ValueDecade() {
 
       <p
         style={{
-          fontFamily: "var(--font-serif)",
-          fontStyle: "italic",
           fontSize: mobile ? 14 : 15,
+          fontWeight: 500,
           lineHeight: 1.55,
-          color: "var(--ink-mute)",
+          color: "var(--ins-gray-600)",
           marginTop: mobile ? 10 : 16,
           marginBottom: 0,
           maxWidth: "64ch",

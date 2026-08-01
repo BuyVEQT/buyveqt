@@ -36,14 +36,14 @@ function activeFromPath(pathname: string): TabId | null {
  * top edge of the cell (inset 30% each side); inactive = gray-400.
  * Solid white bar (no blur), 1px soft-hair top rule, no shadows, no
  * radius. Full-cell links keep tap targets ≥ 44px; safe-area padding
- * preserved for the iOS home indicator via `ed-safe-bottom`.
+ * preserved for the iOS home indicator via `ins-safe-bottom`.
  */
 export default function TabBar() {
   const pathname = usePathname() ?? "/";
   const active = activeFromPath(pathname);
 
   return (
-    <nav className="tb ed-safe-bottom shell-tabbar ins-shell" aria-label="Primary">
+    <nav className="tb ins-safe-bottom shell-tabbar ins-shell" aria-label="Primary">
       {TABS.map((t) => {
         const isActive = t.id === active;
         return (

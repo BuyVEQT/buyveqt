@@ -1,17 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
-import { formatDollars, GRID_PROPS, AXIS_PROPS, ChartTooltipWrapper } from "@/lib/chart-utils";
-import ClientOnlyChart from "@/components/charts/ClientOnlyChart";
+import InkYearChart from "./InkYearChart";
 
 const STRATEGIES = [
   { id: "constant", label: "Constant dollar", description: "Withdraw the same dollar amount each year, adjusted for inflation" },
@@ -192,74 +182,34 @@ export function WithdrawalSimulator() {
         </p>
       </div>
 
-      {/* Chart — gated past hydration to suppress recharts SSG warning */}
-      <div className="h-56 sm:h-64 mb-3">
-        <ClientOnlyChart height={256}>
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData}>
-            <CartesianGrid {...GRID_PROPS} />
-            <XAxis
-              dataKey="year"
-              {...AXIS_PROPS}
-              tickFormatter={(v: number) => `Yr ${v}`}
-            />
-            <YAxis
-              {...AXIS_PROPS}
-              tickFormatter={(v: number) => formatDollars(v)}
-            />
-            <Tooltip
-              content={({ active, payload, label }) => {
-                if (!active || !payload?.length) return null;
-                return (
-                  <ChartTooltipWrapper>
-                    <p className="text-xs font-semibold text-[var(--color-text-primary)] mb-1">
-                      Year {label}
-                    </p>
-                    {payload.map((entry) => (
-                      <p
-                        key={entry.name}
-                        className="text-xs text-[var(--color-text-secondary)]"
-                      >
-                        {entry.name}: {formatDollars(entry.value as number)}
-                      </p>
-                    ))}
-                  </ChartTooltipWrapper>
-                );
-              }}
-            />
-            <Area
-              type="monotone"
-              dataKey="optimistic"
-              name="Optimistic (9%)"
-              stroke="var(--color-positive)"
-              fill="var(--color-positive)"
-              fillOpacity={0.08}
-              strokeWidth={1}
-              dot={false}
-            />
-            <Area
-              type="monotone"
-              dataKey="expected"
-              name="Expected (7%)"
-              stroke="var(--color-brand)"
-              fill="var(--color-brand)"
-              fillOpacity={0.12}
-              strokeWidth={2}
-              dot={false}
-            />
-            <Area
-              type="monotone"
-              dataKey="pessimistic"
-              name="Pessimistic (4%)"
-              stroke="var(--color-negative)"
-              fill="var(--color-negative)"
-              fillOpacity={0.08}
-              strokeWidth={1}
-              dot={false}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-        </ClientOnlyChart>
+      {/* Chart — hand-rolled ink lines. Red is spent on the pessimistic
+          scenario: depletion is the risk this simulator is about. */}
+      <div className="mb-3">
+        <InkYearChart
+          years={chartData.map((d) => d.year)}
+          series={[
+            {
+              id: "optimistic",
+              label: "Optimistic (9%)",
+              values: chartData.map((d) => d.optimistic),
+              tone: "muted",
+            },
+            {
+              id: "expected",
+              label: "Expected (7%)",
+              values: chartData.map((d) => d.expected),
+              tone: "ink",
+            },
+            {
+              id: "pessimistic",
+              label: "Pessimistic (4%)",
+              values: chartData.map((d) => d.pessimistic),
+              tone: "signal",
+            },
+          ]}
+          height={230}
+          ariaLabel={`Portfolio balance over ${years} years at a ${ratePct}% initial withdrawal rate, under 9%, 7% and 4% return scenarios.`}
+        />
       </div>
 
       {/* Depletion warning */}

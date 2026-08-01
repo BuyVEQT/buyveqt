@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { getComparison } from "@/data/comparisons";
 import { FUNDS } from "@/data/funds";
 import { MINUS } from "@/lib/instrument-format";
 import { BOUTS, type Bout } from "./bouts";
@@ -52,6 +53,9 @@ const css = `
   border-bottom: 1px solid var(--ins-hair);
 }
 
+.ins-cmp-bout-row {
+  padding-bottom: 12px;
+}
 .ins-cmp-bout {
   appearance: none;
   background: transparent;
@@ -66,7 +70,7 @@ const css = `
   grid-template-columns: 52px 1fr auto auto;
   gap: 18px;
   align-items: end;
-  padding: 14px 0;
+  padding: 14px 0 6px;
   transition: padding-left 0.18s ease;
 }
 .ins-cmp-bout:hover {
@@ -131,6 +135,23 @@ const css = `
   color: var(--ins-signal);
 }
 
+/* Secondary action — the row still swaps the bout in place; this is the
+   deep link to the written-up page, offset under the row title. */
+.ins-cmp-bout__permalink {
+  display: inline-block;
+  margin-left: 70px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ins-gray-600);
+  text-decoration: none;
+}
+.ins-cmp-bout__permalink:hover,
+.ins-cmp-bout__permalink:focus-visible {
+  color: var(--ins-ink);
+}
+
 .ins-cmp-others__request {
   padding: 14px 0;
   display: flex;
@@ -172,11 +193,17 @@ const css = `
   .ins-cmp-others__eyebrow { font-size: 9px; letter-spacing: 0.18em; }
   .ins-cmp-others__display { margin-top: 6px; font-size: 20px; }
   .ins-cmp-others__grid { margin-top: 8px; }
+  .ins-cmp-bout-row { padding-bottom: 10px; }
   .ins-cmp-bout {
     grid-template-columns: 34px 1fr auto auto;
     gap: 12px;
-    padding: 12px 0;
+    padding: 12px 0 6px;
     min-height: 44px;
+  }
+  .ins-cmp-bout__permalink {
+    margin-left: 46px;
+    font-size: 8.5px;
+    letter-spacing: 0.12em;
   }
   .ins-cmp-bout__ordinal { font-size: 26px; }
   .ins-cmp-bout__kicker { font-size: 8.5px; letter-spacing: 0.14em; }
@@ -201,10 +228,25 @@ function spreadLabel(spread: number | null | undefined): string {
 }
 
 /**
+ * Deep link for a bout, when the pair has a written-up page. The card and
+ * `data/comparisons.ts` are keyed independently, so a bout with no entry
+ * simply gets no permalink rather than a 404.
+ */
+function permalinkFor(bout: Bout): string | null {
+  const slug = `veqt-vs-${bout.short.toLowerCase()}`;
+  return getComparison(slug) ? `/compare/${slug}` : null;
+}
+
+/**
  * The other bouts (artboard 6b) — the five contenders not currently on
  * the scoreboard, numbered 02–06 in card order, each carrying its own
  * common-tape spread. A negative spread (VEQT behind) is the only red on
- * the module. Clicking a row swaps the bout in place.
+ * the module.
+ *
+ * Clicking a row swaps the bout in place — that stays the primary action.
+ * Beneath it sits a secondary PERMALINK deep link to `/compare/{slug}`
+ * for the bouts that have a written-up page, so the slug pages finally
+ * have a navigational inbound instead of MDX body links alone.
  */
 export default function OtherBouts({
   contender,
@@ -220,39 +262,50 @@ export default function OtherBouts({
   const renderRow = (bout: Bout, index: number) => {
     const spread = metricsByBout[bout.ticker]?.spreadPp ?? null;
     const down = spread != null && spread < 0;
+    const permalink = permalinkFor(bout);
     return (
-      <button
-        key={bout.ticker}
-        type="button"
-        className="ins-cmp-bout"
-        onClick={() => onSelect(bout.ticker)}
-      >
-        <span className="ins-cmp-bout__ordinal" aria-hidden>
-          {String(index + 2).padStart(2, "0")}
-        </span>
-        <span className="ins-cmp-bout__body">
-          <span className="ins-cmp-bout__kicker">
-            {bout.category} · {providerLabel(bout.ticker)}
+      <div key={bout.ticker} className="ins-cmp-bout-row">
+        <button
+          type="button"
+          className="ins-cmp-bout"
+          onClick={() => onSelect(bout.ticker)}
+        >
+          <span className="ins-cmp-bout__ordinal" aria-hidden>
+            {String(index + 2).padStart(2, "0")}
           </span>
-          <span className="ins-cmp-bout__title">
-            <span className="ins-cmp-bout__house">VEQT </span>&times;{" "}
-            {bout.short} &mdash; {bout.tagline}
+          <span className="ins-cmp-bout__body">
+            <span className="ins-cmp-bout__kicker">
+              {bout.category} · {providerLabel(bout.ticker)}
+            </span>
+            <span className="ins-cmp-bout__title">
+              <span className="ins-cmp-bout__house">VEQT </span>&times;{" "}
+              {bout.short} &mdash; {bout.tagline}
+            </span>
           </span>
-        </span>
-        <span className="ins-cmp-bout__spread">
-          <span className="ins-cmp-bout__spread-label">Spread</span>
-          <span
-            className={`ins-cmp-bout__spread-val${
-              down ? " ins-cmp-bout__spread-val--down" : ""
-            }`}
+          <span className="ins-cmp-bout__spread">
+            <span className="ins-cmp-bout__spread-label">Spread</span>
+            <span
+              className={`ins-cmp-bout__spread-val${
+                down ? " ins-cmp-bout__spread-val--down" : ""
+              }`}
+            >
+              {spreadLabel(spread)}
+            </span>
+          </span>
+          <span className="ins-cmp-bout__arrow" aria-hidden>
+            &rarr;
+          </span>
+        </button>
+        {permalink && (
+          <Link
+            href={permalink}
+            className="ins-cmp-bout__permalink"
+            aria-label={`Permalink — the VEQT versus ${bout.short} write-up`}
           >
-            {spreadLabel(spread)}
-          </span>
-        </span>
-        <span className="ins-cmp-bout__arrow" aria-hidden>
-          &rarr;
-        </span>
-      </button>
+            Permalink <span aria-hidden>&rarr;</span>
+          </Link>
+        )}
+      </div>
     );
   };
 

@@ -1,45 +1,55 @@
 import { MDXRemote } from "next-mdx-remote/rsc";
 import remarkGfm from "remark-gfm";
 import type { ReactNode } from "react";
+
+// ── Static half of the registry ────────────────────────────────────────
+// Server components (no "use client", therefore no client JS at all) plus
+// TableOfContents, which is a client component but appears in 23 of the
+// 26 articles — demand-loading it would add a request to 23 pages to save
+// one on three. Everything else is demand-loaded; see LazyChartWidgets.
 import { Summary } from "@/components/mdx/Summary";
 import { Callout } from "@/components/mdx/Callout";
 import { ComparisonTable } from "@/components/mdx/ComparisonTable";
-import { TableOfContents } from "@/components/mdx/TableOfContents";
-import { MdxLink } from "@/components/mdx/MdxLink";
-import { AccountFlowchart } from "@/components/mdx/AccountFlowchart";
-import { FHSATimeline } from "@/components/mdx/FHSATimeline";
-import { ProgressTracker } from "@/components/mdx/ProgressTracker";
-import { UpsideCapVisualizer } from "@/components/mdx/UpsideCapVisualizer";
-import { ForexLossStats } from "@/components/mdx/ForexLossStats";
-import { OpportunityCostCalculator } from "@/components/mdx/OpportunityCostCalculator";
-import { JourneyTimeline } from "@/components/mdx/JourneyTimeline";
-import { ZeroSumExplainer } from "@/components/mdx/ZeroSumExplainer";
-import { FundStructure } from "@/components/mdx/FundStructure";
-import { DriftCalculator } from "@/components/mdx/DriftCalculator";
-import { InvestmentDecisionTree } from "@/components/mdx/InvestmentDecisionTree";
-import { TimeHorizonCalculator } from "@/components/mdx/TimeHorizonCalculator";
-import { EquityPremiumTimeline } from "@/components/mdx/EquityPremiumTimeline";
-import { AssetLocationOptimizer } from "@/components/mdx/AssetLocationOptimizer";
-import { BobTimeline } from "@/components/mdx/BobTimeline";
-import { MissedDaysChart } from "@/components/mdx/MissedDaysChart";
-import { SPIVAFunnel } from "@/components/mdx/SPIVAFunnel";
-import { OwnershipLoop } from "@/components/mdx/OwnershipLoop";
-import { HoldingsUniverse } from "@/components/mdx/HoldingsUniverse";
-import { PerformanceBattle } from "@/components/mdx/PerformanceBattle";
-import { WeightingComparison } from "@/components/mdx/WeightingComparison";
 import { PioneerTimeline } from "@/components/mdx/PioneerTimeline";
-import { VanguardEffectV2 } from "@/components/mdx/VanguardEffectV2";
-import { HomeBiasOverweight } from "@/components/mdx/HomeBiasOverweight";
-import { FactorTilt } from "@/components/mdx/FactorTilt";
-import { FactorBetOutcomes } from "@/components/mdx/FactorBetOutcomes";
-import { ValueDecade } from "@/components/mdx/ValueDecade";
 import { VerdictCard } from "@/components/mdx/VerdictCard";
-// Recharts-bearing widgets are dynamic-imported via a "use client"
-// boundary so this server component can stay RSC. See LazyChartWidgets.
+import { MdxLink } from "@/components/mdx/MdxLink";
+import { TableOfContents } from "@/components/mdx/TableOfContents";
+
+// ── Lazy half of the registry ──────────────────────────────────────────
+// Every client exhibit, dynamic-imported through a "use client" boundary
+// (this file is RSC — next-mdx-remote/rsc — so it can't call dynamic()
+// itself). SSR stays on, so the prerendered HTML still carries each
+// exhibit's markup. See LazyChartWidgets for the full rationale.
 import {
-  FeeCalculator,
-  WithdrawalSimulator,
+  AccountFlowchart,
+  AssetLocationOptimizer,
+  BobTimeline,
   CoveredCallGrowthChart,
+  DriftCalculator,
+  EquityPremiumTimeline,
+  FHSATimeline,
+  FactorBetOutcomes,
+  FactorTilt,
+  FeeCalculator,
+  ForexLossStats,
+  FundStructure,
+  HoldingsUniverse,
+  HomeBiasOverweight,
+  InvestmentDecisionTree,
+  JourneyTimeline,
+  MissedDaysChart,
+  OpportunityCostCalculator,
+  OwnershipLoop,
+  PerformanceBattle,
+  ProgressTracker,
+  SPIVAFunnel,
+  TimeHorizonCalculator,
+  UpsideCapVisualizer,
+  ValueDecade,
+  VanguardEffectV2,
+  WeightingComparison,
+  WithdrawalSimulator,
+  ZeroSumExplainer,
 } from "./LazyChartWidgets";
 
 function slugify(text: string): string {
@@ -102,7 +112,7 @@ interface ArticleBodyProps {
 /**
  * Article reader body — owns the MDX render.
  *
- * Turn 7 moved the prose typography out of globals' `.learn-article` block
+ * Turn 7 moved the prose typography out of globals' legacy article block
  * and into the reader page's own `.artc__prose` grammar (21px/1.6 Archivo,
  * 68ch measure on paragraphs only, 3px ink rules on h2, no drop cap), so
  * block-level MDX components can run the full column width.

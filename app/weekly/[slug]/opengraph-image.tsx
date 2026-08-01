@@ -1,4 +1,4 @@
-import { renderBroadsheetOG, OG_SIZE, OG_CONTENT_TYPE } from "@/lib/og/broadsheet";
+import { renderInstrumentOG, OG_SIZE, OG_CONTENT_TYPE } from "@/lib/og/instrument";
 import { getWeeklyRecapBySlug, getRecapOrdinal } from "@/lib/weekly";
 
 // Node runtime: getWeeklyRecapBySlug reads MDX from disk.
@@ -30,9 +30,11 @@ export default async function Image({
   const recap = getWeeklyRecapBySlug(slug);
 
   if (!recap) {
-    return renderBroadsheetOG({
-      eyebrow: "The Wire",
-      title: "Recap not found.",
+    return renderInstrumentOG({
+      eyebrow: "THE WIRE",
+      titleLines: ["Recap", "not found."],
+      chipLabel: "THE WIRE",
+      chipMark: false,
       alt,
     });
   }
@@ -40,14 +42,21 @@ export default async function Image({
   const ordinal = getRecapOrdinal(slug);
   const range = formatWeekRange(recap.weekStart, recap.weekEnd);
   const changeSign = recap.weeklyChangePercent >= 0 ? "+" : "";
-  const moveSummary = `${changeSign}${recap.weeklyChangePercent.toFixed(2)}% on the week`;
+  const moveSummary = `${changeSign}${recap.weeklyChangePercent.toFixed(2)}% ON THE WEEK`;
 
-  return renderBroadsheetOG({
-    eyebrow: ordinal ? `The Wire · Issue No. ${String(ordinal).padStart(2, "0")}` : "The Wire",
+  return renderInstrumentOG({
+    eyebrow: "THE WIRE",
     title: recap.title,
-    italic: true,
     dek: recap.description,
-    footerNote: range ? `${range} · ${moveSummary}` : moveSummary,
+    chipLabel: ordinal
+      ? `ISSUE NO. ${String(ordinal).padStart(2, "0")}`
+      : "THE WIRE",
+    chipMark: false,
+    // The old footer line — "Nov 3 – Nov 7 · +1.24% on the week" — as the
+    // micro-label beside the chip.
+    statLabel: range
+      ? `${range.toUpperCase()} · ${moveSummary}`
+      : moveSummary,
     alt: `${recap.title} — BuyVEQT`,
   });
 }

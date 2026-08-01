@@ -1,7 +1,9 @@
 "use client";
 
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { getComparison } from "@/data/comparisons";
 import {
   BOUTS,
   DEFAULT_BOUT,
@@ -33,11 +35,38 @@ const css = `
   margin: 0 auto;
   padding: 0 40px 40px;
 }
+/* The editor's verdict plus its one outbound: the deep link to the
+   written-up page for the bout currently on the board. Wrapped so the
+   link rides 14px under the verdict rather than the page's 30px gap. */
+.ins-cmp-verdict {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.ins-cmp-verdict__more {
+  align-self: start;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ins-ink);
+  text-decoration: none;
+  border-bottom: 2px solid var(--ins-ink);
+  padding-bottom: 3px;
+}
+.ins-cmp-verdict__more:hover,
+.ins-cmp-verdict__more:focus-visible {
+  color: var(--ins-signal);
+  border-bottom-color: var(--ins-signal);
+}
+
 @media (max-width: 640px) {
   .ins-cmp-page {
     gap: 22px;
     padding: 0 20px 28px;
   }
+  .ins-cmp-verdict { gap: 10px; }
+  .ins-cmp-verdict__more { font-size: 9.5px; letter-spacing: 0.14em; }
 }
 `;
 
@@ -60,7 +89,9 @@ function parseFundsParam(raw: string | null): string[] | null {
  *
  *   CompareHero     kicker · "VEQT × the field." · dek · TONIGHT'S BOUT tabs
  *   Scoreboard      two mastheads, MER first, common tape, spread, the rail
- *   EditorVerdict   the curated verdict for the selected bout
+ *   EditorVerdict   the curated verdict for the selected bout, plus the
+ *                   deep link to that bout's written-up page (suppressed
+ *                   when we're already on it)
  *   OtherBouts      the five contenders not on the board, 02–06
  *   CompareCloser   "Still here?" + RUN THE FEE MATH
  *   FAQSection      COMPARE_FAQ in the article grammar
@@ -100,6 +131,16 @@ function CompareContentInner({ initialFunds }: CompareContentProps) {
 
   const { quotes, histories } = useBoutData(contender);
 
+  // The written-up page for the bout on the board, when one exists — and
+  // never a link to the page we're already standing on.
+  const writeUpHref = useMemo(() => {
+    const bout = getBout(contender);
+    if (!bout) return null;
+    const href = `/compare/veqt-vs-${bout.short.toLowerCase()}`;
+    if (!getComparison(href.slice("/compare/".length))) return null;
+    return href === pathname ? null : href;
+  }, [contender, pathname]);
+
   // One common-tape computation per bout — the scoreboard reads its own,
   // the fight card below reads the other five.
   const metricsByBout = useMemo<Record<string, PairMetrics>>(() => {
@@ -122,7 +163,14 @@ function CompareContentInner({ initialFunds }: CompareContentProps) {
           metrics={metricsByBout[contender]}
         />
 
-        <EditorVerdict contender={contender} />
+        <div className="ins-cmp-verdict">
+          <EditorVerdict contender={contender} />
+          {writeUpHref && (
+            <Link href={writeUpHref} className="ins-cmp-verdict__more">
+              The full write-up <span aria-hidden>&rarr;</span>
+            </Link>
+          )}
+        </div>
 
         <OtherBouts
           contender={contender}

@@ -1,22 +1,8 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-} from "recharts";
-import {
-  formatDollars,
-  ChartTooltipWrapper,
-  GRID_PROPS,
-  AXIS_PROPS,
-} from "@/lib/chart-utils";
-import ClientOnlyChart from "@/components/charts/ClientOnlyChart";
+import { formatDollars } from "@/lib/chart-utils";
+import InkYearChart from "./InkYearChart";
 
 const VEQT_FEE = 0.0020; // 0.20%
 const ROBO_FEE = 0.0070; // 0.70%
@@ -32,29 +18,6 @@ interface ChartPoint {
   year: number;
   veqt: number;
   robo: number;
-}
-
-interface TooltipProps {
-  active?: boolean;
-  payload?: { value: number; dataKey: string }[];
-  label?: number;
-}
-
-function FeeTooltip({ active, payload, label }: TooltipProps) {
-  if (!active || !payload?.length) return null;
-  const veqt = payload.find((p) => p.dataKey === "veqt")?.value ?? 0;
-  const robo = payload.find((p) => p.dataKey === "robo")?.value ?? 0;
-  return (
-    <ChartTooltipWrapper>
-      <p className="text-[11px] text-[var(--color-text-muted)] mb-1">Year {label}</p>
-      <p className="text-[11px] text-[var(--color-positive)] font-semibold">
-        VEQT: {formatDollars(veqt)}
-      </p>
-      <p className="text-[11px] text-[var(--color-text-muted)]">
-        Robo: {formatDollars(robo)}
-      </p>
-    </ChartTooltipWrapper>
-  );
 }
 
 export function FeeCalculator() {
@@ -180,45 +143,27 @@ export function FeeCalculator() {
         over {years} years.
       </p>
 
-      {/* Chart — ClientOnlyChart defers recharts past hydration so
-          the recharts width(-1) SSG warning doesn't fire during the
-          /learn/[slug] article static gen pass. */}
-      <ClientOnlyChart height={220}>
-      <ResponsiveContainer width="100%" height={220}>
-        <AreaChart data={chartData}>
-          <CartesianGrid {...GRID_PROPS} />
-          <XAxis
-            dataKey="year"
-            {...AXIS_PROPS}
-            tickFormatter={(v: number) => `${v}y`}
-          />
-          <YAxis
-            {...AXIS_PROPS}
-            tickFormatter={(v: number) => formatDollars(v)}
-            width={72}
-          />
-          <Tooltip content={<FeeTooltip />} />
-          <Area
-            type="monotone"
-            dataKey="robo"
-            stroke="var(--color-text-muted)"
-            fill="var(--color-border)"
-            fillOpacity={0.4}
-            strokeWidth={1.5}
-            dot={false}
-          />
-          <Area
-            type="monotone"
-            dataKey="veqt"
-            stroke="var(--color-positive)"
-            fill="var(--color-positive)"
-            fillOpacity={0.15}
-            strokeWidth={2}
-            dot={false}
-          />
-        </AreaChart>
-      </ResponsiveContainer>
-      </ClientOnlyChart>
+      {/* Chart — hand-rolled ink lines. Red is spent on the robo line
+          because the fee drag is what this exhibit is warning about. */}
+      <InkYearChart
+        years={chartData.map((p) => p.year)}
+        series={[
+          {
+            id: "veqt",
+            label: "VEQT",
+            values: chartData.map((p) => p.veqt),
+            tone: "ink",
+          },
+          {
+            id: "robo",
+            label: "Robo",
+            values: chartData.map((p) => p.robo),
+            tone: "signal",
+          },
+        ]}
+        height={220}
+        ariaLabel={`Portfolio value by year at a ${annualReturn}% return: VEQT at 0.20% MER against a robo-advisor at 0.70%.`}
+      />
 
       <p className="mt-4 text-[11px] text-[var(--color-text-muted)]">
         Simplified illustration assuming fixed annual returns compounded monthly. VEQT MER ~0.20%, robo-advisor all-in ~0.70%. Actual returns vary. Does not account for taxes or inflation.

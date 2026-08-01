@@ -3,59 +3,57 @@ import type { ReactNode } from "react";
 interface PullquoteProps {
   children: ReactNode;
   attribution?: string;
-  /** Legacy prop (Round 3 broadsheet). Ignored by the Round 4 layout —
-   *  the new pull-quote is always left-borderened full-width. Kept so
-   *  existing MDX <Pullquote align="…"> calls don't error. */
+  /** Legacy prop (Round 3 broadsheet). Ignored — the Instrument pull-quote
+   *  is always a full-width block on an ink left rule. Kept so existing MDX
+   *  <Pullquote align="…"> calls don't error. */
   align?: "center" | "left" | "right";
 }
 
 /**
- * Round 4 pull-quote: paper-light card with a 3px vermilion left rule,
- * Fraunces italic body, oversized vermilion opening quotation mark.
- * Replaces the broadsheet-era variant — name kept (lowercase `q`) so
- * existing MDX content keeps rendering without edits.
+ * Instrument pull-quote: a 3px ink left rule, Archivo at w600, nothing else.
+ *
+ * No italic (Archivo ships upright only — the Instrument's emphasis grammar
+ * is weight and red, never slant) and no oversized red quotation mark: the
+ * red budget on the issue reader belongs to the section kickers and the one
+ * closing CTA. Inline styles rather than a class because this renders inside
+ * MDX, where the host page's prefixed rules deliberately only reach direct
+ * children.
  */
 export function Pullquote({ children, attribution }: PullquoteProps) {
   return (
     <figure
       style={{
-        margin: "32px 0",
-        padding: "24px 22px",
-        background: "var(--paper-light)",
-        borderLeft: "3px solid var(--stamp)",
+        margin: "30px 0",
+        padding: "2px 0 2px 20px",
+        borderLeft: "3px solid var(--ins-ink)",
       }}
     >
       <blockquote
         style={{
-          fontFamily: "var(--font-display)",
-          fontWeight: 500,
-          fontStyle: "italic",
-          fontSize: "clamp(1.25rem, 2.2vw, 1.5rem)",
-          lineHeight: 1.25,
-          letterSpacing: "-0.01em",
-          color: "var(--ink)",
+          fontFamily: "var(--ins-font)",
+          fontWeight: 600,
+          fontSize: "clamp(19px, 2.2vw, 25px)",
+          lineHeight: 1.3,
+          letterSpacing: "-0.02em",
+          color: "var(--ins-ink)",
+          maxWidth: "46ch",
           margin: 0,
+          textWrap: "pretty",
         }}
       >
-        <span
-          aria-hidden
-          style={{
-            color: "var(--stamp)",
-            fontWeight: 700,
-            fontSize: "1.6em",
-            lineHeight: 0,
-            marginRight: 6,
-            verticalAlign: "-0.18em",
-          }}
-        >
-          “
-        </span>
         {children}
       </blockquote>
       {attribution && (
         <figcaption
-          className="ed-label"
-          style={{ marginTop: 12 }}
+          style={{
+            marginTop: 12,
+            fontFamily: "var(--ins-font)",
+            fontSize: 9.5,
+            fontWeight: 700,
+            letterSpacing: "0.18em",
+            textTransform: "uppercase",
+            color: "var(--ins-gray-600)",
+          }}
         >
           {attribution}
         </figcaption>

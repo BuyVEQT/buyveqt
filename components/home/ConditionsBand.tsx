@@ -16,7 +16,9 @@ import {
   fmtWeekday,
   parseSessionDate,
 } from "@/lib/instrument-format";
+import { useMarketClock } from "@/lib/market-clock";
 import WeatherGlyph from "./hero/WeatherGlyph";
+import { useOnScreen } from "./useOnScreen";
 
 /**
  * ConditionsBand — "The Instrument" weather module (README §1.3, §2, §3).
@@ -211,6 +213,17 @@ export default function ConditionsBand({
   history,
   quote,
 }: ConditionsBandProps) {
+  // Re-read every minute so the rail flips at the bell without a reload.
+  // Null until the first client read — the band then keeps its open-market
+  // copy, which is what it printed before this existed.
+  const clock = useMarketClock();
+  /** Non-null only while the exchange is shut — carries the next bell. */
+  const closedClock = clock?.phase === "closed" ? clock : null;
+
+  // Park the glyph's loops (raySpin / shimmer / halos / rain) and the red
+  // marker pulse while the band is scrolled past.
+  const { ref: bandRef, onScreen } = useOnScreen<HTMLElement>();
+
   const sessions = useMemo(
     () => recentSessionWeather(history ?? [], 5),
     [history]
@@ -277,7 +290,9 @@ export default function ConditionsBand({
 
   return (
     <section
+      ref={bandRef}
       className={`band${severity ? "" : " band--loading"}`}
+      data-run={onScreen ? "true" : "false"}
       aria-busy={severity ? undefined : true}
       aria-label="Conditions — today's weather"
     >
@@ -466,12 +481,32 @@ export default function ConditionsBand({
                 )}
               </>
             )}
+            {/* Right-hand note: the open-market default points at the next
+                4pm reading; while the exchange is shut it says so and
+                names the next bell instead. Desktop keeps the outlook
+                prefix (68 chars vs. the open copy's 74, so the rail's
+                visual width doesn't grow); mobile's 7.5px box can't carry
+                "REOPENS" on top of the weekday, so the time stands in for
+                it — 28 chars against the open copy's 24. Written uppercase
+                like the rest of the rail; neither string carries a σ, so
+                .railNote's text-transform is harmless here. */}
             <span className="railNote railNote--desktop">
-              TOMORROW&rsquo;S OUTLOOK: {typical} — A TYPICAL DAY. NEXT READING
-              AT THE 4 PM BELL.
+              {closedClock ? (
+                <>
+                  TOMORROW&rsquo;S OUTLOOK: {typical} · MARKETS CLOSED — REOPENS{" "}
+                  {closedClock.reopensLabel}
+                </>
+              ) : (
+                <>
+                  TOMORROW&rsquo;S OUTLOOK: {typical} — A TYPICAL DAY. NEXT
+                  READING AT THE 4 PM BELL.
+                </>
+              )}
             </span>
             <span className="railNote railNote--mobile">
-              NEXT READING · 4 PM BELL
+              {closedClock
+                ? `MARKETS CLOSED · ${closedClock.reopensLabelShort}`
+                : "NEXT READING · 4 PM BELL"}
             </span>
           </div>
         </>
@@ -670,6 +705,28 @@ export default function ConditionsBand({
         .marker--red {
           animation: ins-gaugeIn 1.3s cubic-bezier(0.3, 0.8, 0.3, 1) 0.5s both,
             ins-pulse 2.2s ease-in-out 1.8s infinite;
+        }
+        /* ── Off-screen parking (see useOnScreen) ──
+           The band's two infinite loops stop repainting once it scrolls
+           away: the hero glyph's spin/shimmer/halo/rain and the red
+           marker's pulse. WeatherGlyph sets its animations inline on its
+           own elements, which carry *its* styled-jsx scope, so the col-1
+           reach needs :global — the same shape the reduced-motion block
+           at the bottom of this sheet uses. (animation-play-state does
+           not inherit, hence the descendant selector rather than a rule
+           on the wrapper.)
+
+           The marker stacks two animations in one shorthand — entrance,
+           then pulse — so its play-state list is positional: the one-shot
+           ins-gaugeIn keeps running, only the infinite pulse parks. Plain
+           .marker carries the entrance alone and is left with it. The
+           week strip's minis render animated={false}, so nothing there
+           needs parking. */
+        .band[data-run="false"] .col1 :global(*) {
+          animation-play-state: paused;
+        }
+        .band[data-run="false"] .marker--red {
+          animation-play-state: running, paused;
         }
         .marker--red .markerLabel {
           color: var(--ins-signal);

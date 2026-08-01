@@ -8,12 +8,25 @@ import { useContainerWidth } from "@/lib/useContainerWidth";
  * the asymmetry reads at a glance — the downside is a $26K fee-gap scrape,
  * the upside is a six-figure premium. A dashed marker pins the VEQT baseline
  * on every CAGE bar. Numbers match the article prose; keep them in sync.
+ *
+ * Chrome is the Instrument: Archivo throughout, ink/gray/red tokens, square
+ * corners, no shadows, emphasis by weight (Archivo ships no italic).
  */
 
 const COMPACT_THRESHOLD = 600;
 
 const VEQT_OUTCOME = 761; // $K — 1.07^30 on $100K
 const MAX_SCALE = 1240; // $K axis headroom above the best case
+
+/** Kicker above the headline. */
+const KICKER = {
+  fontSize: 9.5,
+  fontWeight: 700,
+  letterSpacing: "0.2em",
+  textTransform: "uppercase",
+  color: "var(--ins-gray-600)",
+  margin: 0,
+} as const;
 
 type Row = {
   label: string;
@@ -30,14 +43,14 @@ const ROWS: Row[] = [
     sub: "a 2010s repeat: $26K behind on fees alone",
     outcome: 735,
     display: "$735K",
-    color: "var(--ink-faint)",
+    color: "var(--ins-gray-400)",
   },
   {
     label: "VEQT — 7.0% baseline",
     sub: "the market return, nothing wagered",
     outcome: 761,
     display: "$761K",
-    color: "var(--stamp)",
+    color: "var(--ins-signal)",
     isBaseline: true,
   },
   {
@@ -45,14 +58,14 @@ const ROWS: Row[] = [
     sub: "low end of target: $114K ahead",
     outcome: 875,
     display: "$875K",
-    color: "var(--ink-mute)",
+    color: "var(--ins-gray-600)",
   },
   {
     label: "CAGE — +1.5% net premium",
     sub: "high end of target: $394K ahead",
     outcome: 1155,
     display: "$1.16M",
-    color: "var(--ink)",
+    color: "var(--ins-ink)",
   },
 ];
 
@@ -63,21 +76,27 @@ export function FactorBetOutcomes() {
   const baselinePct = (VEQT_OUTCOME / MAX_SCALE) * 100;
 
   return (
-    <div ref={ref} className="flagship-bleed" style={{ fontFamily: "var(--font-sans)" }}>
+    <div
+      ref={ref}
+      style={{
+        fontFamily: "var(--ins-font)",
+        color: "var(--ins-ink)",
+        margin: mobile ? "22px 0 20px" : "34px 0 30px",
+      }}
+    >
       <div style={{ marginBottom: mobile ? 14 : 22 }}>
-        <p className="ed-label" style={{ margin: 0 }}>
+        <p style={KICKER}>
           $100,000 &middot; 30 years &middot; 7% equity baseline
         </p>
         <h3
           style={{
-            fontFamily: "var(--font-display)",
-            fontWeight: 500,
-            fontStyle: "italic",
+            fontFamily: "var(--ins-font)",
+            fontWeight: 700,
             fontSize: mobile ? "clamp(20px, 5vw, 22px)" : "clamp(28px, 3.4vw, 34px)",
             lineHeight: 1.1,
-            letterSpacing: "-0.018em",
+            letterSpacing: "-0.02em",
             margin: "8px 0 0",
-            color: "var(--ink)",
+            color: "var(--ins-ink)",
           }}
         >
           Four endings, one holding period.
@@ -86,8 +105,8 @@ export function FactorBetOutcomes() {
 
       <div
         style={{
-          background: "var(--paper-light)",
-          border: "1px solid var(--ink)",
+          background: "var(--ins-paper)",
+          border: "1px solid var(--ins-ink)",
           padding: mobile ? "20px 16px" : "30px 32px 26px",
         }}
       >
@@ -105,22 +124,19 @@ export function FactorBetOutcomes() {
               >
                 <span
                   style={{
-                    fontFamily: "var(--font-sans)",
                     fontSize: 12,
                     fontWeight: 700,
                     letterSpacing: "0.04em",
-                    color: r.isBaseline ? "var(--stamp)" : "var(--ink)",
+                    color: r.isBaseline ? "var(--ins-signal)" : "var(--ins-ink)",
                   }}
                 >
                   {r.label}
                   <span
                     style={{
-                      fontFamily: "var(--font-serif)",
-                      fontStyle: "italic",
-                      fontWeight: 400,
+                      fontWeight: 500,
                       letterSpacing: 0,
                       fontSize: 12.5,
-                      color: "var(--ink-mute)",
+                      color: "var(--ins-gray-600)",
                       marginLeft: 8,
                       display: mobile ? "block" : "inline",
                     }}
@@ -130,12 +146,11 @@ export function FactorBetOutcomes() {
                 </span>
                 <span
                   style={{
-                    fontFamily: "var(--font-display)",
-                    fontWeight: 500,
+                    fontWeight: 700,
                     fontSize: r.isBaseline ? 22 : 18,
                     lineHeight: 1,
                     fontVariantNumeric: "tabular-nums",
-                    color: r.isBaseline ? "var(--stamp)" : "var(--ink)",
+                    color: r.isBaseline ? "var(--ins-signal)" : "var(--ins-ink)",
                     flexShrink: 0,
                   }}
                 >
@@ -145,7 +160,7 @@ export function FactorBetOutcomes() {
               <div
                 style={{
                   height: r.isBaseline ? 18 : 12,
-                  background: "color-mix(in oklab, var(--ink) 8%, transparent)",
+                  background: "var(--ins-track)",
                   position: "relative",
                 }}
               >
@@ -167,7 +182,7 @@ export function FactorBetOutcomes() {
                       bottom: -2,
                       left: `${baselinePct}%`,
                       width: 0,
-                      borderLeft: "1.5px dashed var(--stamp)",
+                      borderLeft: "1.5px dashed var(--ins-signal)",
                     }}
                     aria-hidden
                   />
@@ -184,17 +199,16 @@ export function FactorBetOutcomes() {
             gap: 12,
             marginTop: mobile ? 18 : 22,
             paddingTop: mobile ? 16 : 18,
-            borderTop: "1px solid var(--rule-soft)",
+            borderTop: "1px solid var(--ins-hair)",
           }}
         >
           <span
             style={{
-              fontFamily: "var(--font-display)",
-              fontWeight: 500,
-              fontStyle: "italic",
+              fontWeight: 800,
               fontSize: mobile ? 30 : 40,
               lineHeight: 0.9,
-              color: "var(--stamp)",
+              letterSpacing: "-0.02em",
+              color: "var(--ins-signal)",
               fontVariantNumeric: "tabular-nums",
               whiteSpace: "nowrap",
             }}
@@ -203,17 +217,20 @@ export function FactorBetOutcomes() {
           </span>
           <p
             style={{
-              fontFamily: "var(--font-serif)",
               fontSize: mobile ? 14.5 : 15.5,
+              fontWeight: 500,
               lineHeight: 1.5,
-              color: "var(--ink-soft)",
+              color: "var(--ins-gray-700)",
               margin: 0,
             }}
           >
             That&rsquo;s all the net factor premium CAGE needs to cover its fee
             gap. The target is ten times that. The catch is the{" "}
-            <strong style={{ fontWeight: 600 }}>sequence</strong> &mdash; the
-            century-long average can take a very long decade to show up.
+            <strong style={{ fontWeight: 700, color: "var(--ins-ink)" }}>
+              sequence
+            </strong>{" "}
+            &mdash; the century-long average can take a very long decade to show
+            up.
           </p>
         </div>
       </div>

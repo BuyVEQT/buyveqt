@@ -58,6 +58,17 @@ export const COMPARISON_PAGES: Record<string, ComparisonPage> = {
       "VEQT gives you the entire global stock market in one ETF — 13,000+ holdings across 50+ countries. VFV gives you the S&P 500 — 500 of the largest US companies. VFV has been the better performer recently, but VEQT is the more resilient long-term choice. This comes down to whether you believe US dominance is permanent or cyclical.",
     funds: ["VEQT.TO", "VFV.TO"],
   },
+  // Drafted from compare-verdicts + funds registry — editorial review pending.
+  "veqt-vs-vun": {
+    slug: "veqt-vs-vun",
+    title: "VEQT vs VUN: Global Portfolio or Its US Sleeve?",
+    metaTitle: "VEQT vs VUN Comparison — BuyVEQT",
+    metaDescription:
+      "VEQT vs VUN: a complete global portfolio against one of its own building blocks. Compare MER, holdings, US exposure, and why holding both doubles up on the United States.",
+    intro:
+      "VUN is not really an alternative to VEQT — it is one of VEQT's four underlying ETFs, the US total-market sleeve that carries 44.5% of the fund. VEQT holds 13,700+ companies across Canada, the US, international developed markets and emerging markets. VUN holds roughly 3,700 US companies and nothing else. VUN is cheaper (0.16% MER against VEQT's ~0.20%), but it is a component rather than a portfolio: hold both and you own VUN twice, once directly and once inside VEQT.",
+    funds: ["VEQT.TO", "VUN.TO"],
+  },
 };
 
 export function getComparison(slug: string): ComparisonPage | undefined {

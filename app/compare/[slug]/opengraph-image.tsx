@@ -1,4 +1,4 @@
-import { renderBroadsheetOG, OG_SIZE, OG_CONTENT_TYPE } from "@/lib/og/broadsheet";
+import { renderInstrumentOG, OG_SIZE, OG_CONTENT_TYPE } from "@/lib/og/instrument";
 import { COMPARISON_PAGES } from "@/data/comparisons";
 
 export const alt = "Fund Comparison — BuyVEQT";
@@ -23,12 +23,13 @@ export default async function Image({
     comparison?.metaDescription ??
     `Side-by-side comparison of ${fundA} and ${fundB} — fees, allocation, and verdicts.`;
 
-  return renderBroadsheetOG({
-    eyebrow: "Head to Head",
+  return renderInstrumentOG({
+    eyebrow: "COMPARISONS",
     title: `${fundA} vs. ${fundB}`,
-    italic: true,
     dek,
-    footerNote: comparison ? `${fundA} · ${fundB}` : "Comparison",
+    chipLabel: "HEAD TO HEAD",
+    chipMark: false,
+    statLabel: comparison ? `${fundA} · ${fundB}` : "COMPARISON",
     alt: `${fundA} vs. ${fundB} — BuyVEQT`,
   });
 }

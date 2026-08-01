@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import InteriorShell from "@/components/broadsheet/InteriorShell";
 import WeeklyDispatchLayout from "@/components/weekly/WeeklyDispatchLayout";
 import {
   getAllWeeklyRecaps,
@@ -11,6 +10,12 @@ import {
 import { JsonLd } from "@/components/seo/JsonLd";
 import { buildBreadcrumbSchema, canonicalUrl, SITE_NAME } from "@/lib/seo-config";
 
+/**
+ * With content/weekly holding only `_template.mdx`, lib/weekly filters the
+ * underscore file out and this returns [] — the route builds with zero
+ * static pages and the index shows its first-issue notice. Keep it that
+ * way: the layout below is ready for the day an issue lands.
+ */
 export function generateStaticParams() {
   return getAllWeeklyRecaps().map((r) => ({ slug: r.slug }));
 }
@@ -42,6 +47,13 @@ export async function generateMetadata({
   };
 }
 
+/**
+ * /weekly/[slug] — the issue reader, in the Instrument grammar.
+ *
+ * This file owns the landmark and the JSON-LD; <WeeklyDispatchLayout> owns
+ * the page column, the reader chrome, and every `wkd-*` rule. The global
+ * shell supplies nav and footer.
+ */
 export default async function WeeklyRecapPage({
   params,
 }: {
@@ -55,10 +67,11 @@ export default async function WeeklyRecapPage({
   }
 
   const ordinal = getRecapOrdinal(slug);
+  const total = getAllWeeklyRecaps().length;
   const { previous, next } = getAdjacentRecaps(slug);
 
   return (
-    <InteriorShell maxWidth="max-w-[1200px]">
+    <main className="ins-root wkd">
       <JsonLd
         data={buildBreadcrumbSchema([
           { name: "Home", path: "/" },
@@ -89,9 +102,10 @@ export default async function WeeklyRecapPage({
       <WeeklyDispatchLayout
         recap={recap}
         ordinal={ordinal}
+        total={total}
         previous={previous}
         next={next}
       />
-    </InteriorShell>
+    </main>
   );
 }

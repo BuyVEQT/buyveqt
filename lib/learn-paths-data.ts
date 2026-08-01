@@ -96,3 +96,34 @@ export const LEARN_PATHS: LearnPath[] = [
     ],
   },
 ];
+
+/**
+ * Guard: every step above must name a real dispatch.
+ *
+ * The path pages render at build time (the index is static, the six detail
+ * pages come from `generateStaticParams`), so calling this from them turns
+ * a typo'd or renamed slug into a failed build rather than a path that
+ * silently prints five steps where the data says six — `pickBySlug` drops
+ * unresolved slugs by design, which is the right runtime behaviour but a
+ * terrible way to find out.
+ *
+ * Takes the known slugs as an argument rather than reading the registry
+ * itself: lib/articles touches `fs`, and this file stays client-safe.
+ */
+export function assertPathSlugsResolve(knownSlugs: Iterable<string>): void {
+  const known = new Set(knownSlugs);
+  const broken: string[] = [];
+
+  for (const path of LEARN_PATHS) {
+    for (const slug of path.slugs) {
+      if (!known.has(slug)) broken.push(`${path.id} → ${slug}`);
+    }
+  }
+
+  if (broken.length > 0) {
+    throw new Error(
+      `learn-paths-data: ${broken.length} path step(s) reference an article ` +
+        `that does not exist in content/learn:\n  ${broken.join("\n  ")}`
+    );
+  }
+}
