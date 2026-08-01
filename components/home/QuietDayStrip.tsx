@@ -152,16 +152,16 @@ export default function QuietDayStrip({
         </div>
       </div>
 
-      <div className="cell cell--cta">
-        <Link href="/weekly" className="dispatch">
-          TODAY&rsquo;S DISPATCH →
-        </Link>
-      </div>
+      {/* The whole strip is the tap target — a stretched overlay link
+          into the almanac, so the section keeps its styled-jsx scope
+          (a Link can't carry it) and the grid never re-flows. */}
+      <Link href="/almanac" className="stretch" aria-label="See the full almanac" />
 
       <style jsx>{`
         .quiet {
+          position: relative;
           display: grid;
-          grid-template-columns: 220px 1fr auto;
+          grid-template-columns: 220px 1fr;
           align-items: center;
           border: 1px solid var(--ins-ink);
           /* The home page's single warm band (Turn 8 allows one per page,
@@ -182,12 +182,14 @@ export default function QuietDayStrip({
           padding: 18px 24px;
           border-left: 1px solid var(--ins-hair);
         }
-        .cell--cta {
-          align-self: stretch;
-          display: flex;
-          align-items: center;
-          border-left: 1px solid var(--ins-hair);
-          padding: 0;
+        .quiet :global(.stretch) {
+          position: absolute;
+          inset: 0;
+        }
+        /* Hover affordance for the strip-as-link: the 1px border reads
+           as 2px via an inset shadow — no layout shift. */
+        .quiet:hover {
+          box-shadow: inset 0 0 0 1px var(--ins-ink);
         }
 
         .microlabel {
@@ -224,26 +226,8 @@ export default function QuietDayStrip({
           color: var(--ins-gray-600);
         }
 
-        .quiet :global(.dispatch) {
-          display: flex;
-          align-items: center;
-          min-height: 44px;
-          height: 100%;
-          padding: 0 22px;
-          font-size: 10px;
-          font-weight: 800;
-          letter-spacing: 0.14em;
-          color: var(--ins-ink);
-          text-decoration: none;
-          white-space: nowrap;
-        }
-        .quiet :global(.dispatch:hover) {
-          background: var(--ins-ink);
-          color: var(--ins-paper-warm);
-        }
-
         /* ── Mobile (26-ref): one column, the state reading pinned right
-              of the label, the dispatch as a ruled 44px row. ── */
+              of the label. ── */
         @media (max-width: 640px) {
           .quiet {
             grid-template-columns: 1fr;
@@ -278,17 +262,6 @@ export default function QuietDayStrip({
           .caps {
             gap: 4px;
             flex-direction: column;
-          }
-          .cell--cta {
-            border-left: none;
-            border-top: 1px solid var(--ins-hair);
-            margin: 0 16px;
-            padding: 0;
-          }
-          .quiet :global(.dispatch) {
-            padding: 0;
-            font-size: 10px;
-            letter-spacing: 0.12em;
           }
         }
       `}</style>
