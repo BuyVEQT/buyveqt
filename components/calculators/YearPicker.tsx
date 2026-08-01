@@ -20,7 +20,7 @@ interface YearPickerProps {
   onChange: (y: number) => void;
   /** Label printed above the marker. Defaults to the year itself. */
   markerLabel?: string;
-  /** Micro caption under the rule — pre-uppercased. */
+  /** Explanatory caption under the rule — sentence case, not a label. */
   caption?: string;
 }
 
@@ -30,7 +30,10 @@ export default function YearPicker({
   value,
   onChange,
   markerLabel,
-  caption = "ANY ENTRY YEAR SINCE LAUNCH — THE COHORT REPRICES AS YOU GO",
+  /* Re-cased from SHOUTING CAPS in Turn 8. It is a sentence about how the
+     ruler behaves ("the cohort reprices"), not a label naming a thing, so
+     it reads as a caption now. Wording is unchanged. */
+  caption = "Any entry year since launch — the cohort reprices as you go",
 }: YearPickerProps) {
   const years: number[] = [];
   for (let y = min; y <= max; y++) years.push(y);
@@ -165,11 +168,16 @@ export default function YearPicker({
           height: 11px;
           background: var(--ins-ink);
         }
+        /* Tick numerals — TRUE LABELS (they name a year). 8px → the 10px
+           floor. No tracking to dial back, and the widest string is a
+           four-digit year at ~25px against ticks that sit ~100px apart on
+           desktop and ~114px apart on mobile (only every other year is
+           labelled), so nothing collides. */
         .ruler__year {
           position: absolute;
           bottom: 4px;
           transform: translateX(-50%);
-          font-size: 8px;
+          font-size: 10px;
           font-weight: 600;
           color: var(--ins-gray-600);
           font-variant-numeric: tabular-nums;
@@ -212,15 +220,25 @@ export default function YearPicker({
           height: 20px;
           background: var(--ins-ink);
         }
+        /* EXPLANATORY CAPTION — a sentence about the ruler, so it takes
+           the caption contract (12px / 500 / 0.01em / gray-600) and the
+           copy itself was re-cased at the prop default. Still no
+           text-transform: the string is authored in the case it prints. */
         .ruler__caption {
           margin-top: 8px;
-          font-size: 9.5px;
-          font-weight: 600;
-          letter-spacing: 0.16em;
+          font-size: 12px;
+          font-weight: 500;
+          letter-spacing: 0.01em;
+          line-height: 1.45;
           color: var(--ins-gray-600);
-          /* Pre-uppercased copy — no text-transform. */
         }
+        /* The drag hint stays caps at the floor — "◄ DRAG ►" names an
+           affordance, it does not explain one, so it is a label riding
+           inside a caption line (same split as the home band's rail). */
         .ruler__drag {
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.12em;
           animation: ins-hintShimmer 2.6s ease-in-out infinite;
         }
         @media (max-width: 640px) {
@@ -240,19 +258,18 @@ export default function YearPicker({
           }
           .ruler__year {
             bottom: 2px;
-            font-size: 7.5px;
           }
           .ruler__marker-label {
-            font-size: 9px;
+            font-size: 10px;
             letter-spacing: 0.08em;
           }
           .ruler__marker-stem {
             height: 16px;
           }
+          /* Size and tracking now come from the base caption rule — the
+             phone only tightens the gap above it. */
           .ruler__caption {
             margin-top: 6px;
-            font-size: 8.5px;
-            letter-spacing: 0.12em;
           }
         }
       `}</style>

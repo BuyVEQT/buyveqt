@@ -76,8 +76,15 @@ export default function PulseCell({ post }: { post: RedditPost }) {
           justify-content: space-between;
           gap: 12px;
         }
+        /* Source + timestamp is a TRUE LABEL — it names where the words came
+           from, it does not explain anything — so it keeps caps + tracking
+           and only rises to the 10px floor. Tracking held at 0.16em: the
+           longest real string ("R/JUSTBUYVEQT · JUST NOW", 24 chars ≈ 176px
+           at 10px/0.16em) still clears the narrowest cell the grid can make
+           (300px minus 36px padding, less the arrow and its 12px gap ≈
+           237px), so there is nothing to dial back for. */
         .pcell__src {
-          font-size: 9.5px;
+          font-size: 10px;
           font-weight: 600;
           letter-spacing: 0.16em;
           text-transform: uppercase;
@@ -112,8 +119,10 @@ export default function PulseCell({ post }: { post: RedditPost }) {
             font-size: 14.5px;
             -webkit-line-clamp: 5;
           }
+          /* One card per row on phones, so the label has ~291px of run —
+             more headroom than desktop, not less. Floor only. */
           .pcell__src {
-            font-size: 9px;
+            font-size: 10px;
             letter-spacing: 0.14em;
           }
         }

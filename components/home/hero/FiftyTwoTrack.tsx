@@ -5,10 +5,13 @@
  * column's "52-WEEK RANGE" row (The Instrument).
  *
  * Anatomy (from the handoff, artboard 3a desktop):
- *   - 4px bar, full width, `var(--ins-track)` (rgba(17,17,17,0.14))
+ *   - 4px bar, full width, `var(--ins-track)` (the ink scale's 12% step)
  *   - marker: 10px ink dot, 2px paper border + 1px ink ring (box-shadow),
  *     centered at (price − low) / (high − low)
- *   - labels "LOW · {month}" / "NOW" — 8.5px w600 0.16em gray
+ *   - labels "LOW · {month}" / "NOW" — true labels, so they keep caps +
+ *     tracking; 10px w600 0.12em gray since Turn 8's microtype floor
+ *     (were 8.5px / 0.16em; the tracking came down to hold the 300px
+ *     facts column)
  *
  * Border radius 0 on the bar (Instrument rule: radius only on the today
  * chip and round dots); the dot itself is 999px per the dots exception.
@@ -69,9 +72,9 @@ export default function FiftyTwoTrack({
         .track__ends {
           display: flex;
           justify-content: space-between;
-          font-size: 8.5px;
+          font-size: 10px;
           font-weight: 600;
-          letter-spacing: 0.16em;
+          letter-spacing: 0.12em;
           text-transform: uppercase;
           color: var(--ins-gray-600);
           margin-top: 8px;

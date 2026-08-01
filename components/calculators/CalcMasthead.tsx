@@ -87,9 +87,14 @@ export default function CalcMasthead({ sessionsCount }: CalcMastheadProps) {
           .cm {
             padding-top: 24px;
           }
+          /* Mobile kicker to the floor. It is a TRUE LABEL (an eyebrow
+             naming the page's contents), so caps and tracking stay — but
+             the dial-back to 0.2em keeps "FOUR CALCULATORS · N SESSIONS OF
+             TAPE" at roughly the line count it had at 9px on a 390px
+             board; the bump alone would have pushed it over. */
           .cm__kicker {
-            font-size: 9px;
-            letter-spacing: 0.24em;
+            font-size: 10px;
+            letter-spacing: 0.2em;
           }
           .cm__display {
             font-size: 56px;

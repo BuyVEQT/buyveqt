@@ -21,9 +21,9 @@ const css = `
 }
 .ndisp__kicker {
   display: block;
-  font-size: 8.5px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
   font-variant-numeric: tabular-nums;
@@ -68,9 +68,9 @@ const css = `
 }
 .ndisp__prev {
   margin: 12px 0 0;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
 }
@@ -102,12 +102,12 @@ const css = `
     justify-content: center;
     min-height: 46px;
     padding: 12px 18px;
-    font-size: 9.5px;
-    letter-spacing: 0.14em;
+    font-size: 10px;
+    letter-spacing: 0.12em;
   }
   .ndisp__prev {
-    font-size: 8.5px;
-    letter-spacing: 0.12em;
+    font-size: 10px;
+    letter-spacing: 0.1em;
   }
 }
 

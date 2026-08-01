@@ -108,7 +108,7 @@ interface WeeklyDispatchLayoutProps {
  *   tape     — <ReadingProgress>, the shared 3px signal bar under the masthead
  *   dateline — <WeeklyMeta>, breadcrumb + live percent / minutes left
  *   hero     — 3px ink rule, issue kicker, title, standfirst, facts row
- *   body     — MDX at 21px/1.6 Archivo on a 68ch measure
+ *   body     — MDX at 18.5px/1.65 Newsreader on a 68ch measure
  *   closer   — prev/next issue rows, the signup box, one red CTA back
  *
  * Server component: the CSS ships as a plain <style> rather than styled-jsx,
@@ -300,7 +300,7 @@ const css = `
   padding-top: 14px;
 }
 .wkd-hero__kicker {
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -340,9 +340,9 @@ const css = `
   min-width: 0;
 }
 .wkd-facts__label {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
 }
@@ -357,14 +357,20 @@ const css = `
 }
 
 /* ══ Article grammar ════════════════════════════════════════════════
- * The same 21px/1.6 Archivo column the /learn reader sets, so the two
- * columns of the paper read as one publication. Block selectors are
- * direct-child only: MDX components (pull-quotes, callouts, summaries)
- * carry their own type and must not inherit the prose measure.
+ * The same column the /learn reader sets, so the two halves of the paper
+ * read as one publication: Newsreader (--ins-serif) at 18.5px/1.65 for the
+ * running prose, Archivo for everything else in the column — headings,
+ * section kickers, tables, code. Turn 8's serif is prose-only; see the
+ * note in app/layout.tsx before widening it.
+ *
+ * Block selectors are direct-child only: MDX components (pull-quotes,
+ * callouts, summaries) carry their own type and must not inherit the
+ * prose measure or family.
  * ═════════════════════════════════════════════════════════════════ */
 .wkd__prose {
   counter-reset: wkd-sec;
   margin-top: 30px;
+  font-family: var(--ins-font);
   font-size: 21px;
   font-weight: 500;
   line-height: 1.6;
@@ -375,6 +381,17 @@ const css = `
 .wkd__prose > ol,
 .wkd__prose > blockquote {
   max-width: 68ch;
+}
+/* The serif column. 400 is Newsreader's text weight — the 500 the
+   container carries is an Archivo weight and would synthesise here. */
+.wkd__prose > p,
+.wkd__prose > ul > li,
+.wkd__prose > ol > li,
+.wkd__prose > blockquote {
+  font-family: var(--ins-serif);
+  font-size: 18.5px;
+  font-weight: 400;
+  line-height: 1.65;
 }
 .wkd__prose > p {
   margin: 0 0 20px;
@@ -399,7 +416,7 @@ const css = `
   content: "Section " counter(wkd-sec, decimal-leading-zero);
   display: block;
   margin-bottom: 8px;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -417,7 +434,8 @@ const css = `
 .wkd__prose > p strong,
 .wkd__prose > ul strong,
 .wkd__prose > ol strong {
-  font-weight: 700;
+  /* 600 = the real Newsreader cut we load (see app/layout.tsx). */
+  font-weight: 600;
   color: var(--ins-ink);
 }
 .wkd__prose > p a,
@@ -500,7 +518,7 @@ const css = `
   padding: 10px 14px 9px;
   text-align: left;
   white-space: nowrap;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -549,9 +567,9 @@ const css = `
 }
 .wkd-adj__kicker {
   display: block;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
   font-variant-numeric: tabular-nums;
@@ -583,7 +601,7 @@ const css = `
 }
 .wkd-signup__label {
   margin: 0;
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -729,8 +747,8 @@ const css = `
     padding-top: 12px;
   }
   .wkd-hero__kicker {
-    font-size: 8.5px;
-    letter-spacing: 0.18em;
+    font-size: 10px;
+    letter-spacing: 0.16em;
   }
   .wkd-hero__title {
     margin-top: 10px;
@@ -747,8 +765,8 @@ const css = `
     padding: 12px 0 14px;
   }
   .wkd-facts__label {
-    font-size: 8.5px;
-    letter-spacing: 0.18em;
+    font-size: 10px;
+    letter-spacing: 0.16em;
   }
   .wkd-facts__value {
     font-size: 18px;
@@ -757,6 +775,15 @@ const css = `
     margin-top: 24px;
     font-size: 17px;
     line-height: 1.62;
+  }
+  /* Phone prose holds the 18–19px band's lower end — see the /learn
+     reader for the reasoning. */
+  .wkd__prose > p,
+  .wkd__prose > ul > li,
+  .wkd__prose > ol > li,
+  .wkd__prose > blockquote {
+    font-size: 18px;
+    line-height: 1.65;
   }
   .wkd__prose > p {
     margin-bottom: 16px;
@@ -768,8 +795,8 @@ const css = `
     letter-spacing: -0.02em;
   }
   .wkd__prose > h2::before {
-    font-size: 8.5px;
-    letter-spacing: 0.18em;
+    font-size: 10px;
+    letter-spacing: 0.16em;
   }
   .wkd__prose > h3 {
     font-size: 17px;
@@ -789,8 +816,8 @@ const css = `
     padding: 12px 0;
   }
   .wkd-adj__kicker {
-    font-size: 8px;
-    letter-spacing: 0.16em;
+    font-size: 10px;
+    letter-spacing: 0.14em;
   }
   .wkd-adj__title {
     margin-top: 3px;

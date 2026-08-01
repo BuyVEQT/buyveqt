@@ -44,11 +44,15 @@ export function Pullquote({ children, attribution }: PullquoteProps) {
         {children}
       </blockquote>
       {attribution && (
+        // TRUE LABEL — an attribution names a speaker or source, so it
+        // stays a tracked caps line rather than becoming a 12px sentence.
+        // Size moves to the floor; it runs the full block and can wrap, so
+        // the tracking is kept.
         <figcaption
           style={{
             marginTop: 12,
             fontFamily: "var(--ins-font)",
-            fontSize: 9.5,
+            fontSize: 10,
             fontWeight: 700,
             letterSpacing: "0.18em",
             textTransform: "uppercase",

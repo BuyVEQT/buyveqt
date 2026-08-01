@@ -127,8 +127,10 @@ export default function DCACalculator() {
     setAdjustInflation(inp.adjustInflation);
   }
 
-  // Pre-uppercased — the tagline prints as a micro line, and a CSS
-  // text-transform would mangle any symbol we add here later.
+  // Stays SHOUTING: this is a spec strip with no verb — it names the run
+  // rather than explaining it — so it is a label, not a caption, and keeps
+  // its caps under the Turn 8 contract. Pre-uppercased rather than
+  // text-transformed so a symbol added here later can't be mangled.
   const taglineCola =
     contribGrowth > 0 ? ` · GROWING ${contribGrowth}%/YR` : "";
   const taglineInflation = adjustInflation ? " · IN TODAY’S DOLLARS" : "";
@@ -229,22 +231,30 @@ export default function DCACalculator() {
               gap: 6px;
               font-family: var(--ins-font);
             }
+            /* "TRY" — a TRUE LABEL heading the preset row. 8px → the
+               floor, one tracking notch back for the fixed 320px column. */
             .calc-quick__lab {
-              font-size: 8px;
+              font-size: 10px;
               font-weight: 700;
-              letter-spacing: 0.2em;
+              letter-spacing: 0.18em;
               color: var(--ins-gray-600);
               flex-basis: 100%;
             }
+            /* Preset chips are labels too — they name a run ("$500/MO ×
+               20Y"). Caps kept, 9px → the floor; 0.08em tracking is
+               already below the dial-back table, and at 10px a chip
+               measures ~111px, so the row still seats two per line inside
+               the column exactly as it did. min-height 32px → 44px on
+               every viewport, not just phones. */
             .calc-quick button {
               appearance: none;
               background: transparent;
               border: 1px solid var(--ins-hair);
               border-radius: 0;
               padding: 7px 10px;
-              min-height: 32px;
+              min-height: 44px;
               font-family: var(--ins-font);
-              font-size: 9px;
+              font-size: 10px;
               font-weight: 700;
               letter-spacing: 0.08em;
               text-transform: uppercase;
@@ -261,11 +271,6 @@ export default function DCACalculator() {
             .calc-quick button:focus-visible {
               outline: 2px solid var(--ins-signal);
               outline-offset: 2px;
-            }
-            @media (max-width: 640px) {
-              .calc-quick button {
-                min-height: 44px;
-              }
             }
           `}</style>
         </>

@@ -7,9 +7,9 @@ const css = `
   font-family: var(--ins-font);
 }
 .tprail__kicker {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
 }
@@ -26,9 +26,9 @@ const css = `
   border-bottom: 1px solid var(--ins-ink);
 }
 .tprail__label {
-  font-size: 8.5px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
 }
@@ -58,13 +58,14 @@ const css = `
   letter-spacing: 0.02em;
   color: var(--ins-gray-600);
 }
+/* A sentence about how the rail behaves - a caption, so sentence case at
+   12px rather than 8.5px caps. */
 .tprail__caption {
   margin-top: 10px;
-  font-size: 8.5px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  line-height: 1.7;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1.5;
   color: var(--ins-gray-600);
 }
 
@@ -84,9 +85,6 @@ const css = `
   }
   .tprail__lead {
     font-size: 17px;
-  }
-  .tprail__caption {
-    letter-spacing: 0.1em;
   }
 }
 @media (max-width: 400px) {

@@ -11,14 +11,22 @@ const css = `
   gap: 40px;
   font-variant-numeric: tabular-nums;
 }
+/* Column head — TRUE LABEL on both sides. "VEQT · Alive" names the fund;
+   "Follows the market" / "Fixed targets · 45/25/25/5" name the method.
+   Neither is a sentence (no subject), so they keep caps at the floor.
+   Tracking 0.16em → 0.12em: the two halves share one non-wrapping flex
+   row, and the XEQT side's method string is the longest chrome in the
+   exhibit. The weights inside it are interpolated but they are part of a
+   method label, not a readout on a bar — the exhibit's actual figures are
+   .exb__pct, which is held at its old size below. */
 .exb__head {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
   gap: 12px;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 800;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 .exb__state {
@@ -39,12 +47,16 @@ const css = `
   flex-direction: column;
   gap: 7px;
 }
+/* The row carries the REGION label, so it takes the floor: "Canada" is the
+   longest at ~41 units against a 52px track. The row's own size is
+   inherited by the sleeve name only — .exb__pct overrides it back down,
+   because the percentage is a printed figure and figures do not move. */
 .exb__row {
   display: grid;
   grid-template-columns: 52px minmax(0, 1fr) 46px;
   gap: 10px;
   align-items: center;
-  font-size: 8.5px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -53,6 +65,10 @@ const css = `
   color: var(--ins-gray-600);
 }
 .exb__pct {
+  /* COMPUTED FIGURE — the sleeve weight straight off the factsheet. Held
+     at the pre-Turn-8 size on purpose; the floor governs chrome, not the
+     numbers an exhibit prints. */
+  font-size: 8.5px;
   text-align: right;
   color: var(--ins-ink);
 }
@@ -70,13 +86,16 @@ const css = `
 .exb__fill--pinned {
   background: var(--ins-signal);
 }
+/* CAPTION — both per-side notes are explaining sentences ("Dashed = set by
+   committee — moves only when BlackRock decides"), so they take the house
+   caption grammar and lose the transform. The strings were already written
+   in sentence case; only the CSS was shouting them. */
 .exb__cap {
   margin: 10px 0 0;
-  font-size: 8.5px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  line-height: 1.6;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1.45;
   color: var(--ins-gray-600);
 }
 
@@ -114,23 +133,26 @@ const css = `
   }
 }
 @media (max-width: 640px) {
+  /* One more notch off the tracking so "XEQT · FROZEN" and "FIXED TARGETS ·
+     45/25/25/5" still share one line inside the 350px mobile measure. */
   .exb__head {
-    font-size: 8.5px;
-    letter-spacing: 0.12em;
+    font-size: 10px;
+    letter-spacing: 0.1em;
   }
   .exb__row {
     grid-template-columns: 50px minmax(0, 1fr) 42px;
     gap: 8px;
+    font-size: 10px;
+  }
+  .exb__pct {
+    /* Figure holds its old mobile size for the same reason as above. */
     font-size: 8px;
   }
   .exb__track,
   .exb__fill {
     height: 8px;
   }
-  .exb__cap {
-    font-size: 8px;
-    letter-spacing: 0.1em;
-  }
+  /* .exb__cap needs no override now that it is 12px sentence copy. */
 }
 `;
 

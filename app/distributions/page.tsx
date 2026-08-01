@@ -87,25 +87,29 @@ const css = `
   color: var(--ins-gray-600);
 }
 .dist-kicker--red {
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.2em;
   color: var(--ins-signal);
 }
+/* Section notes are SENTENCES and source lines ("Vanguard declares the
+   date and amount in November", "Source: Vanguard Canada · Confirmed
+   payments only") — caption grammar, not label grammar. The JSX copy was
+   already authored in sentence case; only the text-transform was
+   shouting it. */
 .dist-note {
-  font-size: 9.5px;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
   color: var(--ins-gray-600);
   text-align: right;
 }
+/* The projection disclaimer — three full sentences. Caption. */
 .dist-caption {
   margin: 14px 0 0;
-  font-size: 9.5px;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
   color: var(--ins-gray-600);
   max-width: 90ch;
   line-height: 1.6;
@@ -147,10 +151,14 @@ const css = `
   border-left: 0;
   padding-left: 0;
 }
+/* Stat labels — TRUE LABELS, caps at the floor. Tracking comes back one
+   notch (0.22em → 0.2em) to pay for the size bump: these sit in a 4-up
+   grid track and "PAID SINCE 2019 · PER UNIT" is the longest string on
+   the strip. */
 .dist-fact-label {
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
 }
@@ -162,9 +170,12 @@ const css = `
   line-height: 1;
   color: var(--ins-ink);
 }
+/* Sub-labels under each figure name the basis of the number ("Per unit
+   vs. 2019", "Compound, 2019 to 2025") — they name a thing rather than
+   say one, so they stay labels. */
 .dist-fact-sub {
   margin-top: 7px;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -222,7 +233,7 @@ const css = `
 .dist-next__sub,
 .dist-next__amtsub {
   margin-top: 5px;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -252,10 +263,12 @@ const css = `
   border-left: 0;
   padding-left: 0;
 }
+/* 3-up grid track — tracking down a notch (0.2em → 0.18em) so
+   "AVERAGE OF LAST THREE" still clears its cell at the 900px breakpoint. */
 .dist-nf-label {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
 }
@@ -268,7 +281,7 @@ const css = `
 }
 .dist-nf-sub {
   margin-top: 5px;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -287,10 +300,12 @@ const css = `
   padding-bottom: 8px;
   border-bottom: 1px solid var(--ins-ink);
 }
+/* Column heads — labels. Tracking down a notch because "YEAR" has to
+   live inside the ledger's fixed 74px first track. */
 .dist-th {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
 }
@@ -338,22 +353,26 @@ const css = `
   line-height: 1;
   color: var(--ins-ink);
 }
+/* "2.31% YIELD · +5.2% YOY" — a data annotation, not a sentence. Label.
+   It sits in the ledger's right-hand 'auto' track, so tracking comes down
+   a notch to keep that track from widening into the date columns. */
 .dist-amtsub {
   margin-top: 5px;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
 }
+/* Footnotes are running prose — the yield definition and the source /
+   as-of line. Caption grammar; the copy was already sentence case. */
 .dist-footnote {
   margin: 12px 0 0;
   padding-top: 10px;
   border-top: 1px solid var(--ins-hair-soft);
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
   color: var(--ins-gray-600);
   line-height: 1.6;
 }
@@ -399,12 +418,14 @@ const css = `
   text-transform: uppercase;
   color: var(--ins-ink);
 }
+/* The rail's right-hand note is a sentence ("Estimates firm up when
+   Vanguard declares") — caption, same split ConditionsBand's rail makes
+   between its shouted verdict and its spoken note. */
 .dist-rail__note {
   margin-left: auto;
-  font-size: 9.5px;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
   color: var(--ins-gray-600);
   text-align: right;
 }
@@ -488,9 +509,11 @@ const css = `
   .dist-hero {
     padding-top: 22px;
   }
+  /* Three clauses on a 350px measure — tracking back a notch pays for
+     the floor bump so the kicker still breaks in two lines, not three. */
   .dist-kicker {
-    font-size: 9px;
-    letter-spacing: 0.24em;
+    font-size: 10px;
+    letter-spacing: 0.2em;
   }
   .dist-display {
     margin-top: 14px;
@@ -571,10 +594,12 @@ const css = `
     grid-column: 1;
     grid-row: 2;
   }
+  /* "PAID JAN 5, 2026" — still a value with a relabel prefix, so it
+     keeps caps; tracking down a notch to hold the stacked row's width. */
   .dist-cell--paid .dist-cell-value {
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 600;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.12em;
     color: var(--ins-gray-600);
   }
   .dist-paid-prefix {
@@ -606,14 +631,14 @@ const css = `
     height: 7px;
   }
   .dist-rail__copy {
-    font-size: 9px;
-    letter-spacing: 0.14em;
+    font-size: 10px;
+    letter-spacing: 0.12em;
   }
+  /* Caption size carries over from desktop; only the alignment and the
+     full-width wrap are mobile business. */
   .dist-rail__note {
     margin-left: 0;
     width: 100%;
-    font-size: 8.5px;
-    letter-spacing: 0.1em;
     text-align: left;
   }
 

@@ -17,9 +17,9 @@ const css = `
 }
 .wkmeta__left,
 .wkmeta__right {
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
   font-variant-numeric: tabular-nums;
@@ -44,8 +44,8 @@ const css = `
   }
   .wkmeta__left,
   .wkmeta__right {
-    font-size: 8.5px;
-    letter-spacing: 0.14em;
+    font-size: 10px;
+    letter-spacing: 0.1em;
   }
   .wkmeta__left {
     min-width: 0;

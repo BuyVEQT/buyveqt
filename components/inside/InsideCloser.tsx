@@ -59,12 +59,19 @@ export default function InsideCloser() {
         </span>
 
         <style jsx>{`
+          /* flex-wrap matches the home band's verdict rail. It earns its
+             keep at the floor: with the claim and the snap both bumped, the
+             single-line rail had ~13px of slack left at 390px and already
+             overflowed between 640px and 900px (where the claim is widest
+             relative to the page). Wrapping drops the snap to its own line
+             instead of clipping it. */
           .verdict {
             font-family: var(--ins-font);
             color: var(--ins-ink);
             border: 1px solid var(--ins-ink);
             display: flex;
             align-items: center;
+            flex-wrap: wrap;
             gap: 10px;
             padding: 11px 22px;
           }
@@ -77,15 +84,28 @@ export default function InsideCloser() {
             background: var(--ins-ink);
             flex-shrink: 0;
           }
+          /* The claim carries a verb, but it is a STAMP rather than running
+             copy — the same role (and the same treatment) as the home band's
+             verdict rail, which Turn 8 left in caps at 11px/0.18em. Caption
+             grammar here would turn the page's one-line verdict into a
+             footnote. Already above the floor on desktop; only the mobile
+             override below had to move. */
           .verdict__claim {
             font-size: 11px;
             font-weight: 800;
             letter-spacing: 0.18em;
             text-transform: uppercase;
           }
+          /* TRUE LABEL — "Next rebalance snap: SEP 30" has no verb and names
+             a thing (the date the weights are struck). It is the rail's
+             right-hand micro-label, exactly the role the home band's mobile
+             rail note keeps in caps. 9.5px → the floor; tracking held because
+             it is content-sized off margin-left:auto, not boxed. The date
+             comes from the shared fmtShortDate and stays as that formatter
+             prints it. */
           .verdict__snap {
             margin-left: auto;
-            font-size: 9.5px;
+            font-size: 10px;
             font-weight: 600;
             letter-spacing: 0.16em;
             text-transform: uppercase;
@@ -115,13 +135,20 @@ export default function InsideCloser() {
               width: 8px;
               height: 8px;
             }
+            /* Both bumped to the floor inside the rail's tightest box, so
+               both give a notch of tracking back. At 390px the rail has
+               362px of content width and the two strings now measure
+               ~209px ("NOTHING IN HERE NEEDS PICKING", 29 chars at
+               10px/0.1em w800) + ~126px ("NEXT SNAP · SEP 30", 18 chars at
+               10px/0.08em) + 24px of mark and gaps — it holds on one line
+               at 390 and wraps cleanly below that. */
             .verdict__claim {
-              font-size: 9px;
-              letter-spacing: 0.12em;
+              font-size: 10px;
+              letter-spacing: 0.1em;
             }
             .verdict__snap {
-              font-size: 8.5px;
-              letter-spacing: 0.1em;
+              font-size: 10px;
+              letter-spacing: 0.08em;
             }
           }
         `}</style>

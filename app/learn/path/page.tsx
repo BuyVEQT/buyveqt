@@ -135,8 +135,9 @@ export default function AllPathsPage() {
           <span className="lrnp__railCopy">
             NO PATH IS REQUIRED — THE ARCHIVE READS FINE UNSORTED
           </span>
+          {/* Sentence, so sentence case — see .lrnp__railNote. */}
           <span className="lrnp__railNote">
-            PATHS OVERLAP ON PURPOSE — SOME DISPATCHES REPEAT
+            Paths overlap on purpose — some dispatches repeat
           </span>
         </div>
 
@@ -239,17 +240,18 @@ const css = `
   gap: 24px;
 }
 .lrnp__eyebrow {
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
 }
+/* "Pick the question that fits" — an imperative sentence, so caption
+   grammar rather than a shouted label. */
 .lrnp__secMeta {
-  font-size: 9.5px;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
   color: var(--ins-gray-600);
   text-align: right;
 }
@@ -292,12 +294,17 @@ const css = `
   display: block;
   min-width: 0;
 }
+/* The row's framing line sits in the eyebrow slot but is a first-person
+   SENTENCE — "I'm comparing alternatives.", "My VEQT is down." — so it
+   takes caption grammar, not label grammar. The strings in
+   lib/learn-paths-data.ts were already authored in sentence case; only
+   the transform was shouting them, and a shouted sentence at 9px is
+   exactly what the floor exists to stop. */
 .lrnp__question {
   display: block;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
   color: var(--ins-gray-600);
 }
 .lrnp__title {
@@ -361,11 +368,15 @@ const css = `
   font-weight: 800;
   letter-spacing: 0.18em;
 }
+/* Sentence — "Paths overlap on purpose — some dispatches repeat". The
+   string was pre-uppercased in the JSX (hence no text-transform to
+   remove); it is re-cased there. The rail copy above stays a shouted
+   verdict, per ConditionsBand. */
 .lrnp__railNote {
   margin-left: auto;
-  font-size: 9.5px;
-  font-weight: 600;
-  letter-spacing: 0.16em;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
   color: var(--ins-gray-600);
   text-align: right;
 }
@@ -441,12 +452,14 @@ const css = `
   .lrnp__hero {
     padding-top: 24px;
   }
+  /* Three clauses on a 350px measure — a notch of tracking back pays
+     for the floor bump. */
   .lrnp__kicker {
-    font-size: 9px;
-    letter-spacing: 0.24em;
+    font-size: 10px;
+    letter-spacing: 0.2em;
   }
   .lrnp__heroMeta {
-    font-size: 9px;
+    font-size: 10px;
     letter-spacing: 0.16em;
   }
   .lrnp__display {
@@ -462,12 +475,18 @@ const css = `
     line-height: 1.55;
   }
   .lrnp__eyebrow {
-    font-size: 9px;
+    font-size: 10px;
     letter-spacing: 0.18em;
   }
+  /* Caption grammar makes the meta wider than the label it replaced, so
+     at 390 it takes its own line under the eyebrow instead of fighting
+     it for a 350px row. Size and colour carry over from desktop. */
+  .lrnp__secHead {
+    flex-wrap: wrap;
+    gap: 4px 24px;
+  }
   .lrnp__secMeta {
-    font-size: 8.5px;
-    letter-spacing: 0.12em;
+    text-align: left;
   }
   .lrnp__list {
     margin-top: 12px;
@@ -480,9 +499,9 @@ const css = `
   .lrnp__ordinal {
     font-size: 30px;
   }
+  /* Caption size holds at 390 — it is one short sentence per row. */
   .lrnp__question {
-    font-size: 8.5px;
-    letter-spacing: 0.14em;
+    font-size: 12px;
   }
   .lrnp__title {
     margin-top: 4px;
@@ -493,7 +512,7 @@ const css = `
     font-size: 13px;
   }
   .lrnp__meta {
-    font-size: 9px;
+    font-size: 10px;
     letter-spacing: 0.12em;
     color: var(--ins-gray-600);
   }
@@ -509,15 +528,14 @@ const css = `
     height: 7px;
   }
   .lrnp__railCopy {
-    font-size: 9px;
+    font-size: 10px;
     letter-spacing: 0.12em;
   }
+  /* Caption size carries over; mobile only unpins it from the right. */
   .lrnp__railNote {
     margin-left: 0;
     width: 100%;
     text-align: left;
-    font-size: 8px;
-    letter-spacing: 0.1em;
   }
   .lrnp__closer {
     display: block;

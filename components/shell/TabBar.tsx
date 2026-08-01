@@ -31,9 +31,12 @@ function activeFromPath(pathname: string): TabId | null {
 /**
  * Mobile bottom tab bar — Instrument grammar. Hidden above lg.
  *
- * Text-only per the mobile artboard: five equal columns of 8.5px w700
- * uppercase micro-labels. Active = ink with a 2px red tick bar at the
- * top edge of the cell (inset 30% each side); inactive = gray-400.
+ * Text-only per the mobile artboard: five equal columns of uppercase w700
+ * micro-labels — 10px since Turn 8's microtype floor (they were 8.5px,
+ * which is unreadable at arm's length on the one control users hit most).
+ * Tracking came down a notch to 0.08em so "COMPARE" still clears the 74px
+ * cell. Active = ink with a 2px red tick bar at the top edge of the cell
+ * (inset 30% each side); inactive = gray-400.
  * Solid white bar (no blur), 1px soft-hair top rule, no shadows, no
  * radius. Full-cell links keep tap targets ≥ 44px; safe-area padding
  * preserved for the iOS home indicator via `ins-safe-bottom`.
@@ -96,9 +99,9 @@ export default function TabBar() {
           background: var(--ins-signal);
         }
         .tb__label {
-          font-size: 8.5px;
+          font-size: 10px;
           font-weight: 700;
-          letter-spacing: 0.1em;
+          letter-spacing: 0.08em;
           text-transform: uppercase;
           line-height: 1;
         }

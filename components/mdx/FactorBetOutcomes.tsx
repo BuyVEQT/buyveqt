@@ -18,9 +18,12 @@ const COMPACT_THRESHOLD = 600;
 const VEQT_OUTCOME = 761; // $K — 1.07^30 on $100K
 const MAX_SCALE = 1240; // $K axis headroom above the best case
 
-/** Kicker above the headline. */
+/**
+ * Kicker above the headline. TRUE LABEL — names the scenario set, no verb.
+ * Caps and tracking stay; size sits on the 10px floor.
+ */
 const KICKER = {
-  fontSize: 9.5,
+  fontSize: 10,
   fontWeight: 700,
   letterSpacing: "0.2em",
   textTransform: "uppercase",

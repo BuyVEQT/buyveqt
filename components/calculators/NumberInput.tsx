@@ -99,11 +99,19 @@ export default function NumberInput({
           color: var(--ins-ink);
           min-width: 0;
         }
+        /* Field label — a TRUE LABEL (it names the field), so caps and
+           tracking stay; 8px → the 10px floor. Both skins are fixed boxes
+           (a 320px control column, a 118px bar cell), so the bump takes
+           one tracking notch: 0.2em → 0.18em. Longest real label in the
+           column, "Contribution growth (annual)", measures ~224px against
+           288px of inner width; the bar's "Amount / month" ~112px against
+           the 118px cell. The <input> font-sizes below are untouched —
+           anything under 16px makes iOS Safari zoom on focus. */
         .ninp__label {
           display: block;
-          font-size: 8px;
+          font-size: 10px;
           font-weight: 700;
-          letter-spacing: 0.2em;
+          letter-spacing: 0.18em;
           text-transform: uppercase;
           color: var(--ins-gray-600);
         }

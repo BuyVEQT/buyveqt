@@ -42,15 +42,20 @@ interface ConditionsBandProps {
   quote: VeqtQuote | null;
 }
 
-/** Per-state caption under the verdict word — verbatim from the 5a cards. */
+/**
+ * Per-state caption under the verdict word — the 5a copy, set in sentence
+ * case since Turn 8. These are full sentences, not labels: the band's
+ * captions read, its micro-labels shout, and the two stopped sharing a
+ * type treatment when the microtype floor came in.
+ */
 const CAPTIONS: Record<WeatherState, string> = {
-  calm: "FAIR WEATHER OVER THE MARKETS.",
-  bright: "A GOOD DAY'S WORK.",
-  breezy: "A LOUD DAY. NOT A STORY.",
-  surge: "THE MARKET SPRINTED. YOU WERE ABOARD.",
-  squall: "TAKE THE UMBRELLA. SKIP THE NEWS.",
-  rally: "A DAY FOR THE ALMANAC — THE GOOD KIND.",
-  gale: "THE PLAN WAS BUILT FOR THIS.",
+  calm: "Fair weather over the markets.",
+  bright: "A good day's work.",
+  breezy: "A loud day. Not a story.",
+  surge: "The market sprinted. You were aboard.",
+  squall: "Take the umbrella. Skip the news.",
+  rally: "A day for the almanac — the good kind.",
+  gale: "The plan was built for this.",
 };
 
 /** "68" → "68TH", "71" → "71ST" — gauge marker label. */
@@ -69,26 +74,27 @@ function ordinalLabel(n: number): string {
   }
 }
 
-/** Honest severity phrase per percentile band (gauge caption). */
+/** Honest severity phrase per percentile band (gauge caption, sentence case). */
 function severityPhrase(pct: number): string {
-  if (pct < 50) return "QUIETER THAN MOST SESSIONS";
-  if (pct <= 80) return "LOUDER THAN TYPICAL, A LONG WAY FROM RARE";
-  if (pct <= 90) return "LOUDER THAN MOST — STILL SHORT OF RARE";
-  if (pct < 98) return "APPROACHING RARE — A HANDFUL A YEAR";
-  return "RARE — A FEW DAYS PER DECADE";
+  if (pct < 50) return "Quieter than most sessions";
+  if (pct <= 80) return "Louder than typical, a long way from rare";
+  if (pct <= 90) return "Louder than most — still short of rare";
+  if (pct < 98) return "Approaching rare — a handful a year";
+  return "Rare — a few days per decade";
 }
 
-/** Full weekday name for week-caption copy — "FRIDAY". */
+/** Full weekday name for week-caption copy — "Friday". */
 function weekdayLong(iso: string): string {
-  return parseSessionDate(iso)
-    .toLocaleDateString("en-CA", { weekday: "long" })
-    .toUpperCase();
+  return parseSessionDate(iso).toLocaleDateString("en-CA", {
+    weekday: "long",
+  });
 }
 
 /**
  * One honest line under the week strip, derived from the classified
- * sessions. ≤60 chars, uppercase. "Recovered" is only claimed when the
- * next session actually regained the drop.
+ * sessions. ≤60 chars, sentence case (it is a caption, not a label).
+ * "Recovered" is only claimed when the next session actually regained
+ * the drop.
  */
 function weekCaption(sessions: SessionWeather[]): string {
   let loudDownIdx = -1;
@@ -101,18 +107,18 @@ function weekCaption(sessions: SessionWeather[]): string {
   }
   if (loudDownIdx >= 0) {
     const day = sessions[loudDownIdx];
-    const word = day.state.toUpperCase();
+    const word = day.state;
     if (loudDownIdx === sessions.length - 1) {
-      return `A ${word} TO CLOSE THE WEEK.`;
+      return `A ${word} to close the week.`;
     }
     const next = sessions[loudDownIdx + 1];
     if (next.changePercent >= Math.abs(day.changePercent)) {
-      return `${weekdayLong(day.date)}'S ${word} RECOVERED IN ONE SESSION.`;
+      return `${weekdayLong(day.date)}'s ${word} recovered in one session.`;
     }
     if (next.changePercent > 0) {
-      return `${weekdayLong(day.date)}'S ${word} BOUNCED THE NEXT SESSION.`;
+      return `${weekdayLong(day.date)}'s ${word} bounced the next session.`;
     }
-    return `${weekdayLong(day.date)}'S ${word} IS STILL ON THE TAPE.`;
+    return `${weekdayLong(day.date)}'s ${word} is still on the tape.`;
   }
 
   const lastOf = (state: WeatherState): SessionWeather | undefined => {
@@ -123,16 +129,16 @@ function weekCaption(sessions: SessionWeather[]): string {
   };
 
   const rally = lastOf("rally");
-  if (rally) return `${weekdayLong(rally.date)}'S RALLY — ONE FOR THE ALMANAC.`;
+  if (rally) return `${weekdayLong(rally.date)}'s rally — one for the almanac.`;
   const surge = lastOf("surge");
-  if (surge) return `${weekdayLong(surge.date)}'S SURGE LED THE WEEK.`;
+  if (surge) return `${weekdayLong(surge.date)}'s surge led the week.`;
   const brightCount = sessions.filter((s) => s.state === "bright").length;
-  if (brightCount >= 2) return `${brightCount} BRIGHT SESSIONS THIS WEEK.`;
-  if (brightCount === 1) return "ONE BRIGHT SESSION IN A FAIR WEEK.";
+  if (brightCount >= 2) return `${brightCount} bright sessions this week.`;
+  if (brightCount === 1) return "One bright session in a fair week.";
   if (sessions.some((s) => s.state === "breezy")) {
-    return "A BREEZE OR TWO, NOTHING MORE.";
+    return "A breeze or two, nothing more.";
   }
-  return "A QUIET WEEK ON THE TAPE.";
+  return "A quiet week on the tape.";
 }
 
 /** Next trading weekday after the last session — the outlook cell. */
@@ -326,9 +332,7 @@ export default function ConditionsBand({
                   {word}
                 </div>
                 <div className="caption caption--m">
-                  {/* text-transform: none — uppercase turns σ into Σ */}
-                  <span style={{ textTransform: "none" }}>σ</span> {sigma} ·{" "}
-                  {CAPTIONS[state]}
+                  σ {sigma} · {CAPTIONS[state]}
                 </div>
               </div>
             </div>
@@ -398,10 +402,8 @@ export default function ConditionsBand({
                 </span>
               </div>
               <div className="caption caption--hideM">
-                {/* text-transform: none — uppercase turns σ into Σ */}
-                <span style={{ textTransform: "none" }}>σ</span> {sigma} ·{" "}
-                {severityPhrase(pct)} · OF {fmtInt(severity.sampleSize)}{" "}
-                SESSIONS
+                σ {sigma} · {severityPhrase(pct)} · of{" "}
+                {fmtInt(severity.sampleSize)} sessions
               </div>
             </div>
 
@@ -481,25 +483,24 @@ export default function ConditionsBand({
                 )}
               </>
             )}
-            {/* Right-hand note: the open-market default points at the next
-                4pm reading; while the exchange is shut it says so and
-                names the next bell instead. Desktop keeps the outlook
-                prefix (68 chars vs. the open copy's 74, so the rail's
-                visual width doesn't grow); mobile's 7.5px box can't carry
-                "REOPENS" on top of the weekday, so the time stands in for
-                it — 28 chars against the open copy's 24. Written uppercase
-                like the rest of the rail; neither string carries a σ, so
-                .railNote's text-transform is harmless here. */}
+            {/* Right-hand note. Two strings, two type roles since Turn 8:
+                the desktop copy is a SENTENCE, so it reads as a caption
+                (sentence case, 12px); the mobile copy is a short LABEL
+                PHRASE with no verb, so it keeps caps + tracking at the
+                10px floor. The desktop copy keeps the outlook prefix (68
+                chars vs. the open copy's 74, so the rail's visual width
+                doesn't grow); mobile's box can't carry "reopens" on top of
+                the weekday, so the time stands in for it. */}
             <span className="railNote railNote--desktop">
               {closedClock ? (
                 <>
-                  TOMORROW&rsquo;S OUTLOOK: {typical} · MARKETS CLOSED — REOPENS{" "}
+                  Tomorrow&rsquo;s outlook: {typical} · markets closed — reopens{" "}
                   {closedClock.reopensLabel}
                 </>
               ) : (
                 <>
-                  TOMORROW&rsquo;S OUTLOOK: {typical} — A TYPICAL DAY. NEXT
-                  READING AT THE 4 PM BELL.
+                  Tomorrow&rsquo;s outlook: {typical} — a typical day. Next
+                  reading at the 4 pm bell.
                 </>
               )}
             </span>
@@ -564,18 +565,25 @@ export default function ConditionsBand({
           display: none;
         }
 
+        /* Micro-labels are TRUE LABELS — column heads. Caps + tracking,
+           at the 10px floor. */
         .microlabel {
-          font-size: 9.5px;
-          font-weight: 600;
-          letter-spacing: 0.18em;
-          text-transform: uppercase;
-          color: var(--ins-gray-600);
-        }
-        .caption {
-          font-size: 9.5px;
+          font-size: 10px;
           font-weight: 600;
           letter-spacing: 0.16em;
           text-transform: uppercase;
+          color: var(--ins-gray-600);
+        }
+        /* Captions are SENTENCES — the state line, the gauge reading and
+           the week summary. Turn 8 took all three out of 9.5px caps and
+           into 12px sentence case; the strings themselves are authored in
+           sentence case now, so there is no text-transform left to turn
+           σ into Σ (which is why the two inline override spans are gone). */
+        .caption {
+          font-size: 12px;
+          font-weight: 500;
+          letter-spacing: 0.01em;
+          line-height: 1.45;
           color: var(--ins-gray-600);
         }
 
@@ -600,7 +608,6 @@ export default function ConditionsBand({
           color: var(--ins-signal);
         }
         .caption--c1 {
-          letter-spacing: 0.18em;
           margin-top: 14px;
         }
 
@@ -631,9 +638,9 @@ export default function ConditionsBand({
           left: 95%;
           bottom: 24px;
           transform: translateX(-50%);
-          font-size: 7.5px;
+          font-size: 10px;
           font-weight: 800;
-          letter-spacing: 0.14em;
+          letter-spacing: 0.08em;
           color: var(--ins-signal);
         }
         .tick {
@@ -662,7 +669,7 @@ export default function ConditionsBand({
           position: absolute;
           bottom: 0;
           transform: translateX(-50%);
-          font-size: 8px;
+          font-size: 10px;
           font-weight: 600;
           color: var(--ins-gray-600);
         }
@@ -739,9 +746,14 @@ export default function ConditionsBand({
         }
 
         /* ── Col 3 · week strip ── */
+        /* Five equal session cells plus a content-sized track for the
+           outlook. Six equal columns used to be fine when the outlook tag
+           was 7px; at the 10px floor "OUTLOOK" needs ~49px and a 43px cell
+           would have overflowed into its neighbour. The five day cells
+           give up ~1px each and nothing else moves. */
         .week {
           display: grid;
-          grid-template-columns: repeat(6, 1fr);
+          grid-template-columns: repeat(5, minmax(0, 1fr)) auto;
           gap: 5px;
           margin-top: 12px;
         }
@@ -762,17 +774,20 @@ export default function ConditionsBand({
           color: var(--ins-ink);
         }
         .day--outlook {
-          border: 1px dashed rgba(17, 17, 17, 0.4);
+          /* Pinned to the last track so a short history (fewer than five
+             classified sessions) can't slide it into a 1fr cell. */
+          grid-column: -2 / -1;
+          border: 1px dashed var(--ins-hair);
           gap: 4px;
         }
         .dayName {
-          font-size: 7.5px;
+          font-size: 10px;
           font-weight: 700;
-          letter-spacing: 0.08em;
+          letter-spacing: 0.04em;
           color: var(--ins-gray-600);
         }
         .dayVal {
-          font-size: 9.5px;
+          font-size: 10px;
           font-weight: 700;
         }
         .dayVal--neg {
@@ -784,9 +799,10 @@ export default function ConditionsBand({
           margin-top: 3px;
         }
         .outTag {
-          font-size: 7px;
+          font-size: 10px;
           font-weight: 700;
-          letter-spacing: 0.1em;
+          letter-spacing: 0.04em;
+          white-space: nowrap;
           color: var(--ins-gray-600);
         }
         .col3 .caption {
@@ -824,9 +840,9 @@ export default function ConditionsBand({
           color: var(--ins-gray-600);
         }
         .rail :global(.railExtra) {
-          font-size: 9.5px;
+          font-size: 10px;
           font-weight: 600;
-          letter-spacing: 0.14em;
+          letter-spacing: 0.12em;
           /* No text-transform — pre-uppercased copy; σ must stay σ. */
           color: var(--ins-gray-600);
         }
@@ -839,12 +855,13 @@ export default function ConditionsBand({
           text-decoration: underline;
           text-underline-offset: 3px;
         }
+        /* Desktop note = caption (a sentence). The mobile override below
+           puts the short label phrase back into caps. */
         .railNote {
           margin-left: auto;
-          font-size: 9.5px;
-          font-weight: 600;
-          letter-spacing: 0.16em;
-          text-transform: uppercase;
+          font-size: 12px;
+          font-weight: 500;
+          letter-spacing: 0.01em;
           color: var(--ins-gray-600);
           text-align: right;
         }
@@ -911,8 +928,8 @@ export default function ConditionsBand({
             border-right: none;
           }
           .microlabel--m {
-            font-size: 8px;
-            letter-spacing: 0.2em;
+            font-size: 10px;
+            letter-spacing: 0.16em;
           }
           .word--m {
             font-size: 31px;
@@ -921,8 +938,7 @@ export default function ConditionsBand({
             margin-top: 3px;
           }
           .caption--m {
-            font-size: 9px;
-            letter-spacing: 0.14em;
+            font-size: 12px;
             margin-top: 5px;
           }
           .microlabel--hideM,
@@ -944,8 +960,8 @@ export default function ConditionsBand({
           }
           .rareLabel {
             bottom: 19px;
-            font-size: 7px;
-            letter-spacing: 0.12em;
+            font-size: 10px;
+            letter-spacing: 0.06em;
           }
           .tick {
             bottom: 12px;
@@ -960,7 +976,7 @@ export default function ConditionsBand({
             display: block;
           }
           .num {
-            font-size: 7.5px;
+            font-size: 10px;
           }
           .num--hideM {
             display: none;
@@ -970,7 +986,7 @@ export default function ConditionsBand({
             gap: 2px;
           }
           .markerLabel {
-            font-size: 9px;
+            font-size: 10px;
             letter-spacing: 0.06em;
           }
           .markerBar {
@@ -993,18 +1009,19 @@ export default function ConditionsBand({
             height: 16px;
           }
           .dayName {
-            font-size: 7px;
+            font-size: 10px;
+            letter-spacing: 0.02em;
           }
           .dayVal {
-            font-size: 8.5px;
+            font-size: 10px;
           }
           .outVal {
-            font-size: 9.5px;
+            font-size: 10px;
             margin-top: 2px;
           }
           .outTag {
-            font-size: 6.5px;
-            letter-spacing: 0.08em;
+            font-size: 10px;
+            letter-spacing: 0.02em;
           }
           .rail {
             gap: 10px;
@@ -1015,8 +1032,8 @@ export default function ConditionsBand({
             height: 7px;
           }
           .railCopy {
-            font-size: 9px;
-            letter-spacing: 0.14em;
+            font-size: 10px;
+            letter-spacing: 0.1em;
           }
           /* Informational extras drop on mobile; the rally/gale red
              extras (ARCHIVED / READ links) stay — they're the action. */
@@ -1026,15 +1043,21 @@ export default function ConditionsBand({
           }
           .rail :global(.railExtra--red) {
             display: inline;
-            font-size: 8.5px;
+            font-size: 10px;
+            letter-spacing: 0.08em;
           }
           .railNote--desktop {
             display: none;
           }
+          /* Short label phrase, not a sentence — back to caps at the
+             floor. 12px sentence case here would push the note onto its
+             own line in a band that is already the page's densest. */
           .railNote--mobile {
             display: block;
-            font-size: 7.5px;
-            letter-spacing: 0.08em;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
           }
           .skl--glyph {
             height: 56px;

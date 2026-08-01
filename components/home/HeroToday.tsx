@@ -64,7 +64,13 @@ export default function HeroToday({
     const raw = quote?.latestTradingDay ?? quote?.lastUpdated;
     if (!raw) return null;
     const d = raw.length <= 10 ? parseSessionDate(raw) : new Date(raw);
-    return Number.isNaN(d.getTime()) ? null : fmtDateline(d);
+    if (Number.isNaN(d.getTime())) return null;
+    // fmtDateline shouts its weekday ("FRIDAY 31.07.2026") because every
+    // other caller prints it inside a caps micro-label. The hero meta line
+    // is a sentence-case caption since Turn 8, so it de-shouts locally
+    // rather than changing a formatter five other modules depend on.
+    const line = fmtDateline(d);
+    return line.charAt(0) + line.slice(1).toLowerCase();
   }, [quote?.latestTradingDay, quote?.lastUpdated]);
 
   /** Consecutive most-recent green (or red) sessions, from closes. */
@@ -115,11 +121,13 @@ export default function HeroToday({
           <span className="ihero__chip">
             {up ? UP : DOWN} {fmtSignedPct(quote.changePercent)} TODAY
           </span>
+          {/* Sentence case since Turn 8: this is an explanatory fragment
+              about the chip beside it, not a label. */}
           <span className="ihero__meta">
             <span className="ihero__meta-change">
-              {changeMoney} VS. {fmtPrice(quote.previousClose)} ·{" "}
+              {changeMoney} vs. {fmtPrice(quote.previousClose)} ·{" "}
             </span>
-            {dateline ? `${dateline} · ` : ""}DAY №{" "}
+            {dateline ? `${dateline} · ` : ""}Day №{" "}
             {historical.length ? fmtInt(historical.length) : "—"}
           </span>
         </div>
@@ -416,11 +424,13 @@ function HeroStyles() {
     animation: ins-tickPop 0.5s ease 0.5s both;
     white-space: nowrap;
   }
+  /* CAPTION, not a label — a sentence fragment explaining the chip. Turn 8
+     took it out of caps (was 10.5px / 0.18em uppercase) and into sentence
+     case at the caption size; the chip beside it keeps the shouting. */
   .ihero__meta {
-    font-size: 10.5px;
-    font-weight: 600;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
     color: var(--ins-gray-600);
     font-variant-numeric: tabular-nums;
   }
@@ -471,9 +481,9 @@ function HeroStyles() {
     border-bottom: 1px solid var(--ins-ink);
   }
   .ihero__fact-label {
-    font-size: 9.5px;
+    font-size: 10px;
     font-weight: 600;
-    letter-spacing: 0.22em;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
     color: var(--ins-gray-600);
   }
@@ -554,8 +564,8 @@ function HeroStyles() {
       padding-top: 24px;
     }
     .ihero__eyebrow {
-      font-size: 9px;
-      letter-spacing: 0.26em;
+      font-size: 10px;
+      letter-spacing: 0.2em;
     }
     .ihero__pricerow {
       margin-top: 14px;
@@ -578,8 +588,7 @@ function HeroStyles() {
       font-size: 11.5px;
     }
     .ihero__meta {
-      font-size: 9.5px;
-      letter-spacing: 0.16em;
+      font-size: 12px;
     }
     .ihero__meta-change {
       display: none;
@@ -588,8 +597,8 @@ function HeroStyles() {
       display: none;
     }
     .ihero__fact-label {
-      font-size: 8.5px;
-      letter-spacing: 0.2em;
+      font-size: 10px;
+      letter-spacing: 0.14em;
     }
     .ihero__fact-value,
     .ihero__fact-value--range {

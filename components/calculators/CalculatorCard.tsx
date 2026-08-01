@@ -112,13 +112,16 @@ export default function CalculatorCard<I>({
               onRestore={onRestore}
               onRemove={onRemove}
               formatter={(n) => fmtCAD(n)}
-              hint="PIN UP TO FOUR SCENARIOS TO COMPARE"
+              hint="Pin up to four scenarios to compare"
             />
           </div>
 
           <div className="calc__result">
+            {/* Result qualifier — a sentence about the figure below, so it
+                reads as a caption in sentence case since Turn 8. The
+                scenario name is lower-cased inline rather than shouted. */}
             <div className="calc__sentence">
-              IN {scenario.label.toUpperCase()} TERMS, AFTER {activeYears} YEARS
+              In {scenario.label.toLowerCase()} terms, after {activeYears} years
             </div>
             <div className="calc__fig">
               <AnimatedDollar value={final} size="huge" />
@@ -182,8 +185,13 @@ export default function CalculatorCard<I>({
           align-items: baseline;
           gap: 24px;
         }
+        /* Section kicker and right-hand micro are both TRUE LABELS — an
+           ordinal + name, and a spec strip naming the assumptions. Caps
+           and tracking stay; 9.5px → the 10px floor. Neither sits in a
+           fixed box (the header is a flex row that wraps at 640px), so
+           there is nothing to dial back. */
         .calc__kicker {
-          font-size: 9.5px;
+          font-size: 10px;
           font-weight: 700;
           letter-spacing: 0.2em;
           color: var(--ins-gray-600);
@@ -196,7 +204,7 @@ export default function CalculatorCard<I>({
           margin: 8px 0 0;
         }
         .calc__micro {
-          font-size: 9.5px;
+          font-size: 10px;
           font-weight: 600;
           letter-spacing: 0.16em;
           color: var(--ins-gray-600);
@@ -222,10 +230,13 @@ export default function CalculatorCard<I>({
         .calc__result {
           padding-top: 18px;
         }
+        /* EXPLANATORY CAPTION — the qualifier above the poster figure.
+           Caption contract; the copy is authored in sentence case in the
+           JSX above, so there is no text-transform to undo. */
         .calc__sentence {
-          font-size: 11px;
-          font-weight: 600;
-          letter-spacing: 0.14em;
+          font-size: 12px;
+          font-weight: 500;
+          letter-spacing: 0.01em;
           color: var(--ins-gray-600);
         }
         .calc__fig {
@@ -235,6 +246,11 @@ export default function CalculatorCard<I>({
           border-bottom: 4px solid var(--ins-signal);
           padding-bottom: 6px;
         }
+        /* The tagline stayed a caps LABEL, unlike the sentence above it:
+           every string that lands here is a spec strip with no verb
+           ("$500/MO · 20 YEARS OUT", "TAX-FREE GROWTH · $7,000/YR CAP") —
+           it names the run, it doesn't explain it. Already above the
+           floor, so nothing moved. */
         .calc__tagline {
           margin: 20px 0 0;
           font-size: 11px;
@@ -257,8 +273,10 @@ export default function CalculatorCard<I>({
           align-items: baseline;
           gap: 8px;
         }
+        /* Stat labels ("YOU CONTRIBUTE", "GROWTH", "MULTIPLE") name their
+           figures — labels, caps kept, 9.5px → the floor. */
         .calc__stat-lab {
-          font-size: 9.5px;
+          font-size: 10px;
           font-weight: 600;
           letter-spacing: 0.16em;
           color: var(--ins-gray-600);
@@ -300,15 +318,21 @@ export default function CalculatorCard<I>({
           padding: 10px 16px;
           border-bottom: 1px solid var(--ins-ink);
         }
+        /* Control-column head. "CONTROLS" is plainly a label; "ADJUST TO
+           RECOMPUTE" stayed one too — a two-word stamp paired with a label
+           in a header row reads as chrome, not as prose (the same call the
+           learn newsletter card's "SHIPS SUNDAYS" takes). Both to the
+           floor, both one tracking notch back for the fixed 320px column:
+           at 10px the pair measures ~215px against 288px of inner width. */
         .calc__inputs-lab {
-          font-size: 8.5px;
+          font-size: 10px;
           font-weight: 800;
-          letter-spacing: 0.2em;
+          letter-spacing: 0.18em;
         }
         .calc__inputs-hint {
-          font-size: 8px;
+          font-size: 10px;
           font-weight: 600;
-          letter-spacing: 0.14em;
+          letter-spacing: 0.12em;
           color: var(--ins-gray-600);
         }
         .calc__inputs-body {
@@ -336,7 +360,7 @@ export default function CalculatorCard<I>({
             display: block;
           }
           .calc__kicker {
-            font-size: 9px;
+            font-size: 10px;
             letter-spacing: 0.18em;
           }
           .calc__display {
@@ -347,16 +371,18 @@ export default function CalculatorCard<I>({
             display: block;
             text-align: left;
             margin-top: 6px;
-            font-size: 8.5px;
+            font-size: 10px;
             letter-spacing: 0.12em;
           }
           .calc__layout {
             margin-top: 14px;
             gap: 18px;
           }
+          /* Captions hold one size across breakpoints — the phone override
+             only existed to shrink a caps line that no longer shouts. */
           .calc__sentence {
-            font-size: 9.5px;
-            letter-spacing: 0.12em;
+            font-size: 12px;
+            letter-spacing: 0.01em;
           }
           .calc__fig :global(.anum) {
             border-bottom-width: 3px;
@@ -371,7 +397,7 @@ export default function CalculatorCard<I>({
             margin-top: 14px;
           }
           .calc__stat-lab {
-            font-size: 9px;
+            font-size: 10px;
             letter-spacing: 0.12em;
           }
           .calc__stat-val {

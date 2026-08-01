@@ -42,8 +42,8 @@ const css = `
     padding-top: 24px;
   }
   .lrn-hero__kicker {
-    font-size: 9px;
-    letter-spacing: 0.24em;
+    font-size: 10px;
+    letter-spacing: 0.2em;
   }
   .lrn-hero__kicker-long {
     display: none;

@@ -491,10 +491,12 @@ export default function DuoChart({
             <span className={`wif-pct ${whatIf.neg ? "is-neg" : ""}`}>
               {whatIf.pct}
             </span>
+            {/* Instructions are explanatory captions, not labels — sentence
+                case since Turn 8 (they were pre-uppercased constants). */}
             <span className="wif-hint">
               {pinned !== null
-                ? "ENTRY PINNED — CLICK THE DATE CHIP OR PRESS ESC TO RELEASE"
-                : "DRAG THE CHART TO RE-RUN ANY ENTRY POINT · CLICK TO PIN"}
+                ? "Entry pinned — click the date chip or press Esc to release"
+                : "Drag the chart to re-run any entry point · click to pin"}
             </span>
           </div>
           <div className="wif-m">
@@ -536,9 +538,9 @@ export default function DuoChart({
           padding-bottom: 10px;
         }
         .hd-label {
-          font-size: 9.5px;
+          font-size: 10px;
           font-weight: 600;
-          letter-spacing: 0.22em;
+          letter-spacing: 0.2em;
           color: var(--ins-gray-600);
           text-transform: uppercase;
         }
@@ -552,9 +554,9 @@ export default function DuoChart({
           margin-left: auto;
         }
         .hint {
-          font-size: 9.5px;
+          font-size: 10px;
           font-weight: 700;
-          letter-spacing: 0.2em;
+          letter-spacing: 0.16em;
           color: var(--ins-gray-600);
           animation: ins-hintShimmer 2.6s ease-in-out infinite;
         }
@@ -634,9 +636,9 @@ export default function DuoChart({
         /* In-plot labels: start price, H, L */
         .lbl {
           position: absolute;
-          font-size: 9.5px;
+          font-size: 10px;
           font-weight: 600;
-          letter-spacing: 0.14em;
+          letter-spacing: 0.12em;
           color: var(--ins-gray-600);
           line-height: 1;
           white-space: nowrap;
@@ -723,9 +725,9 @@ export default function DuoChart({
           line-height: 1;
         }
         .tip-date {
-          font-size: 9px;
+          font-size: 10px;
           font-weight: 700;
-          letter-spacing: 0.14em;
+          letter-spacing: 0.12em;
           color: var(--ins-gray-600);
           text-transform: uppercase;
         }
@@ -813,9 +815,16 @@ export default function DuoChart({
         .wif-pct.is-neg {
           color: var(--ins-signal);
         }
+        /* The row's one caption: sentence case, 12px, tracking off. It sits
+           1px larger than the caps copy beside it and still reads quieter —
+           caps + 0.14em tracking + w800 is what carries weight here, not
+           the point size. */
         .wif-hint {
           margin-left: auto;
-          font-weight: 600;
+          font-size: 12px;
+          font-weight: 500;
+          letter-spacing: 0.01em;
+          color: var(--ins-gray-600);
         }
 
         /* Mobile what-if — flowing text block (per the mobile artboard) */
@@ -858,18 +867,21 @@ export default function DuoChart({
             display: inline;
           }
           .hd-label {
-            font-size: 8.5px;
-            letter-spacing: 0.18em;
+            font-size: 10px;
+            letter-spacing: 0.14em;
           }
           .hint {
-            font-size: 8.5px;
-            letter-spacing: 0.16em;
+            font-size: 10px;
+            letter-spacing: 0.1em;
           }
           .hd-right {
             gap: 12px;
           }
+          /* One notch of padding buys back the width the 10px floor
+             cost the header row, so the label + hint + five tabs still
+             fit one line at 390. */
           .tab {
-            padding: 5px 9px;
+            padding: 5px 8px;
           }
           .plot {
             height: 140px;

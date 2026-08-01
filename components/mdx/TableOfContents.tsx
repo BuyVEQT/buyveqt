@@ -28,13 +28,21 @@ const css = `
   padding: 0;
   list-style: none;
 }
+/* TRUE LABEL — each chip names a section. Caps stay; size goes to the
+   floor. Chips are content-sized (nowrap, wrapping rail), not a fixed
+   track, so 0.1em is kept.
+   Tap target: 44px is now the BASE, not a mobile special case. The rail
+   is the article's primary navigation and 641px+ is full of touch screens;
+   30px was only ever tall enough for a mouse. inline-flex + centred
+   alignment keeps the label optically centred in the taller box, and the
+   rail's 8px gap means no hit area overlaps its neighbour. */
 .schip__link {
   display: inline-flex;
   align-items: center;
-  min-height: 30px;
+  min-height: 44px;
   padding: 5px 11px;
   border: 1px solid var(--ins-hair);
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -76,10 +84,11 @@ const css = `
   .schip__rail::-webkit-scrollbar {
     display: none;
   }
+  /* min-height is inherited from the base rule now — only the horizontal
+     padding and tracking are mobile-specific. */
   .schip__link {
-    min-height: 44px;
     padding: 5px 13px;
-    font-size: 8.5px;
+    font-size: 10px;
     letter-spacing: 0.08em;
   }
 }

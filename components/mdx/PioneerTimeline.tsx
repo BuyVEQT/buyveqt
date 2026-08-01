@@ -6,8 +6,10 @@ const css = `
   font-family: var(--ins-font);
   color: var(--ins-ink);
 }
+/* TRUE LABEL — the section kicker, same object as ExhibitFrame's. Caps and
+   tracking stay, size goes to the floor; it runs the full column and wraps. */
 .mpio__kicker {
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -85,8 +87,11 @@ const css = `
 .mpio__row--lead .mpio__who {
   color: var(--ins-signal);
 }
+/* TRUE LABEL — a proper noun ("Vanguard", "BlackRock", "iShares") beside
+   the year. Names a thing, so caps stay; size goes to the floor. It sits in
+   a baseline flex row with room to spare, not a fixed track. */
 .mpio__who {
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -127,7 +132,7 @@ const css = `
     padding-top: 12px;
   }
   .mpio__kicker {
-    font-size: 9px;
+    font-size: 10px;
     letter-spacing: 0.18em;
   }
   .mpio__headline {
@@ -136,7 +141,7 @@ const css = `
   }
   .mpio__actor {
     padding: 7px 12px;
-    font-size: 9.5px;
+    font-size: 10px;
     letter-spacing: 0.18em;
   }
   .mpio__tick {

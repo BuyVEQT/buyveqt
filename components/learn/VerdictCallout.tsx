@@ -10,9 +10,9 @@ const css = `
   font-family: var(--ins-font);
 }
 .vcall__kicker {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 800;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--ins-signal);
 }
@@ -30,7 +30,10 @@ const css = `
   font-size: 13px;
   font-weight: 500;
   line-height: 1.65;
-  color: rgba(255, 255, 255, 0.78);
+  /* Snapped to the ink scale's 100% step — 0.78 was an off-scale fifth
+     gray. Size (13px against the 20px headline) carries the hierarchy;
+     dimming a two-sentence verdict on an ink panel never did. */
+  color: #ffffff;
   text-wrap: pretty;
 }
 @media (max-width: 640px) {

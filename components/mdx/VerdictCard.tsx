@@ -14,8 +14,12 @@ const css = `
   align-items: start;
   font-family: var(--ins-font);
 }
+/* TRUE LABEL — the pill prop ("Our verdict") is a badge over the
+   headline. Caps and tracking stay; the size moves to the floor. At
+   10px/0.2em it measures ~90px in the 220px rail column, so the track is
+   left alone. */
 .mvc__kicker {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -78,7 +82,7 @@ const css = `
     padding: 16px 18px 18px;
   }
   .mvc__kicker {
-    font-size: 8.5px;
+    font-size: 10px;
     letter-spacing: 0.18em;
   }
   .mvc__headline {

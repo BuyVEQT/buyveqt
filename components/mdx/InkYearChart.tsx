@@ -18,7 +18,7 @@ import { formatDollars } from "@/lib/chart-utils";
  * with preserveAspectRatio="none" + non-scaling-stroke, and every label,
  * rule, dot and crosshair is an absolutely positioned HTML element at a
  * percentage offset. That means the type is real CSS type at real sizes on
- * every viewport — a fixed pixel viewBox would shrink 9.5px labels to 4px
+ * every viewport — a fixed pixel viewBox would shrink 10px labels to 4px
  * on a phone — and no ResizeObserver is needed for a 36-point series.
  *
  * The readout row under the plot doubles as the legend: it is always
@@ -270,9 +270,16 @@ export default function InkYearChart({
         }
 
         /* ── Plot ─────────────────────────────────────────────────── */
+        /* The y gutter grew 46px → 52px in Turn 8. The axis labels moved to
+           the 10px floor and the usable label width is gutter minus the 8px
+           standoff, so a six-glyph stop like "$12.5K" needs ~41px where 38px
+           was all there was. Tracking was dialled back first (0.08em →
+           0.06em, below) and still didn't cover it; the plot gives up 6px
+           and nothing else changes. Keep .iyc__xaxis in step — the two
+           share the axis origin. */
         .iyc__frame {
           position: relative;
-          margin-left: 46px;
+          margin-left: 52px;
           touch-action: pan-y;
           cursor: crosshair;
         }
@@ -291,13 +298,16 @@ export default function InkYearChart({
         .iyc__rule.is-base {
           border-top: 1px solid var(--ins-ink);
         }
+        /* AXIS LABEL — chrome, so it takes the floor even though it prints a
+           value: an axis stop names the gridline, it is not a readout of the
+           series. The readout is .iyc__val below, which does not move. */
         .iyc__ylbl {
           position: absolute;
           left: -8px;
           transform: translate(-100%, -50%);
-          font-size: 9px;
+          font-size: 10px;
           font-weight: 600;
-          letter-spacing: 0.08em;
+          letter-spacing: 0.06em;
           line-height: 1;
           color: var(--ins-gray-600);
           white-space: nowrap;
@@ -330,15 +340,18 @@ export default function InkYearChart({
         /* ── X axis ───────────────────────────────────────────────── */
         .iyc__xaxis {
           position: relative;
-          margin-left: 46px;
+          margin-left: 52px;
           height: 16px;
           margin-top: 6px;
         }
+        /* AXIS LABEL — "Y10". Names the tick; takes the floor. Absolutely
+           positioned and only ~22px wide against ~100px between ticks, so
+           the tracking is left alone. */
         .iyc__xlbl {
           position: absolute;
           top: 0;
           transform: translateX(-50%);
-          font-size: 9px;
+          font-size: 10px;
           font-weight: 600;
           letter-spacing: 0.12em;
           line-height: 1;
@@ -393,20 +406,25 @@ export default function InkYearChart({
         }
 
         @media (max-width: 640px) {
+          /* Same +6px on the mobile gutter, for the same reason. */
           .iyc__frame {
             height: 150px !important;
-            margin-left: 40px;
+            margin-left: 46px;
           }
           .iyc__xaxis {
-            margin-left: 40px;
+            margin-left: 46px;
           }
           .iyc__ylbl,
           .iyc__xlbl {
-            font-size: 8.5px;
+            font-size: 10px;
           }
+          /* The readout is the legend: .iyc__lead and .iyc__label are its
+             keys and take the floor. .iyc__val keeps its own size below —
+             that one is the number. The row flex-wraps, so the floor costs
+             at most one extra line on a narrow screen. */
           .iyc__readout {
             gap: 5px 12px;
-            font-size: 9px;
+            font-size: 10px;
             letter-spacing: 0.1em;
           }
           .iyc__val {

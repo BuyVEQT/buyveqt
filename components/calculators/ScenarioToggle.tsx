@@ -84,10 +84,14 @@ export default function ScenarioToggle({ value, paths, onChange }: ScenarioToggl
           justify-content: space-between;
           gap: 8px;
         }
+        /* Scenario name ("REALISTIC") — a TRUE LABEL, and segment text at
+           that. Caps stay, 8.5px → the floor, and the fixed 1/3 grid track
+           buys the bump with one tracking notch (0.2em → 0.18em). Longest
+           name "PESSIMISTIC" measures ~88px against a ~212px cell. */
         .scn-toggle__head {
-          font-size: 8.5px;
+          font-size: 10px;
           font-weight: 700;
-          letter-spacing: 0.2em;
+          letter-spacing: 0.18em;
           text-transform: uppercase;
           color: var(--ins-gray-600);
         }
@@ -100,8 +104,17 @@ export default function ScenarioToggle({ value, paths, onChange }: ScenarioToggl
           background: var(--ins-signal);
           flex: none;
         }
+        /* The rate rationale ("7% RETURN · LONG-TERM AVERAGE") stayed a
+           LABEL rather than becoming a caption: no verb, it names the
+           envelope rather than explaining it, and it is segment text —
+           part of the control, not prose about it. 9px → the floor;
+           tracking holds at 0.1em (below the dial-back table's floor).
+           At 10px the longest string (~231px) wraps to two lines in the
+           narrow band just above the 1080px breakpoint, where the cell is
+           ~212px. The cells are flex columns in one grid row, so all three
+           grow together and the strip stays even — no restructure needed. */
         .scn-toggle__cap {
-          font-size: 9px;
+          font-size: 10px;
           font-weight: 600;
           letter-spacing: 0.1em;
           text-transform: uppercase;

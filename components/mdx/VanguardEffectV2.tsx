@@ -26,14 +26,18 @@ const css = `
 .exd__bar--lead {
   background: var(--ins-signal);
 }
+/* X-AXIS LABELS — "2019 · VEQT", "+30 days · BLK matches". They name the
+   bar, so they are chrome and take the 10px floor. Tracking 0.08em →
+   0.06em because these are fixed 1fr grid tracks; the longest string still
+   wraps to two lines in a narrow column, which it already did at 8px. */
 .exd__labels {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 6px;
   margin-top: 8px;
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   text-align: center;
   line-height: 1.5;
@@ -41,7 +45,12 @@ const css = `
   font-variant-numeric: tabular-nums;
 }
 .exd__fee {
+  /* COMPUTED FIGURE — the management fee printed under its own bar, live
+     from data/funds.ts. The label above it moved to the floor; this did
+     not, because the floor governs chrome and a data label on a bar is not
+     chrome. Split out of .exd__labels for exactly that reason. */
   display: block;
+  font-size: 8px;
   color: var(--ins-ink);
 }
 .exd__fee--lead {
@@ -62,8 +71,12 @@ const css = `
   }
   .exd__labels {
     gap: 4px;
+    font-size: 10px;
+    letter-spacing: 0.02em;
+  }
+  .exd__fee {
+    /* Figure holds its old mobile size. */
     font-size: 7px;
-    letter-spacing: 0.04em;
   }
 }
 `;

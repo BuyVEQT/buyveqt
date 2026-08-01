@@ -38,8 +38,9 @@ const css = `
   font-family: var(--ins-font);
   color: var(--ins-ink);
 }
+/* TRUE LABEL — section kicker, same object as ExhibitFrame's. */
 .mpb__kicker {
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -66,10 +67,14 @@ const css = `
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 18px;
 }
+/* TRUE LABEL — the head over each summary stat ("The gap", "Correlation").
+   Caps stay, size to the floor, tracking 0.18em → 0.14em: these are four
+   equal grid tracks (two on mobile) and the longest head, "2025, both
+   funds", needs ~125px against a ~136px track at the narrow end. */
 .mpb__statLabel {
-  font-size: 8.5px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
 }
@@ -84,22 +89,30 @@ const css = `
 .mpb__statValue--lead {
   color: var(--ins-signal);
 }
+/* TRUE LABEL, not a caption — "A dead heat", "Noise, not signal",
+   "Near-twins" are verbless label phrases stamped under the figure, so
+   they stay caps rather than becoming 12px sentences (which would also
+   out-weigh the stat they annotate). Tracking 0.14em → 0.12em for the
+   same grid-track reason as the head above. NOTE: .mpb__statValue is
+   untouched — that is the figure. */
 .mpb__statSub {
   margin-top: 3px;
-  font-size: 8.5px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ins-gray-600);
-}
-.mpb__caption {
-  margin: 10px 0 0;
-  max-width: 68ch;
-  font-size: 8.5px;
+  font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  line-height: 1.7;
+  color: var(--ins-gray-600);
+}
+/* CAPTION — a full explaining sentence, plus a methodology qualifier when
+   the live fetch fails. House caption grammar, transform dropped; the copy
+   was already authored in sentence case. */
+.mpb__caption {
+  margin: 10px 0 0;
+  max-width: 68ch;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1.45;
   color: var(--ins-gray-600);
 }
 
@@ -109,7 +122,7 @@ const css = `
     padding-top: 12px;
   }
   .mpb__kicker {
-    font-size: 9px;
+    font-size: 10px;
     letter-spacing: 0.18em;
   }
   .mpb__headline {
@@ -126,10 +139,7 @@ const css = `
   .mpb__statValue {
     font-size: 19px;
   }
-  .mpb__caption {
-    font-size: 8px;
-    letter-spacing: 0.1em;
-  }
+  /* No .mpb__caption override — it is 12px sentence copy on every width. */
 }
 `;
 
@@ -369,6 +379,17 @@ export function PerformanceBattle({ compact }: PerformanceBattleProps = {}) {
               strokeLinecap="round"
             />
 
+            {/* End-of-line series annotations. The ticker is a legend key —
+                chrome — so it takes the 10px floor alongside the two axes,
+                which were already at 10. The dollar figure beneath it is the
+                chart's data label and keeps its 16.
+
+                Caveat worth knowing: this svg is width="100%" over a fixed
+                viewBox, so every size here is a user unit, not a CSS pixel —
+                at a 680px-wide body column the "10" renders around 9. Fixing
+                that means moving the labels to positioned HTML the way
+                InkYearChart does, which is a rebuild of this chart, not a
+                type pass. Left as is, flagged here. */}
             {veqt && (
               <>
                 <circle
@@ -384,7 +405,7 @@ export function PerformanceBattle({ compact }: PerformanceBattleProps = {}) {
                 >
                   <text
                     fontFamily={FONT}
-                    fontSize="9.5"
+                    fontSize="10"
                     fontWeight={700}
                     letterSpacing="0.18em"
                     fill={SIGNAL}
@@ -420,7 +441,7 @@ export function PerformanceBattle({ compact }: PerformanceBattleProps = {}) {
                 >
                   <text
                     fontFamily={FONT}
-                    fontSize="9.5"
+                    fontSize="10"
                     fontWeight={700}
                     letterSpacing="0.18em"
                     fill={INK}

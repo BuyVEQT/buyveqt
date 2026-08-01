@@ -21,9 +21,9 @@ const css = `
   text-align: right;
 }
 .tote__kicker {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
 }
 .tote__corner--red .tote__kicker {
@@ -44,9 +44,9 @@ const css = `
 }
 .tote__facts {
   margin-top: 10px;
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   font-variant-numeric: tabular-nums;
 }
@@ -86,9 +86,9 @@ const css = `
   text-wrap: pretty;
 }
 .tote__byline {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
   text-align: right;
@@ -147,8 +147,8 @@ const css = `
     text-align: left;
   }
   .tote__kicker {
-    font-size: 8px;
-    letter-spacing: 0.18em;
+    font-size: 10px;
+    letter-spacing: 0.14em;
   }
   .tote__ticker {
     margin-top: 6px;
@@ -156,8 +156,8 @@ const css = `
     letter-spacing: -0.035em;
   }
   .tote__facts {
-    font-size: 8.5px;
-    letter-spacing: 0.14em;
+    font-size: 10px;
+    letter-spacing: 0.1em;
   }
   .tote__deck {
     padding: 12px 18px;
@@ -167,8 +167,8 @@ const css = `
     line-height: 1.35;
   }
   .tote__byline {
-    font-size: 8.5px;
-    letter-spacing: 0.14em;
+    font-size: 10px;
+    letter-spacing: 0.12em;
   }
 }
 `;

@@ -8,6 +8,8 @@ import { useMarketClock } from "@/lib/market-clock";
 
 import HeroToday, { HeroFactsMobile } from "./HeroToday";
 import ConditionsBand from "./ConditionsBand";
+import QuietDayStrip from "./QuietDayStrip";
+import NextBuy from "./NextBuy";
 import DuoChart from "./hero/DuoChart";
 import RegionGrid from "./RegionGrid";
 import HeatmapCard from "./HeatmapCard";
@@ -131,6 +133,15 @@ export default function HomeClient() {
         <HeroToday data={full.data} loading={full.loading} severity={severity} />
 
         <ConditionsBand severity={severity} history={history} quote={quote} />
+
+        {/* Turn 8 retention pair, directly under the conditions band.
+            QuietDayStrip renders itself away on surge/squall/rally/gale —
+            the band's weather presence owns those days. NextBuy always
+            prints; its state is localStorage-only. Both read the props
+            this component already holds — neither adds a fetch. */}
+        <QuietDayStrip severity={severity} history={history} quote={quote} />
+
+        <NextBuy quote={quote} />
 
         {/* Phones only — the 3a mobile artboard orders the facts grid
             between the conditions band and the chart. */}

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { Archivo } from "next/font/google";
+import { Archivo, Newsreader } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
@@ -15,27 +15,58 @@ import {
   SITE_DESCRIPTION,
 } from "@/lib/seo-config";
 
-// ONE FAMILY, SITE-WIDE. Archivo is the Instrument's face and now the only
-// font the site loads: it renders the shell (nav, top bar, tab bar, footer),
+// ONE FAMILY FOR THE INSTRUMENT. Archivo is the Instrument's face and the
+// site's default: it renders the shell (nav, top bar, tab bar, footer),
 // every route, every article exhibit and every calculator chart. The legacy
 // broadsheet trio — Newsreader (body serif), Inter (sans/labels/UI) and
 // Fraunces (display) — was retired once the last routes and MDX widgets
-// moved to the Instrument; nothing references their family aliases any
-// more, so all three next/font configs are gone along with the ~247 KB of
-// font bytes they cost.
+// moved to the Instrument, and Inter and Fraunces are gone for good: nothing
+// references their family aliases and the ~180 KB they cost is not coming
+// back.
 //
-// Payload: 27 font files originally → 13 after the weight trim → 4 now.
-// Archivo preloads (no `preload: false`) because it is on the critical path
-// of literally every page.
+// Payload: 27 font files originally → 13 after the weight trim → 4 for
+// Archivo, plus the 2 Newsreader faces below.
 //
-// No italic by design: the Instrument's emphasis grammar is weight + red,
-// never slant. Do not add a `style: ["italic"]` axis — components that want
-// emphasis step up a weight instead.
+// No italic in Archivo by design: the Instrument's emphasis grammar is
+// weight + red, never slant. Do not add a `style: ["italic"]` axis to it —
+// components that want emphasis step up a weight instead. (Newsreader is
+// the exception, and only inside prose; see below.)
 const archivo = Archivo({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-archivo",
   weight: ["500", "600", "700", "800"],
+});
+
+// TURN 8 — SERIF, FOR ARTICLE PROSE AND NOTHING ELSE.
+//
+// The one face that came back. The Turn-8 build contract sets running
+// article body copy in a serif at 18–19px/1.65 because a 68ch column of
+// grotesque is a poster, not a read; Archivo keeps every other job on the
+// page (headings, kickers, tables, code, captions, exhibits, all chrome).
+// Exposed as --ins-serif in globals.css, and the ONLY selectors allowed to
+// reach for it are the prose paragraph/list/blockquote rules in
+// app/learn/[slug]/page.tsx and components/weekly/WeeklyDispatchLayout.tsx.
+//
+// Italic ships here (unlike Archivo) because prose has real italics —
+// book titles, ticker asides, emphasis inside a sentence — and a synthesised
+// oblique on a serif is visibly wrong.
+//
+// `preload: false` on purpose: the shell and every non-article route render
+// entirely in Archivo, so preloading this would put ~40 KB on the critical
+// path of pages that never paint a serif glyph. Articles pay for it on
+// demand, and `display: "swap"` means the first paint is Georgia rather
+// than nothing.
+const newsreader = Newsreader({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-newsreader",
+  // 600 rides along so <strong> inside prose gets a real bold cut —
+  // browsers otherwise synthesise one, which reads smeared at 18.5px.
+  // Variable font: the extra weight is the same file, zero added bytes.
+  weight: ["400", "600"],
+  style: ["normal", "italic"],
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -122,7 +153,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={archivo.variable}>
+    <html lang="en" className={`${archivo.variable} ${newsreader.variable}`}>
       <head>
         {/*
           GoatCounter's count.js loads `afterInteractive`, so its DNS lookup +

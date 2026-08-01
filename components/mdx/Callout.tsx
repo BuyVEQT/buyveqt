@@ -50,12 +50,15 @@ const css = `
 .mcal--warning {
   border-left-color: var(--ins-signal);
 }
+/* TRUE LABEL — "Good to know" / "Watch out" / "Pro tip" are badges, not
+   sentences. Caps and tracking stay; only the size moves to the floor. The
+   label runs the full aside and can wrap, so no tracking dial-back. */
 .mcal__label {
   display: flex;
   align-items: center;
   gap: 7px;
   margin: 0;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -97,7 +100,7 @@ const css = `
     padding-left: 13px;
   }
   .mcal__label {
-    font-size: 8.5px;
+    font-size: 10px;
     letter-spacing: 0.16em;
   }
   .mcal__body {

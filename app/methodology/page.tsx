@@ -373,8 +373,10 @@ export default function MethodologyPage() {
           <span className="ismeth__railCopy">
             NOTHING PROPRIETARY — CHECK OUR MATH ANYTIME
           </span>
+          {/* Sentence, so sentence case — the subreddit keeps its own
+              casing. */}
           <span className="ismeth__railNote">
-            CORRECTIONS GO TO R/JUSTBUYVEQT — WELCOMED, NOT TOLERATED
+            Corrections go to r/JustBuyVEQT — welcomed, not tolerated
           </span>
         </div>
 
@@ -483,30 +485,47 @@ const css = `
   align-items: baseline;
   gap: 24px;
 }
+/* Section kickers ("DATA SOURCES", "NOTE 04 · THE CHARTS") — labels. */
 .ismeth__eyebrow {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--ins-signal);
   font-variant-numeric: tabular-nums;
 }
+/* "LIVE WHERE POSSIBLE · BY HAND WHERE NOT" — a two-clause label phrase
+   with no verb naming the sourcing policy, so it stays a label rather
+   than going to caption grammar with the notes below it. */
 .ismeth__secMeta {
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
   text-align: right;
 }
+/* "#SOURCES" — a link-button, so it keeps caps at the floor. It is also
+   the only interactive control inside a baseline-aligned flex head:
+   padding or min-height here would drop the head's baseline and shove
+   every section heading down, so the 44px tap area is an ::after
+   overlay instead. The overlay grows vertically only, over the section
+   rule above and the display heading below — neither is clickable, and
+   the 34px page gap keeps it clear of the previous note's body links. */
 .ismeth__permalink {
-  font-size: 9.5px;
+  position: relative;
+  font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
   text-decoration: none;
   white-space: nowrap;
+}
+.ismeth__permalink::after {
+  content: "";
+  position: absolute;
+  inset: -16px 0; /* ~12px line box + 32px = 44px tap height */
 }
 .ismeth__permalink:hover {
   color: var(--ins-ink);
@@ -552,11 +571,14 @@ const css = `
   letter-spacing: -0.01em;
   line-height: 1.1;
 }
+/* "MER · AUM · HOLDINGS · GEOGRAPHY · SECTORS" — an inventory of things,
+   not a sentence: label. Tracking back a notch pays for the bump inside
+   the row's 1fr track. */
 .ismeth__srcFeeds {
   grid-area: feeds;
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
 }
@@ -639,14 +661,18 @@ const css = `
   flex-wrap: wrap;
 }
 .ismeth__panelKicker {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--ins-signal);
 }
+/* "READ THE WHOLE THING" — a four-word stamp paired with the DISCLAIMER
+   kicker in a two-item top bar (the NewsletterCard .anews__top shape),
+   so it stays a label. The muted tone is the inverse-panel 55% white and
+   is left exactly as-is. */
 .ismeth__panelNote {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -688,11 +714,16 @@ const css = `
   font-weight: 800;
   letter-spacing: 0.18em;
 }
+/* The rail's right-hand note is a sentence — "Corrections go to
+   r/JustBuyVEQT — welcomed, not tolerated". Caption grammar, and the
+   string itself came out of caps (it was pre-uppercased in the JSX,
+   which is why there is no text-transform to remove here). The rail
+   copy above it stays a shouted verdict, per ConditionsBand. */
 .ismeth__railNote {
   margin-left: auto;
-  font-size: 9.5px;
-  font-weight: 600;
-  letter-spacing: 0.16em;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
   color: var(--ins-gray-600);
   text-align: right;
 }
@@ -755,12 +786,14 @@ const css = `
   .ismeth__hero {
     padding-top: 24px;
   }
+  /* Three clauses on a 350px measure — a notch of tracking back pays
+     for the floor bump. */
   .ismeth__kicker {
-    font-size: 9px;
-    letter-spacing: 0.24em;
+    font-size: 10px;
+    letter-spacing: 0.2em;
   }
   .ismeth__heroMeta {
-    font-size: 9px;
+    font-size: 10px;
     letter-spacing: 0.16em;
   }
   .ismeth__display {
@@ -773,13 +806,16 @@ const css = `
     font-size: 15px;
   }
   .ismeth__eyebrow {
-    font-size: 8.5px;
+    font-size: 10px;
     letter-spacing: 0.18em;
   }
+  /* Eyebrow + permalink share one 350px row, so both come down a notch:
+     "NOTE 03 · THE CADENCE" beside "#REFRESH-CADENCE" still clears the
+     measure at the floor. */
   .ismeth__secMeta,
   .ismeth__permalink {
-    font-size: 8.5px;
-    letter-spacing: 0.14em;
+    font-size: 10px;
+    letter-spacing: 0.12em;
   }
   .ismeth__secDisplay {
     font-size: 20px;
@@ -804,9 +840,11 @@ const css = `
   .ismeth__srcName {
     font-size: 22px;
   }
+  /* Full-width row here, but "MER · AUM · HOLDINGS · GEOGRAPHY ·
+     SECTORS" is 42 characters — 0.14em keeps it to one line at 390. */
   .ismeth__srcFeeds {
-    font-size: 8.5px;
-    letter-spacing: 0.18em;
+    font-size: 10px;
+    letter-spacing: 0.14em;
   }
   .ismeth__srcCadence {
     font-size: 10px;
@@ -848,15 +886,15 @@ const css = `
     height: 7px;
   }
   .ismeth__railCopy {
-    font-size: 9px;
+    font-size: 10px;
     letter-spacing: 0.12em;
   }
+  /* Caption size carries over from desktop; mobile only unpins it from
+     the right edge. */
   .ismeth__railNote {
     margin-left: 0;
     width: 100%;
     text-align: left;
-    font-size: 8px;
-    letter-spacing: 0.1em;
   }
   .ismeth__closer {
     display: block;

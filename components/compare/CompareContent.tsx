@@ -38,13 +38,27 @@ const css = `
 /* The editor's verdict plus its one outbound: the deep link to the
    written-up page for the bout currently on the board. Wrapped so the
    link rides 14px under the verdict rather than the page's 30px gap. */
+/* Gap goes to zero because the link below now carries a 44px tap box
+   whose top ~29px is empty — stacking a 14px gap on that would double
+   the space the design asks for. */
 .ins-cmp-verdict {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 0;
 }
+/* LABEL (link text), already at the floor. The tap box is new:
+   inline-flex with the content bottom-aligned, so the 2px rule — a
+   border on the link box itself — stays 3px under the type instead of
+   floating below a centred line, and the added height sits above the
+   text where it overlaps nothing clickable. */
 .ins-cmp-verdict__more {
   align-self: start;
+  display: inline-flex;
+  align-items: flex-end;
+  /* Replaces the word space flex drops between the label and its
+     arrow, tracking included. */
+  column-gap: 0.4em;
+  min-height: 44px;
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.16em;
@@ -65,8 +79,8 @@ const css = `
     gap: 22px;
     padding: 0 20px 28px;
   }
-  .ins-cmp-verdict { gap: 10px; }
-  .ins-cmp-verdict__more { font-size: 9.5px; letter-spacing: 0.14em; }
+  .ins-cmp-verdict { gap: 0; }
+  .ins-cmp-verdict__more { font-size: 10px; letter-spacing: 0.14em; }
 }
 `;
 
@@ -152,6 +166,21 @@ function CompareContentInner({ initialFunds }: CompareContentProps) {
     return out;
   }, [histories]);
 
+  /* Red discipline (build contract §6) — the closer's CTA goes ink when a
+     negative stat is on screen with it. Every bout's spread is rendered
+     above the closer (the selected one by Scoreboard, the other five by
+     OtherBouts), and each prints red when negative, so "any spread below
+     zero" is exactly the set of states where a red CTA would be sharing
+     the viewport with signal red. */
+  const negativeSpreadInView = useMemo(
+    () =>
+      BOUTS.some((b) => {
+        const s = metricsByBout[b.ticker]?.spreadPp;
+        return s != null && s < 0;
+      }),
+    [metricsByBout]
+  );
+
   return (
     <main className="ins-root ins-cmp-main">
       <div className="ins-cmp-page">
@@ -178,7 +207,7 @@ function CompareContentInner({ initialFunds }: CompareContentProps) {
           onSelect={handleSelect}
         />
 
-        <CompareCloser />
+        <CompareCloser negativeStatInView={negativeSpreadInView} />
 
         <FAQSection />
       </div>

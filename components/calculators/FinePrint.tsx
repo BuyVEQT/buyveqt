@@ -48,10 +48,16 @@ export default function FinePrint() {
           gap: 40px;
           align-items: start;
         }
+        /* "THE FINE PRINT" — a TRUE LABEL (an eyebrow naming the panel),
+           so caps stay. 9px → the floor, one tracking notch back for the
+           fixed 220px grid track it sits in. The body below is already
+           running sentence-case prose at 13px, and its muted white stays
+           put: this is an ink panel, where rgba(255,255,255,·) is the
+           correct scale, not --ins-gray-600. */
         .finep__kicker {
-          font-size: 9px;
+          font-size: 10px;
           font-weight: 700;
-          letter-spacing: 0.2em;
+          letter-spacing: 0.18em;
           color: var(--ins-signal);
         }
         .finep__display {
@@ -92,8 +98,8 @@ export default function FinePrint() {
             padding: 18px 20px;
           }
           .finep__kicker {
-            font-size: 8.5px;
-            letter-spacing: 0.18em;
+            font-size: 10px;
+            letter-spacing: 0.14em;
           }
           .finep__display {
             font-size: 16px;
@@ -139,15 +145,22 @@ export function VerdictRail() {
           background: var(--ins-ink);
           flex: none;
         }
+        /* The verdict copy stays a caps stamp at 11px, the same call the
+           home band's rail made: a verdict is a stamp, not prose about the
+           page, and it already clears the floor. Its two strings are
+           pre-uppercased in the JSX — no text-transform. */
         .vrail__copy {
           font-size: 11px;
           font-weight: 800;
           letter-spacing: 0.18em;
-          /* Pre-uppercased copy — no text-transform. */
         }
+        /* The source note names things (a data source, an update cadence)
+           with no verb, so it is a LABEL and keeps its caps: 9.5px → the
+           floor. Tracking holds — the note is auto-margined in a wrapping
+           rail, not seated in a fixed box. */
         .vrail__note {
           margin-left: auto;
-          font-size: 9.5px;
+          font-size: 10px;
           font-weight: 600;
           letter-spacing: 0.16em;
           color: var(--ins-gray-600);
@@ -159,11 +172,11 @@ export function VerdictRail() {
             gap: 8px;
           }
           .vrail__copy {
-            font-size: 9px;
+            font-size: 10px;
             letter-spacing: 0.12em;
           }
           .vrail__note {
-            font-size: 8px;
+            font-size: 10px;
             letter-spacing: 0.1em;
           }
         }
@@ -216,13 +229,20 @@ export function CalcCloser({ ctaLabel, onJump }: CalcCloserProps) {
           font-weight: 500;
           color: var(--ins-gray-600);
         }
+        /* Tap target without moving the rule: the signal underline is the
+           button's own bottom border, so a min-height with centred content
+           would float it 15px below the words. Padding above the text does
+           the job instead — 24 + ~13 (line box) + 5 + 2 ≈ 44px — and since
+           the closer grid is align-items:end the box grows upward, leaving
+           the wordmark and its rule exactly where they were. Nothing above
+           it is clickable, so the extra area overlaps nothing. */
         .closer__cta {
           appearance: none;
           background: transparent;
           border: 0;
           border-bottom: 2px solid var(--ins-signal);
           border-radius: 0;
-          padding: 0 0 5px;
+          padding: 24px 0 5px;
           font-family: var(--ins-font);
           font-size: 11px;
           font-weight: 800;
@@ -252,9 +272,13 @@ export function CalcCloser({ ctaLabel, onJump }: CalcCloserProps) {
             font-size: 12.5px;
             line-height: 1.5;
           }
+          /* The base rule's top padding is the gap now — stacking a 12px
+             margin on top of it would double-space the closer. min-height
+             stays as the belt-and-braces 44px (border-box, so it counts
+             the padding rather than adding to it). */
           .closer__cta {
             display: inline-block;
-            margin-top: 12px;
+            margin-top: 0;
             min-height: 44px;
             font-size: 10px;
             letter-spacing: 0.14em;
