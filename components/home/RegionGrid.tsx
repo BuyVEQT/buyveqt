@@ -304,9 +304,9 @@ function SleevesStyles() {
         padding-top: 12px;
       }
       .sleeves__eyebrow {
-        font-size: 9.5px;
+        font-size: 10px;
         font-weight: 600;
-        letter-spacing: 0.22em;
+        letter-spacing: 0.2em;
         color: var(--ins-gray-600);
         text-transform: uppercase;
       }
@@ -318,14 +318,16 @@ function SleevesStyles() {
         color: var(--ins-ink);
         margin: 6px 0 0;
       }
+      /* Explanatory caption (a sentence fragment describing how the
+         number is built), not a label — sentence case at 12px since
+         Turn 8. Was 9.5px caps at 0.2em. */
       .sleeves__caption {
-        font-size: 9.5px;
-        font-weight: 600;
-        letter-spacing: 0.2em;
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 0.01em;
         color: var(--ins-gray-600);
         text-align: right;
-        text-transform: uppercase;
-        line-height: 1.6;
+        line-height: 1.5;
       }
 
       /* ── Sentence ───────────────────────────────────────────── */
@@ -373,9 +375,9 @@ function SleevesStyles() {
         color: var(--ins-ordinal);
       }
       .sleeves__microlabel {
-        font-size: 9.5px;
+        font-size: 10px;
         font-weight: 600;
-        letter-spacing: 0.18em;
+        letter-spacing: 0.16em;
         color: var(--ins-gray-600);
         text-transform: uppercase;
       }
@@ -442,9 +444,9 @@ function SleevesStyles() {
         gap: 12px;
       }
       .sleeves__mob-label {
-        font-size: 9px;
+        font-size: 10px;
         font-weight: 600;
-        letter-spacing: 0.16em;
+        letter-spacing: 0.1em;
         color: var(--ins-gray-600);
         text-transform: uppercase;
       }
@@ -466,9 +468,9 @@ function SleevesStyles() {
         height: 4px;
       }
       .sleeves__mob-meta {
-        font-size: 8.5px;
+        font-size: 10px;
         font-weight: 700;
-        letter-spacing: 0.1em;
+        letter-spacing: 0.06em;
         color: var(--ins-gray-600);
         text-transform: uppercase;
         white-space: nowrap;
@@ -501,6 +503,9 @@ function SleevesStyles() {
       .sleeves__row.is-last {
         border-bottom: 1px solid var(--ins-ink);
       }
+      /* Ghost rank numeral. 0.3 is already an ink-scale step and stays
+         there: --ins-ordinal's 12% is tuned for the 44–64px oversized
+         numerals, and at 15px it would be invisible. */
       .sleeves__rank {
         font-size: 15px;
         font-weight: 700;
@@ -582,8 +587,8 @@ function SleevesStyles() {
           display: none;
         }
         .sleeves__eyebrow {
-          font-size: 8.5px;
-          letter-spacing: 0.2em;
+          font-size: 10px;
+          letter-spacing: 0.16em;
         }
         .sleeves__display {
           font-size: 28px;
@@ -623,11 +628,11 @@ function SleevesStyles() {
           font-size: 12px;
         }
         .sleeves__name-sub {
-          font-size: 9px;
+          font-size: 10px;
           letter-spacing: 0;
         }
         .sleeves__pp {
-          font-size: 9px;
+          font-size: 10px;
           letter-spacing: 0;
         }
         .sleeves__pct {

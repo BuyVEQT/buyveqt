@@ -22,9 +22,9 @@ const css = `
 }
 .lrn-rail__note {
   margin-left: auto;
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
   text-align: right;
@@ -40,12 +40,12 @@ const css = `
     height: 8px;
   }
   .lrn-rail__copy {
-    font-size: 9px;
-    letter-spacing: 0.12em;
+    font-size: 10px;
+    letter-spacing: 0.1em;
   }
   .lrn-rail__note {
-    font-size: 7.5px;
-    letter-spacing: 0.08em;
+    font-size: 10px;
+    letter-spacing: 0.06em;
   }
   .lrn-rail__long {
     display: none;

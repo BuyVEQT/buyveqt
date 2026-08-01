@@ -163,8 +163,9 @@ export default async function PathDetailPage({
           <span className="lrnpd__railCopy">
             FINISH THE PATH OR LEAVE IT — NOTHING TRACKS YOU
           </span>
+          {/* Sentence, so sentence case — see .lrnpd__railNote. */}
           <span className="lrnpd__railNote">
-            {minutes} MINUTES END TO END · SKIP WHAT YOU ALREADY KNOW
+            {minutes} minutes end to end · skip what you already know
           </span>
         </div>
 
@@ -272,20 +273,33 @@ const css = `
   gap: 24px;
 }
 .lrnpd__eyebrow {
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
 }
+/* "ALL SIX PATHS" — a link-button, so it stays a label at the floor. It
+   is interactive inside a baseline-aligned flex head, where padding or
+   min-height would drop the head's baseline and shove the whole step
+   list down; the 44px tap area is an ::after overlay instead. The
+   overlay is deliberately asymmetric — 20px up into the section rule's
+   padding and the 30px page gap (nothing clickable there), only 12px
+   down, which keeps it clear of the first step row below. */
 .lrnpd__secLink {
-  font-size: 9.5px;
+  position: relative;
+  font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
   text-decoration: none;
   white-space: nowrap;
+}
+.lrnpd__secLink::after {
+  content: "";
+  position: absolute;
+  inset: -20px 0 -12px; /* ~12px line box + 32px = 44px tap height */
 }
 .lrnpd__secLink:hover {
   color: var(--ins-ink);
@@ -326,9 +340,10 @@ const css = `
   display: block;
   min-width: 0;
 }
+/* "TAXES · 9 MIN" — category + reading time. Names things: label. */
 .lrnpd__kickerRow {
   display: block;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -392,11 +407,14 @@ const css = `
   font-weight: 800;
   letter-spacing: 0.18em;
 }
+/* Sentence — "68 minutes end to end · skip what you already know". The
+   string was pre-uppercased in the JSX (hence no text-transform here);
+   it is re-cased there. The rail copy above stays a shouted verdict. */
 .lrnpd__railNote {
   margin-left: auto;
-  font-size: 9.5px;
-  font-weight: 600;
-  letter-spacing: 0.16em;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
   color: var(--ins-gray-600);
   text-align: right;
   font-variant-numeric: tabular-nums;
@@ -463,12 +481,14 @@ const css = `
   .lrnpd__hero {
     padding-top: 24px;
   }
+  /* Question + two count clauses on a 350px measure — a notch of
+     tracking back pays for the floor bump. */
   .lrnpd__kicker {
-    font-size: 9px;
-    letter-spacing: 0.2em;
+    font-size: 10px;
+    letter-spacing: 0.18em;
   }
   .lrnpd__heroMeta {
-    font-size: 9px;
+    font-size: 10px;
     letter-spacing: 0.16em;
   }
   .lrnpd__display {
@@ -484,15 +504,17 @@ const css = `
     line-height: 1.55;
   }
   .lrnpd__eyebrow {
-    font-size: 9px;
+    font-size: 10px;
     letter-spacing: 0.18em;
   }
   .lrnpd__secLink {
-    font-size: 8.5px;
+    font-size: 10px;
     letter-spacing: 0.12em;
   }
+  /* 16px, not 12px: the secLink's 44px tap overlay reaches 12px below
+     the head, so the list needs that much clearance plus a margin. */
   .lrnpd__list {
-    margin-top: 12px;
+    margin-top: 16px;
   }
   .lrnpd__row {
     grid-template-columns: 40px minmax(0, 1fr) 18px;
@@ -503,8 +525,8 @@ const css = `
     font-size: 30px;
   }
   .lrnpd__kickerRow {
-    font-size: 8.5px;
-    letter-spacing: 0.14em;
+    font-size: 10px;
+    letter-spacing: 0.12em;
   }
   .lrnpd__title {
     margin-top: 3px;
@@ -529,15 +551,14 @@ const css = `
     height: 7px;
   }
   .lrnpd__railCopy {
-    font-size: 9px;
+    font-size: 10px;
     letter-spacing: 0.12em;
   }
+  /* Caption size carries over; mobile only unpins it from the right. */
   .lrnpd__railNote {
     margin-left: 0;
     width: 100%;
     text-align: left;
-    font-size: 8px;
-    letter-spacing: 0.1em;
   }
   .lrnpd__closer {
     display: block;

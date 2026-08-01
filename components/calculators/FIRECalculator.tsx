@@ -255,18 +255,21 @@ export default function FIRECalculator() {
               onRestore={restoreScenario}
               onRemove={remove}
               formatter={(n) => fmtCAD(n)}
-              hint="PIN UP TO FOUR SCENARIOS TO COMPARE"
+              hint="Pin up to four scenarios to compare"
             />
           </div>
 
           <div className="calc__result">
+            {/* Result qualifier — a caption in sentence case since Turn 8,
+                with the age chip left in caps: a chip names a thing. FIRE
+                stays upper as an acronym. */}
             <div className="calc__sentence">
-              <span>FIRE IN</span>
+              <span>FIRE in</span>
               {Number.isFinite(fireAge) && (
                 <span className="calc__chip">AT AGE {fireAge.toFixed(0)}</span>
               )}
               {Number.isFinite(fireAge) && yearsVs65 > 0 && (
-                <span>{Math.round(yearsVs65)} YEARS BEFORE 65</span>
+                <span>{Math.round(yearsVs65)} years before 65</span>
               )}
             </div>
 
@@ -275,10 +278,13 @@ export default function FIRECalculator() {
               <span className="fire__unit">YEARS</span>
             </div>
 
+            {/* Unlike the DCA and Shelter taglines — which are verb-less
+                spec strips and stayed caps — this one is a full sentence
+                ("you cross …"), so it re-cased into caption grammar. */}
             <p className="calc__tagline">
-              AT {(activeRate * 100).toFixed(0)}% RETURNS AND {fmtCAD(monthly)}/MO
-              YOU CROSS {fmtCAD(fireNumber, 0)} &mdash; YOUR FIRE NUMBER AT A{" "}
-              {wRate}% WITHDRAWAL
+              At {(activeRate * 100).toFixed(0)}% returns and {fmtCAD(monthly)}/mo
+              you cross {fmtCAD(fireNumber, 0)} &mdash; your FIRE number at a{" "}
+              {wRate}% withdrawal
             </p>
 
             <div className="calc__stats">
@@ -343,26 +349,29 @@ export default function FIRECalculator() {
 
             {/* Depth strip — calibration against Lean / Fat alternatives and
                 a savings-rate check, so the plan above can be judged. */}
+            {/* Cell heads name a figure and stay caps; the lines under
+                them explain one ("if you trim …") and are captions, so
+                they re-cased. */}
             <div className="fire-depth">
               <div className="fire-depth__cell">
                 <div className="fire-depth__lab">SAVINGS RATE</div>
                 <div className="fire-depth__val">{savingsRateLabel}</div>
                 <div className="fire-depth__cap">
-                  {fmtCAD(annualContribution)} / YR OF {fmtCAD(income)} GROSS
+                  {fmtCAD(annualContribution)} / yr of {fmtCAD(income)} gross
                 </div>
               </div>
               <div className="fire-depth__cell">
                 <div className="fire-depth__lab">LEAN FIRE</div>
                 <div className="fire-depth__val">{fmtCAD(leanFire, 0)}</div>
                 <div className="fire-depth__cap">
-                  IF YOU TRIM EXPENSES 25% TO {fmtCAD(expenses * 0.75)}/YR
+                  If you trim expenses 25% to {fmtCAD(expenses * 0.75)}/yr
                 </div>
               </div>
               <div className="fire-depth__cell">
                 <div className="fire-depth__lab">FAT FIRE</div>
                 <div className="fire-depth__val">{fmtCAD(fatFire, 0)}</div>
                 <div className="fire-depth__cap">
-                  IF YOU TARGET 50% MORE SPENDING: {fmtCAD(expenses * 1.5)}/YR
+                  If you target 50% more spending: {fmtCAD(expenses * 1.5)}/yr
                 </div>
               </div>
             </div>
@@ -463,8 +472,11 @@ export default function FIRECalculator() {
           align-items: baseline;
           gap: 24px;
         }
+        /* Kicker and header micro are TRUE LABELS — caps and tracking
+           stay, 9.5px → the 10px floor. The header is a wrapping flex
+           row, so there is no fixed box to dial back for. */
         .calc__kicker {
-          font-size: 9.5px;
+          font-size: 10px;
           font-weight: 700;
           letter-spacing: 0.2em;
           color: var(--ins-gray-600);
@@ -477,7 +489,7 @@ export default function FIRECalculator() {
           margin: 8px 0 0;
         }
         .calc__micro {
-          font-size: 9.5px;
+          font-size: 10px;
           font-weight: 600;
           letter-spacing: 0.16em;
           color: var(--ins-gray-600);
@@ -502,21 +514,26 @@ export default function FIRECalculator() {
         .calc__result {
           padding-top: 18px;
         }
+        /* Caption contract for the result qualifier; the chip inside it
+           keeps label type at the floor rather than inheriting the
+           caption's 12px sentence size. */
         .calc__sentence {
           display: flex;
           align-items: center;
           gap: 10px;
           flex-wrap: wrap;
-          font-size: 11px;
-          font-weight: 600;
-          letter-spacing: 0.14em;
+          font-size: 12px;
+          font-weight: 500;
+          letter-spacing: 0.01em;
           color: var(--ins-gray-600);
         }
         .calc__chip {
           border: 1px solid var(--ins-ink);
           padding: 2px 8px;
           color: var(--ins-ink);
+          font-size: 10px;
           font-weight: 700;
+          letter-spacing: 0.12em;
           font-variant-numeric: tabular-nums;
         }
         .fire__figrow {
@@ -541,11 +558,14 @@ export default function FIRECalculator() {
           letter-spacing: 0.16em;
           color: var(--ins-gray-600);
         }
+        /* EXPLANATORY CAPTION — see the note on the copy above: this is a
+           sentence, so it does not share the caps treatment its
+           counterparts in DCA and Shelter keep. */
         .calc__tagline {
           margin: 20px 0 0;
-          font-size: 11px;
-          font-weight: 600;
-          letter-spacing: 0.12em;
+          font-size: 12px;
+          font-weight: 500;
+          letter-spacing: 0.01em;
           color: var(--ins-gray-600);
           line-height: 1.6;
           max-width: 62ch;
@@ -563,8 +583,9 @@ export default function FIRECalculator() {
           align-items: baseline;
           gap: 8px;
         }
+        /* Stat labels name their figures — caps kept, 9.5px → the floor. */
         .calc__stat-lab {
-          font-size: 9.5px;
+          font-size: 10px;
           font-weight: 600;
           letter-spacing: 0.16em;
           color: var(--ins-gray-600);
@@ -606,15 +627,19 @@ export default function FIRECalculator() {
           padding: 10px 16px;
           border-bottom: 1px solid var(--ins-ink);
         }
+        /* Control-column head — same call as CalculatorCard's: "CONTROLS"
+           is a label and "ADJUST TO RECOMPUTE" is a two-word chrome stamp
+           beside it, so both stay caps at the floor with one tracking
+           notch back for the fixed 320px column. */
         .calc__inputs-lab {
-          font-size: 8.5px;
+          font-size: 10px;
           font-weight: 800;
-          letter-spacing: 0.2em;
+          letter-spacing: 0.18em;
         }
         .calc__inputs-hint {
-          font-size: 8px;
+          font-size: 10px;
           font-weight: 600;
-          letter-spacing: 0.14em;
+          letter-spacing: 0.12em;
           color: var(--ins-gray-600);
         }
         .calc__inputs-body {
@@ -645,10 +670,13 @@ export default function FIRECalculator() {
           gap: 12px;
           margin-bottom: 8px;
         }
+        /* Band label to the floor. Tracking drops a notch so it matches
+           the depth strip's labels below the chart — the two are the same
+           role and would otherwise read as two different families. */
         .fire-progress__lab {
-          font-size: 8.5px;
+          font-size: 10px;
           font-weight: 700;
-          letter-spacing: 0.2em;
+          letter-spacing: 0.18em;
           color: var(--ins-gray-600);
         }
         .fire-progress__pct {
@@ -667,13 +695,18 @@ export default function FIRECalculator() {
           background: var(--ins-ink);
           transition: width 0.4s ease;
         }
+        /* Despite the class name this row is LABELS, not captions: the
+           reading is a spec ("$50,000 OF $1,250,000", "$1.2M TO GO") and
+           the achievement line is a filled chip — chips name a state. Caps
+           kept, 9px → the floor, 0.12em tracking already below the
+           dial-back table so it holds; the row flex-wraps. */
         .fire-progress__cap {
           margin-top: 8px;
           display: flex;
           align-items: center;
           gap: 10px;
           flex-wrap: wrap;
-          font-size: 9px;
+          font-size: 10px;
           font-weight: 600;
           letter-spacing: 0.12em;
           color: var(--ins-gray-600);
@@ -705,10 +738,13 @@ export default function FIRECalculator() {
           gap: 4px;
           min-width: 0;
         }
+        /* Cell heads name a figure — labels, caps kept, 8.5px → the floor,
+           one tracking notch back for the 1/3 grid track (longest head
+           ~176px against a ~232px cell). */
         .fire-depth__lab {
-          font-size: 8.5px;
+          font-size: 10px;
           font-weight: 700;
-          letter-spacing: 0.2em;
+          letter-spacing: 0.18em;
           color: var(--ins-gray-600);
         }
         .fire-depth__val {
@@ -719,10 +755,13 @@ export default function FIRECalculator() {
           margin-top: 4px;
           font-variant-numeric: tabular-nums;
         }
+        /* EXPLANATORY CAPTIONS under each figure — caption contract, and
+           the copy above is re-cased to match. They wrap to two lines in
+           a 1/3 track, as they already did at 9px caps. */
         .fire-depth__cap {
-          font-size: 9px;
-          font-weight: 600;
-          letter-spacing: 0.1em;
+          font-size: 12px;
+          font-weight: 500;
+          letter-spacing: 0.01em;
           color: var(--ins-gray-600);
           line-height: 1.5;
         }
@@ -747,7 +786,7 @@ export default function FIRECalculator() {
             display: block;
           }
           .calc__kicker {
-            font-size: 9px;
+            font-size: 10px;
             letter-spacing: 0.18em;
           }
           .calc__display {
@@ -758,16 +797,17 @@ export default function FIRECalculator() {
             display: block;
             text-align: left;
             margin-top: 6px;
-            font-size: 8.5px;
+            font-size: 10px;
             letter-spacing: 0.12em;
           }
           .calc__layout {
             margin-top: 14px;
             gap: 18px;
           }
+          /* Captions hold one size across breakpoints. */
           .calc__sentence {
-            font-size: 9.5px;
-            letter-spacing: 0.12em;
+            font-size: 12px;
+            letter-spacing: 0.01em;
             gap: 8px;
           }
           .fire__fig {
@@ -779,14 +819,14 @@ export default function FIRECalculator() {
           }
           .calc__tagline {
             margin-top: 14px;
-            font-size: 10px;
+            font-size: 12px;
           }
           .calc__stats {
             gap: 20px;
             margin-top: 14px;
           }
           .calc__stat-lab {
-            font-size: 9px;
+            font-size: 10px;
             letter-spacing: 0.12em;
           }
           .calc__stat-val {

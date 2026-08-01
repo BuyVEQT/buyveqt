@@ -92,11 +92,19 @@ export default function LedgerRow({ entry }: { entry: AlmanacEntry }) {
           outline-offset: -2px;
         }
 
+        /* Ledger column head — a TRUE LABEL (date + session number, no verb).
+           TRACKING DIAL-BACK 0.18em → 0.14em: this is the one genuinely
+           fixed track in the row. The longest real string is a September
+           row — "SEPT. 30, 2025 · SESSION № 1,462", 32 chars — which at
+           10px/0.18em measures ~238px against a 236px track and would spill
+           into the glyph column. At 0.14em it lands ~225px and holds one
+           line. (Below 900px the track drops to 200px and the kicker wraps,
+           which is free: it spans both rows of the grid there.) */
         .kicker {
           grid-area: kicker;
-          font-size: 9px;
+          font-size: 10px;
           font-weight: 700;
-          letter-spacing: 0.18em;
+          letter-spacing: 0.14em;
           text-transform: uppercase;
           color: var(--ins-gray-600);
         }
@@ -133,10 +141,14 @@ export default function LedgerRow({ entry }: { entry: AlmanacEntry }) {
         .move--down {
           color: var(--ins-signal);
         }
+        /* "96TH PCTL" — a rank ordinal, so it stays caps at the floor. It
+           sits in the row's 'auto' track under the move figure, which is
+           the wider of the two, so the bump costs the grid nothing and
+           0.16em stands. */
         .pctl {
           grid-area: pctl;
           justify-self: end;
-          font-size: 8.5px;
+          font-size: 10px;
           font-weight: 600;
           letter-spacing: 0.16em;
           text-transform: uppercase;
@@ -211,8 +223,11 @@ export default function LedgerRow({ entry }: { entry: AlmanacEntry }) {
             width: 24px;
             height: 24px;
           }
+          /* Mobile hands the kicker its own band across cols 1–2, so it has
+             ~267px once the pctl and gaps are paid for — 0.13em survives the
+             bump with the 32-char worst case at ~222px. */
           .kicker {
-            font-size: 8px;
+            font-size: 10px;
             letter-spacing: 0.13em;
           }
           .word {
@@ -226,7 +241,7 @@ export default function LedgerRow({ entry }: { entry: AlmanacEntry }) {
             font-size: 15px;
           }
           .pctl {
-            font-size: 8px;
+            font-size: 10px;
             letter-spacing: 0.12em;
           }
           .row--rally,

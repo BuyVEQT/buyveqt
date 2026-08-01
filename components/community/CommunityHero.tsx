@@ -170,8 +170,13 @@ export default function CommunityHero({
           .cmh {
             padding-top: 22px;
           }
+          /* Kicker is a TRUE LABEL (eyebrow) — caps and tracking stay, only
+             the size rises to the floor. Tracking held at 0.2em: this is a
+             free-flowing line, not a fixed box, and no tracking value fits
+             51 uppercase characters on a 350px phone line anyway — it
+             already ran to two lines at 8.5px. */
           .cmh__kicker {
-            font-size: 8.5px;
+            font-size: 10px;
             letter-spacing: 0.2em;
           }
           .cmh__display {
@@ -186,11 +191,14 @@ export default function CommunityHero({
             font-size: 13.5px;
             line-height: 1.5;
           }
+          /* Fact row is stat LABEL + value pairs — names things, no verbs —
+             so it stays caps at the floor. It is a wrapping flex, not a
+             fixed track, so 0.16em survives the bump untouched. */
           .cmh__facts {
             gap: 8px 18px;
             margin-top: 18px;
             padding-top: 12px;
-            font-size: 8.5px;
+            font-size: 10px;
             letter-spacing: 0.16em;
           }
         }

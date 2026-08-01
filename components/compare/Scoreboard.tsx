@@ -59,9 +59,15 @@ const css = `
   letter-spacing: -0.04em;
   line-height: 0.9;
 }
+/* Masthead meta is a TRUE LABEL — a dot-separated fact strip
+   (provider · inception · AUM) with no verb. Caps, now at the 10px
+   floor. Tracking held at 0.18em: the mast is a 1fr track that is
+   ~370px wide even at the 900px breakpoint, and the longest strip on
+   file ("Avantis × CIBC · Est. Jan 2025 · …") measures ~280px at the
+   bumped size, so there is nothing to dial back for. */
 .ins-cmp-mast__meta {
   margin-top: 10px;
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -82,13 +88,20 @@ const css = `
 .ins-cmp-row--first {
   border-top: none;
 }
+/* Row heads are TRUE LABELS — they name the metric, they don't
+   explain it — so they stay caps at the floor. Tracking dialled
+   0.2em → 0.18em: these sit in the fixed 190px middle track (164px
+   at 900px, see below) and the longest unbreakable token,
+   "Distributions", needs ~104px at 10px/0.18em with the label
+   centred. The multi-word heads wrap on word boundaries, which is
+   what line-height 1.35 is here for. */
 .ins-cmp-row__label {
   grid-column: 2;
   grid-row: 1;
   text-align: center;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
   line-height: 1.35;
@@ -144,14 +157,23 @@ const css = `
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+/* The MER verdict chip stays a LABEL even in its tie state, where
+   the string ("The fee is a dead heat") reads as a sentence: this is
+   a boxed stamp on the row, not running copy — the same call the
+   newsletter card's receipt strip got — and caption gray inside a
+   solid red badge would be unreadable. Bumped 8.5px → 10px with
+   tracking dialled 0.08em → 0.06em, because a chip inside the fixed
+   middle track is exactly the case the dial-back is for: the tie
+   string is the longest thing that column ever carries, ~148px at
+   10px/0.06em once the 16px of horizontal padding is counted. */
 .ins-cmp-chip {
   display: inline-block;
   margin-top: 5px;
   padding: 3px 8px;
   border-radius: 3px;
-  font-size: 8.5px;
+  font-size: 10px;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   background: var(--ins-signal);
   color: #ffffff;
@@ -169,13 +191,19 @@ const css = `
   padding: 15px 28px;
   border-top: 1px solid var(--ins-hair);
 }
+/* Exhibit head: the left span names the exhibit and its qualifier,
+   the right span is the live lead readout. Both are LABELS — one
+   names a thing, one is a stat — so neither drops to caption
+   grammar; splitting the treatment across one flex row would read as
+   a mistake. Bumped to the floor with tracking dialled 0.2em →
+   0.18em since the two share a single line's width. */
 .ins-cmp-spread__head {
   display: flex;
   justify-content: space-between;
   gap: 16px;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
 }
@@ -207,11 +235,17 @@ const css = `
   height: 5px;
   background: var(--ins-ink);
 }
+/* Axis end markers. They carry a verb ("VEQT leads") but they name a
+   direction on the bar rather than explaining anything, so they stay
+   caps — a 12px sentence-case line under a 5px track would read as a
+   footnote instead of as the two ends of the axis. Bumped 8px →
+   10px; tracking held at 0.1em because this is a full-width
+   space-between row, not a fixed box. */
 .ins-cmp-spread__ends {
   display: flex;
   justify-content: space-between;
   margin-top: 6px;
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -232,6 +266,12 @@ const css = `
   background: var(--ins-ink);
   flex-shrink: 0;
 }
+/* The rail's shout. Left in caps at 11px/800 even though the string
+   is a full sentence: this is the module's verdict standing beside
+   the ink square — the same slot the weather band's rail copy holds,
+   and that one kept caps through Turn 8 with sentences of its own
+   ("Do nothing. Especially today."). The note to its right is the
+   caption half of the pair. */
 .ins-cmp-rail__text {
   font-size: 11px;
   font-weight: 800;
@@ -239,12 +279,15 @@ const css = `
   text-transform: uppercase;
   line-height: 1.4;
 }
+/* Right-hand rail note — a sentence, so caption grammar: 12px,
+   weight 500, sentence case, utility gray, no transform. It comes
+   out ~30px narrower than the 9.5px caps version it replaces, so the
+   nowrap still holds on the widest rail state. */
 .ins-cmp-rail__noise {
   margin-left: auto;
-  font-size: 9.5px;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
   color: var(--ins-gray-600);
   white-space: nowrap;
 }
@@ -252,7 +295,13 @@ const css = `
 @media (max-width: 900px) {
   .ins-cmp-mast { padding: 18px 20px; }
   .ins-cmp-mast__ticker { font-size: 44px; }
-  .ins-cmp-row { grid-template-columns: 1fr 150px 1fr; padding: 14px 20px; }
+  /* Middle track widened 150px → 164px. Last-resort track resize, and
+     the only one on the card: at the 10px floor the tie-state MER chip
+     ("The fee is a dead heat") measures ~148px including its padding,
+     which a 150px track can only just hold before the badge wraps to
+     two lines. The two 1fr value columns give up 7px each and nothing
+     else on the row moves. */
+  .ins-cmp-row { grid-template-columns: 1fr 164px 1fr; padding: 14px 20px; }
   .ins-cmp-val { font-size: 24px; }
   .ins-cmp-val--word { font-size: 17px; }
   .ins-cmp-spread { padding: 14px 20px; }
@@ -263,12 +312,19 @@ const css = `
   .ins-cmp-mast { padding: 14px 16px; }
   .ins-cmp-mast__ticker { font-size: 28px; letter-spacing: -0.03em; }
   .ins-cmp-mast__meta { display: none; }
+  /* Phone masthead strip — same LABEL call as the desktop meta.
+     Bumped 8px → 10px with tracking dialled 0.14em → 0.12em, since
+     this one really does sit in a half-card grid track (~135px of
+     content on a 375px phone). Most providers clear it on one line;
+     "Avantis × CIBC · Jan 2025" is the one string that wraps to two,
+     and it wrapped at 8px too — the bump doesn't create the wrap, the
+     provider name does. */
   .ins-cmp-mast__meta--short {
     display: block;
     margin-top: 4px;
-    font-size: 8px;
+    font-size: 10px;
     font-weight: 600;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--ins-gray-600);
   }
@@ -280,7 +336,12 @@ const css = `
     padding: 12px 16px;
     min-height: 44px;
   }
-  .ins-cmp-row__label { font-size: 8px; letter-spacing: 0.14em; }
+  /* Phone row head — the middle track is 'auto' here, so the label
+     sizes itself and the two 1fr value columns absorb the change.
+     8px → 10px, tracking dialled 0.14em → 0.12em; the widest head
+     that phones ever show is "Distributions" (no short form), ~96px
+     against ~300px of row. */
+  .ins-cmp-row__label { font-size: 10px; letter-spacing: 0.12em; }
   .ins-cmp-label--long { display: none; }
   .ins-cmp-label--short { display: inline; }
   .ins-cmp-row__b { text-align: right; }
@@ -295,13 +356,20 @@ const css = `
   }
   .ins-cmp-fee__labeltext { display: none; }
   .ins-cmp-chip__mer { display: inline; }
-  .ins-cmp-chip { margin-top: 0; font-size: 8px; }
+  /* Chip carries the "MER — " prefix on phones and the label cell
+     spans the full row here, so the bumped stamp has ~300px to sit
+     in; tracking is inherited from the dialled-back base. */
+  .ins-cmp-chip { margin-top: 0; font-size: 10px; }
   .ins-cmp-fee__a { grid-column: 1; grid-row: 2; justify-content: flex-start; gap: 6px; }
   .ins-cmp-fee__b { grid-column: 2; grid-row: 2; justify-content: flex-end; gap: 6px; }
-  .ins-cmp-fee__delta { font-size: 9px; }
+  .ins-cmp-fee__delta { font-size: 10px; }
 
   .ins-cmp-spread { padding: 12px 16px; }
-  .ins-cmp-spread__head { font-size: 8px; letter-spacing: 0.12em; gap: 10px; }
+  /* Head pair at the floor, tracking dialled 0.12em → 0.1em. The two
+     spans already wrapped onto separate lines at this width before the
+     bump — the row is a plain flex, not a fixed box, so it keeps
+     wrapping rather than overflowing. */
+  .ins-cmp-spread__head { font-size: 10px; letter-spacing: 0.1em; gap: 10px; }
   .ins-cmp-spread__track { height: 4px; margin-top: 8px; }
   .ins-cmp-spread__mid { top: -2px; height: 8px; }
   .ins-cmp-spread__fill { height: 4px; }
@@ -309,7 +377,10 @@ const css = `
 
   .ins-cmp-rail { padding: 11px 14px; gap: 8px; }
   .ins-cmp-rail__sq { width: 8px; height: 8px; }
-  .ins-cmp-rail__text { font-size: 8.5px; letter-spacing: 0.1em; line-height: 1.5; }
+  /* Rail shout at the floor, tracking dialled 0.1em → 0.08em. It
+     already ran to two lines on a phone at 8.5px — line-height 1.5 is
+     here for exactly that — and it still does. */
+  .ins-cmp-rail__text { font-size: 10px; letter-spacing: 0.08em; line-height: 1.5; }
 }
 `;
 

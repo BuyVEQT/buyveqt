@@ -16,9 +16,12 @@ import { useContainerWidth } from "@/lib/useContainerWidth";
 const COMPACT_THRESHOLD = 600;
 const MAX_SCALE = 290; // % axis headroom above growth's +264%
 
-/** Kicker above the headline. */
+/**
+ * Kicker above the headline. TRUE LABEL — names the window the exhibit
+ * covers, no verb. Caps and tracking stay; size sits on the 10px floor.
+ */
 const KICKER = {
-  fontSize: 9.5,
+  fontSize: 10,
   fontWeight: 700,
   letterSpacing: "0.2em",
   textTransform: "uppercase",
@@ -26,11 +29,17 @@ const KICKER = {
   margin: 0,
 } as const;
 
-/** Micro-label over each footer statistic. */
+/**
+ * Micro-label over each footer statistic. TRUE LABEL at the floor;
+ * tracking 0.14em → 0.12em because these are equal grid tracks and
+ * "Large value vs growth" is the longest head. The value under it and its
+ * "per year, for a decade" sub-line are set inline and untouched — the
+ * first is a figure, the second is already 12px sentence case.
+ */
 const STAT_LABEL = {
-  fontSize: 8.5,
+  fontSize: 10,
   fontWeight: 600,
-  letterSpacing: "0.14em",
+  letterSpacing: "0.12em",
   textTransform: "uppercase",
   color: "var(--ins-gray-600)",
   margin: 0,

@@ -168,13 +168,24 @@ const css = `
 }
 
 /* ══ Article grammar ════════════════════════════════════════════════
- * The artboard sets the whole screen in Archivo and never reaches for a
- * serif, so the prose is Archivo too. Block selectors are direct-child
- * only: MDX components (verdict panel, callouts, exhibits) carry their own
- * type and must not inherit the prose measure or colour.
+ * TURN 8 — the reading column is the one place on the site that runs a
+ * serif. Newsreader (--ins-serif) sets the paragraphs, list items and
+ * blockquotes at 18.5px/1.65; EVERYTHING else in the column stays Archivo
+ * — headings, the auto-numbered section kickers, tables, code, and the
+ * colophon below. That split is the whole rule: prose reads, chrome
+ * labels, and the two never swap jobs.
+ *
+ * The container keeps Archivo so anything not explicitly claimed below
+ * (tables, pre, MDX slots) inherits the grotesque by default; the serif is
+ * opt-in per block rather than opt-out.
+ *
+ * Block selectors are direct-child only: MDX components (verdict panel,
+ * callouts, exhibits) carry their own type and must not inherit the prose
+ * measure, colour or family.
  * ═════════════════════════════════════════════════════════════════ */
 .artc__prose {
   counter-reset: artc-sec;
+  font-family: var(--ins-font);
   font-size: 21px;
   font-weight: 500;
   line-height: 1.6;
@@ -185,6 +196,17 @@ const css = `
 .artc__prose > ol,
 .artc__prose > blockquote {
   max-width: 68ch;
+}
+/* The serif column. 400 is Newsreader's text weight — the 500 the
+   container carries is an Archivo weight and would synthesise here. */
+.artc__prose > p,
+.artc__prose > ul > li,
+.artc__prose > ol > li,
+.artc__prose > blockquote {
+  font-family: var(--ins-serif);
+  font-size: 18.5px;
+  font-weight: 400;
+  line-height: 1.65;
 }
 .artc__prose > p {
   margin: 0 0 20px;
@@ -212,7 +234,7 @@ const css = `
   content: "Section " counter(artc-sec, decimal-leading-zero);
   display: block;
   margin-bottom: 8px;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -230,7 +252,9 @@ const css = `
 .artc__prose > p strong,
 .artc__prose > ul strong,
 .artc__prose > ol strong {
-  font-weight: 700;
+  /* 600 = the real Newsreader cut we load; 700 would fall back to it
+     anyway (or synthesise, per browser) — ask for the true face. */
+  font-weight: 600;
   color: var(--ins-ink);
 }
 .artc__prose > p a,
@@ -316,7 +340,7 @@ const css = `
   padding: 10px 14px 9px;
   text-align: left;
   white-space: nowrap;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -350,26 +374,29 @@ const css = `
   gap: 24px;
   flex-wrap: wrap;
 }
+/* Tags are true labels — single words, so caps + tracking survive. */
 .artc__tags {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   gap: 8px;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
 }
 .artc__tag {
   color: var(--ins-gray-600);
 }
+/* Turn 8 — the colophon's standing line is a footnote SENTENCE, not a
+   label: sentence case, 12px, tracking off. It was 9.5px caps at 0.14em,
+   which shouted a disclaimer nobody was meant to shout. */
 .artc__position {
   margin-left: auto;
-  font-size: 9.5px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
   color: var(--ins-gray-600);
   text-align: right;
 }
@@ -387,6 +414,16 @@ const css = `
     font-size: 17px;
     line-height: 1.62;
   }
+  /* Phone prose holds the 18–19px band's lower end — a serif column at
+     17px on a 350px measure loses the very legibility the serif is here
+     for. Only the leading tightens. */
+  .artc__prose > p,
+  .artc__prose > ul > li,
+  .artc__prose > ol > li,
+  .artc__prose > blockquote {
+    font-size: 18px;
+    line-height: 1.65;
+  }
   .artc__prose > p {
     margin-bottom: 16px;
   }
@@ -397,8 +434,8 @@ const css = `
     letter-spacing: -0.02em;
   }
   .artc__prose > h2::before {
-    font-size: 8.5px;
-    letter-spacing: 0.18em;
+    font-size: 10px;
+    letter-spacing: 0.16em;
   }
   .artc__prose > h3 {
     font-size: 17px;
@@ -417,14 +454,13 @@ const css = `
     gap: 12px;
   }
   .artc__tags {
-    font-size: 8px;
-    letter-spacing: 0.12em;
+    font-size: 10px;
+    letter-spacing: 0.1em;
   }
   .artc__position {
     margin-left: 0;
     text-align: left;
-    font-size: 8.5px;
-    letter-spacing: 0.12em;
+    font-size: 12px;
   }
 }
 `;

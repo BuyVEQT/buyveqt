@@ -23,7 +23,7 @@ interface PinnedScenariosBarProps<I> {
   onRestore: (i: number) => void;
   onRemove: (i: number) => void;
   formatter: (n: number) => string;
-  /** Right-aligned micro line — pre-uppercased. */
+  /** Right-aligned helper caption — sentence case, not a label. */
   hint?: string;
 }
 
@@ -32,7 +32,9 @@ export default function PinnedScenariosBar<I>({
   onRestore,
   onRemove,
   formatter,
-  hint = "PIN UP TO FOUR SCENARIOS TO COMPARE",
+  /* Re-cased in Turn 8: an imperative instruction about how the bar works
+     is helper text, not a label naming a thing. Wording is unchanged. */
+  hint = "Pin up to four scenarios to compare",
 }: PinnedScenariosBarProps<I>) {
   return (
     <div className="psb">
@@ -74,18 +76,23 @@ export default function PinnedScenariosBar<I>({
           font-family: var(--ins-font);
           color: var(--ins-ink);
         }
+        /* "PINNED" — a TRUE LABEL heading the row. Caps stay, 8.5px → the
+           floor, one notch of tracking back (0.2em → 0.18em) for the fixed
+           row it anchors. */
         .psb__label {
-          font-size: 8.5px;
+          font-size: 10px;
           font-weight: 700;
-          letter-spacing: 0.2em;
+          letter-spacing: 0.18em;
           text-transform: uppercase;
           color: var(--ins-gray-600);
           flex: none;
         }
+        /* "NONE YET" names a state rather than explaining one, so it stays
+           a label: caps at the floor, 0.14em → 0.12em. */
         .psb__empty {
-          font-size: 9px;
+          font-size: 10px;
           font-weight: 600;
-          letter-spacing: 0.14em;
+          letter-spacing: 0.12em;
           color: var(--ins-gray-600);
         }
         .psb__chips {
@@ -99,16 +106,25 @@ export default function PinnedScenariosBar<I>({
           align-items: stretch;
           border: 1px solid var(--ins-ink);
         }
+        /* Chip text is a TRUE LABEL — it names a saved scenario ("MAR 2020
+           · $18,940"). Caps stay, 9px → the floor; 0.08em tracking is
+           already under the dial-back table's lowest step so it holds, and
+           the chips flex-wrap rather than sharing a fixed track. Both chip
+           buttons go to a 44px tap height on every viewport, not just
+           phones — a 9px-tall ✕ was never a real target. */
         .psb__chip-main {
           appearance: none;
           background: transparent;
           border: 0;
           border-radius: 0;
           padding: 5px 10px 5px 12px;
+          min-height: 44px;
+          display: inline-flex;
+          align-items: center;
           cursor: pointer;
           color: var(--ins-ink);
           font-family: var(--ins-font);
-          font-size: 9px;
+          font-size: 10px;
           font-weight: 700;
           letter-spacing: 0.08em;
           text-transform: uppercase;
@@ -125,9 +141,12 @@ export default function PinnedScenariosBar<I>({
           border: 0;
           border-radius: 0;
           padding: 0 10px 0 4px;
+          min-height: 44px;
+          display: inline-flex;
+          align-items: center;
           color: var(--ins-gray-600);
           cursor: pointer;
-          font-size: 9px;
+          font-size: 10px;
           line-height: 1;
         }
         .psb__chip-remove:hover {
@@ -138,21 +157,20 @@ export default function PinnedScenariosBar<I>({
           outline: 2px solid var(--ins-signal);
           outline-offset: -3px;
         }
+        /* EXPLANATORY CAPTION — an imperative line telling the reader what
+           the bar does. Caption contract, and the strings themselves are
+           authored in sentence case now (here and at all three call
+           sites), so there is still no text-transform. */
         .psb__hint {
           margin-left: auto;
-          font-size: 8.5px;
-          font-weight: 600;
-          letter-spacing: 0.12em;
+          font-size: 12px;
+          font-weight: 500;
+          letter-spacing: 0.01em;
           color: var(--ins-gray-600);
-          /* Pre-uppercased by the caller — no text-transform. */
         }
         @media (max-width: 640px) {
-          .psb__chip-main,
-          .psb__chip-remove {
-            min-height: 44px;
-            display: inline-flex;
-            align-items: center;
-          }
+          /* Tap heights are on the base rules now — phones only widen the
+             ✕'s thumb padding and drop the hint onto its own line. */
           .psb__chip-remove {
             padding: 0 12px 0 6px;
           }

@@ -107,9 +107,9 @@ export default function LearnContent({ articles }: LearnContentProps) {
 .lrn-paths__kicker {
   display: block;
   font-family: var(--ins-font);
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
 }

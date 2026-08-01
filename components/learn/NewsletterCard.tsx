@@ -21,9 +21,9 @@ const css = `
   align-items: baseline;
   gap: 14px;
   flex-wrap: wrap;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
 }
 .anews__edition {
@@ -114,20 +114,23 @@ const css = `
   text-transform: uppercase;
   color: var(--ins-ink);
 }
+/* Error copy is a SENTENCE straight from the API - caption grammar. Red
+   carries the alarm; caps never did. .anews__done above stays caps: it is
+   a boxed receipt stamp rather than running copy, and it already sits at
+   the 10px floor. */
 .anews__msg {
   margin: 9px 0 0;
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
   color: var(--ins-signal);
 }
+/* Standing footnote - sentence case at the caption size. */
 .anews__legal {
   margin: 10px 0 0;
-  font-size: 8.5px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
   color: var(--ins-gray-600);
 }
 
@@ -141,8 +144,8 @@ const css = `
     min-height: 46px;
   }
   .anews__top {
-    font-size: 8.5px;
-    letter-spacing: 0.16em;
+    font-size: 10px;
+    letter-spacing: 0.14em;
   }
   .anews__pitch {
     font-size: 14px;

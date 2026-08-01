@@ -96,8 +96,11 @@ export default function InceptionBand({
           <div className="almanac__lede">If you&rsquo;d bought</div>
           <div className="almanac__amount">
             <span className="almanac__sum">$10,000</span>
+            {/* Sentence case since Turn 8 — it is the tail of the lede
+                sentence above ("If you'd bought $10,000 at launch,
+                January 2019…"), so shouting it broke the sentence. */}
             <span className="almanac__qualifier">
-              AT LAUNCH, JANUARY 2019…
+              at launch, January 2019…
             </span>
           </div>
 
@@ -155,15 +158,16 @@ export default function InceptionBand({
           display: flex;
           justify-content: space-between;
           gap: 10px;
-          font-size: 9px;
+          font-size: 10px;
           font-weight: 600;
-          letter-spacing: 0.18em;
+          letter-spacing: 0.16em;
           text-transform: uppercase;
           color: var(--ins-inv-mute);
         }
+                /* 30% — the ink scale's hairline step, in white. */
         .almanac__rule {
           height: 1px;
-          background: rgba(255, 255, 255, 0.25);
+          background: rgba(255, 255, 255, 0.3);
           margin: 14px 0 20px;
         }
 
@@ -191,10 +195,9 @@ export default function InceptionBand({
           padding-bottom: 6px;
         }
         .almanac__qualifier {
-          font-size: 11px;
-          font-weight: 600;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
+          font-size: 12px;
+          font-weight: 500;
+          letter-spacing: 0.01em;
           color: var(--ins-inv-mute);
         }
 
@@ -211,9 +214,9 @@ export default function InceptionBand({
           min-width: 0;
         }
         .almanac__tile-label {
-          font-size: 8.5px;
+          font-size: 10px;
           font-weight: 600;
-          letter-spacing: 0.18em;
+          letter-spacing: 0.16em;
           text-transform: uppercase;
           color: var(--ins-inv-mute);
         }
@@ -229,9 +232,9 @@ export default function InceptionBand({
         }
         .almanac__tile-sub {
           margin-top: 3px;
-          font-size: 9px;
+          font-size: 10px;
           font-weight: 600;
-          letter-spacing: 0.12em;
+          letter-spacing: 0.08em;
           text-transform: uppercase;
           color: var(--ins-inv-mute);
         }
@@ -243,7 +246,10 @@ export default function InceptionBand({
           font-size: 13px;
           font-weight: 500;
           line-height: 1.55;
-          color: rgba(255, 255, 255, 0.78);
+          /* Snapped to the scale's 100% step — 0.78 was a fifth gray that
+             existed only here, and the red rule already gives this line
+             its own identity without dimming the type. */
+          color: var(--ins-inv-text);
         }
 
         .almanac__cta-row {
@@ -258,7 +264,7 @@ export default function InceptionBand({
           text-transform: uppercase;
           text-decoration: none;
           color: var(--ins-inv-text);
-          border-bottom: 2px solid rgba(255, 255, 255, 0.4);
+          border-bottom: 2px solid rgba(255, 255, 255, 0.3);
           padding-bottom: 4px;
         }
         .almanac :global(.almanac__cta:hover) {
@@ -283,8 +289,8 @@ export default function InceptionBand({
             padding: 20px;
           }
           .almanac__top {
-            letter-spacing: 0.2em;
-            font-size: 8.5px;
+            letter-spacing: 0.12em;
+            font-size: 10px;
           }
           .almanac__no-word {
             display: none;
@@ -303,7 +309,7 @@ export default function InceptionBand({
           .almanac__qualifier {
             display: block;
             margin-top: 8px;
-            font-size: 9.5px;
+            font-size: 12px;
           }
           .almanac__tiles {
             gap: 10px;
@@ -313,7 +319,8 @@ export default function InceptionBand({
             padding: 12px;
           }
           .almanac__tile-label {
-            font-size: 8px;
+            font-size: 10px;
+            letter-spacing: 0.12em;
           }
           .almanac__tile-label-full {
             display: none;

@@ -15,9 +15,9 @@ const css = `
   gap: 24px;
 }
 .lrn-c2__eyebrow {
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
 }
@@ -29,9 +29,9 @@ const css = `
   line-height: 1.1;
 }
 .lrn-c2__total {
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
   white-space: nowrap;
@@ -84,9 +84,9 @@ const css = `
 }
 .lrn-c2__kicker {
   display: block;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
   font-variant-numeric: tabular-nums;
@@ -152,12 +152,12 @@ const css = `
     border-width: 0;
   }
   .lrn-c2__eyebrow {
-    font-size: 9px;
-    letter-spacing: 0.18em;
+    font-size: 10px;
+    letter-spacing: 0.16em;
   }
   .lrn-c2__total {
-    font-size: 8.5px;
-    letter-spacing: 0.12em;
+    font-size: 10px;
+    letter-spacing: 0.08em;
   }
   .lrn-c2__total-long {
     display: none;
@@ -178,8 +178,8 @@ const css = `
     font-size: 30px;
   }
   .lrn-c2__kicker {
-    font-size: 8.5px;
-    letter-spacing: 0.14em;
+    font-size: 10px;
+    letter-spacing: 0.12em;
   }
   .lrn-c2__title {
     margin-top: 3px;

@@ -112,6 +112,11 @@ export default function TopBar() {
                 type="button"
                 onClick={handleBack}
                 aria-label="Back"
+                /* Turn 8 touch targets: the padding/negative-margin pair
+                   grows the hit area to ~45×44 without moving the glyph or
+                   growing the bar — the chevron's own box is only 14px
+                   tall, so a plain min-height would have pushed the whole
+                   masthead down. */
                 style={{
                   appearance: "none",
                   background: "transparent",
@@ -120,8 +125,9 @@ export default function TopBar() {
                   fontSize: 24,
                   lineHeight: 0.6,
                   cursor: "pointer",
-                  padding: 0,
-                  marginTop: -3,
+                  padding: "15px 19px",
+                  margin: "-15px -19px",
+                  marginTop: -18,
                 }}
               >
                 ‹
@@ -147,9 +153,9 @@ export default function TopBar() {
                 {chrome.kicker && (
                   <div
                     style={{
-                      fontSize: 9,
+                      fontSize: 10,
                       fontWeight: 700,
-                      letterSpacing: "0.22em",
+                      letterSpacing: "0.18em",
                       textTransform: "uppercase",
                       color: "var(--ins-gray-600)",
                     }}
@@ -211,13 +217,18 @@ export default function TopBar() {
               aria-label="Menu"
               aria-expanded={menuOpen}
               aria-controls="topbar-drawer"
+              /* Same padding/negative-margin trick as the back chevron:
+                 44×44 of hit area, unchanged glyph position and bar
+                 height. The right-side overhang runs into the live-ticker
+                 span, which is not interactive, so nothing is stolen. */
               style={{
                 appearance: "none",
                 background: "transparent",
                 border: 0,
                 color: "var(--ins-ink)",
                 cursor: "pointer",
-                padding: 4,
+                padding: "14px",
+                margin: "-14px",
                 fontSize: 16,
                 lineHeight: 1,
               }}
@@ -278,9 +289,9 @@ export default function TopBar() {
             >
               <div
                 style={{
-                  fontSize: 9,
+                  fontSize: 10,
                   fontWeight: 800,
-                  letterSpacing: "0.22em",
+                  letterSpacing: "0.2em",
                   textTransform: "uppercase",
                   color: "var(--ins-gray-600)",
                 }}
@@ -332,6 +343,9 @@ export default function TopBar() {
   );
 }
 
+/* Drawer rows. The links are flex items, so they blockify and the vertical
+   padding is real hit area: 11px of type at ~13px line box + 2×16px pads
+   to 45px, clearing the 44px floor. (They were 12px pads / ~37px.) */
 function menuLink(): React.CSSProperties {
   return {
     fontFamily: "var(--ins-font)",
@@ -341,7 +355,7 @@ function menuLink(): React.CSSProperties {
     textTransform: "uppercase",
     color: "var(--ins-ink)",
     textDecoration: "none",
-    padding: "12px 0",
+    padding: "16px 0",
     borderBottom: "1px solid var(--ins-hair)",
   };
 }

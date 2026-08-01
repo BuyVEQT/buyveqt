@@ -41,15 +41,21 @@ export default function ControlsActions({
           align-items: stretch;
           font-family: var(--ins-font);
         }
+        /* Button text is a TRUE LABEL — caps stay. 9.5px → the 10px floor,
+           and because both skins are fixed cells (a strip cell in the bar,
+           a flex-1 footer cell in the 320px column) the bump takes one
+           tracking notch: 0.14em → 0.12em. "PIN SCENARIO" measures ~89px
+           plus 40px padding, so the column footer still seats it beside
+           RESET inside 320px. Both skins already carry min-height 44px. */
         .ctla__btn {
           appearance: none;
           background: transparent;
           border: 0;
           border-radius: 0;
           font-family: var(--ins-font);
-          font-size: 9.5px;
+          font-size: 10px;
           font-weight: 800;
-          letter-spacing: 0.14em;
+          letter-spacing: 0.12em;
           text-transform: uppercase;
           color: var(--ins-ink);
           cursor: pointer;

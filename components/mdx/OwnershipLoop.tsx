@@ -29,11 +29,24 @@ const css = `
 }
 
 /* Diagram labels. Uppercase is written into the strings rather than set in
-   CSS — SVG text ignores text-transform in some engines. */
+   CSS — SVG text ignores text-transform in some engines.
+
+   TRUE LABELS: every one of these names a party ("YOU", "VANGUARD",
+   "NYSE: BLK"), so they keep caps and take the 10px floor. Tracking comes
+   back one notch (0.9px → 0.6px in user units) because they sit inside
+   fixed-width chip rects — at 10px/0.9px "BLACKROCK" would have run past
+   its 74-unit chip. At 0.6px the longest chip string, "BLACKROCK", measures
+   ~61 units and the widest chip is 74.
+
+   One knowing overrun: the unchipped "SHAREHOLDERS" annotation starts at
+   x=222 and now reaches ~304 in a 300-unit viewBox. The svg is
+   overflow: visible and centred inside a panel with ≥10px of padding, so
+   it renders; it can't be pulled left without colliding with the escape
+   arrowhead that lands at ~(214, 39). */
 .exa__label {
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 800;
-  letter-spacing: 0.9px;
+  letter-spacing: 0.6px;
   fill: var(--ins-ink);
 }
 .exa__label--mute {
@@ -42,10 +55,15 @@ const css = `
 .exa__chip {
   fill: var(--ins-paper);
 }
+/* The annotation stacked inside each ring — a label phrase ("$200/YR
+   ORBITS HOME"), not a sentence, so caps stay. At the 10px floor with
+   tracking dialled 1.1px → 0.9px the longest line, "LEAKS OUT", measures
+   ~64 units against the ring's 124-unit inner span, and the 13-unit
+   baseline steps still clear each other. */
 .exa__centre {
-  font-size: 8.5px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 1.1px;
+  letter-spacing: 0.9px;
   fill: var(--ins-signal);
 }
 .exa__centre--mute {

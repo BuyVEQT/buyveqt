@@ -46,8 +46,16 @@ const css = `
 
 @media (max-width: 640px) {
   .ins-cmp-slug__inner { padding: 0 20px 32px; }
-  .ins-cmp-slug__foot { margin-top: 22px; padding-top: 14px; }
-  .ins-cmp-slug__back { font-size: 9.5px; letter-spacing: 0.14em; }
+  /* The foot's top padding moves onto the link itself: it is the only
+     thing in here, and putting the space inside the anchor buys the
+     44px tap height without floating the 2px underline away from the
+     words (24 + ~12 line box + 8 = 44). */
+  .ins-cmp-slug__foot { margin-top: 22px; padding-top: 0; }
+  .ins-cmp-slug__back {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    padding: 24px 0 8px;
+  }
 }
 `;
 

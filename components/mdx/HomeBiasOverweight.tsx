@@ -15,9 +15,12 @@ import { useContainerWidth } from "@/lib/useContainerWidth";
 const COMPACT_THRESHOLD = 600;
 const MAX_SCALE = 33; // % axis headroom so the 30% bar isn't pinned to the edge
 
-/** Kicker above the headline. */
+/**
+ * Kicker above the headline. TRUE LABEL — names the claim, no verb. Caps
+ * and tracking stay; size sits on the 10px floor.
+ */
 const KICKER = {
-  fontSize: 9.5,
+  fontSize: 10,
   fontWeight: 700,
   letterSpacing: "0.2em",
   textTransform: "uppercase",

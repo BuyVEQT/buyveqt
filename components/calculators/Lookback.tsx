@@ -30,6 +30,7 @@ import {
 } from "@/lib/calc-data";
 import type { HistoricalData } from "@/lib/data/types";
 import { expandParams } from "@/lib/share-params";
+import { readBuyLogSummary, type BuyLogSummary } from "@/lib/buy-log";
 import AnimatedDollar, { AnimatedPct } from "./AnimatedDollar";
 import NumberInput from "./NumberInput";
 import SegmentedControl from "./SegmentedControl";
@@ -176,6 +177,15 @@ export default function Lookback({ history }: LookbackProps) {
     }
   }, [minYear, maxYear]);
 
+  // The reader's own buys, if the home page's Next Buy module has any on
+  // record. localStorage, so it's read after mount — null on the server
+  // and on the hydrating render, which is also the "nothing logged" state.
+  // The rail entry appends at the bottom, so arriving late moves nothing.
+  const [buyLog, setBuyLog] = useState<BuyLogSummary | null>(null);
+  useEffect(() => {
+    setBuyLog(readBuyLogSummary());
+  }, []);
+
   const result = useMemo(
     () =>
       calcLookback({
@@ -220,6 +230,19 @@ export default function Lookback({ history }: LookbackProps) {
     const best = sorted[Math.floor(sorted.length * 0.9)] ?? sorted[sorted.length - 1];
     return { worst, median, best, count: cohorts.length };
   }, [amount, monthly, mode]);
+
+  // The reader's logged buys marked to the same close every other rail
+  // row uses, so the four figures are comparable by construction.
+  const yourCohort = useMemo(() => {
+    if (!buyLog || daily.length === 0) return null;
+    const latest = daily[daily.length - 1].close;
+    if (!Number.isFinite(latest) || latest <= 0) return null;
+    return {
+      value: buyLog.units * latest,
+      contributed: buyLog.contributed,
+      count: buyLog.count,
+    };
+  }, [buyLog, daily]);
 
   // Push state to URL so OG-image preview keeps working.
   useEffect(() => {
@@ -277,7 +300,7 @@ export default function Lookback({ history }: LookbackProps) {
             padding-top: 16px;
           }
           .lb__kicker {
-            font-size: 9.5px;
+            font-size: 10px;
             font-weight: 700;
             letter-spacing: 0.2em;
             color: var(--ins-gray-600);
@@ -300,14 +323,18 @@ export default function Lookback({ history }: LookbackProps) {
   }
 
   const cohortCount = scenarios?.count ?? 0;
+  // Both re-cased in Turn 8. The poster line is a sentence about the
+  // figure ("$10,000 placed JAN 2019 is today") and the rail footnote is a
+  // methodology line — captions, both of them, so they stopped shouting.
+  // Wording is untouched; only the case moved.
   const placedCopy =
     mode === "lump"
-      ? `${fmtCAD(amount)} PLACED`
-      : `${fmtCAD(amount)}/MO SINCE`;
+      ? `${fmtCAD(amount)} placed`
+      : `${fmtCAD(amount)}/mo since`;
   const railFootnote =
     mode === "lump"
-      ? `EVERY COHORT PLACES ${fmtCAD(amount)} · VALUES MARKED TO TODAY’S CLOSE`
-      : `EVERY COHORT CONTRIBUTES ${fmtCAD(amount)}/MO · VALUES MARKED TO TODAY’S CLOSE`;
+      ? `Every cohort places ${fmtCAD(amount)} · values marked to today’s close`
+      : `Every cohort contributes ${fmtCAD(amount)}/mo · values marked to today’s close`;
 
   return (
     <section className="lb" aria-label="Lookback calculator">
@@ -368,10 +395,13 @@ export default function Lookback({ history }: LookbackProps) {
       {/* ── Poster result + cohort rail ────────────────────────── */}
       <div className="lb__grid">
         <div className="lb__poster">
+          {/* Caption line with two LABEL chips riding inside it: the entry
+              month and the dollar frame both name a thing, so they keep
+              caps at the label size while the prose around them does not. */}
           <div className="lb__sentence">
             <span>{placedCopy}</span>
             <span className="lb__chip">{entryLabel}</span>
-            <span>IS TODAY</span>
+            <span>is today</span>
             {adjustInflation && (
               <span className="lb__chip lb__chip--soft">
                 IN {startYear} DOLLARS
@@ -431,7 +461,11 @@ export default function Lookback({ history }: LookbackProps) {
                 {fmtMonth(scenarios.median.start).toUpperCase()}
               </div>
             </div>
-            <div className="lb__rail-row lb__rail-row--last">
+            <div
+              className={`lb__rail-row${
+                yourCohort ? "" : " lb__rail-row--last"
+              }`}
+            >
               <div className="lb__rail-lab">IF YOU&rsquo;D BEEN UNLUCKY</div>
               <div className="lb__rail-val">
                 <AnimatedDollar value={scenarios.worst.finalValue} size="large" />
@@ -441,6 +475,20 @@ export default function Lookback({ history }: LookbackProps) {
                 {fmtMonth(scenarios.worst.start).toUpperCase()}
               </div>
             </div>
+            {/* The reader's own cohort — only when the home page's Next
+                Buy module has buys on record on this device. */}
+            {yourCohort && (
+              <div className="lb__rail-row lb__rail-row--last">
+                <div className="lb__rail-lab">YOUR COHORT</div>
+                <div className="lb__rail-val">
+                  <AnimatedDollar value={yourCohort.value} size="large" />
+                </div>
+                <div className="lb__rail-sub">
+                  {yourCohort.count} {yourCohort.count === 1 ? "BUY" : "BUYS"} ON
+                  RECORD &middot; {fmtCAD(yourCohort.contributed)} CONTRIBUTED
+                </div>
+              </div>
+            )}
             <div className="lb__rail-foot">{railFootnote}</div>
           </div>
         )}
@@ -453,7 +501,7 @@ export default function Lookback({ history }: LookbackProps) {
           onRestore={restoreScenario}
           onRemove={remove}
           formatter={(n) => fmtCAD(n)}
-          hint="PIN UP TO FOUR COHORTS TO COMPARE ENTRIES"
+          hint="Pin up to four cohorts to compare entries"
         />
       </div>
 
@@ -490,8 +538,12 @@ export default function Lookback({ history }: LookbackProps) {
           align-items: baseline;
           gap: 24px;
         }
+        /* Kicker and header micro are TRUE LABELS — an ordinal + name, and
+           a spec strip ("REAL TAPE · NO ASSUMPTIONS · N COHORTS"). Caps
+           and tracking stay; 9.5px → the 10px floor. The header is a
+           wrapping flex row, not a fixed box, so no dial-back. */
         .lb__kicker {
-          font-size: 9.5px;
+          font-size: 10px;
           font-weight: 700;
           letter-spacing: 0.2em;
           color: var(--ins-gray-600);
@@ -504,7 +556,7 @@ export default function Lookback({ history }: LookbackProps) {
           margin: 8px 0 0;
         }
         .lb__micro {
-          font-size: 9.5px;
+          font-size: 10px;
           font-weight: 600;
           letter-spacing: 0.16em;
           color: var(--ins-gray-600);
@@ -549,21 +601,30 @@ export default function Lookback({ history }: LookbackProps) {
         .lb__poster {
           min-width: 0;
         }
+        /* EXPLANATORY CAPTION — the sentence over the poster figure.
+           Caption contract; the copy is authored in sentence case, so no
+           text-transform is involved. */
         .lb__sentence {
           display: flex;
           align-items: center;
           gap: 10px;
           flex-wrap: wrap;
-          font-size: 11px;
-          font-weight: 600;
-          letter-spacing: 0.14em;
+          font-size: 12px;
+          font-weight: 500;
+          letter-spacing: 0.01em;
           color: var(--ins-gray-600);
         }
+        /* The chips are labels inside that caption, so they now carry
+           their own type rather than inheriting the caption's: 10px caps
+           at the floor with label tracking. Without this they would have
+           been dragged up to the caption's 12px sentence size. */
         .lb__chip {
           border: 1px solid var(--ins-ink);
           padding: 2px 8px;
           color: var(--ins-ink);
+          font-size: 10px;
           font-weight: 700;
+          letter-spacing: 0.12em;
           font-variant-numeric: tabular-nums;
         }
         .lb__chip--soft {
@@ -619,29 +680,38 @@ export default function Lookback({ history }: LookbackProps) {
         .lb__rail-row--last {
           border-bottom: 1px solid var(--ins-ink);
         }
+        /* Rail row heads and their sub-lines are LABELS: they name which
+           cohort a row is ("THE MEDIAN COHORT") and which one it drew from
+           ("BEST COHORT · STARTED MAR 2020") — spec strips, not prose. Both
+           to the floor, both one tracking notch back for the fixed 380px
+           rail track (0.22em → 0.2em, 0.14em → 0.12em). Longest head
+           measures ~180px, longest sub ~222px, against 380px. */
         .lb__rail-lab {
-          font-size: 9.5px;
+          font-size: 10px;
           font-weight: 600;
-          letter-spacing: 0.22em;
+          letter-spacing: 0.2em;
           color: var(--ins-gray-600);
         }
         .lb__rail-val {
           margin-top: 6px;
         }
         .lb__rail-sub {
-          font-size: 9px;
+          font-size: 10px;
           font-weight: 600;
-          letter-spacing: 0.14em;
+          letter-spacing: 0.12em;
           color: var(--ins-gray-600);
           margin-top: 4px;
         }
+        /* The footnote is the odd one out — a methodology line with verbs
+           ("every cohort places … values marked to …"), so it takes the
+           caption contract and its string is re-cased above. */
         .lb__rail-foot {
-          font-size: 9px;
-          font-weight: 600;
-          letter-spacing: 0.14em;
+          font-size: 12px;
+          font-weight: 500;
+          letter-spacing: 0.01em;
           color: var(--ins-gray-600);
           margin-top: 10px;
-          line-height: 1.7;
+          line-height: 1.5;
         }
 
         /* ── Pinned ── */
@@ -664,16 +734,20 @@ export default function Lookback({ history }: LookbackProps) {
           gap: 16px;
           flex-wrap: wrap;
         }
+        /* Chart head + axis micro — both name a thing (what the fan plots,
+           what the axes are), so both stay caps at the floor. The head's
+           tracking holds; the micro takes a notch back since the two share
+           one wrapping header row. */
         .lb__fan-lab {
-          font-size: 9px;
+          font-size: 10px;
           font-weight: 700;
           letter-spacing: 0.2em;
           color: var(--ins-ink);
         }
         .lb__fan-micro {
-          font-size: 8.5px;
+          font-size: 10px;
           font-weight: 600;
-          letter-spacing: 0.14em;
+          letter-spacing: 0.12em;
           color: var(--ins-gray-600);
         }
         /* Map the editorial chart tokens onto the Instrument palette so
@@ -716,7 +790,7 @@ export default function Lookback({ history }: LookbackProps) {
             display: block;
           }
           .lb__kicker {
-            font-size: 9px;
+            font-size: 10px;
             letter-spacing: 0.18em;
           }
           .lb__display {
@@ -727,7 +801,7 @@ export default function Lookback({ history }: LookbackProps) {
             display: block;
             text-align: left;
             margin-top: 6px;
-            font-size: 8.5px;
+            font-size: 10px;
             letter-spacing: 0.12em;
           }
           .lb__bar {
@@ -747,10 +821,11 @@ export default function Lookback({ history }: LookbackProps) {
             margin-top: 16px;
             gap: 18px;
           }
+          /* Captions hold one size across breakpoints now. */
           .lb__sentence {
             gap: 8px;
-            font-size: 9.5px;
-            letter-spacing: 0.12em;
+            font-size: 12px;
+            letter-spacing: 0.01em;
           }
           .lb__chip {
             padding: 2px 7px;
@@ -767,7 +842,7 @@ export default function Lookback({ history }: LookbackProps) {
             margin-top: 16px;
           }
           .lb__stat-lab {
-            font-size: 9px;
+            font-size: 10px;
             letter-spacing: 0.12em;
           }
           .lb__stat-val {
@@ -788,10 +863,13 @@ export default function Lookback({ history }: LookbackProps) {
           .lb__rail-row--first {
             border-top: 1px solid var(--ins-ink);
           }
+          /* At the floor the longest head measures ~163px against the
+             ~240px label column of the phone rail grid, so the row still
+             sets on one line beside its figure. */
           .lb__rail-lab {
             grid-column: 1;
-            font-size: 8.5px;
-            letter-spacing: 0.14em;
+            font-size: 10px;
+            letter-spacing: 0.12em;
           }
           .lb__rail-sub {
             grid-column: 1;
@@ -808,8 +886,8 @@ export default function Lookback({ history }: LookbackProps) {
             font-weight: 700;
           }
           .lb__rail-foot {
-            font-size: 8px;
-            letter-spacing: 0.1em;
+            font-size: 12px;
+            letter-spacing: 0.01em;
           }
           .lb__pinned {
             margin-top: 14px;

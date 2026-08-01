@@ -18,9 +18,9 @@ const css = `
 }
 .ahdr__byline {
   margin: 16px 0 0;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
 }
@@ -48,8 +48,8 @@ const css = `
   }
   .ahdr__byline {
     margin-top: 12px;
-    font-size: 8.5px;
-    letter-spacing: 0.14em;
+    font-size: 10px;
+    letter-spacing: 0.12em;
   }
   .ahdr__standfirst {
     margin-top: 14px;

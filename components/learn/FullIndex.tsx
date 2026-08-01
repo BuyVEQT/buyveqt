@@ -37,9 +37,9 @@ const css = `
   flex-wrap: wrap;
 }
 .lrn-ix__eyebrow {
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
 }
@@ -106,9 +106,9 @@ const css = `
 }
 .lrn-ix__kicker {
   display: block;
-  font-size: 8.5px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
   font-variant-numeric: tabular-nums;
@@ -141,9 +141,9 @@ const css = `
   border-radius: 0;
   padding: 0 0 3px;
   font-family: var(--ins-font);
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 800;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--ins-ink);
   cursor: pointer;
@@ -203,8 +203,8 @@ const css = `
     border-width: 0;
   }
   .lrn-ix__eyebrow {
-    font-size: 9px;
-    letter-spacing: 0.18em;
+    font-size: 10px;
+    letter-spacing: 0.16em;
   }
   .lrn-ix__tabs {
     margin-top: 10px;
@@ -212,15 +212,15 @@ const css = `
   .lrn-ix__tab {
     min-height: 44px;
     padding: 0 13px;
-    font-size: 9px;
+    font-size: 10px;
   }
   .lrn-ix__list {
     margin-top: 6px;
     border-top: 0;
   }
   .lrn-ix__kicker {
-    font-size: 8px;
-    letter-spacing: 0.12em;
+    font-size: 10px;
+    letter-spacing: 0.1em;
   }
   .lrn-ix__title {
     font-size: 13.5px;

@@ -42,13 +42,18 @@ const css = `
   animation-play-state: paused;
 }
 
+/* LEGEND — the two keys that say which half of the dot field is which.
+   Legends are chrome and take the 10px floor. Each key carries a holdings
+   count, but a legend key is not a readout: the exhibit's data label is the
+   field itself and its aria-label, and neither the counts nor their locale
+   formatting change here. */
 .exc__legend {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
   gap: 14px;
   margin-top: 8px;
-  font-size: 8.5px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -84,9 +89,18 @@ const css = `
       transparent 1.2px
     );
   }
+  /* At the floor the two keys measure ~163 + ~211 units against a 350px
+     measure, so the row is stacked rather than squeezed. Tracking still
+     comes back a notch. Wrapping each key mid-phrase ("13,726 companies /
+     in both") was the alternative and reads worse than two clean lines —
+     this is the one place in the exhibit set where a track had to be
+     restructured to hold the floor. */
   .exc__legend {
-    font-size: 7.5px;
-    letter-spacing: 0.08em;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    font-size: 10px;
+    letter-spacing: 0.06em;
   }
 }
 `;

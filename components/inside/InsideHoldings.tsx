@@ -62,16 +62,25 @@ function BookRow({ holding, rank }: { holding: Holding; rank: number }) {
           border-bottom: 1px solid var(--ins-hair);
           font-variant-numeric: tabular-nums;
         }
+        /* Already on the ink value scale — this is the 30% step, the same
+           value as --ins-hair/--ins-gray-400. Left literal rather than
+           snapped to --ins-ordinal (12%), which is a track tone and would
+           erase a numeral that still has to be legible at 15px. */
         .book__ord {
           font-size: 15px;
           font-weight: 700;
           color: rgba(17, 17, 17, 0.3);
         }
+        /* TRUE LABEL — a country chip names a place, it explains nothing.
+           8.5px → the floor; tracking held at 0.1em because the copy is only
+           ever "US" or "CA": 2 × (10 × 0.62 + 1.0) ≈ 14px of glyphs plus
+           12px of padding and 2px of border is ~28px inside a 40px track,
+           so the box has 12px to spare and the chip need not lose grip. */
         .book__chip {
           justify-self: start;
           border: 1px solid var(--ins-hair);
           padding: 2px 6px;
-          font-size: 8.5px;
+          font-size: 10px;
           font-weight: 700;
           letter-spacing: 0.1em;
           color: var(--ins-ink);
@@ -90,11 +99,16 @@ function BookRow({ holding, rank }: { holding: Holding; rank: number }) {
           text-overflow: ellipsis;
           white-space: nowrap;
         }
+        /* TRUE LABEL — a GICS bucket is the name of a thing. Caps kept, size
+           to the floor, and the tracking comes back a notch (0.14em →
+           0.12em) because it sits in the row's 1fr id track under a name
+           that already ellipsises. Longest real string "FINANCIALS" is
+           10 × (10 × 0.62 + 1.2) ≈ 74px, well inside the track. */
         .book__sector {
           margin-top: 2px;
-          font-size: 9px;
+          font-size: 10px;
           font-weight: 600;
-          letter-spacing: 0.14em;
+          letter-spacing: 0.12em;
           text-transform: uppercase;
           color: var(--ins-gray-600);
         }
@@ -124,8 +138,12 @@ function BookRow({ holding, rank }: { holding: Holding; rank: number }) {
           .book__name {
             font-size: 13px;
           }
+          /* Floor again, tracking already at the ladder's bottom rung. With
+             the chip column dropped the label carries a country prefix, so
+             the longest real string is "US · CONS. DISC." — 16 × (6.2 + 1.2)
+             ≈ 118px against the ~260px the 1fr track keeps at 390px. */
           .book__sector {
-            font-size: 8.5px;
+            font-size: 10px;
             letter-spacing: 0.12em;
           }
           .book__sector.is-ca {
@@ -204,8 +222,10 @@ export default function InsideHoldings() {
           align-items: baseline;
           gap: 24px;
         }
+        /* TRUE LABEL — section kicker. Caps and tracking kept; it sits in an
+           auto-width flex cell, so nothing boxes it. */
         .book__kicker {
-          font-size: 9.5px;
+          font-size: 10px;
           font-weight: 700;
           letter-spacing: 0.2em;
           text-transform: uppercase;
@@ -219,11 +239,14 @@ export default function InsideHoldings() {
           line-height: 1.1;
           color: var(--ins-ink);
         }
+        /* EXPLANATORY CAPTION — "Of 13,558 — the rest round to under 1% each"
+           carries a verb and explains what the ten leave out. Caption
+           grammar, and the JSX copy is already authored in sentence case so
+           there is nothing left to re-case. */
         .book__caption {
-          font-size: 9.5px;
-          font-weight: 600;
-          letter-spacing: 0.16em;
-          text-transform: uppercase;
+          font-size: 12px;
+          font-weight: 500;
+          letter-spacing: 0.01em;
           color: var(--ins-gray-600);
           text-align: right;
           font-variant-numeric: tabular-nums;
@@ -245,16 +268,19 @@ export default function InsideHoldings() {
           border-bottom: none;
         }
 
+        /* EXPLANATORY CAPTION — the footnote row. Both strings explain
+           rather than name: one totals the ten, the other says which
+           taxonomy the sector tags follow. Out of caps at the caption size;
+           GICS keeps its case as an acronym. */
         .book__foot {
           display: flex;
           justify-content: space-between;
           gap: 20px;
           border-top: 1px solid var(--ins-ink);
           padding-top: 10px;
-          font-size: 9px;
-          font-weight: 600;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
+          font-size: 12px;
+          font-weight: 500;
+          letter-spacing: 0.01em;
           color: var(--ins-gray-600);
           font-variant-numeric: tabular-nums;
         }
@@ -274,19 +300,19 @@ export default function InsideHoldings() {
             display: block;
           }
           .book__kicker {
-            font-size: 9px;
+            font-size: 10px;
             letter-spacing: 0.18em;
           }
           .book__display {
             margin-top: 6px;
             font-size: 24px;
           }
+          /* Caption grammar is set once on the base rule now — mobile only
+             moves it under the display and flips the alignment. */
           .book__caption {
             display: block;
             margin-top: 6px;
             text-align: left;
-            font-size: 8.5px;
-            letter-spacing: 0.12em;
           }
           .book__cols {
             grid-template-columns: 1fr;
@@ -300,12 +326,11 @@ export default function InsideHoldings() {
           .book__col:last-child :global(.book__row:last-child) {
             border-bottom: 1px solid var(--ins-ink);
           }
+          /* Same — the footnote keeps its caption type and only stacks. */
           .book__foot {
             display: block;
             border-top: none;
             padding-top: 10px;
-            font-size: 8.5px;
-            letter-spacing: 0.12em;
           }
           .book__foot span {
             display: block;

@@ -24,9 +24,9 @@ const css = `
   min-width: 0;
 }
 .lrn-bout__kicker {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 800;
-  letter-spacing: 0.24em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--ins-signal);
 }
@@ -39,9 +39,9 @@ const css = `
 }
 .lrn-bout__meta {
   margin-left: auto;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ins-inv-mute);
   white-space: nowrap;
@@ -100,8 +100,8 @@ const css = `
   }
   .lrn-bout__kicker {
     display: block;
-    font-size: 8.5px;
-    letter-spacing: 0.2em;
+    font-size: 10px;
+    letter-spacing: 0.16em;
   }
   .lrn-bout__title {
     display: block;
@@ -113,8 +113,8 @@ const css = `
   .lrn-bout__meta {
     display: block;
     margin: 8px 0 0;
-    font-size: 8.5px;
-    letter-spacing: 0.12em;
+    font-size: 10px;
+    letter-spacing: 0.1em;
     white-space: normal;
   }
   .lrn-bout__cta {

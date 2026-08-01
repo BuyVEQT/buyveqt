@@ -20,8 +20,10 @@ const css = `
   align-items: baseline;
   gap: 24px;
 }
+/* Eyebrow — LABEL, caps at the 10px floor. Free half of a
+   space-between header, so tracking stands. */
 .ins-cmp-others__eyebrow {
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -34,8 +36,11 @@ const css = `
   letter-spacing: -0.02em;
   line-height: 1.1;
 }
+/* Header stamp — "Same arithmetic · Same rail", two verbless noun
+   phrases naming the module's terms. LABEL, caps at the floor;
+   drops out below 900px, so the nowrap never fights for room. */
 .ins-cmp-others__note {
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -53,8 +58,12 @@ const css = `
   border-bottom: 1px solid var(--ins-hair);
 }
 
+/* Trimmed 12px → 4px: the permalink's new 44px tap box already
+   carries ~16px of clear space under its text, so the old padding
+   would have stacked on top of it. The 4px stays as a floor for the
+   case where a bout has no write-up and renders no permalink. */
 .ins-cmp-bout-row {
-  padding-bottom: 12px;
+  padding-bottom: 4px;
 }
 .ins-cmp-bout {
   appearance: none;
@@ -86,9 +95,14 @@ const css = `
 .ins-cmp-bout__body {
   min-width: 0;
 }
+/* Row kicker — sleeve · provider. Names two things, explains
+   neither: LABEL, caps at the floor. Tracking held at 0.18em; the
+   body sits in the 1fr track (~440px per column at full width) and
+   the longest pairing, "US total market · Vanguard", measures
+   ~190px there. */
 .ins-cmp-bout__kicker {
   display: block;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -106,11 +120,15 @@ const css = `
   text-align: right;
   align-self: center;
 }
+/* Stat label over the value — LABEL, caps. 8px → 10px with tracking
+   dialled 0.14em → 0.12em for the 'auto' track it shares with the
+   value: "Spread" lands at ~44px, still narrower than the 14px value
+   beneath it, so the track's width is unchanged. */
 .ins-cmp-bout__spread-label {
   display: block;
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
 }
@@ -136,11 +154,24 @@ const css = `
 }
 
 /* Secondary action — the row still swaps the bout in place; this is the
-   deep link to the written-up page, offset under the row title. */
+   deep link to the written-up page, offset under the row title.
+
+   LABEL (link text), caps at the floor. The 44px tap height is new: at
+   9px with no padding the hit area was ~11px tall, which is not a
+   target. inline-flex + centred content grows the box, not the type,
+   and no negative margin is involved — the row's own bottom padding is
+   trimmed instead, so the button above keeps its full, non-overlapping
+   hit area. */
 .ins-cmp-bout__permalink {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  /* The label and its arrow become separate flex items the moment the
+     box turns flex, and flex drops the word space between them — this
+     gap is that space, tracking included, not decoration. */
+  column-gap: 0.4em;
+  min-height: 44px;
   margin-left: 70px;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -152,13 +183,26 @@ const css = `
   color: var(--ins-ink);
 }
 
+/* Top padding moves onto the link, which now owns a 44px tap box. */
 .ins-cmp-others__request {
-  padding: 14px 0;
+  padding: 0 0 14px;
   display: flex;
   align-items: center;
 }
+/* LABEL (link text), caps at the floor. align-items: flex-end rather
+   than center is load-bearing: the 2px rule under this link is a
+   border on the link box itself, so centring the text would leave the
+   underline floating ~18px beneath it. Bottom-aligning keeps the rule
+   3px under the type and puts the whole 29px of added hit area above
+   the text, where it overlaps nothing clickable. */
 .ins-cmp-others__request-link {
-  font-size: 9.5px;
+  display: inline-flex;
+  align-items: flex-end;
+  /* Replaces the word space flex drops between the label and its
+     arrow. */
+  column-gap: 0.4em;
+  min-height: 44px;
+  font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -190,10 +234,12 @@ const css = `
 
 @media (max-width: 640px) {
   .ins-cmp-others { padding-top: 12px; }
-  .ins-cmp-others__eyebrow { font-size: 9px; letter-spacing: 0.18em; }
+  .ins-cmp-others__eyebrow { font-size: 10px; letter-spacing: 0.18em; }
   .ins-cmp-others__display { margin-top: 6px; font-size: 20px; }
   .ins-cmp-others__grid { margin-top: 8px; }
-  .ins-cmp-bout-row { padding-bottom: 10px; }
+  /* Phones lean hardest on the permalink's 44px box, so the row's own
+     bottom padding goes to zero here. */
+  .ins-cmp-bout-row { padding-bottom: 0; }
   .ins-cmp-bout {
     grid-template-columns: 34px 1fr auto auto;
     gap: 12px;
@@ -202,11 +248,15 @@ const css = `
   }
   .ins-cmp-bout__permalink {
     margin-left: 46px;
-    font-size: 8.5px;
-    letter-spacing: 0.12em;
+    font-size: 10px;
+    letter-spacing: 0.1em;
   }
   .ins-cmp-bout__ordinal { font-size: 26px; }
-  .ins-cmp-bout__kicker { font-size: 8.5px; letter-spacing: 0.14em; }
+  /* Floor plus a dial-back 0.14em → 0.12em: the body's 1fr track is
+     ~200px on a 375px phone once the ordinal, the spread value and
+     the arrow have taken their share, and the longest kicker pairing
+     lands at ~175px there. */
+  .ins-cmp-bout__kicker { font-size: 10px; letter-spacing: 0.12em; }
   .ins-cmp-bout__title { margin-top: 3px; font-size: 14px; }
   .ins-cmp-bout__house { display: none; }
   .ins-cmp-bout__spread-label { display: none; }

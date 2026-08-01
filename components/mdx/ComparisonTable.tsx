@@ -14,9 +14,14 @@ const css = `
   padding: 10px 14px 9px;
   text-align: left;
   white-space: nowrap;
-  font-size: 9px;
+  /* TRUE LABEL — column heads. Caps stay; size goes to the floor and
+     tracking comes back a notch (0.18em → 0.14em) because a nowrap head
+     sets its column's minimum width for every body cell under it, so
+     growth here widens the whole table. .mcmp__td is untouched: those
+     cells are the table's values. */
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
   border-bottom: 1px solid var(--ins-ink);
@@ -56,8 +61,8 @@ const css = `
   }
   .mcmp__th {
     padding: 9px 11px 8px;
-    font-size: 8.5px;
-    letter-spacing: 0.14em;
+    font-size: 10px;
+    letter-spacing: 0.12em;
   }
   .mcmp__td {
     padding: 9px 11px;

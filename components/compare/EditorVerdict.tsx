@@ -17,20 +17,27 @@ const css = `
   border-right: 1px solid var(--ins-hair);
   padding-right: 28px;
 }
+/* Section eyebrow — LABEL, caps at the floor. Tracking dialled
+   0.2em → 0.18em because the rail is a hard 300px grid track
+   (272px after its right padding). */
 .ins-cmp-editor__label {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--ins-signal);
 }
+/* Cadence stamp — "Verdict reviewed quarterly". No finite verb; it
+   names the review terms rather than explaining the verdict, so it
+   stays a LABEL. Floor plus a dial-back 0.14em → 0.12em for the
+   fixed 300px rail; the string measures ~190px there. */
 .ins-cmp-editor__meta {
   margin-top: 10px;
   padding-top: 8px;
   border-top: 1px solid var(--ins-hair);
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
 }
@@ -42,11 +49,13 @@ const css = `
   max-width: 60ch;
   text-wrap: pretty;
 }
+/* Names the block that follows — LABEL, caps at the floor. Lives in
+   the 1fr column, so tracking is left where it was. */
 .ins-cmp-editor__rec-label {
   margin-top: 20px;
   padding-top: 12px;
   border-top: 1px solid var(--ins-hair);
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;

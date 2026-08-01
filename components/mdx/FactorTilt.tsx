@@ -16,9 +16,12 @@ import { useContainerWidth } from "@/lib/useContainerWidth";
 
 const COMPACT_THRESHOLD = 600;
 
-/** Kicker above the headline. */
+/**
+ * Kicker above the headline. TRUE LABEL — names the mechanic, no verb.
+ * Caps and tracking stay; size sits on the 10px floor.
+ */
 const KICKER = {
-  fontSize: 9.5,
+  fontSize: 10,
   fontWeight: 700,
   letterSpacing: "0.2em",
   textTransform: "uppercase",
@@ -26,11 +29,15 @@ const KICKER = {
   margin: 0,
 } as const;
 
-/** Micro-label over each footer statistic. */
+/**
+ * Micro-label over each footer statistic. TRUE LABEL at the floor;
+ * tracking 0.14em → 0.12em because these sit in equal grid tracks. The
+ * figures beneath are set inline and untouched.
+ */
 const STAT_LABEL = {
-  fontSize: 8.5,
+  fontSize: 10,
   fontWeight: 600,
-  letterSpacing: "0.14em",
+  letterSpacing: "0.12em",
   textTransform: "uppercase",
   color: "var(--ins-gray-600)",
   margin: 0,

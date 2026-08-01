@@ -212,9 +212,13 @@ export default function CommunityContent({
           gap: 24px;
           flex-wrap: wrap;
         }
+        /* Kickers are TRUE LABELS — two words, no verb, they name the
+           module. Caps + tracking kept, size to the 10px floor. Neither
+           lives in a fixed track (they sit above a wrapping display), so
+           0.22em rides through the bump. */
         .cmm__kicker,
         .cmc__kicker {
-          font-size: 9.5px;
+          font-size: 10px;
           font-weight: 600;
           letter-spacing: 0.22em;
           text-transform: uppercase;
@@ -228,8 +232,12 @@ export default function CommunityContent({
           letter-spacing: -0.02em;
           line-height: 1.1;
         }
+        /* "This week's threads · Titles only" is a LABEL, not a caption: it
+           names the sample rather than explaining it, and carries no verb.
+           Caps at the floor. (The sentence that DOES explain the method is
+           .cmm__caption below, and it is already caption-set.) */
         .cmm__note {
-          font-size: 9.5px;
+          font-size: 10px;
           font-weight: 600;
           letter-spacing: 0.16em;
           text-transform: uppercase;
@@ -256,8 +264,11 @@ export default function CommunityContent({
           gap: 16px;
           margin-top: 9px;
         }
+        /* Bar-end labels name the two buckets and carry their counts —
+           labels, not captions. Caps at the floor; 0.14em holds on desktop
+           where the row has ~1320px for two ~200px labels. */
         .cmm__end {
-          font-size: 9.5px;
+          font-size: 10px;
           font-weight: 600;
           letter-spacing: 0.14em;
           text-transform: uppercase;
@@ -288,8 +299,16 @@ export default function CommunityContent({
           flex-wrap: wrap;
           gap: 8px;
         }
+        /* Tab text is a TRUE LABEL — "This week" / "All time" name a range.
+           (The All-time tab's behaviour is untouched; this is type only.)
+           inline-flex + min-height gives the control a 44px tap target on
+           every viewport, not just the phone override below. */
         .cmc__tab {
           appearance: none;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 44px;
           border: 1px solid var(--ins-hair);
           border-radius: 0;
           background: none;
@@ -346,8 +365,12 @@ export default function CommunityContent({
           border: 1px solid var(--ins-hair);
           padding: 28px 22px;
         }
+        /* "The wire is down" stays caps: it is a status stamp naming the
+           state of the feed, and the sentence that explains the state is the
+           body copy directly beneath it. Same call NewsletterCard makes for
+           its receipt line. Floor only. */
         .cmc__empty-label {
-          font-size: 9.5px;
+          font-size: 10px;
           font-weight: 700;
           letter-spacing: 0.2em;
           text-transform: uppercase;
@@ -387,7 +410,7 @@ export default function CommunityContent({
           }
           .cmm__kicker,
           .cmc__kicker {
-            font-size: 8.5px;
+            font-size: 10px;
             letter-spacing: 0.2em;
           }
           .cmm__display,
@@ -395,8 +418,10 @@ export default function CommunityContent({
             margin-top: 4px;
             font-size: 20px;
           }
+          /* 33 uppercase chars ≈ 233px at 10px/0.14em — inside the 350px
+             the note gets once it wraps under the display. */
           .cmm__note {
-            font-size: 8.5px;
+            font-size: 10px;
             letter-spacing: 0.14em;
             text-align: left;
           }
@@ -404,11 +429,20 @@ export default function CommunityContent({
             height: 12px;
             margin-top: 16px;
           }
+          /* LAYOUT CHANGE, and the reason: at the 10px floor the two end
+             labels run ~169px and ~191px — 372px with the gap, against 350px
+             of phone. No tracking on the ladder buys back 22px without
+             dropping caps below the point where they read, and letting them
+             shrink would break each label across two lines mid-phrase.
+             Stacking is the smaller loss: line one is the ink share, line
+             two the red share, and .cmm__end--red keeps its right alignment
+             so each still sits over its own end of the bar. */
           .cmm__ends {
-            gap: 12px;
+            flex-direction: column;
+            gap: 4px;
           }
           .cmm__end {
-            font-size: 8.5px;
+            font-size: 10px;
             letter-spacing: 0.1em;
           }
           .cmm__caption {
@@ -420,10 +454,10 @@ export default function CommunityContent({
             flex-direction: column;
           }
           .cmc__tab {
-            /* ≥44px touch target on phones */
-            min-height: 44px;
+            /* ≥44px touch target now lives on the base rule; phones only
+               trade the vertical padding for it. */
             padding: 0 16px;
-            font-size: 9.5px;
+            font-size: 10px;
           }
           .cmc__grid {
             grid-template-columns: 1fr;

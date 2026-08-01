@@ -38,10 +38,14 @@ const css = `
 .ins-cmp-hero__picker {
   padding-bottom: 6px;
 }
+/* Names the tab group — LABEL, caps at the 10px floor. Tracking
+   dialled 0.2em → 0.18em: it sits over the picker's 'auto' grid
+   track, whose width is set by the six tabs (~350px), and
+   "Tonight's bout" lands at ~108px there. */
 .ins-cmp-hero__picker-label {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
   text-align: right;
@@ -97,9 +101,14 @@ const css = `
     padding-top: 24px;
     gap: 16px;
   }
+  /* Kicker is a LABEL strip (section · count · cadence, no verb), so
+     it stays caps; 9px → 10px at the floor. Tracking eased 0.24em →
+     0.22em: it is not in a box, but the strip already ran to two
+     lines on a phone before the bump and the notch buys some of that
+     back without changing the rhythm at the top of the page. */
   .ins-cmp-hero__kicker {
-    font-size: 9px;
-    letter-spacing: 0.24em;
+    font-size: 10px;
+    letter-spacing: 0.22em;
   }
   .ins-cmp-hero__display {
     margin-top: 12px;

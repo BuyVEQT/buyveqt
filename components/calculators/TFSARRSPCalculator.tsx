@@ -229,7 +229,9 @@ export default function TFSARRSPCalculator() {
   const exceedsFHSARoom =
     account === "FHSA" && pastFHSA + annual > fhsaRoom.lifetimeLimit;
 
-  // Pre-uppercased — prints as the section's micro tagline.
+  // Stays SHOUTING: a verb-less spec strip naming the shelter's terms, so
+  // it is a label rather than a caption under the Turn 8 contract. Prints
+  // pre-uppercased as the section's micro tagline.
   const accountCaption =
     account === "TFSA"
       ? `TAX-FREE GROWTH · ${fmtCAD(tfsaRoom.currentYearLimit, 0)}/YR CAP`
@@ -646,10 +648,14 @@ function RoomStyles() {
         gap: 12px;
         margin-bottom: 8px;
       }
+      /* Panel head — a TRUE LABEL naming the tracker. Caps stay, 8.5px →
+         the 10px floor, one tracking notch back (0.2em → 0.18em) for the
+         bordered box: "TFSA CONTRIBUTION ROOM" measures ~176px and shares
+         the row with the percentage on the right. */
       .room__lab {
-        font-size: 8.5px;
+        font-size: 10px;
         font-weight: 700;
-        letter-spacing: 0.2em;
+        letter-spacing: 0.18em;
         text-transform: uppercase;
         color: var(--ins-gray-600);
       }
@@ -686,16 +692,24 @@ function RoomStyles() {
         letter-spacing: -0.02em;
         font-variant-numeric: tabular-nums;
       }
+      /* EXPLANATORY CAPTION — "remaining of $95,000 lifetime · eligible
+         since 2008". Already sentence case; only the size and tracking
+         moved onto the one caption step the directory now shares. */
       .room__cap {
-        font-size: 10.5px;
+        font-size: 12px;
         font-weight: 500;
+        letter-spacing: 0.01em;
         color: var(--ins-gray-600);
       }
+      /* Alerts are full sentences from the CRA rules — caption grammar at
+         weight 600, the same treatment the learn newsletter card gives its
+         error line. Red carries the alarm; caps never did. */
       .room__alert {
         margin-top: 10px;
         padding: 8px 10px;
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 600;
+        letter-spacing: 0.01em;
         line-height: 1.5;
         border: 1px solid var(--ins-hair);
       }
@@ -741,10 +755,12 @@ function RRSPStyles() {
         flex-direction: column;
         gap: 4px;
       }
+      /* Callout head — a label naming the figure below it. Caps stay,
+         8.5px → the floor, one notch back for the 2-up grid track. */
       .rrsp-callout__lab {
-        font-size: 8.5px;
+        font-size: 10px;
         font-weight: 700;
-        letter-spacing: 0.2em;
+        letter-spacing: 0.18em;
         text-transform: uppercase;
         color: var(--ins-gray-600);
       }
@@ -759,19 +775,27 @@ function RRSPStyles() {
       .rrsp-callout__val.is-bad {
         color: var(--ins-signal);
       }
+      /* Explaining line under each callout ("RRSP advantage — save at a
+         higher rate") — caption step. */
       .rrsp-callout__cap {
         margin-top: 2px;
-        font-size: 10.5px;
+        font-size: 12px;
         font-weight: 500;
+        letter-spacing: 0.01em;
         color: var(--ins-gray-600);
         line-height: 1.45;
       }
+      /* A full sentence about what the reinvest toggle did — caption. The
+         ink moves off --ins-gray-700 (a link/standfirst tone) onto the
+         utility gray, as the token's own note in globals.css instructs
+         for anything that takes caption duty. */
       .rrsp-callouts__chip {
         padding: 10px 14px;
         border: 1px solid var(--ins-hair);
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 500;
-        color: var(--ins-gray-700);
+        letter-spacing: 0.01em;
+        color: var(--ins-gray-600);
         line-height: 1.5;
       }
       .rrsp-callouts__chip strong {
@@ -809,10 +833,13 @@ function TaxDepthStyles() {
         gap: 4px;
         min-width: 0;
       }
+      /* Cell head — a label naming the figure. Caps stay, 8.5px → the
+         floor, one notch back for the 1/3 grid track: the longest head
+         ("TAX OWED AT WITHDRAWAL") measures ~176px against ~232px. */
       .tax-depth__lab {
-        font-size: 8.5px;
+        font-size: 10px;
         font-weight: 700;
-        letter-spacing: 0.2em;
+        letter-spacing: 0.18em;
         text-transform: uppercase;
         color: var(--ins-gray-600);
       }
@@ -827,9 +854,12 @@ function TaxDepthStyles() {
       .tax-depth__val--stamp {
         color: var(--ins-signal);
       }
+      /* The methodology line under each figure ("50% inclusion × 30%
+         bracket × $180,000 growth") — caption step. */
       .tax-depth__cap {
-        font-size: 10.5px;
+        font-size: 12px;
         font-weight: 500;
+        letter-spacing: 0.01em;
         color: var(--ins-gray-600);
         line-height: 1.45;
       }

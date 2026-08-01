@@ -38,6 +38,11 @@ const css = `
   white-space: nowrap;
   justify-self: end;
 }
+/* Red-discipline default — see the contract note on the component. */
+.ins-cmp-closer__link--ink {
+  color: var(--ins-ink, #111111);
+  border-bottom-color: var(--ins-ink, #111111);
+}
 
 @media (max-width: 640px) {
   .ins-cmp-closer {
@@ -68,9 +73,26 @@ const css = `
  * Compare closer (artboard 6b) — permission to stop comparing, and the
  * one place on the page red is spent on a call to action.
  *
+ * RED DISCIPLINE (build contract §6): signal red never sits adjacent to a
+ * brand-red call to action. This page has live negative stats and they are
+ * rendered in red — Scoreboard prints the spread lead in signal when VEQT
+ * is behind (.ins-cmp-spread__lead--behind), and OtherBouts, the module
+ * immediately above this one, prints a red spread value for every bout
+ * with a negative spread. So the CTA is not unconditionally red: the
+ * caller passes `negativeStatInView` and the link drops to ink whenever
+ * any spread on the board is negative.
+ *
+ * The prop defaults to false so a caller that genuinely has no stat
+ * context still gets the designed red rather than a silent downgrade.
+ *
  * Server-safe: no client state; plain <style>, not styled-jsx.
  */
-export default function CompareCloser() {
+export default function CompareCloser({
+  negativeStatInView = false,
+}: {
+  /** True when any spread rendered above this closer is negative. */
+  negativeStatInView?: boolean;
+}) {
   return (
     <section className="ins-cmp-closer" aria-label="Closing note">
       <div>
@@ -80,7 +102,12 @@ export default function CompareCloser() {
           automate it, close the tab.
         </p>
       </div>
-      <Link href="/calculators" className="ins-cmp-closer__link">
+      <Link
+        href="/calculators"
+        className={`ins-cmp-closer__link${
+          negativeStatInView ? " ins-cmp-closer__link--ink" : ""
+        }`}
+      >
         Run the fee math <span aria-hidden>&rarr;</span>
       </Link>
       <style dangerouslySetInnerHTML={{ __html: css }} />

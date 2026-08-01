@@ -60,10 +60,15 @@ export default function SegmentedControl<V extends string>({
           font-family: var(--ins-font);
           color: var(--ins-ink);
         }
+        /* Field label — a TRUE LABEL (it names the control: "Mode",
+           "Account"). Caps + tracking, now at the 10px floor. The control
+           column and the Lookback bar cell are fixed boxes, so the bump is
+           paid for with one tracking notch (0.2em → 0.18em) — the same
+           step every sibling micro-label in the column takes. */
         .seg__label {
-          font-size: 8px;
+          font-size: 10px;
           font-weight: 700;
-          letter-spacing: 0.2em;
+          letter-spacing: 0.18em;
           text-transform: uppercase;
           color: var(--ins-gray-600);
           margin-bottom: 6px;
@@ -73,15 +78,26 @@ export default function SegmentedControl<V extends string>({
           flex-wrap: wrap;
           gap: 4px;
         }
+        /* Segment text is a TRUE LABEL — it names an option, it doesn't
+           explain one. Caps stay; 9px → the 10px floor. Tracking holds at
+           0.08em: it is already below the dial-back table's lowest step,
+           and the longest real option ("MONTHLY DCA", ~77px + 20px padding)
+           still clears the Lookback bar cell and the 320px control column.
+           min-height 30px → 44px so every segment is a full tap target on
+           every viewport, not just phones. The strip it sits in grows
+           ~14px taller as a result — that is the cost of the target. */
         .seg__opt {
           appearance: none;
           border-radius: 0;
           background: transparent;
           border: 1px solid var(--ins-hair);
           padding: 6px 10px;
-          min-height: 30px;
+          min-height: 44px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
           font-family: var(--ins-font);
-          font-size: 9px;
+          font-size: 10px;
           font-weight: 700;
           letter-spacing: 0.08em;
           text-transform: uppercase;
@@ -103,10 +119,10 @@ export default function SegmentedControl<V extends string>({
           color: var(--ins-paper);
         }
         @media (max-width: 640px) {
+          /* min-height and font-size are now carried by the base rule —
+             phones only widen the thumb-side padding. */
           .seg__opt {
-            min-height: 44px;
             padding: 6px 14px;
-            font-size: 10px;
           }
         }
       `}</style>

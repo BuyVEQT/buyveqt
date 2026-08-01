@@ -68,8 +68,13 @@ export default function InsideMethodology() {
           align-items: start;
         }
 
+        /* TRUE LABEL — a section kicker. Caps kept, size to the floor. It
+           does sit in the fixed 260px title track, but "HOW WE KNOW" at
+           10px/0.2em measures 11 × (6.2 + 2.0) ≈ 90px, roughly a third of
+           the track, so pulling the tracking in would cost grip and buy
+           nothing. */
         .method__kicker {
-          font-size: 9px;
+          font-size: 10px;
           font-weight: 700;
           letter-spacing: 0.2em;
           text-transform: uppercase;
@@ -93,15 +98,24 @@ export default function InsideMethodology() {
           color: rgba(255, 255, 255, 0.78);
           text-wrap: pretty;
         }
+        /* EXPLANATORY CAPTION — these are source lines: they say where each
+           number came from so it can be checked. Caption grammar at 12px,
+           and the transform comes off so the copy prints as it is authored —
+           "Vanguard NAV", "Yahoo Finance", "GICS", "Apr 2026 factsheet" keep
+           their proper nouns and acronyms instead of being flattened to a
+           shout.
+
+           COLOUR IS THE EXCEPTION: this is the page's one INK panel, so the
+           muted tone stays the literal 55% white step. --ins-gray-600 is the
+           paper-side utility gray and would be unreadable on #111111. */
         .method__sources {
           display: flex;
           flex-wrap: wrap;
           gap: 10px 24px;
           margin-top: 14px;
-          font-size: 9px;
-          font-weight: 600;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
+          font-size: 12px;
+          font-weight: 500;
+          letter-spacing: 0.01em;
           color: rgba(255, 255, 255, 0.55);
         }
         .method__sources b {
@@ -111,6 +125,7 @@ export default function InsideMethodology() {
 
         /* styled-jsx does not tag <Link>; scope the CTA through :global. */
         .method :global(.method__cta) {
+          position: relative;
           align-self: start;
           justify-self: end;
           font-size: 10px;
@@ -122,6 +137,24 @@ export default function InsideMethodology() {
           border-bottom: 2px solid var(--ins-inv-border-strong);
           padding-bottom: 4px;
           white-space: nowrap;
+        }
+        /* ≥44px tap height. Grown as a transparent overlay rather than with
+           min-height, because the 2px rule under the words IS the CTA's
+           affordance and it is drawn on the box's bottom edge — a 44px box
+           would leave it floating ~17px below the label. The link's own box
+           is ~18px tall, so the overlay reaches 13px past it either way.
+           Nothing above or below the CTA is clickable (the panel is a
+           heading, a paragraph and four static source spans), so the overlay
+           cannot swallow a neighbour's tap, and no negative margins are
+           involved. */
+        .method :global(.method__cta::after) {
+          content: "";
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: 50%;
+          height: 44px;
+          transform: translateY(-50%);
         }
         .method :global(.method__cta:hover) {
           border-bottom-color: var(--ins-signal);
@@ -144,7 +177,7 @@ export default function InsideMethodology() {
             gap: 12px;
           }
           .method__kicker {
-            font-size: 9px;
+            font-size: 10px;
             letter-spacing: 0.18em;
           }
           .method__display {
@@ -155,14 +188,20 @@ export default function InsideMethodology() {
             font-size: 12.5px;
             line-height: 1.55;
           }
+          /* Caption grammar is set once on the base rule — mobile only
+             tightens the wrap gaps. The 8px/0.1em override is gone: it was
+             the worst floor breach on the panel, and source lines at
+             12px sentence case simply wrap onto another row here. */
           .method__sources {
             gap: 6px 16px;
             margin-top: 12px;
-            font-size: 8px;
-            letter-spacing: 0.1em;
           }
+          /* TRUE LABEL — button text. To the floor; tracking held because
+             the CTA is justify-self:start and content-sized, so
+             "READ METHODOLOGY →" at ~135px is nowhere near the 358px it
+             has. */
           .method :global(.method__cta) {
-            font-size: 9.5px;
+            font-size: 10px;
             letter-spacing: 0.14em;
             padding-bottom: 3px;
           }

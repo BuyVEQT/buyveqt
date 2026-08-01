@@ -64,7 +64,10 @@ export default function AdvancedPanel({ children, label = "Advanced options" }: 
           align-items: center;
           gap: 10px;
           padding: 4px 0;
-          min-height: 32px;
+          /* 32px → 44px: the expander head is the only way into the
+             advanced controls, so it gets a full tap target on desktop
+             too, not just under the 640px query. */
+          min-height: 44px;
           cursor: pointer;
           color: inherit;
         }
@@ -72,10 +75,13 @@ export default function AdvancedPanel({ children, label = "Advanced options" }: 
           outline: 2px solid var(--ins-signal);
           outline-offset: 2px;
         }
+        /* "ADVANCED OPTIONS" — a TRUE LABEL (it names the section). Caps
+           stay, 8.5px → the floor, one tracking notch back (0.2em →
+           0.18em) for the fixed 320px control column it lives in. */
         .advp__label {
-          font-size: 8.5px;
+          font-size: 10px;
           font-weight: 700;
-          letter-spacing: 0.2em;
+          letter-spacing: 0.18em;
           text-transform: uppercase;
           color: var(--ins-ink);
         }
@@ -99,11 +105,6 @@ export default function AdvancedPanel({ children, label = "Advanced options" }: 
           display: flex;
           flex-direction: column;
           gap: 16px;
-        }
-        @media (max-width: 640px) {
-          .advp__head {
-            min-height: 44px;
-          }
         }
       `}</style>
     </div>
@@ -154,7 +155,9 @@ export function AdvToggle({
           color: var(--ins-ink);
           font-family: var(--ins-font);
           text-align: left;
-          min-height: 32px;
+          /* 32px → 44px on every viewport — a 12px checkbox needs the
+             whole row to be the target, not the square. */
+          min-height: 44px;
         }
         .atog--row {
           width: 100%;
@@ -164,15 +167,18 @@ export function AdvToggle({
           outline: 2px solid var(--ins-signal);
           outline-offset: 3px;
         }
+        /* The tick glyph is text, so the floor applies to it too: 8px →
+           10px. The square grew 12px → 14px to keep the ✓ centred inside
+           its 1px rule rather than crowding it. */
         .atog__box {
-          width: 12px;
-          height: 12px;
+          width: 14px;
+          height: 14px;
           border: 1px solid var(--ins-ink);
           flex: none;
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          font-size: 8px;
+          font-size: 10px;
           line-height: 1;
           color: var(--ins-paper);
           transition: background 0.15s;
@@ -189,27 +195,27 @@ export function AdvToggle({
           gap: 3px;
           min-width: 0;
         }
+        /* Toggle text is a TRUE LABEL — "Adjust for inflation", "Real
+           dollars (CPI)" name a switch. Caps stay, 9px → the floor.
+           Tracking holds at 0.12em (already below the dial-back table). */
         .atog__label {
-          font-size: 9px;
+          font-size: 10px;
           font-weight: 700;
           letter-spacing: 0.12em;
           text-transform: uppercase;
         }
+        /* The sub-line is an EXPLANATORY CAPTION — "Subtract 2.5% from the
+           assumed return rate" is helper text under a control, so it takes
+           the caption contract: 12px / 500 / 0.01em / gray-600, no caps.
+           It was already sentence case; only the size and tracking moved,
+           so captions across this directory read at one size. */
         .atog__sub {
-          font-size: 10.5px;
+          font-size: 12px;
           font-weight: 500;
-          letter-spacing: 0;
+          letter-spacing: 0.01em;
           text-transform: none;
           color: var(--ins-gray-600);
           line-height: 1.45;
-        }
-        @media (max-width: 640px) {
-          .atog {
-            min-height: 44px;
-          }
-          .atog__label {
-            font-size: 10px;
-          }
         }
       `}</style>
     </button>

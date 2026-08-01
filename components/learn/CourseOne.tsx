@@ -15,9 +15,9 @@ const css = `
   gap: 24px;
 }
 .lrn-c1__eyebrow {
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
 }
@@ -29,9 +29,9 @@ const css = `
   line-height: 1.1;
 }
 .lrn-c1__total {
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
   white-space: nowrap;
@@ -51,9 +51,9 @@ const css = `
   padding-right: 28px;
 }
 .lrn-c1__editor-label {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--ins-signal);
 }
@@ -65,14 +65,14 @@ const css = `
   color: #333333;
   text-wrap: pretty;
 }
+/* Attribution fragment - a caption, not a label. */
 .lrn-c1__editor-meta {
   margin-top: 14px;
   padding-top: 8px;
   border-top: 1px solid var(--ins-hair);
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
   color: var(--ins-gray-600);
 }
 .lrn-c1__list {
@@ -109,9 +109,9 @@ const css = `
 }
 .lrn-c1__kicker {
   display: block;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
   font-variant-numeric: tabular-nums;
@@ -168,12 +168,12 @@ const css = `
     border-width: 0;
   }
   .lrn-c1__eyebrow {
-    font-size: 9px;
-    letter-spacing: 0.18em;
+    font-size: 10px;
+    letter-spacing: 0.16em;
   }
   .lrn-c1__total {
-    font-size: 8.5px;
-    letter-spacing: 0.12em;
+    font-size: 10px;
+    letter-spacing: 0.08em;
   }
   .lrn-c1__total-long {
     display: none;
@@ -187,8 +187,8 @@ const css = `
   }
   .lrn-c1__editor-label {
     display: inline;
-    font-size: 8.5px;
-    letter-spacing: 0.16em;
+    font-size: 10px;
+    letter-spacing: 0.12em;
   }
   .lrn-c1__editor-label::after {
     content: " — ";
@@ -212,8 +212,8 @@ const css = `
     font-size: 30px;
   }
   .lrn-c1__kicker {
-    font-size: 8.5px;
-    letter-spacing: 0.14em;
+    font-size: 10px;
+    letter-spacing: 0.12em;
   }
   .lrn-c1__title {
     margin-top: 3px;

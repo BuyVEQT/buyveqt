@@ -9,9 +9,9 @@ const css = `
   font-family: var(--ins-font);
 }
 .arel__kicker {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
 }
@@ -52,9 +52,9 @@ const css = `
   text-wrap: pretty;
 }
 .arel__meta {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
   white-space: nowrap;
@@ -91,8 +91,8 @@ const css = `
   }
   .arel__meta {
     grid-column: 2;
-    font-size: 8.5px;
-    letter-spacing: 0.12em;
+    font-size: 10px;
+    letter-spacing: 0.1em;
   }
 }
 

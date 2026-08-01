@@ -5,7 +5,8 @@
  * app/layout.tsx.
  *
  * The whole footer is ONE INK BAND with two tiers, on all viewports:
- *   Tier 1 — three columns: the brand blurb ("THE VEQT DAILY — …"),
+ *   Tier 1 — three columns: the brand blurb ("The VEQT Daily — …", set
+ *     sentence case since Turn 8: it is a sentence, not a label),
  *     a REFERENCE column (Distributions / Weekly / Methodology /
  *     Almanac) and a
  *     SECTIONS column (Community / Compare / Learn / Calculators).
@@ -117,8 +118,9 @@ export default function SiteFooter() {
           display: grid;
           gap: 18px;
           padding: 20px;
+          /* 30% — the ink scale's hairline step, mirrored in paper. */
           border-bottom: 1px solid
-            color-mix(in srgb, var(--ins-paper) 20%, transparent);
+            color-mix(in srgb, var(--ins-paper) 30%, transparent);
         }
         @media (min-width: 1024px) {
           .ins-footer__tier1 {
@@ -128,14 +130,16 @@ export default function SiteFooter() {
             padding: 22px 40px;
           }
         }
+        /* Turn 8 — the blurb is a SENTENCE, so it stops shouting: sentence
+           case, 12px, tracking off. 55% paper is the ink-panel utility
+           tone (the inverse twin of --ins-gray-600). */
         .ins-footer__blurb {
           margin: 0;
-          max-width: 280px;
-          font-size: 9.5px;
-          font-weight: 600;
-          letter-spacing: 0.14em;
-          line-height: 1.7;
-          text-transform: uppercase;
+          max-width: 300px;
+          font-size: 12px;
+          font-weight: 500;
+          letter-spacing: 0.01em;
+          line-height: 1.55;
           color: color-mix(in srgb, var(--ins-paper) 55%, transparent);
         }
         .ins-footer__nav {
@@ -163,9 +167,9 @@ export default function SiteFooter() {
           }
         }
         .ins-footer__col-head {
-          font-size: 9px;
+          font-size: 10px;
           font-weight: 800;
-          letter-spacing: 0.22em;
+          letter-spacing: 0.2em;
           text-transform: uppercase;
           color: color-mix(in srgb, var(--ins-paper) 55%, transparent);
           margin-bottom: 6px;
@@ -184,8 +188,11 @@ export default function SiteFooter() {
           color: var(--ins-paper);
           text-decoration: none;
           align-self: flex-start;
-          /* ≈32px line box on mobile — comfortable at this density. */
-          padding: 9px 0;
+          /* Turn 8 touch targets: 14px line box + 2×15px padding = 44px on
+             mobile, where these are the only route to /almanac and friends
+             once the tab bar runs out of slots. (Was 9px pads / ≈32px.)
+             Padding, not glyph size — the label stays 10px. */
+          padding: 15px 0;
           transition: opacity 0.15s;
         }
         @media (min-width: 1024px) {
@@ -204,9 +211,9 @@ export default function SiteFooter() {
           gap: 6px 24px;
           flex-wrap: wrap;
           padding: 13px 20px;
-          font-size: 9.5px;
+          font-size: 10px;
           font-weight: 600;
-          letter-spacing: 0.22em;
+          letter-spacing: 0.2em;
           text-transform: uppercase;
           line-height: 1.5;
         }
@@ -215,10 +222,20 @@ export default function SiteFooter() {
             padding: 13px 40px;
           }
         }
+        /* The sign-off stays a display LABEL — it is the paper's wordmark
+           line, not a sentence being read. Caps + tracking at the 10px
+           floor is the whole point of it. */
         .ins-footer__sig {
           color: var(--ins-paper);
         }
+        /* The colophon is a footnote — sentence case, 12px, tracking off.
+           It overrides tier-2's caps grammar on purpose; the sig and the
+           colophon are two different kinds of type sharing one row. */
         .ins-footer__colophon {
+          font-size: 12px;
+          font-weight: 500;
+          letter-spacing: 0.01em;
+          text-transform: none;
           color: color-mix(in srgb, var(--ins-paper) 55%, transparent);
         }
       `}</style>

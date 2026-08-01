@@ -16,8 +16,11 @@ const css = `
   align-items: baseline;
   gap: 24px;
 }
+/* Eyebrow — section name plus a count. LABEL, caps at the floor;
+   tracking held, it sits in the free half of a space-between
+   header rather than in a box. */
 .ins-cmp-faq__eyebrow {
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -31,8 +34,16 @@ const css = `
   letter-spacing: -0.02em;
   line-height: 1.1;
 }
+/* "Not investment advice" is a disclaimer, but it is a three-word
+   noun phrase with no verb sitting in the header's stamp slot — the
+   same slot the scorecard's "{n} rounds · Reviewed quarterly" and
+   the fight card's "Same arithmetic · Same rail" occupy. The verb
+   tiebreak sends it to LABEL, and all three notes are the same
+   element, so they keep one treatment: caps at the floor. The long
+   disclaimer that actually explains something is the scorecard
+   colophon, and that one is a caption. */
 .ins-cmp-faq__note {
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -62,6 +73,10 @@ const css = `
   gap: 18px;
   align-items: start;
   text-align: left;
+  /* Accordion header is the section's only control; the 44px floor is
+     deliberate and already met by the padding + the ordinal's own
+     height at both breakpoints (the phone block only trims padding to
+     14px, which the min-height still backstops). */
   padding: 16px 0;
   min-height: 44px;
 }
@@ -128,7 +143,7 @@ const css = `
 
 @media (max-width: 640px) {
   .ins-cmp-faq { padding-top: 12px; }
-  .ins-cmp-faq__eyebrow { font-size: 9px; letter-spacing: 0.18em; }
+  .ins-cmp-faq__eyebrow { font-size: 10px; letter-spacing: 0.18em; }
   .ins-cmp-faq__display { margin-top: 6px; font-size: 20px; }
   .ins-cmp-faq__list { margin-top: 8px; }
   .ins-cmp-faq__q {

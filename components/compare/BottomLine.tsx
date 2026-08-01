@@ -28,9 +28,12 @@ const css = `
   align-items: baseline;
   gap: 24px;
 }
+/* Eyebrow — a TRUE LABEL, two words naming the section. Caps at the
+   10px floor; tracking held at 0.2em because it sits in the free half
+   of a space-between header, not in a box. */
 .ins-cmp-bl__kicker {
   margin: 0;
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -43,8 +46,14 @@ const css = `
   letter-spacing: -0.02em;
   line-height: 1.1;
 }
+/* Header stamp — "{n} rounds · Reviewed quarterly". A count and a
+   cadence, no finite verb: it names the section's terms rather than
+   explaining them, so it stays a LABEL (same slot, same call as the
+   newsletter card's "Ships Sundays"). Caps at the floor, tracking
+   held — it is nowrap but drops out entirely below 900px, and at
+   900px+ the header has ~200px of slack. */
 .ins-cmp-bl__note {
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -117,6 +126,11 @@ const css = `
 
 /* Winner marks — ink, not red. Filled = the house side took the round,
    outlined = the contender did, hairline = a draw. */
+/* Winner marks are the archetypal LABEL — a ticker or "Tie", nothing
+   to explain. Bumped 8.5px → 10px with tracking dialled 0.12em →
+   0.1em: it is a chip in the row's 'auto' track, and every string the
+   verdict stores is four characters or fewer, so the mark grows by
+   ~6px and the 1fr body column absorbs it. */
 .ins-cmp-bl__chip {
   margin-top: 2px;
   padding: 3px 8px 2px;
@@ -124,9 +138,9 @@ const css = `
   border-radius: 0;
   background: var(--ins-ink);
   color: var(--ins-paper);
-  font-size: 8.5px;
+  font-size: 10px;
   font-weight: 800;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -147,8 +161,10 @@ const css = `
   padding-top: 14px;
   border-top: 1px solid var(--ins-ink);
 }
+/* Names the block that follows — LABEL, caps at the floor. Full-width
+   block, so no dial-back. */
 .ins-cmp-bl__rec-label {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -163,14 +179,17 @@ const css = `
   font-variant-numeric: tabular-nums;
   text-wrap: pretty;
 }
+/* Standing footnote — sourcing plus a disclaimer, and "Your situation
+   may differ" is a sentence. Caption grammar: 12px, weight 500,
+   sentence case, utility gray, no transform. The copy was already
+   authored in sentence case; only the shouting was in the CSS. */
 .ins-cmp-bl__colophon {
   margin: 18px 0 0;
   padding-top: 10px;
   border-top: 1px solid var(--ins-hair-soft);
-  font-size: 9.5px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
   color: var(--ins-gray-600);
 }
 
@@ -187,7 +206,7 @@ const css = `
 
 @media (max-width: 640px) {
   .ins-cmp-bl { padding-top: 12px; }
-  .ins-cmp-bl__kicker { font-size: 9px; letter-spacing: 0.18em; }
+  .ins-cmp-bl__kicker { font-size: 10px; letter-spacing: 0.18em; }
   .ins-cmp-bl__display { margin-top: 6px; font-size: 20px; }
   .ins-cmp-bl__lede { margin-top: 10px; font-size: 13px; line-height: 1.5; }
   .ins-cmp-bl__grid { margin-top: 10px; }
@@ -199,10 +218,15 @@ const css = `
   .ins-cmp-bl__ordinal { font-size: 19px; }
   .ins-cmp-bl__label { font-size: 13.5px; }
   .ins-cmp-bl__text { margin-top: 4px; font-size: 12.5px; line-height: 1.5; }
-  .ins-cmp-bl__chip { font-size: 8px; letter-spacing: 0.08em; padding: 2px 6px 1px; }
+  /* Phone mark — floor, tracking already at 0.08em from the earlier
+     phone dial-back and left there. A four-character ticker measures
+     ~40px including padding against ~250px of body column. */
+  .ins-cmp-bl__chip { font-size: 10px; letter-spacing: 0.08em; padding: 2px 6px 1px; }
   .ins-cmp-bl__rec { margin-top: 14px; padding-top: 12px; }
   .ins-cmp-bl__rec-text { font-size: 13px; }
-  .ins-cmp-bl__colophon { margin-top: 14px; font-size: 8.5px; letter-spacing: 0.12em; }
+  /* Caption size is uniform across breakpoints, so the phone override
+     is down to the margin it always carried. */
+  .ins-cmp-bl__colophon { margin-top: 14px; }
 }
 `;
 

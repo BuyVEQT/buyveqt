@@ -7,8 +7,12 @@ const css = `
   padding: 16px 20px 18px;
   font-family: var(--ins-font);
 }
+/* TRUE LABEL — the label prop is a badge over the standfirst ("Key
+   takeaway"). Caps and tracking stay; the size moves to the floor. It sits
+   on its own full-width line inside the box, not in a fixed track, so
+   0.22em is kept. */
 .msum__label {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.22em;
   text-transform: uppercase;
@@ -37,7 +41,7 @@ const css = `
     padding: 14px 16px 16px;
   }
   .msum__label {
-    font-size: 8.5px;
+    font-size: 10px;
     letter-spacing: 0.18em;
   }
   .msum__body {

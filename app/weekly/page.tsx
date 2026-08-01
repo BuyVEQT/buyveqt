@@ -116,7 +116,7 @@ const css = `
   padding-top: 30px;
 }
 .wk-hero__kicker {
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.22em;
   text-transform: uppercase;
@@ -151,7 +151,7 @@ const css = `
   gap: 24px;
 }
 .wk-sec__eyebrow {
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.22em;
   text-transform: uppercase;
@@ -168,10 +168,14 @@ const css = `
   letter-spacing: -0.02em;
   line-height: 1.1;
 }
+/* Datelines and counts — "FILED JUL 26, 2026", "3 EARLIER ISSUES". They
+   name a thing rather than say one, so they stay labels (unlike the
+   rail's note below, which is a sentence). nowrap in a space-between
+   head, so tracking comes back a notch to pay for the bump. */
 .wk-sec__meta {
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
   text-align: right;
@@ -206,8 +210,9 @@ a.wk-lead:hover {
 .wk-lead__body {
   min-width: 0;
 }
+/* Dateline — "JUL 26, 2026 · ISSUE № 12 · VEQT +1.24%". Label. */
 .wk-lead__kicker {
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -279,7 +284,7 @@ a.wk-lead:hover .wk-lead__cta {
   max-width: 62ch;
 }
 .wk-arch__kicker {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -310,7 +315,7 @@ a.wk-lead:hover .wk-lead__cta {
 }
 .wk-signup__label {
   margin: 0;
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -422,12 +427,15 @@ a.wk-lead:hover .wk-lead__cta {
   letter-spacing: 0.18em;
   text-transform: uppercase;
 }
+/* Two strings, two type roles — the ConditionsBand rail split. The
+   desktop note is a sentence ("Published Sundays · 12 issues since Jun
+   2026"), so it reads as a caption; the mobile note is a bare label
+   phrase and goes back to caps in the mobile block below. */
 .wk-rail__note {
   margin-left: auto;
-  font-size: 9.5px;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
   color: var(--ins-gray-600);
   text-align: right;
   font-variant-numeric: tabular-nums;
@@ -501,9 +509,11 @@ a.wk-lead:hover .wk-lead__cta {
   .wk-hero {
     padding-top: 20px;
   }
+  /* Three clauses on a 350px measure — one notch of tracking back keeps
+     the kicker to two lines at the floor. */
   .wk-hero__kicker {
-    font-size: 8.5px;
-    letter-spacing: 0.2em;
+    font-size: 10px;
+    letter-spacing: 0.18em;
   }
   .wk-hero__display {
     margin-top: 10px;
@@ -519,7 +529,7 @@ a.wk-lead:hover .wk-lead__cta {
     display: block;
   }
   .wk-sec__eyebrow {
-    font-size: 8.5px;
+    font-size: 10px;
     letter-spacing: 0.2em;
   }
   .wk-sec__display {
@@ -539,9 +549,11 @@ a.wk-lead:hover .wk-lead__cta {
     line-height: 1;
     margin-bottom: 10px;
   }
+  /* Three-clause dateline with the move suffix — 0.12em holds it to one
+     line on a 350px measure at the floor. */
   .wk-lead__kicker {
-    font-size: 8px;
-    letter-spacing: 0.16em;
+    font-size: 10px;
+    letter-spacing: 0.12em;
   }
   .wk-lead__title {
     margin-top: 6px;
@@ -566,9 +578,11 @@ a.wk-lead:hover .wk-lead__cta {
     gap: 14px;
     padding: 12px 0;
   }
+  /* Same dateline, and the archive row also gives up ~26px to the arrow
+     column — same 0.12em. */
   .wk-arch__kicker {
-    font-size: 8px;
-    letter-spacing: 0.16em;
+    font-size: 10px;
+    letter-spacing: 0.12em;
   }
   .wk-arch__title {
     margin-top: 3px;
@@ -592,16 +606,21 @@ a.wk-lead:hover .wk-lead__cta {
     height: 7px;
   }
   .wk-rail__copy {
-    font-size: 9px;
-    letter-spacing: 0.14em;
+    font-size: 10px;
+    letter-spacing: 0.12em;
   }
   .wk-rail__note--desktop {
     display: none;
   }
+  /* "SUNDAYS · 12 ON FILE" — a label phrase, not a sentence, so the
+     mobile note goes back to caps at the floor rather than inheriting
+     the desktop caption. */
   .wk-rail__note--mobile {
     display: block;
-    font-size: 7.5px;
-    letter-spacing: 0.08em;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
   }
   .wk-closer {
     display: block;

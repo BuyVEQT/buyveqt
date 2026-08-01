@@ -37,6 +37,11 @@ const css = `
   white-space: nowrap;
   justify-self: end;
 }
+/* Red-discipline default — see the contract note on the component. */
+.ins-closer__link--ink {
+  color: var(--ins-ink, #111111);
+  border-bottom-color: var(--ins-ink, #111111);
+}
 
 @media (max-width: 640px) {
   .ins-closer {
@@ -69,8 +74,18 @@ const css = `
  *
  * 1px ink rule · "You've seen the number." · one-line summary of the day
  * ("Up/Down x.xx% today. Nothing needs your attention…") · THE DAILY NOTE
- * link in signal red. Direction is spelled out ("Up"/"Down"), never
- * color-only. Mobile stacks with the link under the text.
+ * link. Direction is spelled out ("Up"/"Down"), never color-only. Mobile
+ * stacks with the link under the text.
+ *
+ * RED DISCIPLINE (build contract §6): signal red never sits adjacent to a
+ * brand-red call to action. On a down day the sub-line above this link is
+ * a live negative stat, so the CTA drops to ink — 2px ink underline, ink
+ * text — and red is left to mean one thing on the screen: the loss. On an
+ * up day (or when there is no reading at all) the CTA keeps its red,
+ * because nothing on the page is competing for it.
+ *
+ * The switch is driven off the same `changePercent` the sub-line prints,
+ * so the rule cannot drift out of step with the number it is reacting to.
  *
  * Server-safe: no client state; plain <style>, not styled-jsx.
  */
@@ -87,13 +102,20 @@ export default function Closer({
           changePercent
         ).toFixed(2)}% today. ${rest}`;
 
+  const negativeInView = changePercent !== null && changePercent < 0;
+
   return (
     <section className="ins-closer" aria-label="Closing note">
       <div>
         <p className="ins-closer__display">You&rsquo;ve seen the number.</p>
         <p className="ins-closer__sub">{sub}</p>
       </div>
-      <Link href="/weekly" className="ins-closer__link">
+      <Link
+        href="/weekly"
+        className={`ins-closer__link${
+          negativeInView ? " ins-closer__link--ink" : ""
+        }`}
+      >
         The daily note <span aria-hidden>→</span>
       </Link>
       <style dangerouslySetInnerHTML={{ __html: css }} />

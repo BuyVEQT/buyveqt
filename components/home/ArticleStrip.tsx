@@ -52,9 +52,9 @@ const css = `
   gap: 24px;
 }
 .ins-read__eyebrow {
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
 }
@@ -87,9 +87,9 @@ const css = `
   padding-right: 28px;
 }
 .ins-read__editor-label {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--ins-signal);
 }
@@ -100,14 +100,15 @@ const css = `
   line-height: 1.55;
   color: #333333;
 }
+/* Attribution line — a sentence fragment, so Turn 8 sets it as a caption
+   (sentence case, 12px) rather than a 9px shouted label. */
 .ins-read__editor-meta {
   margin-top: 14px;
   padding-top: 12px;
   border-top: 1px solid var(--ins-hair);
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
   color: var(--ins-gray-600);
 }
 .ins-read__list {
@@ -144,9 +145,9 @@ const css = `
 }
 .ins-read__kicker {
   display: block;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--ins-gray-600);
   font-variant-numeric: tabular-nums;
@@ -190,8 +191,8 @@ const css = `
     margin-top: 0;
   }
   .ins-read__eyebrow {
-    font-size: 8.5px;
-    letter-spacing: 0.2em;
+    font-size: 10px;
+    letter-spacing: 0.16em;
   }
   .ins-read__display {
     margin-top: 4px;
@@ -206,8 +207,8 @@ const css = `
     font-size: 30px;
   }
   .ins-read__kicker {
-    font-size: 8px;
-    letter-spacing: 0.16em;
+    font-size: 10px;
+    letter-spacing: 0.12em;
   }
   .ins-read__title {
     margin-top: 3px;
