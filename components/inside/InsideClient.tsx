@@ -1,28 +1,43 @@
 "use client";
 
 import { Suspense } from "react";
-import InsideHero from "./InsideHero";
-import GeographyPanel from "./GeographyPanel";
-import InsideHoldings from "./InsideHoldings";
+import HoldingsTicker from "./HoldingsTicker";
+import ObservatoryHero from "./ObservatoryHero";
+import FloorPlan from "./FloorPlan";
+import ObsLedger from "./ObsLedger";
+import ObsRace from "./ObsRace";
+import ObsEngine from "./ObsEngine";
+import ObsPayout from "./ObsPayout";
+import DriftBlock from "./DriftBlock";
 import InsideHeatBoard from "./InsideHeatBoard";
 import InsideMethodology from "./InsideMethodology";
 import InsideCloser from "./InsideCloser";
 
 /**
- * The Instrument — /inside-veqt composition (artboard 6a).
+ * The Observatory — /inside-veqt composition (artboard 10b, supersedes 6a's
+ * top half).
  *
- * Same grammar as the home page: white paper, Archivo, 3px ink section
- * rules, red spent only on signal. Module order:
+ * Site colourway: ink on paper, red as signal. Module order:
  *
- *   InsideHero        — dateline · "What you own when you own VEQT." ·
- *                       spec strip (holdings / AUM / mgmt fee / on tape)
- *   GeographyPanel    — THE GEOGRAPHY · "Where the dollars sit." ·
- *                       four ruled sleeve rows  (owns #sleeves)
- *   InsideHoldings    — TOP OF THE BOOK · "The ten biggest bets."
- *   InsideHeatBoard   — SESSIONS ON FILE · "The year on tape."
+ *   HoldingsTicker    — endless top-of-the-book marquee under the masthead
+ *   ObservatoryHero   — dot field · "13,726" counts up · "companies. One
+ *                       ticker." · AUM / fee / years meta
+ *   FloorPlan         — THE FLOOR PLAN · treemap to scale · click a room →
+ *                       the sleeve panel (Turn 9 module, kept)  (owns #sleeves)
+ *   ObsLedger         — THE LEDGER, ALIVE · top five sweeping in + drift
+ *                       lines (desktop; drift detaches on phones)
+ *   ObsRace           — THE RACE · $100 in each sleeve since launch
+ *   ObsEngine         — TODAY'S ENGINE · weight × move = contribution
+ *   DriftBlock mobile — the 390 artboard slots drift after the engine
+ *   ObsPayout         — THE PAYOUT · TTM yield by sleeve + next distribution
+ *   InsideHeatBoard   — SESSIONS ON FILE · the year on tape
  *                       (owns #heatmap and the ?date= deep link)
  *   InsideMethodology — HOW WE KNOW · the ink panel that names its sources
  *   InsideCloser      — verdict rail + "You've seen the machine."
+ *
+ * Not built, deliberately: the Turn 9 "Is it in VEQT?" lookup — it needs
+ * the full Vanguard holdings file (13,726 rows) and no connected API serves
+ * it; indexing the 15 names we hold would make every miss a lie.
  *
  * This page does not print editions — the red/ink edition attribute is the
  * home page's signal, and setting it here would make two pages shout.
@@ -31,9 +46,14 @@ export default function InsideClient() {
   return (
     <main className="ins-root ins-inside">
       <div className="ins-page">
-        <InsideHero />
-        <GeographyPanel />
-        <InsideHoldings />
+        <HoldingsTicker />
+        <ObservatoryHero />
+        <FloorPlan />
+        <ObsLedger />
+        <ObsRace />
+        <ObsEngine />
+        <DriftBlock variant="mobile" />
+        <ObsPayout />
 
         {/* useSearchParams (the ?date= deep link) bails static prerendering
             without a Suspense boundary; the rest of the page paints first. */}

@@ -153,6 +153,72 @@ export async function getHistoryYahoo(
   }
 }
 
+// ─── Trailing dividends (per-sleeve TTM yield) ────────────────
+
+export interface TrailingDividends {
+  symbol: string;
+  /** Sum of per-unit cash distributions over the trailing 12 months. */
+  trailingTotal: number;
+  /** Number of distribution events in the window. */
+  eventCount: number;
+  /** Latest price from the same chart response, for yield math. */
+  price: number | null;
+  source: 'yahoo-finance';
+  fetchedAt: string;
+}
+
+/**
+ * Trailing-12-month cash distributions via Yahoo's chart events.
+ *
+ * This exists because Yahoo's quote/summaryDetail yield fields come back
+ * 0/undefined for Vanguard Canada's TSX ETFs (verified VEQT/VUN/VCN/VIU/VEE),
+ * while the dividend EVENTS on the chart endpoint are populated and priced
+ * in CAD. Returns null on any failure — caller handles fallback.
+ */
+export async function getTrailingDividendsYahoo(
+  yahooSymbol: string
+): Promise<TrailingDividends | null> {
+  try {
+    const start = new Date();
+    start.setFullYear(start.getFullYear() - 1);
+
+    const result = await withTimeout(
+      yf.chart(yahooSymbol, { period1: start, events: 'div' }),
+      SUMMARY_TIMEOUT_MS,
+      `Yahoo dividends for ${yahooSymbol}`
+    );
+
+    const dividends = (result?.events?.dividends ?? []) as Array<{
+      amount?: number;
+    }>;
+    const trailingTotal = dividends.reduce(
+      (sum, d) =>
+        typeof d.amount === 'number' && Number.isFinite(d.amount)
+          ? sum + d.amount
+          : sum,
+      0
+    );
+
+    const priceRaw = result?.meta?.regularMarketPrice;
+    const price =
+      typeof priceRaw === 'number' && Number.isFinite(priceRaw) && priceRaw > 0
+        ? priceRaw
+        : null;
+
+    return {
+      symbol: yahooSymbol,
+      trailingTotal,
+      eventCount: dividends.length,
+      price,
+      source: 'yahoo-finance',
+      fetchedAt: new Date().toISOString(),
+    };
+  } catch (error) {
+    console.warn(`[Yahoo] Dividends failed for ${yahooSymbol}:`, error);
+    return null;
+  }
+}
+
 // ─── Fund sector composition ──────────────────────────────────
 
 /**

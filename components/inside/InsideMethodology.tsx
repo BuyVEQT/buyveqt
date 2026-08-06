@@ -41,7 +41,7 @@ export default function InsideMethodology() {
             Vanguard NAV — <b>Holdings</b>
           </span>
           <span>
-            Yahoo Finance — <b>Price</b>
+            Yahoo Finance — <b>Price & distributions</b>
           </span>
           <span>
             GICS — <b>Sectors</b>

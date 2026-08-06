@@ -10,12 +10,12 @@ import {
 export const metadata: Metadata = {
   title: "Inside VEQT — Holdings & Geographic Allocation",
   description:
-    "What's inside VEQT? Explore the 4 underlying ETFs, top 10 holdings with sector tags, and the geographic allocation of Vanguard's all-equity ETF.",
+    "What's inside VEQT? 13,726 companies drawn to scale: the four sleeves, top holdings, $100-per-sleeve race since 2019, yields, and the year on tape.",
   alternates: { canonical: canonicalUrl("/inside-veqt") },
   openGraph: {
     title: "Inside VEQT — Holdings & Geographic Allocation",
     description:
-      "Full breakdown of what VEQT holds: underlying ETFs, top stocks, and country allocation.",
+      "The Observatory: VEQT's four sleeves to scale, top holdings, the $100 race since launch, and what the machine pays.",
     url: canonicalUrl("/inside-veqt"),
   },
 };
