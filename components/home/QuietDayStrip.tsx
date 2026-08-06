@@ -123,39 +123,66 @@ export default function QuietDayStrip({
 
   const line = LINES[sessionIso ? dayOfYear(sessionIso) % LINES.length : 0];
 
-  // Gate last so the hooks above always run in the same order.
-  if (!severity || !QUIET_STATES.includes(severity.state)) return null;
+  // Gate last so the hooks above always run in the same order. A LOUD day
+  // (severity known, surge+) renders nothing — the band owns those days.
+  // UNKNOWN severity (data not here yet — in practice only when the
+  // server-rendered payload was unavailable) keeps the strip's box and
+  // fills it with skeleton bars instead of returning null: quiet days are
+  // the large majority, so reserving the space is right far more often
+  // than inserting an 88px module from nothing (the CLS fix).
+  if (severity && !QUIET_STATES.includes(severity.state)) return null;
 
   return (
-    <section className="quiet" aria-label="The quiet day">
-      <div className="cell cell--state">
-        <div className="microlabel">THE QUIET DAY</div>
-        <div className="state">
-          {severity.state.toUpperCase()} · {fmtPlusMinusPct(severity.typicalMovePercent)}
-        </div>
-      </div>
+    <section
+      className="quiet"
+      aria-label="The quiet day"
+      aria-busy={severity ? undefined : true}
+    >
+      {severity ? (
+        <>
+          <div className="cell cell--state">
+            <div className="microlabel">THE QUIET DAY</div>
+            <div className="state">
+              {severity.state.toUpperCase()} · {fmtPlusMinusPct(severity.typicalMovePercent)}
+            </div>
+          </div>
 
-      <div className="cell cell--copy">
-        <p className="line">{line}</p>
-        <div className="caps">
-          {onThisDay && (
-            <span className="cap">
-              On this day · {onThisDay.year} — closed ${fmtPrice(onThisDay.close)} · that
-              $10K is {fmtMoney(onThisDay.value)} now
-            </span>
-          )}
-          {almanac && (
-            <span className="cap">
-              Almanac — {almanac.pct}% of all {fmtInt(almanac.sessions)} sessions closed up
-            </span>
-          )}
-        </div>
-      </div>
+          <div className="cell cell--copy">
+            <p className="line">{line}</p>
+            <div className="caps">
+              {onThisDay && (
+                <span className="cap">
+                  On this day · {onThisDay.year} — closed ${fmtPrice(onThisDay.close)} · that
+                  $10K is {fmtMoney(onThisDay.value)} now
+                </span>
+              )}
+              {almanac && (
+                <span className="cap">
+                  Almanac — {almanac.pct}% of all {fmtInt(almanac.sessions)} sessions closed up
+                </span>
+              )}
+            </div>
+          </div>
 
-      {/* The whole strip is the tap target — a stretched overlay link
-          into the almanac, so the section keeps its styled-jsx scope
-          (a Link can't carry it) and the grid never re-flows. */}
-      <Link href="/almanac" className="stretch" aria-label="See the full almanac" />
+          {/* The whole strip is the tap target — a stretched overlay link
+              into the almanac, so the section keeps its styled-jsx scope
+              (a Link can't carry it) and the grid never re-flows. */}
+          <Link href="/almanac" className="stretch" aria-label="See the full almanac" />
+        </>
+      ) : (
+        /* Loading — ink-tint bars mirroring the real cells' type sizes so
+           the reserved row height matches the content that replaces it. */
+        <>
+          <div className="cell cell--state skCell" aria-hidden="true">
+            <span className="skl" style={{ width: "64%", height: 10 }} />
+            <span className="skl" style={{ width: "44%", height: 21 }} />
+          </div>
+          <div className="cell cell--copy skCell" aria-hidden="true">
+            <span className="skl" style={{ width: "52%", height: 15 }} />
+            <span className="skl" style={{ width: "72%", height: 12 }} />
+          </div>
+        </>
+      )}
 
       <style jsx>{`
         .quiet {
@@ -185,6 +212,16 @@ export default function QuietDayStrip({
         .quiet :global(.stretch) {
           position: absolute;
           inset: 0;
+        }
+        .skCell {
+          display: flex;
+          flex-direction: column;
+          gap: 9px;
+        }
+        .skl {
+          display: block;
+          background: var(--ins-track-soft);
+          animation: ins-pulse 2.2s ease-in-out infinite;
         }
         /* Hover affordance for the strip-as-link: the 1px border reads
            as 2px via an inset shadow — no layout shift. */

@@ -2,7 +2,12 @@
 
 import { useEffect, useMemo } from "react";
 import { useVeqtData } from "@/lib/useVeqtData";
-import { useRegions, type Region } from "@/lib/useRegions";
+import {
+  useRegions,
+  type Region,
+  type RegionsPayload,
+} from "@/lib/useRegions";
+import type { VeqtApiResponse } from "@/lib/types";
 import { computeSeverity } from "@/lib/severity";
 import { useMarketClock } from "@/lib/market-clock";
 
@@ -55,9 +60,23 @@ function leaderIndex(regions: readonly Region[]): number {
  * globals.css. Applied while mounted only, so other routes are untouched
  * until the skin extends to them.
  */
-export default function HomeClient() {
+export default function HomeClient({
+  initialData = null,
+  initialRegions = null,
+}: {
+  /** Server-rendered payloads (app/page.tsx, ISR every 5 min). The client
+      stores refetch fresh data on mount; these keep the first paint —
+      server HTML and hydration alike — fully populated so nothing shifts.
+      Null (a failed server fetch) degrades to the old skeleton behavior. */
+  initialData?: VeqtApiResponse | null;
+  initialRegions?: RegionsPayload | null;
+}) {
   const full = useVeqtData("ALL");
-  const { payload: regionsPayload, loading: regionsLoading } = useRegions();
+  const { payload: liveRegionsPayload } = useRegions();
+
+  const data = full.data ?? initialData;
+  const loading = full.loading && !data;
+  const regionsPayload = liveRegionsPayload ?? initialRegions;
 
   const orderedRegions = useMemo<Region[]>(() => {
     const rs = regionsPayload?.regions ?? [];
@@ -73,9 +92,9 @@ export default function HomeClient() {
   );
 
   const severity = useMemo(() => {
-    if (!full.data?.quote || !full.data.historical) return null;
-    return computeSeverity(full.data.historical, full.data.quote.changePercent);
-  }, [full.data]);
+    if (!data?.quote || !data.historical) return null;
+    return computeSeverity(data.historical, data.quote.changePercent);
+  }, [data]);
 
   // Editions trigger at the close only — intraday stays live (handoff).
   // A P98 move shows up immediately in the glyph, the verdict rail and the
@@ -103,8 +122,8 @@ export default function HomeClient() {
     };
   }, [edition]);
 
-  const history = full.data?.historical ?? [];
-  const quote = full.data?.quote ?? null;
+  const history = data?.historical ?? [];
+  const quote = data?.quote ?? null;
   const changePercent = quote?.changePercent ?? null;
 
   return (
@@ -129,7 +148,7 @@ export default function HomeClient() {
           sleeves, and the session board for Canadian passive investors.
         </h1>
 
-        <HeroToday data={full.data} loading={full.loading} severity={severity} />
+        <HeroToday data={data} loading={loading} severity={severity} />
 
         <ConditionsBand severity={severity} history={history} quote={quote} />
 
@@ -141,12 +160,12 @@ export default function HomeClient() {
 
         {/* Phones only — the 3a mobile artboard orders the facts grid
             between the conditions band and the chart. */}
-        <HeroFactsMobile data={full.data} severity={severity} />
+        <HeroFactsMobile data={data} severity={severity} />
 
-        <DuoChart history={history} loading={full.loading} />
+        <DuoChart history={history} loading={loading} />
 
         <RegionGrid
-          regions={regionsLoading ? [] : orderedRegions}
+          regions={orderedRegions}
           leaderIndex={leaderIdx}
           fundChangePercent={changePercent}
         />
@@ -154,10 +173,10 @@ export default function HomeClient() {
         <div className="ins-two-up">
           <HeatmapCard
             history={history}
-            loading={full.loading && history.length === 0}
+            loading={loading && history.length === 0}
             todayChangePercent={changePercent}
           />
-          <InceptionBand history={history} quote={quote} loading={full.loading} />
+          <InceptionBand history={history} quote={quote} loading={loading} />
         </div>
 
         <ArticleStrip />
