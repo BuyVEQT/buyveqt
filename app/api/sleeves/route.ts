@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import {
   getFundInfoYahoo,
   getTrailingDividendsYahoo,
+  getSleeveFactsYahoo,
 } from "@/lib/data/yahoo-fallback";
 import { readCache, writeCache, getCacheKey } from "@/lib/data/cache";
 import { FUND_DATA_LAST_UPDATED } from "@/data/funds";
@@ -24,8 +25,12 @@ export interface SleeveEntry {
   ttmPerUnit: number | null;
   /** Top holdings of the sleeve (percent of sleeve), heaviest first. */
   topHoldings: Array<{ name: string; weight: number }>;
-  /** Largest sector weights (percent of sleeve), heaviest first. */
+  /** Sector weights (percent of sleeve), heaviest first — the full book. */
   sectors: Array<{ name: string; weight: number }>;
+  /** Calendar-year NAV returns (percent) on the TSX sleeve, newest first. */
+  annualReturns: Array<{ year: number; pct: number }>;
+  /** The sleeve ETF's own net assets, CAD. */
+  netAssets: number | null;
   /** Provenance note when holdings/sectors come through a US wrapper. */
   lookthroughNote: string | null;
 }
@@ -41,8 +46,8 @@ export interface SleevesResponse {
   fetchedAt: string;
 }
 
-const TOP_N = 3;
-const SECTOR_N = 3;
+/** Ten for the dossier pages; the Observatory panel slices to three. */
+const TOP_N = 10;
 
 interface CachedPayload {
   response: SleevesResponse;
@@ -59,9 +64,11 @@ interface CachedPayload {
  * because it costs nine upstream calls to build cold.
  */
 export async function GET() {
-  const cacheKey = getCacheKey("sleeves", "VEQT");
+  // "v2" — the widened dossier shape (top-10, full sectors, annual returns);
+  // an old cached payload must not satisfy the degraded-path read.
+  const cacheKey = getCacheKey("sleeves", "VEQT", "v2");
 
-  const [veqtInfoResult, perSleeveResults, dividendResults] =
+  const [veqtInfoResult, perSleeveResults, dividendResults, factsResults] =
     await Promise.allSettled([
       getFundInfoYahoo("VEQT.TO"),
       Promise.allSettled(
@@ -69,6 +76,9 @@ export async function GET() {
       ),
       Promise.allSettled(
         SLEEVES.map((s) => getTrailingDividendsYahoo(`${s.ticker}.TO`))
+      ),
+      Promise.allSettled(
+        SLEEVES.map((s) => getSleeveFactsYahoo(`${s.ticker}.TO`))
       ),
     ]);
 
@@ -92,6 +102,8 @@ export async function GET() {
     perSleeveResults.status === "fulfilled" ? perSleeveResults.value : [];
   const dividends =
     dividendResults.status === "fulfilled" ? dividendResults.value : [];
+  const facts =
+    factsResults.status === "fulfilled" ? factsResults.value : [];
 
   let anyHoldings = false;
   let anyYield = false;
@@ -105,6 +117,12 @@ export async function GET() {
     const div =
       divResult && divResult.status === "fulfilled" ? divResult.value : null;
 
+    const factsResult = facts[i];
+    const fact =
+      factsResult && factsResult.status === "fulfilled"
+        ? factsResult.value
+        : null;
+
     // Holdings arrive as fractions of the sleeve. A wrapper reporting a
     // single ~100% row is the degenerate case the look-through exists to
     // avoid; filter it defensively anyway.
@@ -115,7 +133,6 @@ export async function GET() {
 
     const sectors = Object.entries(info?.sectorWeights ?? {})
       .sort((a, b) => b[1] - a[1])
-      .slice(0, SECTOR_N)
       .map(([name, w]) => ({ name, weight: +(w * 100).toFixed(1) }));
 
     let ttmYield: number | null = null;
@@ -137,6 +154,8 @@ export async function GET() {
       ttmPerUnit,
       topHoldings,
       sectors,
+      annualReturns: fact?.annualReturns ?? [],
+      netAssets: fact?.netAssets ?? null,
       lookthroughNote: meta.lookthrough.note,
     };
   });

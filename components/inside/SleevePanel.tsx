@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useSleeves } from "@/lib/useSleeves";
 import { SLEEVES } from "@/data/sleeves";
 import { FUNDS } from "@/data/funds";
@@ -34,8 +35,9 @@ export default function SleevePanel({ active, onSelect }: SleevePanelProps) {
   const weightShown = liveWeight ?? meta.targetWeight;
   const drift = classifyDrift(liveWeight, meta.targetWeight);
 
-  const holdings = entry?.topHoldings ?? [];
-  const sectors = entry?.sectors ?? [];
+  // The panel is the taste; the dossier page carries the full book.
+  const holdings = (entry?.topHoldings ?? []).slice(0, 3);
+  const sectors = (entry?.sectors ?? []).slice(0, 3);
   const maxSector = sectors.reduce((m, s) => Math.max(m, s.weight), 0) || 100;
 
   return (
@@ -83,6 +85,12 @@ export default function SleevePanel({ active, onSelect }: SleevePanelProps) {
           <p className="panel__note">
             Vanguard snaps drift back to the tick each quarter.
           </p>
+          <Link
+            href={`/inside-veqt/${active.toLowerCase()}`}
+            className="panel__cta"
+          >
+            Open the full dossier <span aria-hidden>→</span>
+          </Link>
         </div>
 
         <div className="panel__col">
@@ -229,6 +237,38 @@ export default function SleevePanel({ active, onSelect }: SleevePanelProps) {
           font-weight: 500;
           letter-spacing: 0.01em;
           color: var(--ins-gray-600);
+        }
+
+        /* styled-jsx does not tag <Link>; scope the CTA through :global.
+           TRUE LABEL — button text; ink, not red (a negative drift stat can
+           sit directly above — the red-adjacency rule). ≥44px tap height via
+           transparent overlay, same construction as the methodology CTA. */
+        .panel :global(.panel__cta) {
+          position: relative;
+          display: inline-block;
+          margin-top: 14px;
+          font-size: 10px;
+          font-weight: 800;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          color: var(--ins-ink);
+          text-decoration: none;
+          border-bottom: 2px solid var(--ins-ink);
+          padding-bottom: 4px;
+          white-space: nowrap;
+        }
+        .panel :global(.panel__cta::after) {
+          content: "";
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: 50%;
+          height: 44px;
+          transform: translateY(-50%);
+        }
+        .panel :global(.panel__cta:hover) {
+          color: var(--ins-signal);
+          border-bottom-color: var(--ins-signal);
         }
 
         /* TRUE LABEL — column headers name their lists. */
