@@ -3,6 +3,7 @@ import { getAllSlugs } from "@/lib/articles";
 import { getAllWeeklyRecaps } from "@/lib/weekly";
 import { COMPARISON_PAGES } from "@/data/comparisons";
 import { LEARN_PATHS } from "@/lib/learn-paths-data";
+import { SLEEVES } from "@/data/sleeves";
 import { SITE_URL } from "@/lib/seo-config";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -80,6 +81,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
+  const sleevePages: MetadataRoute.Sitemap = SLEEVES.map((s) => ({
+    url: `${SITE_URL}/inside-veqt/${s.ticker.toLowerCase()}`,
+    lastModified: now,
+    changeFrequency: "monthly" as const,
+    priority: 0.7,
+  }));
+
   const comparisonPages: MetadataRoute.Sitemap = Object.keys(
     COMPARISON_PAGES
   ).map((slug) => ({
@@ -124,6 +132,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     ...staticPages,
+    ...sleevePages,
     ...comparisonPages,
     ...learnPathPages,
     ...articlePages,

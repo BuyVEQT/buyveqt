@@ -219,6 +219,71 @@ export async function getTrailingDividendsYahoo(
   }
 }
 
+// ─── Sleeve facts (annual returns + net assets, on the TSX ticker) ───
+
+export interface SleeveFacts {
+  symbol: string;
+  /** Calendar-year NAV total returns, percent, most recent year first. */
+  annualReturns: Array<{ year: number; pct: number }>;
+  /** Net assets in CAD for the TSX-listed sleeve itself. */
+  netAssets: number | null;
+  source: 'yahoo-finance';
+  fetchedAt: string;
+}
+
+/**
+ * Year-by-year NAV returns + AUM via Yahoo's fundPerformance /
+ * defaultKeyStatistics modules. MUST be called on the .TO ticker — the
+ * look-through symbols (VTI/VWO) would return the US fund's USD returns
+ * and multi-hundred-billion AUM, which are the wrong facts for the sleeve
+ * a Canadian actually holds. Returns null on any failure.
+ */
+export async function getSleeveFactsYahoo(
+  yahooSymbol: string
+): Promise<SleeveFacts | null> {
+  try {
+    const result = await withTimeout(
+      yf.quoteSummary(yahooSymbol, {
+        modules: ['fundPerformance', 'defaultKeyStatistics'],
+      }),
+      SUMMARY_TIMEOUT_MS,
+      `Yahoo quoteSummary[sleeveFacts] for ${yahooSymbol}`
+    );
+
+    const returnsRaw =
+      (result?.fundPerformance as
+        | { annualTotalReturns?: { returns?: Array<Record<string, unknown>> } }
+        | undefined)?.annualTotalReturns?.returns ?? [];
+    const annualReturns = returnsRaw
+      .map((r) => {
+        const year = Number(r.year);
+        const value = r.annualValue;
+        if (!Number.isFinite(year)) return null;
+        if (typeof value !== 'number' || !Number.isFinite(value)) return null;
+        return { year, pct: +(value * 100).toFixed(1) };
+      })
+      .filter((r): r is { year: number; pct: number } => r !== null)
+      .sort((a, b) => b.year - a.year);
+
+    const stats = (result?.defaultKeyStatistics ?? {}) as Record<string, unknown>;
+    const netAssetsRaw =
+      (typeof stats.netAssets === 'number' && stats.netAssets) ||
+      (typeof stats.totalAssets === 'number' && stats.totalAssets) ||
+      null;
+
+    return {
+      symbol: yahooSymbol,
+      annualReturns,
+      netAssets: netAssetsRaw,
+      source: 'yahoo-finance',
+      fetchedAt: new Date().toISOString(),
+    };
+  } catch (error) {
+    console.warn(`[Yahoo] Sleeve facts failed for ${yahooSymbol}:`, error);
+    return null;
+  }
+}
+
 // ─── Fund sector composition ──────────────────────────────────
 
 /**

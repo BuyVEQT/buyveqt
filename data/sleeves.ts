@@ -15,6 +15,10 @@ export interface SleeveMeta {
   shortLabel: string;
   /** Rail label for the race, e.g. "US". */
   railLabel: string;
+  /** Launch year of the sleeve ETF itself (year only — stable public fact). */
+  inceptionYear: number;
+  /** One-line editorial role for the dossier hero dek. */
+  roleDek: string;
   /**
    * Approximate company count, from the sleeve's own Vanguard factsheet.
    * Approximate on purpose: the four sleeves' counts are published on
@@ -52,6 +56,9 @@ export const SLEEVES: SleeveMeta[] = [
     roomLabel: "US TOTAL MARKET",
     shortLabel: "US",
     railLabel: "US",
+    inceptionYear: 2013,
+    roleDek:
+      "Nearly half the fund — the entire US market in one sleeve, from the trillion-dollar names down to small-caps you've never heard of.",
     approxCompanies: 3600,
     targetWeight: 44.5,
     isPinned: false,
@@ -62,6 +69,9 @@ export const SLEEVES: SleeveMeta[] = [
     roomLabel: "CANADA",
     shortLabel: "CANADA",
     railLabel: "CANADA",
+    inceptionYear: 2013,
+    roleDek:
+      "The home team, pinned at 30% by design — the one deliberate bet in VEQT, and it's on Canada.",
     approxCompanies: 170,
     targetWeight: 30.0,
     isPinned: true,
@@ -72,6 +82,9 @@ export const SLEEVES: SleeveMeta[] = [
     roomLabel: "DEVELOPED",
     shortLabel: "DEV",
     railLabel: "DEVELOPED",
+    inceptionYear: 2015,
+    roleDek:
+      "The developed world outside North America — Japan, Europe, the UK, Australia — floating at market cap.",
     approxCompanies: 3950,
     targetWeight: 17.7,
     isPinned: false,
@@ -82,6 +95,9 @@ export const SLEEVES: SleeveMeta[] = [
     roomLabel: "EM",
     shortLabel: "EM",
     railLabel: "EMERGING",
+    inceptionYear: 2011,
+    roleDek:
+      "The wild card — China, India, Taiwan, Brazil. The smallest sleeve, with the biggest swings.",
     approxCompanies: 5900,
     targetWeight: 7.2,
     isPinned: false,
