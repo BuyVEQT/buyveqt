@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import HomeClient from "@/components/home/HomeClient";
 import { JsonLd } from "@/components/seo/JsonLd";
+import { buildVeqtPayload, buildRegionsPayload } from "@/lib/data/payloads";
 import {
   buildFaqSchema,
   buildInvestmentFundSchema,
@@ -28,14 +29,26 @@ export const metadata: Metadata = {
 };
 
 /**
- * Home (/). Round 4 D2 dashboard. The actual data + composition is client-side
- * via useVeqtData / useRegions / computeSeverity — this page is a thin wrapper.
+ * Home (/). The page server-renders its initial data at ISR time (every
+ * 5 minutes, matching /api/veqt) so the first HTML carries the real price,
+ * weather and sleeves — the client stores then refetch fresh data in the
+ * background. This is the CLS fix: no skeleton→content reflow on load.
+ * A failed build-time fetch degrades to null = the old skeleton behavior.
  *
  * The Reddit pre-fetch that used to live here is gone — Letters moved to
  * /community as part of the Round 4 retirement of the multi-column "Letters"
  * treatment on the home page.
  */
-export default function Home() {
+export default async function Home() {
+  const [veqtResult, regionsResult] = await Promise.allSettled([
+    buildVeqtPayload("ALL"),
+    buildRegionsPayload(),
+  ]);
+  const initialData =
+    veqtResult.status === "fulfilled" ? veqtResult.value : null;
+  const initialRegions =
+    regionsResult.status === "fulfilled" ? regionsResult.value : null;
+
   return (
     <>
       {/* FAQPage + InvestmentFund schemas were previously mounted in the root
@@ -45,7 +58,7 @@ export default function Home() {
           here (and on /inside-veqt) where they actually describe the page. */}
       <JsonLd data={buildFaqSchema()} />
       <JsonLd data={buildInvestmentFundSchema()} />
-      <HomeClient />
+      <HomeClient initialData={initialData} initialRegions={initialRegions} />
     </>
   );
 }
