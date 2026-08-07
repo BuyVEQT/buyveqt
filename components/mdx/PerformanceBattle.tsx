@@ -280,9 +280,9 @@ export function PerformanceBattle({ compact }: PerformanceBattleProps = {}) {
     `$${Math.round(10000 * v).toLocaleString("en-CA")}`;
 
   const stats = [
-    { l: "2025, both funds", v: "≈20.45%", lead: true, sub: "A dead heat" },
-    { l: "5-year leader", v: "VEQT", lead: false, sub: "By a sliver" },
-    { l: "The gap", v: "<0.5%/yr", lead: true, sub: "Noise, not signal" },
+    { l: "2025, both funds", v: "20.45%", lead: true, sub: "A dead heat" },
+    { l: "5-year gap", v: "≈0.1%/yr", lead: false, sub: "VEQT — for now" },
+    { l: "Since 2019", v: "XEQT +0.3%/yr", lead: true, sub: "Cuts both ways" },
     { l: "Correlation", v: "~0.97", lead: false, sub: "Near-twins" },
   ];
 
@@ -482,8 +482,8 @@ export function PerformanceBattle({ compact }: PerformanceBattleProps = {}) {
 
       <p className="mpb__caption">
         The conventional wisdom said XEQT&rsquo;s heavier US tilt should have
-        pulled it ahead — across recent windows the two are effectively tied,
-        with VEQT a hair in front
+        pulled it ahead — six years in, every gap is a rounding error and the
+        leader flips with the window you pick
         {usingFallback && " · Chart shown with cached shape; live data unavailable"}
       </p>
 

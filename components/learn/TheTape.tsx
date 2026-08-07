@@ -107,9 +107,9 @@ function roundedHoldings(n: number): string {
  * narrow viewports.
  *
  * Holdings and the management fee are wired to data/funds.ts. The five-year
- * leader and the ~0.97 correlation are editorial readings of the tape rather
+ * gap and the ~0.97 correlation are editorial readings of the tape rather
  * than fields we hold, so they stay literal — same figures the performance
- * exhibit quotes.
+ * exhibit quotes. Reviewed quarterly with the fund-data refresh.
  *
  * Server component; sticky positioning is applied by the page's grid.
  */
@@ -151,10 +151,10 @@ export default function TheTape() {
         </li>
 
         <li className="tprail__row">
-          <div className="tprail__label">5-year leader</div>
+          <div className="tprail__label">5-year gap</div>
           <div className="tprail__values">
-            <span className="tprail__lead">VEQT</span>
-            <span className="tprail__note">By a sliver</span>
+            <span className="tprail__lead">≈0.1%/yr</span>
+            <span className="tprail__note">Flips by window</span>
           </div>
         </li>
 

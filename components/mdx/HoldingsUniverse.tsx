@@ -109,9 +109,11 @@ const css = `
  * Exhibit C — a wider net.
  *
  * One idea: the part of the world XEQT leaves out. The field is split by the
- * real ratio between the two books — the ink dots are the companies both
- * funds hold, the red dots are the ones only VEQT holds, and only the red
- * region shimmers.
+ * real ratio between the two books — the ink dots span the names XEQT
+ * reaches, the red dots the ~5,300 beyond them that only VEQT holds, and
+ * only the red region shimmers. (The books overlap heavily but aren't a
+ * literal subset — different index families — so the copy talks about
+ * reach, not membership.)
  *
  * Both halves are a single painted radial-gradient tile rather than a node
  * per company: the previous build put ~13,800 <rect>s in the DOM to say the
@@ -142,15 +144,15 @@ export function HoldingsUniverse() {
           className="exc__field"
           style={{ gridTemplateColumns: `${sharedPct}% 1fr` }}
           role="img"
-          aria-label={`${fmt(shared)} companies are held by both funds; ${fmt(only)} are held only by VEQT.`}
+          aria-label={`XEQT reaches about ${fmt(shared)} companies; VEQT holds ${fmt(only)} more — ${fmt(veqtCount)} in all.`}
         >
           <div className="exc__both" />
           <div className="exc__only" />
         </div>
         <div className="exc__legend">
-          <span className="exc__both-label">{fmt(shared)} companies in both</span>
+          <span className="exc__both-label">XEQT stops near {fmt(shared)}</span>
           <span className="exc__only-label">
-            {fmt(only)} only in VEQT — shimmering
+            VEQT carries {fmt(only)} further — shimmering
           </span>
         </div>
       </div>
