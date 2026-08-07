@@ -10,7 +10,7 @@ import {
 export const metadata: Metadata = {
   title: "Inside VEQT — Holdings & Geographic Allocation",
   description:
-    "What's inside VEQT? 13,726 companies drawn to scale: the four sleeves, top holdings, $100-per-sleeve race since 2019, yields, and the year on tape.",
+    "What's inside VEQT? 13,700+ companies drawn to scale: the four sleeves, top holdings, $100-per-sleeve race since 2019, yields, and the year on tape.",
   alternates: { canonical: canonicalUrl("/inside-veqt") },
   openGraph: {
     title: "Inside VEQT — Holdings & Geographic Allocation",

@@ -36,10 +36,10 @@ export interface FundData {
 }
 
 /**
- * Fund data last verified: February 28, 2026
+ * Fund data last verified: August 6, 2026 (VEQT from the June 30, 2026 factsheet)
  * Sources: Vanguard Canada fact sheets, BlackRock Canada fact sheets, BMO ETF Centre
  *
- * UPDATE SCHEDULE: Quarterly (next: ~May 2026)
+ * UPDATE SCHEDULE: Quarterly (next: ~Nov 2026, on the Sep 30 factsheets)
  *
  * What to update each quarter:
  * 1. Allocation percentages — from each fund's product page
@@ -55,7 +55,7 @@ export interface FundData {
  */
 
 /** ISO date of last fund data verification. Update quarterly. */
-export const FUND_DATA_LAST_UPDATED = "2026-04-30";
+export const FUND_DATA_LAST_UPDATED = "2026-06-30";
 
 export const FUNDS: Record<string, FundData> = {
   "VEQT.TO": {
@@ -63,11 +63,11 @@ export const FUNDS: Record<string, FundData> = {
     name: "Vanguard All-Equity ETF Portfolio",
     shortName: "VEQT",
     provider: "Vanguard",
-    mer: 0.2, // effective post-Nov-2025 fee cut; official factsheet MER still 0.24%
+    mer: 0.22, // factsheet 2026-06-30: official MER 0.22% (as of Mar 31 2026, post fee cut)
     managementFee: 0.17, // Vanguard, eff. Nov 18 2025 (was 0.22%)
-    aum: "$13.4B", // factsheet 2026-04-30: $13,439M
+    aum: "$15.7B", // factsheet 2026-06-30: $15,671M
     inceptionDate: "2019-01-29",
-    numberOfHoldings: 13726, // factsheet 2026-04-30
+    numberOfHoldings: 13743, // factsheet 2026-06-30
     distributionFrequency: "Annually",
     currency: "CAD",
     exchangeListed: "TSX",
@@ -77,23 +77,23 @@ export const FUNDS: Record<string, FundData> = {
       "A single-ticket ETF providing 100% global equity exposure across Canada, US, international developed, and emerging markets.",
     whoThisSuits:
       "The original all-in-one equity ETF, built by the company that invented index investing. Broadest diversification (13,700+ holdings), market-cap-weighted global allocation, and backed by Vanguard's investor-owned structure.",
-    // Sleeve weights from Vanguard's official April 30 2026 factsheet.
-    // The four entries sum to 100.0.
+    // Sleeve weights from Vanguard's official June 30 2026 factsheet.
+    // The four entries sum to 99.9 (Vanguard's own rounding).
     geographyAllocation: [
-      { region: "United States", weight: 44.5, color: "#2563eb" },
-      { region: "Canada", weight: 30.6, color: "#dc2626" },
-      { region: "International Developed", weight: 17.7, color: "#16a34a" },
-      { region: "Emerging Markets", weight: 7.2, color: "#f59e0b" },
+      { region: "United States", weight: 45.3, color: "#2563eb" },
+      { region: "Canada", weight: 29.6, color: "#dc2626" },
+      { region: "International Developed", weight: 17.9, color: "#16a34a" },
+      { region: "Emerging Markets", weight: 7.1, color: "#f59e0b" },
     ],
     underlyingETFs: [
-      { ticker: "VUN", name: "Vanguard US Total Market Index ETF", weight: 44.5, region: "United States" },
-      { ticker: "VCN", name: "Vanguard FTSE Canada All Cap Index ETF", weight: 30.6, region: "Canada" },
-      { ticker: "VIU", name: "Vanguard FTSE Developed All Cap ex North America Index ETF", weight: 17.7, region: "International" },
-      { ticker: "VEE", name: "Vanguard FTSE Emerging Markets All Cap Index ETF", weight: 7.2, region: "Emerging Markets" },
+      { ticker: "VUN", name: "Vanguard US Total Market Index ETF", weight: 45.3, region: "United States" },
+      { ticker: "VCN", name: "Vanguard FTSE Canada All Cap Index ETF", weight: 29.6, region: "Canada" },
+      { ticker: "VIU", name: "Vanguard FTSE Developed All Cap ex North America Index ETF", weight: 17.9, region: "International" },
+      { ticker: "VEE", name: "Vanguard FTSE Emerging Markets All Cap Index ETF", weight: 7.1, region: "Emerging Markets" },
     ],
     chartColor: "#dc2626",
     merFootnote:
-      "Vanguard reduced VEQT's management fee from 0.22% to 0.17% effective November 18, 2025. As of the April 30, 2026 factsheet the official MER was still 0.24% (last fiscal-year recalculation). The effective MER going forward is expected to land near 0.19%–0.20%.",
+      "Vanguard reduced VEQT's management fee from 0.22% to 0.17% effective November 18, 2025. The June 30, 2026 factsheet reports the official MER at 0.22% (annualized as of March 31, 2026) — the first fiscal recalculation to reflect the cut, down from 0.24%.",
   },
   "XEQT.TO": {
     ticker: "XEQT.TO",

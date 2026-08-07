@@ -22,8 +22,8 @@ export interface SleeveMeta {
   /**
    * Approximate company count, from the sleeve's own Vanguard factsheet.
    * Approximate on purpose: the four sleeves' counts are published on
-   * different dates than VEQT's own 13,726, so they can never be made to
-   * sum exactly. Rendered with a ≈ prefix.
+   * different dates than VEQT's own published stock count, so they can
+   * never be made to sum exactly. Rendered with a ≈ prefix.
    */
   approxCompanies: number;
   /**
@@ -34,6 +34,7 @@ export interface SleeveMeta {
    * at market cap inside the remaining 70%. So VCN's tick is the 30 pin,
    * and the others' ticks are their last factsheet weights — "drift" for
    * them means "moved since Vanguard last published", not "off design".
+   * Non-pin ticks refreshed from the June 30, 2026 factsheet.
    */
   targetWeight: number;
   /** True only for VCN — the tick is a design pin, not a factsheet echo. */
@@ -60,7 +61,7 @@ export const SLEEVES: SleeveMeta[] = [
     roleDek:
       "Nearly half the fund — the entire US market in one sleeve, from the trillion-dollar names down to small-caps you've never heard of.",
     approxCompanies: 3600,
-    targetWeight: 44.5,
+    targetWeight: 45.3,
     isPinned: false,
     lookthrough: { symbol: "VTI", note: "via VTI, its US-listed engine" },
   },
@@ -86,7 +87,7 @@ export const SLEEVES: SleeveMeta[] = [
     roleDek:
       "The developed world outside North America — Japan, Europe, the UK, Australia — floating at market cap.",
     approxCompanies: 3950,
-    targetWeight: 17.7,
+    targetWeight: 17.9,
     isPinned: false,
     lookthrough: { symbol: "VIU.TO", note: null },
   },
@@ -99,7 +100,7 @@ export const SLEEVES: SleeveMeta[] = [
     roleDek:
       "The wild card — China, India, Taiwan, Brazil. The smallest sleeve, with the biggest swings.",
     approxCompanies: 5900,
-    targetWeight: 7.2,
+    targetWeight: 7.1,
     isPinned: false,
     lookthrough: { symbol: "VWO", note: "via VWO, its US-listed engine" },
   },
