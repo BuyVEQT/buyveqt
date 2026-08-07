@@ -32,19 +32,18 @@ export default function InsideMethodology() {
 
       <div className="method__body">
         <p className="method__copy">
-          Holdings come from Vanguard Canada&rsquo;s daily NAV file, attributed
-          back to sleeves by region. Sector books follow Yahoo Finance&rsquo;s
-          classifications. Nothing proprietary.
+          Holdings come from each sleeve&rsquo;s reported book on Yahoo
+          Finance — the US and emerging sleeves through their Vanguard
+          wrapper funds — scaled to VEQT by the live sleeve mix. Sector
+          books follow Yahoo Finance&rsquo;s classifications. Nothing
+          proprietary.
         </p>
         <div className="method__sources">
-          <span>
-            Vanguard NAV — <b>Holdings</b>
-          </span>
           <span>
             Yahoo Finance — <b>Price & distributions</b>
           </span>
           <span>
-            Yahoo Finance — <b>Sectors</b>
+            Yahoo Finance — <b>Holdings & sectors</b>
           </span>
           <span>
             {factsheet} factsheet — <b>Geography</b>
