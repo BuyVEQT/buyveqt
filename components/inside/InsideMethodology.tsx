@@ -33,8 +33,8 @@ export default function InsideMethodology() {
       <div className="method__body">
         <p className="method__copy">
           Holdings come from Vanguard Canada&rsquo;s daily NAV file, attributed
-          back to sleeves by region. Sector tags follow GICS. Nothing
-          proprietary.
+          back to sleeves by region. Sector books follow Yahoo Finance&rsquo;s
+          classifications. Nothing proprietary.
         </p>
         <div className="method__sources">
           <span>
@@ -44,7 +44,7 @@ export default function InsideMethodology() {
             Yahoo Finance — <b>Price & distributions</b>
           </span>
           <span>
-            GICS — <b>Sectors</b>
+            Yahoo Finance — <b>Sectors</b>
           </span>
           <span>
             {factsheet} factsheet — <b>Geography</b>

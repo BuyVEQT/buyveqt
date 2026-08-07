@@ -15,7 +15,7 @@ export const COMPARISON_PAGES: Record<string, ComparisonPage> = {
     metaDescription:
       "Detailed comparison of VEQT and XEQT — Canada's two most popular all-equity ETFs. Compare MER, performance, holdings, and geographic allocation side by side.",
     intro:
-      "VEQT and XEQT are the two most popular all-equity ETFs in Canada. Both offer global diversification in a single purchase with effectively identical MERs (~0.20%). They differ mainly in geographic weighting: XEQT tilts more toward the US (~45% vs ~43%), while VEQT offers more Canadian exposure (~31% vs ~25%).",
+      "VEQT and XEQT are the two most popular all-equity ETFs in Canada. Both offer global diversification in a single purchase with near-identical MERs (0.22% vs 0.20%). Their US weights now sit within a point of each other (~45%); the real difference is home bias — VEQT holds ~30% in Canada by design, XEQT ~25%.",
     funds: ["VEQT.TO", "XEQT.TO"],
   },
   "veqt-vs-zeqt": {
@@ -25,7 +25,7 @@ export const COMPARISON_PAGES: Record<string, ComparisonPage> = {
     metaDescription:
       "Compare VEQT and ZEQT — Vanguard's and BMO's all-equity ETFs. See how they differ in MER, AUM, holdings, and geographic allocation.",
     intro:
-      "VEQT from Vanguard and ZEQT from BMO both aim to give you 100% global equity exposure in one ETF. Both have an effective MER of ~0.20%. ZEQT is newer (2022 vs 2019) with significantly smaller AUM ($591M vs $13.4B). Their geographic allocations are similar, with ZEQT having slightly more US exposure.",
+      "VEQT from Vanguard and ZEQT from BMO both aim to give you 100% global equity exposure in one ETF. Both carry MERs around 0.2%. ZEQT is newer (2022 vs 2019) with significantly smaller AUM ($591M vs $15.7B). Their geographic allocations are similar, with ZEQT holding slightly less Canada.",
     funds: ["VEQT.TO", "ZEQT.TO"],
   },
   "veqt-vs-vgro": {
@@ -66,7 +66,7 @@ export const COMPARISON_PAGES: Record<string, ComparisonPage> = {
     metaDescription:
       "VEQT vs VUN: a complete global portfolio against one of its own building blocks. Compare MER, holdings, US exposure, and why holding both doubles up on the United States.",
     intro:
-      "VUN is not really an alternative to VEQT — it is one of VEQT's four underlying ETFs, the US total-market sleeve that carries 44.5% of the fund. VEQT holds 13,700+ companies across Canada, the US, international developed markets and emerging markets. VUN holds roughly 3,700 US companies and nothing else. VUN is cheaper (0.16% MER against VEQT's ~0.20%), but it is a component rather than a portfolio: hold both and you own VUN twice, once directly and once inside VEQT.",
+      "VUN is not really an alternative to VEQT — it is one of VEQT's four underlying ETFs, the US total-market sleeve that carries ~45% of the fund. VEQT holds 13,700+ companies across Canada, the US, international developed markets and emerging markets. VUN holds roughly 3,700 US companies and nothing else. VUN is cheaper (0.16% MER against VEQT's 0.22%), but it is a component rather than a portfolio: hold both and you own VUN twice, once directly and once inside VEQT.",
     funds: ["VEQT.TO", "VUN.TO"],
   },
 };

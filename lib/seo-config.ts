@@ -48,7 +48,7 @@ export function buildFaqSchema() {
         name: 'What is VEQT?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: "VEQT (Vanguard All-Equity ETF Portfolio) is a single-ticket ETF that provides instant exposure to 13,726 stocks across 50 countries (April 30, 2026). It holds 4 underlying Vanguard index ETFs covering the US (~44.5%), Canada (~30.6%), international developed (~17.7%), and emerging markets (~7.2%). It is designed for long-term Canadian passive investors.",
+          text: "VEQT (Vanguard All-Equity ETF Portfolio) is a single-ticket ETF that provides instant exposure to 13,743 stocks across 50 countries (June 30, 2026). It holds 4 underlying Vanguard index ETFs covering the US (~45.3%), Canada (~29.6%), international developed (~17.9%), and emerging markets (~7.1%). It is designed for long-term Canadian passive investors.",
         },
       },
       {
@@ -56,7 +56,7 @@ export function buildFaqSchema() {
         name: "What is VEQT's MER?",
         acceptedAnswer: {
           '@type': 'Answer',
-          text: "VEQT's management fee is 0.17%, reduced from 0.22% effective November 18, 2025. Its MER (the all-in figure, which adds operating costs and tax) was last officially reported at 0.24% for a prior fiscal year and is being recalculated — it is expected to land near 0.19-0.20% once the fee cut is fully reflected.",
+          text: "VEQT's management fee is 0.17%, reduced from 0.22% effective November 18, 2025. Its MER (the all-in figure, which adds operating costs and tax) is officially 0.22% as of the June 30, 2026 factsheet (annualized to March 31, 2026) — the first recalculation to reflect the fee cut, down from 0.24%.",
         },
       },
       {
@@ -72,7 +72,7 @@ export function buildFaqSchema() {
         name: 'What is the difference between VEQT and XEQT?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: "Both are all-equity, globally diversified single-ticket ETFs with identical management fees (0.17%) and effectively identical MERs (~0.20%). XEQT (iShares) has slightly more US exposure (~45% vs ~43%). VEQT (Vanguard) has more Canadian exposure (~31% vs ~25%). Performance has been very similar. The differences are small enough that most investors won't notice over a 20-year horizon.",
+          text: "Both are all-equity, globally diversified single-ticket ETFs with identical management fees (0.17%) and near-identical MERs (0.22% vs 0.20%). Their US weights now sit within a point of each other (~45%); the real difference is home bias — VEQT holds ~30% Canada by design, XEQT ~25%. Performance has been very similar. The differences are small enough that most investors won't notice over a 20-year horizon.",
         },
       },
       {
@@ -107,6 +107,6 @@ export function buildInvestmentFundSchema() {
       name: 'Vanguard Investments Canada Inc.',
     },
     feesAndCommissionsSpecification:
-      'Management fee 0.17% (reduced from 0.22% effective November 18, 2025). MER pending fiscal year-end recalculation; last reported at 0.24%, expected near 0.19-0.20%.',
+      'Management fee 0.17% (reduced from 0.22% effective November 18, 2025). Official MER 0.22% per the June 30, 2026 factsheet (annualized to March 31, 2026), down from 0.24%.',
   };
 }
