@@ -89,13 +89,21 @@ const css = `
   animation-play-state: paused;
 }
 
+/* Stacked below 640: side-by-side panels drove the 300-unit viewBox down to
+   ~170px, printing the 10px SVG labels at ~6 CSS px — under the floor. Full-
+   width panels keep them at ~11px, and the desktop escape travel fits again,
+   so the Sm keyframe swap is gone with the squeeze. */
 @media (max-width: 640px) {
+  .exa {
+    grid-template-columns: 1fr;
+  }
+  .exa__panel + .exa__panel {
+    border-left: 0;
+    border-top: 1px solid var(--ins-ink);
+  }
   .exa__panel {
     padding: 16px 10px 14px;
     gap: 8px;
-  }
-  .exa[data-live="true"] .exa__escape {
-    animation-name: ins-art-exitFlowSm;
   }
 }
 `;
@@ -114,7 +122,8 @@ const CY = 88;
  * fee escapes along an arrow to NYSE: BLK shareholders.
  *
  * Both panels sit on one shared viewBox so the rings stay the same size
- * beside each other at any width, and both animations are pure transform
+ * beside each other from 641px up (below that the pair stacks to hold the
+ * 10px label floor), and both animations are pure transform
  * (rotate, translateX) — no layout, no paint.
  */
 export function OwnershipLoop() {

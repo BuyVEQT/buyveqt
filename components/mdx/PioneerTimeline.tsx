@@ -197,7 +197,7 @@ const MILESTONES: Milestone[] = [
   {
     year: 2019,
     who: "BlackRock",
-    text: "BlackRock launches XEQT — seven months after VEQT.",
+    text: "BlackRock launches XEQT — six months after VEQT.",
   },
 ];
 
@@ -220,7 +220,7 @@ export function PioneerTimeline() {
         Pioneer vs fast-follower · Fifty years of index investing
       </div>
       <h3 className="mpio__headline" id="mpio-headline">
-        One company invented this. The other showed up.
+        One was born for this. One bought in.
       </h3>
 
       <div className="mpio__band">

@@ -102,7 +102,7 @@ export const FUNDS: Record<string, FundData> = {
     provider: "iShares (BlackRock)",
     mer: 0.20,
     managementFee: 0.17, // BlackRock, eff. Dec 18 2025 (was 0.18%)
-    aum: "$14.7B",
+    aum: "$19.8B", // Yahoo netAssets via /api/fund-info, Aug 6 2026 (BlackRock pages 403 scripted fetches; prior $14.7B was materially stale)
     inceptionDate: "2019-08-07",
     numberOfHoldings: 8475, // iShares: underlying holdings as of May 29 2026
     distributionFrequency: "Quarterly",
