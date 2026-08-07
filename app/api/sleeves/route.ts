@@ -23,8 +23,9 @@ export interface SleeveEntry {
   ttmYield: number | null;
   /** Trailing-12-month distributions per unit, CAD. */
   ttmPerUnit: number | null;
-  /** Top holdings of the sleeve (percent of sleeve), heaviest first. */
-  topHoldings: Array<{ name: string; weight: number }>;
+  /** Top holdings of the sleeve (percent of sleeve), heaviest first.
+   *  Symbol is Yahoo's (may be empty), for the look-through book strips. */
+  topHoldings: Array<{ symbol: string; name: string; weight: number }>;
   /** Sector weights (percent of sleeve), heaviest first — the full book. */
   sectors: Array<{ name: string; weight: number }>;
   /** Calendar-year NAV returns (percent) on the TSX sleeve, newest first. */
@@ -64,9 +65,10 @@ interface CachedPayload {
  * because it costs nine upstream calls to build cold.
  */
 export async function GET() {
-  // "v2" — the widened dossier shape (top-10, full sectors, annual returns);
+  // "v3" — v2's widened dossier shape (top-10, full sectors, annual returns)
+  // plus per-holding symbols for the Observatory's look-through book strips;
   // an old cached payload must not satisfy the degraded-path read.
-  const cacheKey = getCacheKey("sleeves", "VEQT", "v2");
+  const cacheKey = getCacheKey("sleeves", "VEQT", "v3");
 
   const [veqtInfoResult, perSleeveResults, dividendResults, factsResults] =
     await Promise.allSettled([
@@ -129,7 +131,11 @@ export async function GET() {
     const topHoldings = (info?.topHoldings ?? [])
       .filter((h) => h.weight > 0 && h.weight < 0.9 && h.name)
       .slice(0, TOP_N)
-      .map((h) => ({ name: h.name, weight: +(h.weight * 100).toFixed(2) }));
+      .map((h) => ({
+        symbol: h.symbol ?? "",
+        name: h.name,
+        weight: +(h.weight * 100).toFixed(2),
+      }));
 
     const sectors = Object.entries(info?.sectorWeights ?? {})
       .sort((a, b) => b[1] - a[1])

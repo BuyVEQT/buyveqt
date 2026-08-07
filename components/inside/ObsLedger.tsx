@@ -1,14 +1,13 @@
 "use client";
 
-import { VEQT_TOP_HOLDINGS } from "@/data/holdings";
 import { FUNDS } from "@/data/funds";
 import { fmtInt } from "@/lib/instrument-format";
+import { useSleeves } from "@/lib/useSleeves";
+import { topOfBook } from "@/lib/top-of-book";
 import { useArmOnView } from "./useArmOnView";
 import DriftBlock from "./DriftBlock";
 
 const TOP_N = 5;
-const ROWS = VEQT_TOP_HOLDINGS.slice(0, TOP_N);
-const MAX_WEIGHT = ROWS.reduce((m, h) => Math.max(m, h.weight), 0) || 1;
 
 /** The heaviest name's bar reaches 84% of its track — the 10b scale. */
 const BAR_MAX_PCT = 84;
@@ -16,16 +15,23 @@ const BAR_MAX_PCT = 84;
 /**
  * THE LEDGER, ALIVE — "Every number arrives." (artboard 10b).
  *
- * Left: the top five of the book, weights drawn as bars to scale, sweeping
- * in staggered the first time the section scrolls into view (the same
- * [data-armed] contract as the rest of the site — the un-armed frame is
- * the finished diagram). Right: the drift lines, one per sleeve, no dials.
- * On phones the drift block detaches and reappears after the engine — the
- * 390 artboard's order — so here it renders desktop-only.
+ * Left: the top five of the book — per-sleeve top holdings from the shared
+ * /api/sleeves store, scaled by live sleeve weights (lib/top-of-book) —
+ * drawn as bars to scale, sweeping in staggered the first time the section
+ * scrolls into view (the same [data-armed] contract as the rest of the
+ * site). Before the store resolves, five fixed-height placeholder rows hold
+ * the geometry so nothing shifts. Right: the drift lines, one per sleeve,
+ * no dials. On phones the drift block detaches and reappears after the
+ * engine — the 390 artboard's order — so here it renders desktop-only.
  */
 export default function ObsLedger() {
   const { ref, armed } = useArmOnView<HTMLElement>();
+  const { data } = useSleeves();
   const universe = FUNDS["VEQT.TO"]?.numberOfHoldings;
+
+  const rows = topOfBook(data, TOP_N);
+  const live = rows.length > 0;
+  const maxWeight = rows.reduce((m, h) => Math.max(m, h.weight), 0) || 1;
 
   return (
     <section
@@ -50,29 +56,40 @@ export default function ObsLedger() {
             Top of the book — weights to scale
           </div>
           <div className="ledger__rows">
-            {ROWS.map((h, i) => (
-              <div
-                className={`ledger__row${i === TOP_N - 1 ? " is-last" : ""}`}
-                key={h.ticker}
-              >
-                <span className="ledger__ord" aria-hidden="true">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <span className="ledger__name">{h.name}</span>
-                <span className="ledger__track">
-                  <span
-                    className="ledger__fill"
-                    style={{
-                      width: `${(h.weight / MAX_WEIGHT) * BAR_MAX_PCT}%`,
-                    }}
-                  />
-                </span>
-                <span className="ledger__weight">
-                  {h.weight.toFixed(2)}
-                  <span className="ledger-desk">%</span>
-                </span>
-              </div>
-            ))}
+            {Array.from({ length: TOP_N }, (_, i) => {
+              const h = live ? rows[i] : null;
+              return (
+                <div
+                  className={`ledger__row${i === TOP_N - 1 ? " is-last" : ""}`}
+                  key={h ? h.name : `pending-${i}`}
+                >
+                  <span className="ledger__ord" aria-hidden="true">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <span className="ledger__name">{h ? h.name : "—"}</span>
+                  <span className="ledger__track">
+                    {h && (
+                      <span
+                        className="ledger__fill"
+                        style={{
+                          width: `${(h.weight / maxWeight) * BAR_MAX_PCT}%`,
+                        }}
+                      />
+                    )}
+                  </span>
+                  <span className="ledger__weight">
+                    {h ? (
+                      <>
+                        {h.weight.toFixed(2)}
+                        <span className="ledger-desk">%</span>
+                      </>
+                    ) : (
+                      "—"
+                    )}
+                  </span>
+                </div>
+              );
+            })}
           </div>
           <p className="ledger__note">
             The five biggest of {universe ? fmtInt(universe) : "the book"} —
